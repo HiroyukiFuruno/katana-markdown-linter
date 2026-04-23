@@ -57,6 +57,21 @@ pub use md034::*;
 pub mod md039;
 pub use md039::*;
 
+pub mod md005;
+pub use md005::*;
+
+pub mod md056;
+pub use md056::*;
+
+pub mod md058;
+pub use md058::*;
+
+pub mod md059;
+pub use md059::*;
+
+pub mod md060;
+pub use md060::*;
+
 pub mod list_indent;
 pub use list_indent::*;
 

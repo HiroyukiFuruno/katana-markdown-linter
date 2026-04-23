@@ -1,5 +1,6 @@
 use crate::rules::markdown::BrokenLinkRule;
 use crate::rules::markdown::HeadingStructureRule;
+use crate::rules::markdown::ListIndentRule;
 
 use crate::rules::markdown::rules::blockquote::*;
 use crate::rules::markdown::rules::content::*;
@@ -23,6 +24,10 @@ use crate::rules::markdown::rules::md020::*;
 use crate::rules::markdown::rules::md021::*;
 use crate::rules::markdown::rules::md034::*;
 use crate::rules::markdown::rules::md039::*;
+use crate::rules::markdown::rules::md056::*;
+use crate::rules::markdown::rules::md058::*;
+use crate::rules::markdown::rules::md059::*;
+use crate::rules::markdown::rules::md060::*;
 use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
@@ -108,7 +113,12 @@ impl MarkdownLinterOps {
             Box::new(FencedCodeLanguageRule), // MD040
             Box::new(FirstLineHeadingRule),   // MD041
             Box::new(NoEmptyLinksRule),       // MD042
+            Box::new(TableColumnCountRule),   // MD056
+            Box::new(TableSpacingRule),       // MD058
+            Box::new(ProhibitedLinkTextRule), // MD059
+            Box::new(TableColumnStyleRule),   // MD060
             /* WHY: List rules */
+            Box::new(ListIndentRule),          // MD005
             Box::new(UnorderedListIndentRule), // MD007
             Box::new(UlStyleRule),             // MD004
             Box::new(OlPrefixRule),            // MD029
@@ -137,7 +147,6 @@ impl MarkdownLinterOps {
             Box::new(RuleMD001),
             Box::new(RuleMD003),
             Box::new(RuleMD004),
-            Box::new(RuleMD005),
             Box::new(RuleMD007),
             Box::new(RuleMD011),
             Box::new(RuleMD012),
@@ -176,10 +185,6 @@ impl MarkdownLinterOps {
             Box::new(RuleMD053),
             Box::new(RuleMD054),
             Box::new(RuleMD055),
-            Box::new(RuleMD056),
-            Box::new(RuleMD058),
-            Box::new(RuleMD059),
-            Box::new(RuleMD060),
         ];
 
         /* WHY: Collect existing IDs first to avoid duplicating rules already in get_official_rules(). */

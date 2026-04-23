@@ -40,19 +40,3 @@ regex_rule!(
         ),
     ]
 );
-regex_rule!(
-    RuleMD020,
-    "MD020",
-    "No space inside blockquote marker",
-    r"^>\S",
-    DiagnosticSeverity::Warning,
-    &[]
-);
-regex_rule!(
-    RuleMD021,
-    "MD021",
-    "Multiple spaces after blockquote marker",
-    r"^>\s{2,}\S",
-    DiagnosticSeverity::Warning,
-    &[]
-);

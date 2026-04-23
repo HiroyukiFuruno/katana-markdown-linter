@@ -228,6 +228,14 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_list_indent_rule_violation() {
+        let content = "- item\n  - nested\n   - inconsistent";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD005"));
+    }
+
+    #[test]
     fn lint_reports_multiple_blank_lines() {
         let content = "first\n\n\nsecond\n";
         let options = LintOptions::default();
@@ -241,6 +249,17 @@ mod tests {
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD027"));
+    }
+
+    #[test]
+    fn lint_reports_table_rules() {
+        let content = "| a | b |\n| 1 | 2 | 3 |\n| 1  | 2 |\nclick here";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD056"));
+        assert!(results.iter().any(|result| result.rule_id == "MD058"));
+        assert!(results.iter().any(|result| result.rule_id == "MD059"));
+        assert!(results.iter().any(|result| result.rule_id == "MD060"));
     }
 
     #[test]
@@ -295,11 +314,11 @@ mod tests {
     #[test]
     fn missing_rules_exposes_stubbed_official_rules() {
         let rules = missing_rules();
-        assert!(rules.iter().any(|rule| rule.id == "MD005"));
-        assert!(rules.iter().any(|rule| rule.id == "MD056"));
         assert!(!rules.iter().any(|rule| rule.id == "MD001"));
         assert!(!rules.iter().any(|rule| rule.id == "MD024"));
         assert!(!rules.iter().any(|rule| rule.id == "MD030"));
         assert!(!rules.iter().any(|rule| rule.id == "MD031"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD005"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD056"));
     }
 }

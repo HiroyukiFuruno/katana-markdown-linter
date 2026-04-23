@@ -4,20 +4,20 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
-/// MD014 / dollar-signs-before-commands — Dollar signs used before commands without spaces.
-pub struct DollarSignsBeforeCommandsRule;
+/// MD059 / link-text — Prohibited link text.
+pub struct ProhibitedLinkTextRule;
 
-impl MarkdownRule for DollarSignsBeforeCommandsRule {
+impl MarkdownRule for ProhibitedLinkTextRule {
     fn id(&self) -> &'static str {
-        "MD014"
+        "MD059"
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
         Some(OfficialRuleMeta {
-            code: "MD014",
-            title: "dollar-signs-before-commands",
-            description: "Dollar signs used before commands without spaces.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md014.md",
+            code: "MD059",
+            title: "link-text",
+            description: "Prohibited link text.",
+            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md059.md",
             parity: RuleParityStatus::Official,
             is_fixable: false,
             properties: &[],
@@ -25,15 +25,13 @@ impl MarkdownRule for DollarSignsBeforeCommandsRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        let meta = self.official_meta().expect("always Some for MD014");
+        let meta = self.official_meta().expect("always Some for MD059");
         let mut diagnostics = Vec::new();
+        let prohibited = ["click here", "here", "link", "more"];
         for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with('$')
-                && trimmed
-                    .chars()
-                    .nth(1)
-                    .is_some_and(|next| !next.is_whitespace())
+            if prohibited
+                .iter()
+                .any(|needle| line.to_lowercase().contains(needle))
             {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
