@@ -7,8 +7,8 @@
 
 ## 1. Package Metadata
 
-- [ ] 1.1 `Cargo.toml` に crates.io 向け metadata を追加する
-- [ ] 1.2 `license` / `readme` / `repository` / `description` / `keywords` / `categories` を `Cargo.toml` に設定する
+- [x] 1.1 `Cargo.toml` に crates.io 向け metadata を追加する
+- [x] 1.2 `license` / `readme` / `repository` / `description` / `keywords` / `categories` を `Cargo.toml` に設定する
 - [ ] 1.3 package の include / exclude を定義する
 
 ## 2. Publish Validation
@@ -19,8 +19,8 @@
 
 ## 3. Release Readiness
 
-- [ ] 3.1 README に library API、CLI install、configuration、release policy の章を追加する
-- [ ] 3.2 README に library API、CLI install、configuration、release policy を記載する
+- [x] 3.1 README に library API、CLI install、configuration、release policy の章を追加する
+- [x] 3.2 README に library API、CLI install、configuration、release policy を記載する
 - [ ] 3.3 publish 失敗時の復旧手順を release runbook に記載する
 
 ## Definition of Done
