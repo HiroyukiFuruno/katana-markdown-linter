@@ -201,5 +201,8 @@ mod tests {
         assert!(rules.iter().any(|rule| rule.id == "MD013"));
         assert!(rules.iter().any(|rule| rule.id == "MD056"));
         assert!(!rules.iter().any(|rule| rule.id == "MD001"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD024"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD030"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD031"));
     }
 }

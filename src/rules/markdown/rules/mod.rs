@@ -6,6 +6,9 @@
 pub mod blockquote;
 pub use blockquote::*;
 
+pub mod fences;
+pub use fences::*;
+
 pub mod content;
 pub use content::*;
 
@@ -18,6 +21,9 @@ pub use heading::*;
 pub mod heading_ext;
 pub use heading_ext::*;
 
+pub mod heading_duplicates;
+pub use heading_duplicates::*;
+
 pub mod heading_style;
 pub use heading_style::*;
 
@@ -29,6 +35,9 @@ pub use list::*;
 
 pub mod list_ext;
 pub use list_ext::*;
+
+pub mod list_spacing;
+pub use list_spacing::*;
 
 pub mod style;
 pub use style::*;

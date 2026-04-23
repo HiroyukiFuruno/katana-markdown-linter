@@ -4,12 +4,15 @@ use crate::rules::markdown::HeadingStructureRule;
 use crate::rules::markdown::rules::blockquote::*;
 use crate::rules::markdown::rules::content::*;
 use crate::rules::markdown::rules::content_ext::*;
+use crate::rules::markdown::rules::fences::*;
 use crate::rules::markdown::rules::heading::*;
+use crate::rules::markdown::rules::heading_duplicates::*;
 use crate::rules::markdown::rules::heading_ext::*;
 use crate::rules::markdown::rules::heading_style::*;
 use crate::rules::markdown::rules::image::*;
 use crate::rules::markdown::rules::list::*;
 use crate::rules::markdown::rules::list_ext::*;
+use crate::rules::markdown::rules::list_spacing::*;
 use crate::rules::markdown::rules::style::*;
 use crate::rules::markdown::rules::whitespace::*;
 use crate::rules::markdown::stubs_regex::*;
@@ -74,7 +77,11 @@ impl MarkdownLinterOps {
             Box::new(RuleMD038), // no-space-in-code
             Box::new(RuleMD039), // no-space-in-links
             /* WHY: Blockquote rules */
-            Box::new(NoBlanksBlockquoteRule),    // MD028
+            Box::new(NoBlanksBlockquoteRule), // MD028
+            /* WHY: Additional active rules */
+            Box::new(NoDuplicateHeadingRule),    // MD024
+            Box::new(BlanksAroundFencesRule),    // MD031
+            Box::new(ListMarkerSpaceRule),       // MD030
             Box::new(SingleTrailingNewlineRule), // MD047
             /* WHY: Content rules */
             Box::new(NoInlineHtmlRule),       // MD033
