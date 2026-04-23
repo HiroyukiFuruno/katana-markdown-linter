@@ -71,8 +71,14 @@ impl MarkdownLinterOps {
             /* WHY: Regex-based rules */
             Box::new(RuleMD009), // trailing-spaces
             Box::new(RuleMD010), // hard-tabs
+            Box::new(RuleMD011), // reversed link syntax
+            Box::new(RuleMD013), // line length
+            Box::new(RuleMD014), // dollar signs before commands
             Box::new(RuleMD018), // no-missing-space-atx
             Box::new(RuleMD019), // no-multiple-space-atx
+            Box::new(RuleMD020), // no-space-in-blockquote
+            Box::new(RuleMD021), // multiple-space-in-blockquote
+            Box::new(RuleMD034), // no-bare-urls
             Box::new(RuleMD037), // no-space-in-emphasis
             Box::new(RuleMD038), // no-space-in-code
             Box::new(RuleMD039), // no-space-in-links

@@ -1,4 +1,5 @@
 ## Definition of Ready
+- [ ] phase1, phase2, phase3, phase4 の `tasks.md` が全て完了していること
 - [ ] phase2 の rule catalog が全 active rule を `implemented_check` として扱っていること
 - [ ] upstream `markdownlint` の rule document を参照できること
 - [ ] local rule metadata の source of truth が決まっていること

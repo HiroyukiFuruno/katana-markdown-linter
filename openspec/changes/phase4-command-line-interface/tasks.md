@@ -1,5 +1,6 @@
 ## Definition of Ready
 - [ ] phase3 の publish validation が CI で通っていること
+- [ ] phase1, phase2, phase3 の `tasks.md` が全て完了していること
 - [ ] CLI command set が `check` / `fix` / `init-config` に固定されていること
 - [ ] `.markdownlint.json` helper の出力仕様が固まっていること
 - [ ] executable name が `kml` として固定されていること

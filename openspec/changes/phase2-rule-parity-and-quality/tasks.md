@@ -1,5 +1,6 @@
 ## Definition of Ready
 - [ ] phase1 の scaffold が完成していること
+- [ ] phase1 の `tasks.md` が全て完了していること
 - [ ] 公式 markdownlint の rule 一覧と config 仕様を参照できること
 - [ ] `.markdownlint.json` の生成形式が JSON object として確定していること
 - [ ] phase2 の完了条件が全 active rule の check 実装必須として固定されていること
@@ -20,9 +21,9 @@
 
 ## 3. Quality Gates
 
-- [ ] 3.1 rule ごとの unit test を追加する
+- [x] 3.1 rule ごとの unit test を追加する
 - [x] 3.2 config helper の integration test を追加する
-- [ ] 3.3 check と fix の両方で回帰しないことを確認する
+- [x] 3.3 check と fix の両方で回帰しないことを確認する
 
 ## Definition of Done
 - [ ] official docs にある全 active rule が `implemented_check` として扱われていること

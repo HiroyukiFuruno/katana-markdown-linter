@@ -1,5 +1,6 @@
 ## Definition of Ready
 - [ ] phase2 の rule / config quality が固まっていること
+- [ ] phase1 と phase2 の `tasks.md` が全て完了していること
 - [ ] `Cargo.toml` に入れる publish metadata の項目一覧が確定していること
 - [ ] binary target 名と install 後の executable 名が `kml` として確定していること
 - [ ] package name が `katana-markdown-linter`、license が MIT として確定していること

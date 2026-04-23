@@ -173,12 +173,47 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_regex_based_rule_violations() {
+        let content = ">no space\n\n\nReversed [link](text[\n\nhttps://example.com";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD020"));
+        assert!(results.iter().any(|result| result.rule_id == "MD011"));
+        assert!(results.iter().any(|result| result.rule_id == "MD034"));
+    }
+
+    #[test]
+    fn lint_reports_line_length_violation() {
+        let content = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD013"));
+    }
+
+    #[test]
     fn fix_keeps_unmodified_content_when_no_fixes_apply() {
-        let content = "# title\n\nParagraph";
+        let content = "# title\n\nParagraph\n";
         let options = LintOptions::default();
         let result = fix(content, &options).expect("fix should succeed");
         assert_eq!(result.content, content);
         assert_eq!(result.applied_fixes, 0);
+    }
+
+    #[test]
+    fn fix_applies_list_marker_normalization() {
+        let content = "- item\n+ item";
+        let mut options = LintOptions::default();
+        options.rules.insert(
+            "MD004".to_string(),
+            RuleConfig {
+                enabled: true,
+                properties: std::collections::HashMap::new(),
+            },
+        );
+        let result = fix(content, &options).expect("fix should succeed");
+        assert_ne!(result.content, content);
+        let results = lint(&result.content, &options).expect("re-lint should succeed");
+        assert!(!results.iter().any(|result| result.rule_id == "MD004"));
     }
 
     #[test]
@@ -199,7 +234,6 @@ mod tests {
     fn missing_rules_exposes_stubbed_official_rules() {
         let rules = missing_rules();
         assert!(rules.iter().any(|rule| rule.id == "MD005"));
-        assert!(rules.iter().any(|rule| rule.id == "MD013"));
         assert!(rules.iter().any(|rule| rule.id == "MD056"));
         assert!(!rules.iter().any(|rule| rule.id == "MD001"));
         assert!(!rules.iter().any(|rule| rule.id == "MD024"));

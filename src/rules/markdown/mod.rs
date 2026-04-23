@@ -148,7 +148,6 @@ pub use HeadingIncrementRule as HeadingStructureRule;
 pub mod macros;
 #[rustfmt::skip]
 pub mod stubs;
-pub use stubs::*;
 pub mod stubs_regex;
 pub use stubs_regex::*;
 
