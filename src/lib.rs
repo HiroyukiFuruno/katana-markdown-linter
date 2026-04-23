@@ -191,6 +191,15 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_spacing_inside_emphasis_and_code() {
+        let content = "This is * spaced * text and ` code ` span.";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD037"));
+        assert!(results.iter().any(|result| result.rule_id == "MD038"));
+    }
+
+    #[test]
     fn fix_keeps_unmodified_content_when_no_fixes_apply() {
         let content = "# title\n\nParagraph\n";
         let options = LintOptions::default();

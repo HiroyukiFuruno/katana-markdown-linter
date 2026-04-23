@@ -39,6 +39,12 @@ pub use list_ext::*;
 pub mod list_spacing;
 pub use list_spacing::*;
 
+pub mod spaces_in_code;
+pub use spaces_in_code::*;
+
+pub mod spaces_in_emphasis;
+pub use spaces_in_emphasis::*;
+
 pub mod style;
 pub use style::*;
 

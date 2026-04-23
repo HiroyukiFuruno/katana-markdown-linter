@@ -1,0 +1,104 @@
+use crate::rules::markdown::helpers::RuleHelpers;
+use crate::rules::markdown::{
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+};
+use std::path::Path;
+
+/// MD038 / no-space-in-code — Spaces inside code span elements
+pub struct NoSpaceInCodeRule;
+
+impl MarkdownRule for NoSpaceInCodeRule {
+    fn id(&self) -> &'static str {
+        "MD038"
+    }
+
+    fn official_meta(&self) -> Option<OfficialRuleMeta> {
+        Some(OfficialRuleMeta {
+            code: "MD038",
+            title: "no-space-in-code",
+            description: "Spaces inside code span elements",
+            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md038.md",
+            parity: RuleParityStatus::Official,
+            is_fixable: true,
+            properties: &[],
+        })
+    }
+
+    fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let meta = self.official_meta().expect("always Some for MD038");
+        let mut diagnostics = Vec::new();
+        let mut in_code_block = false;
+
+        for (i, line) in content.lines().enumerate() {
+            let trimmed = line.trim_start();
+            if RuleHelpers::is_fence(trimmed) {
+                in_code_block = !in_code_block;
+                continue;
+            }
+            if in_code_block {
+                continue;
+            }
+
+            let mut chars = line.char_indices().peekable();
+            let mut current_span_start: Option<usize> = None;
+            let mut backtick_count = 0;
+
+            while let Some((idx, c)) = chars.next() {
+                if c == '`' {
+                    let mut count = 1;
+                    while let Some(&(_, next_c)) = chars.peek() {
+                        if next_c == '`' {
+                            count += 1;
+                            chars.next();
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if let Some(start_idx) = current_span_start {
+                        if count == backtick_count {
+                            let inner_start = start_idx + count;
+                            let inner_end = idx;
+                            if inner_start < inner_end {
+                                let inner_text = &line[inner_start..inner_end];
+                                if inner_text.starts_with(' ') || inner_text.ends_with(' ') {
+                                    let trimmed_inner = inner_text.trim();
+                                    let replacement = format!(
+                                        "{}{}{}",
+                                        "`".repeat(count),
+                                        trimmed_inner,
+                                        "`".repeat(count)
+                                    );
+                                    let fix = Some(crate::rules::markdown::types::DiagnosticFix {
+                                        start_line: i + 1,
+                                        start_column: start_idx + 1,
+                                        end_line: i + 1,
+                                        end_column: inner_end + count + 1,
+                                        replacement,
+                                    });
+
+                                    RuleHelpers::push_diag_with_fix(
+                                        &mut diagnostics,
+                                        file_path,
+                                        i,
+                                        line,
+                                        &meta,
+                                        DiagnosticSeverity::Warning,
+                                        fix,
+                                    );
+                                }
+                            }
+                            current_span_start = None;
+                            backtick_count = 0;
+                        }
+                    } else {
+                        current_span_start = Some(idx);
+                        backtick_count = count;
+                    }
+                }
+            }
+        }
+
+        diagnostics
+    }
+}
