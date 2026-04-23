@@ -30,6 +30,12 @@ pub use heading_style::*;
 pub mod image;
 pub use image::*;
 
+pub mod md018;
+pub use md018::*;
+
+pub mod md019;
+pub use md019::*;
+
 pub mod list_indent;
 pub use list_indent::*;
 

@@ -183,6 +183,15 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_atx_heading_spacing_violations() {
+        let content = "#Title\n##  Title";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD018"));
+        assert!(results.iter().any(|result| result.rule_id == "MD019"));
+    }
+
+    #[test]
     fn lint_reports_line_length_violation() {
         let content = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh";
         let options = LintOptions::default();

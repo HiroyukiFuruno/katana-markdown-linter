@@ -14,6 +14,8 @@ use crate::rules::markdown::rules::list::*;
 use crate::rules::markdown::rules::list_ext::*;
 use crate::rules::markdown::rules::list_indent::*;
 use crate::rules::markdown::rules::list_spacing::*;
+use crate::rules::markdown::rules::md018::*;
+use crate::rules::markdown::rules::md019::*;
 use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
@@ -72,20 +74,20 @@ impl MarkdownLinterOps {
             Box::new(SingleH1Rule),              // MD025
             Box::new(NoTrailingPunctuationRule), // MD026
             /* WHY: Regex-based rules */
-            Box::new(RuleMD009),            // trailing-spaces
-            Box::new(RuleMD010),            // hard-tabs
-            Box::new(RuleMD011),            // reversed link syntax
-            Box::new(NoMultipleBlanksRule), // MD012
-            Box::new(RuleMD013),            // line length
-            Box::new(RuleMD014),            // dollar signs before commands
-            Box::new(RuleMD018),            // no-missing-space-atx
-            Box::new(RuleMD019),            // no-multiple-space-atx
-            Box::new(RuleMD020),            // no-space-in-blockquote
-            Box::new(RuleMD021),            // multiple-space-in-blockquote
-            Box::new(RuleMD034),            // no-bare-urls
-            Box::new(SpacesInEmphasisRule), // MD037
-            Box::new(NoSpaceInCodeRule),    // MD038
-            Box::new(RuleMD039),            // no-space-in-links
+            Box::new(RuleMD009),              // trailing-spaces
+            Box::new(RuleMD010),              // hard-tabs
+            Box::new(RuleMD011),              // reversed link syntax
+            Box::new(NoMultipleBlanksRule),   // MD012
+            Box::new(RuleMD013),              // line length
+            Box::new(RuleMD014),              // dollar signs before commands
+            Box::new(NoMissingSpaceAtxRule),  // MD018
+            Box::new(NoMultipleSpaceAtxRule), // MD019
+            Box::new(RuleMD020),              // no-space-in-blockquote
+            Box::new(RuleMD021),              // multiple-space-in-blockquote
+            Box::new(RuleMD034),              // no-bare-urls
+            Box::new(SpacesInEmphasisRule),   // MD037
+            Box::new(NoSpaceInCodeRule),      // MD038
+            Box::new(RuleMD039),              // no-space-in-links
             /* WHY: Blockquote rules */
             Box::new(NoMultipleSpaceBlockquoteRule), // MD027
             Box::new(NoBlanksBlockquoteRule),        // MD028
