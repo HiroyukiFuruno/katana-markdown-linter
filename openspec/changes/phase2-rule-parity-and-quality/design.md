@@ -2,6 +2,9 @@
 
 公式 markdownlint は rule ID、description、tags、config schema、fix 可否を含む明確な contract を持っている。
 この phase では、既存実装だけに閉じず、公式 documentation と upstream implementation を照らし合わせて rule coverage を引き上げる。
+各 rule 実装は `mdxxx.rs` 単位で分離し、`check` / `fix` のみを責務とする。
+config の適用、rule の有効・無効、順序制御、依存関係の解決は engine / scheduler 側の責務とする。
+rule の入力は raw text ではなく `Document` とする。`Document` は source text, line index, AST, source map を含み、`mdxxx.rs` はその view を使って `check` / `fix` を行う。
 
 ## Goals / Non-Goals
 
@@ -11,6 +14,7 @@
 - upstream implementation または official documentation から安全な fix behavior を確認できる rule については自動修正の contract を持たせる
 - `.markdownlint.json` の default / override / validation を扱う helper を整備する
 - rule ごとの品質を unit / integration テストで守る
+- rule 実装は `mdxxx.rs` 単位で分離し、rule 本体に順序性や config orchestration を持ち込まない
 
 **Non-Goals:**
 
@@ -36,6 +40,16 @@ check と fix を同じ実装に混ぜるのではなく、fix 可否と unsuppo
 `.markdownlint.json` を作る helper と、既存 config を読む helper を分ける。
 生成ロジックと validation ロジックを一緒にすると、後で CLI から呼ぶときに扱いづらくなる。
 
+### 4. rule 実装は pure check/fix として扱う
+
+`mdxxx.rs` は rule 固有の `check` / `fix` のみを持つ。
+rule の有効・無効判定、config の注入、実行順序の決定、依存関係の解決は engine / scheduler の責務として切り離す。
+
+### 5. AST-first だが text view を残す
+
+AST を基準にしつつ、line/column ベースの rule と fix があるため、source text と line index は `Document` に残す。
+これにより、構文木に依存する rule と文字列ベースの rule を同一 engine で扱える。
+
 ## Risks / Trade-offs
 
 - 公式 docs との同期コストがある
@@ -51,6 +65,8 @@ check と fix を同じ実装に混ぜるのではなく、fix 可否と unsuppo
 - official source と fixability 判断は phase5 の default branch 追従 contract と矛盾しない形で、upstream docs と upstream implementation を参照する
 - `.markdownlint.json` helper の default は upstream default を基準にする
 - 特定アプリケーション専用 preset はこの crate の責務に含めない
+- rule の順序性や依存関係は engine 側の metadata で管理し、rule 実装は参照しない
+- rule の入力 contract は `Document` に固定し、raw string の直接受け渡しはしない
 
 ## Migration Plan
 

@@ -2,6 +2,7 @@
 
 この repository の価値は、単なる markdownlint の再実装ではなく、upstream の仕様変化に追従し続けられることにある。
 そのためには、human-readable な docs を読み込むだけでなく、rule ID、metadata、config properties を machine-readable にして比較できる必要がある。
+比較の基礎となる local 側の情報も `Document` / `RuleMeta` / `ConfigSchema` に正規化し、AST と text view のどちらの差分も扱えるようにする。
 
 ## Goals / Non-Goals
 
@@ -34,18 +35,21 @@ rule docs を単なる Markdown テキストではなく、rule id、title、sum
 
 local 実装の source tree と upstream docs を比較する lint を、開発用の保守チェックとして持つ。
 これは end-user 向け lint ではなく、repository を壊さず upstream 追従するための内部品質ゲートである。
+この lint は raw Markdown を直接比較せず、`Document` の normalized view と upstream snapshot の normalized JSON を比較する。
 
 ## Risks / Trade-offs
 
 - upstream docs の書式変更で parser が壊れる可能性がある
 - deprecated / removed の判断基準が文書だけでは曖昧な場合があるため、判断不能な rule は `unknown_needs_review` として CI failure にする
 - 構造化しすぎると parser 実装が本体より重くなる
+- AST だけでは不足するため、line index と source map を含む `Document` が必要になる
 
 ## Confirmed Decisions
 
 以下はユーザー確認済みの決定事項である。
 
 - upstream source は `DavidAnson/markdownlint` の default branch 追従とする
+- local checker は `Document` ベースの normalized comparison を採用し、raw string の直接比較はしない
 
 ## User Decisions
 

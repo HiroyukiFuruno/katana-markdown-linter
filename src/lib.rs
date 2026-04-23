@@ -1,5 +1,6 @@
 //! `katana-markdown-linter` library.
 
+pub mod catalog;
 pub mod cli;
 pub mod config;
 pub mod fix;
@@ -29,11 +30,7 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
 
 /// Returns the set of available rules.
 pub fn available_rules() -> Vec<RuleMeta> {
-    rules::markdown::MarkdownLinterOps::get_user_configurable_rules()
-        .into_iter()
-        .filter_map(|rule| rule.official_meta())
-        .map(Into::into)
-        .collect()
+    catalog::RuleCatalog::build().to_rule_meta()
 }
 
 /// Returns the set of rules that are currently executed by the linter.
@@ -47,16 +44,22 @@ pub fn implemented_rules() -> Vec<RuleMeta> {
 
 /// Returns the set of official rules that are exposed to configuration but not yet linted.
 pub fn missing_rules() -> Vec<RuleMeta> {
-    let implemented = implemented_rules();
-    let implemented_ids = implemented
-        .iter()
-        .map(|rule| rule.id.clone())
-        .collect::<std::collections::HashSet<_>>();
-
-    available_rules()
+    catalog::RuleCatalog::build()
+        .missing_check_rules()
         .into_iter()
-        .filter(|rule| !implemented_ids.contains(&rule.id))
+        .map(|entry| RuleMeta {
+            id: entry.id.clone(),
+            name: entry.name.clone(),
+            description: entry.description.clone(),
+            docs_url: entry.docs_url.clone(),
+            fixable: entry.fixable,
+        })
         .collect()
+}
+
+/// Returns a structured catalog of active, deprecated, and removed rules.
+pub fn rule_catalog() -> catalog::RuleCatalog {
+    catalog::RuleCatalog::build()
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -162,6 +165,14 @@ mod tests {
         sorted.sort();
         sorted.dedup();
         assert_eq!(ids, sorted);
+    }
+
+    #[test]
+    fn rule_catalog_exposes_active_and_empty_lifecycle_buckets() {
+        let catalog = rule_catalog();
+        assert!(catalog.active_rules().any(|rule| rule.id == "MD001"));
+        assert!(catalog.deprecated.is_empty());
+        assert!(catalog.removed.is_empty());
     }
 
     #[test]

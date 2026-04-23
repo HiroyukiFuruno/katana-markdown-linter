@@ -14,10 +14,15 @@ use crate::rules::markdown::rules::list::*;
 use crate::rules::markdown::rules::list_ext::*;
 use crate::rules::markdown::rules::list_indent::*;
 use crate::rules::markdown::rules::list_spacing::*;
+use crate::rules::markdown::rules::md011::*;
+use crate::rules::markdown::rules::md013::*;
+use crate::rules::markdown::rules::md014::*;
 use crate::rules::markdown::rules::md018::*;
 use crate::rules::markdown::rules::md019::*;
 use crate::rules::markdown::rules::md020::*;
 use crate::rules::markdown::rules::md021::*;
+use crate::rules::markdown::rules::md034::*;
+use crate::rules::markdown::rules::md039::*;
 use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
@@ -78,18 +83,18 @@ impl MarkdownLinterOps {
             /* WHY: Regex-based rules */
             Box::new(RuleMD009),                       // trailing-spaces
             Box::new(RuleMD010),                       // hard-tabs
-            Box::new(RuleMD011),                       // reversed link syntax
+            Box::new(NoReversedLinksRule),             // MD011
             Box::new(NoMultipleBlanksRule),            // MD012
-            Box::new(RuleMD013),                       // line length
-            Box::new(RuleMD014),                       // dollar signs before commands
+            Box::new(LineLengthRule),                  // MD013
+            Box::new(DollarSignsBeforeCommandsRule),   // MD014
             Box::new(NoMissingSpaceAtxRule),           // MD018
             Box::new(NoMultipleSpaceAtxRule),          // MD019
             Box::new(NoSpaceInBlockquoteRule),         // MD020
             Box::new(NoMultipleSpaceInBlockquoteRule), // MD021
-            Box::new(RuleMD034),                       // no-bare-urls
+            Box::new(NoBareUrlsRule),                  // MD034
             Box::new(SpacesInEmphasisRule),            // MD037
             Box::new(NoSpaceInCodeRule),               // MD038
-            Box::new(RuleMD039),                       // no-space-in-links
+            Box::new(NoSpacesInLinksRule),             // MD039
             /* WHY: Blockquote rules */
             Box::new(NoMultipleSpaceBlockquoteRule), // MD027
             Box::new(NoBlanksBlockquoteRule),        // MD028

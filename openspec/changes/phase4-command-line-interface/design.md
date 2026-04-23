@@ -4,6 +4,7 @@
 この phase では、Rust 実装としての見通しを優先しつつ、ユーザーが期待する操作を最小の command set で実現する。
 参考にする CLI 体験として `rumdl` と `mado` を確認し、`check` / `fix` の分割、config helper、exit code の考え方だけを取り込む。
 ただし、実装は library-first を維持し、CLI は core API の薄い wrapper として扱う。
+rule 実装は `mdxxx.rs` 単位の pure check/fix に限定し、config 解釈・有効無効・順序制御は CLI ではなく engine 側で扱う。
 
 ## Goals / Non-Goals
 
@@ -42,6 +43,7 @@ automation や CI で扱いやすくするためである。
 - CLI オプションを増やしすぎると phase4 の範囲が膨らむ
 - config discovery の precedence は `--config`、current directory の `.markdownlint.json`、current directory の `.markdownlint.jsonc`、parent directory search の順に固定する
 - check/fix の出力形式を曖昧にすると、将来の integration が壊れやすい
+- CLI は rule の順序や依存関係を持たず、engine が解決した実行結果をそのまま出力する
 
 ## Confirmed Decisions
 

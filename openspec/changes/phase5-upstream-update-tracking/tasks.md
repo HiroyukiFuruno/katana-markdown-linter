@@ -14,13 +14,13 @@
 
 ## 2. Rule Doc Parsing
 
-- [ ] 2.1 各 rule の document md を構造化して解析する
+- [ ] 2.1 各 rule の document md を構造化して解析し、local の `Document` / `RuleMeta` と比較可能にする
 - [ ] 2.2 rule id、name、summary、tags、properties を抽出する
 - [ ] 2.3 fixability と default config の情報を normalized JSON として比較可能にする
 
 ## 3. Drift Checking
 
-- [ ] 3.1 local rule 実装と upstream doc の差分を check する
+- [ ] 3.1 local rule 実装と upstream doc の差分を `Document` ベースで check する
 - [ ] 3.2 local config helper と upstream config contract の差分を check する
 - [ ] 3.3 drift report を JSON と Markdown summary の両方で出力する
 
