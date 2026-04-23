@@ -6,6 +6,7 @@ pub mod parser;
 pub mod rules;
 pub mod types;
 
+pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
 pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};
 
 use std::path::Path;
@@ -14,12 +15,8 @@ use std::path::Path;
 pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error> {
     let file_path = Path::new("<memory>");
     let severity_map = build_severity_map(options);
-    let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
-        file_path,
-        content,
-        true,
-        &severity_map,
-    );
+    let diags =
+        rules::markdown::MarkdownLinterOps::evaluate_all(file_path, content, true, &severity_map);
     Ok(diags.into_iter().map(Into::into).collect())
 }
 
@@ -35,6 +32,29 @@ pub fn available_rules() -> Vec<RuleMeta> {
         .into_iter()
         .filter_map(|rule| rule.official_meta())
         .map(Into::into)
+        .collect()
+}
+
+/// Returns the set of rules that are currently executed by the linter.
+pub fn implemented_rules() -> Vec<RuleMeta> {
+    rules::markdown::MarkdownLinterOps::get_official_rules()
+        .into_iter()
+        .filter_map(|rule| rule.official_meta())
+        .map(Into::into)
+        .collect()
+}
+
+/// Returns the set of official rules that are exposed to configuration but not yet linted.
+pub fn missing_rules() -> Vec<RuleMeta> {
+    let implemented = implemented_rules();
+    let implemented_ids = implemented
+        .iter()
+        .map(|rule| rule.id.clone())
+        .collect::<std::collections::HashSet<_>>();
+
+    available_rules()
+        .into_iter()
+        .filter(|rule| !implemented_ids.contains(&rule.id))
         .collect()
 }
 
@@ -123,4 +143,63 @@ fn build_severity_map(
             (rule_id.clone(), severity)
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::MarkdownLintConfig;
+    use serde_json::json;
+
+    #[test]
+    fn available_rules_exposes_official_rules() {
+        let rules = available_rules();
+        assert!(rules.iter().any(|rule| rule.id == "MD001"));
+        assert!(rules.iter().any(|rule| rule.id == "MD060"));
+        let ids = rules.iter().map(|rule| rule.id.clone()).collect::<Vec<_>>();
+        let mut sorted = ids.clone();
+        sorted.sort();
+        sorted.dedup();
+        assert_eq!(ids, sorted);
+    }
+
+    #[test]
+    fn lint_reports_heading_increment_violation() {
+        let content = "# title\n\n### skipped heading";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD001"));
+    }
+
+    #[test]
+    fn fix_keeps_unmodified_content_when_no_fixes_apply() {
+        let content = "# title\n\nParagraph";
+        let options = LintOptions::default();
+        let result = fix(content, &options).expect("fix should succeed");
+        assert_eq!(result.content, content);
+        assert_eq!(result.applied_fixes, 0);
+    }
+
+    #[test]
+    fn config_validate_is_exposed_from_root() {
+        let config = MarkdownLintConfig {
+            raw: json!({
+            "default": true,
+            "MD999": true
+            }),
+        };
+        let errors = config.validate(&[]);
+        assert!(errors
+            .iter()
+            .any(|error| matches!(error.kind, ConfigErrorKind::UnknownRule)));
+    }
+
+    #[test]
+    fn missing_rules_exposes_stubbed_official_rules() {
+        let rules = missing_rules();
+        assert!(rules.iter().any(|rule| rule.id == "MD005"));
+        assert!(rules.iter().any(|rule| rule.id == "MD013"));
+        assert!(rules.iter().any(|rule| rule.id == "MD056"));
+        assert!(!rules.iter().any(|rule| rule.id == "MD001"));
+    }
 }

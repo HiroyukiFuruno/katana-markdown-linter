@@ -14,14 +14,14 @@
 
 ## 2. Configuration
 
-- [ ] 2.1 `.markdownlint.json` の default config を生成する helper を整備する
-- [ ] 2.2 既存 config の読み込みと validation を整備する
-- [ ] 2.3 rule 設定の不正値を検出できるようにする
+- [x] 2.1 `.markdownlint.json` の default config を生成する helper を整備する
+- [x] 2.2 既存 config の読み込みと validation を整備する
+- [x] 2.3 rule 設定の不正値を検出できるようにする
 
 ## 3. Quality Gates
 
 - [ ] 3.1 rule ごとの unit test を追加する
-- [ ] 3.2 config helper の integration test を追加する
+- [x] 3.2 config helper の integration test を追加する
 - [ ] 3.3 check と fix の両方で回帰しないことを確認する
 
 ## Definition of Done

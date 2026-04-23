@@ -1,16 +1,11 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Severity {
     Error,
+    #[default]
     Warning,
     Info,
-}
-
-impl Default for Severity {
-    fn default() -> Self {
-        Self::Warning
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -52,19 +47,10 @@ pub struct RuleConfig {
     pub properties: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct LintOptions {
     pub rules: HashMap<String, RuleConfig>,
     pub default_severity: Severity,
-}
-
-impl Default for LintOptions {
-    fn default() -> Self {
-        Self {
-            rules: HashMap::new(),
-            default_severity: Severity::default(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
