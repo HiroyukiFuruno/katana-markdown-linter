@@ -2,6 +2,8 @@
 
 公式 markdownlint は library と CLI の両方を持ち、CLI は file 入力、config 読み込み、fix を扱う。
 この phase では、Rust 実装としての見通しを優先しつつ、ユーザーが期待する操作を最小の command set で実現する。
+参考にする CLI 体験として `rumdl` と `mado` を確認し、`check` / `fix` の分割、config helper、exit code の考え方だけを取り込む。
+ただし、実装は library-first を維持し、CLI は core API の薄い wrapper として扱う。
 
 ## Goals / Non-Goals
 

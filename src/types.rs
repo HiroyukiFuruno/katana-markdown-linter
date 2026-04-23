@@ -1,6 +1,7 @@
+use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize)]
 pub enum Severity {
     Error,
     #[default]
@@ -8,7 +9,7 @@ pub enum Severity {
     Info,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
 pub struct Range {
     pub start_line: usize,
     pub start_column: usize,
@@ -16,13 +17,13 @@ pub struct Range {
     pub end_column: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Fix {
     pub range: Range,
     pub replacement: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct LintResult {
     pub rule_id: String,
     pub rule_name: String,
@@ -35,25 +36,25 @@ pub struct LintResult {
     pub fix: Option<Fix>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
 pub struct FixResult {
     pub content: String,
     pub applied_fixes: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
 pub struct RuleConfig {
     pub enabled: bool,
     pub properties: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
 pub struct LintOptions {
     pub rules: HashMap<String, RuleConfig>,
     pub default_severity: Severity,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct RuleMeta {
     pub id: String,
     pub name: String,

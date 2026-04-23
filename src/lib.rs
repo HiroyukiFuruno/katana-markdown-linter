@@ -1,5 +1,6 @@
 //! `katana-markdown-linter` library.
 
+pub mod cli;
 pub mod config;
 pub mod fix;
 pub mod parser;

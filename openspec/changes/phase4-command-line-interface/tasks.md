@@ -13,6 +13,7 @@
 - [ ] 1.2 `fix` command を追加する
 - [ ] 1.3 `.markdownlint.json` を作る `init-config` command を追加する
 - [ ] 1.4 `--format json` を `check` と `fix` command に追加する
+- [ ] 1.5 `rumdl` と `mado` の `check` / `fix` UX を参照し、`kml` の command contract に反映する
 
 ## 2. Configuration Discovery
 

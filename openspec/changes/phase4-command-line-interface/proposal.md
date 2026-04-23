@@ -9,6 +9,7 @@ phase4 は、`check`、`fix`、`.markdownlint.json` 作成 helper を使う entr
 - `.markdownlint.json` を作成する `init-config` helper を追加する
 - markdownlint に近い config discovery と exit code の contract を定義する
 - file / glob 入力に対して lint を実行できるようにする
+- `rumdl` と `mado` を `check` / `fix` の UX 参考として確認し、CLI 仕様に反映する
 
 ## Impact
 
