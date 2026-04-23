@@ -1,0 +1,17 @@
+# lefthook.yml
+no_tty: true
+output:
+  - failure
+
+pre-commit:
+  parallel: false
+  commands:
+    formatting:
+      glob: "*.rs"
+      run: make fmt
+
+pre-push:
+  commands:
+    check-strict:
+      run: make -j 2 check
+      glob: "*.{rs,toml,lock}"
