@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn lint_reports_regex_based_rule_violations() {
-        let content = ">no space\n\n\nReversed [link](text[\n\nhttps://example.com";
+        let content = "> no space\n\n\nReversed [link](text[\n\nhttps://example.com";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD020"));
@@ -189,6 +189,15 @@ mod tests {
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD018"));
         assert!(results.iter().any(|result| result.rule_id == "MD019"));
+    }
+
+    #[test]
+    fn lint_reports_blockquote_spacing_variants() {
+        let content = "> no space\n>  too many";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD020"));
+        assert!(results.iter().any(|result| result.rule_id == "MD021"));
     }
 
     #[test]
