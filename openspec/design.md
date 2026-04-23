@@ -2,7 +2,7 @@
 
 ## 概要
 
-markdownlint 互換の Rust 製 Markdown リンターライブラリ。KatanA エディタの `katana-linter` から Markdown ルール実装を分離し、独立クレートとして公開する。
+markdownlint 互換の Rust 製 Markdown リンターライブラリ。利用側アプリケーション固有の型や UI contract を知らない、独立クレートとして公開する。
 
 ## 1. クレート構成
 
@@ -118,22 +118,20 @@ pub trait Rule: Send + Sync {
 ```toml
 [features]
 default = []
-cli = ["clap", "colored"]           # CLI バイナリ
-config-yaml = ["serde_yaml"]        # YAML 設定ファイルサポート
-config-toml = ["toml"]              # TOML 設定ファイルサポート
+cli = ["clap", "colored"]           # `kml` CLI binary
+jsonc = ["json_comments"]           # `.markdownlint.jsonc` support
 ```
 
-## 5. KatanA との統合
+## 5. Library Boundary
 
-KatanA エディタ側（`katana-linter`）は以下のように依存する：
+この crate は markdownlint-compatible な rule engine、configuration helper、fix engine、optional CLI を提供する。
+利用側アプリケーションは、この crate の公開 API が返す汎用型を自分の domain model へ変換する責務を持つ。
 
-```toml
-# katana-linter/Cargo.toml
-[dependencies]
-katana-markdown-linter = { git = "https://github.com/HiroyukiFuruno/katana-markdown-linter" }
-```
+Non-goals:
 
-`katana-linter` 内の既存 Adapter 層で `LintResult` → `MarkdownDiagnostic` への変換を行い、UI との互換性を維持する。
+- 利用側アプリケーションの diagnostic 型へ直接変換する adapter
+- editor UI / LSP UI の contract
+- 特定アプリケーション専用の rule preset
 
 ## 6. 移行計画
 
@@ -142,17 +140,24 @@ katana-markdown-linter = { git = "https://github.com/HiroyukiFuruno/katana-markd
 - `Rule` trait と `lint()` / `fix()` API の定義
 - `pulldown-cmark` ベースのパーサ基盤
 
-### Phase 2: ルール移植
-- KatanA の既存 24 ルールを移植
+### Phase 2: Rule Parity
+- 公式 markdownlint の全 active rule の check 実装
+- fixability metadata と安全な fix 実装
 - 各ルールのユニットテスト作成
-- Fix 機能の移植・拡充
 
-### Phase 3: KatanA 統合
-- `katana-linter` の依存に追加
-- Adapter 層の実装
-- 既存の自前ルール実装を削除
+### Phase 3: Public Release 準備
+- crates.io 向け metadata
+- MIT license
+- `cargo install` 可能な package 準備
 
-### Phase 4: 拡張
-- 未実装ルール（38 スタブ）の実装
-- crates.io への公開
-- ベンチマーク・パフォーマンス最適化
+### Phase 4: CLI
+- `kml check`
+- `kml fix`
+- `kml init-config`
+- `.markdownlint.json` / `.markdownlint.jsonc`
+- `--format json`
+
+### Phase 5: Upstream Update Tracking
+- upstream default branch 追従
+- rule document drift check
+- config schema drift check

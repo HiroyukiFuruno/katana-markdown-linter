@@ -1,0 +1,10 @@
+check:
+	cargo check
+
+fmt:
+	cargo fmt --all --check
+
+test:
+	cargo test
+
+all: check fmt test

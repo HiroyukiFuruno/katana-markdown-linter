@@ -1,0 +1,17 @@
+[package]
+name = "katana-markdown-linter"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "markdownlint-compatible Markdown linter library"
+repository = "https://github.com/HiroyukiFuruno/katana-markdown-linter"
+readme = "README.md"
+
+[lib]
+name = "katana_markdown_linter"
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]
