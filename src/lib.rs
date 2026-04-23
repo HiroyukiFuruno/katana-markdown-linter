@@ -191,6 +191,14 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_list_indentation_violation() {
+        let content = "   - item";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD007"));
+    }
+
+    #[test]
     fn lint_reports_multiple_blank_lines() {
         let content = "first\n\n\nsecond\n";
         let options = LintOptions::default();

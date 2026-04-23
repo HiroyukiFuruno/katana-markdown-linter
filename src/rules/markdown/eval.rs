@@ -12,6 +12,7 @@ use crate::rules::markdown::rules::heading_style::*;
 use crate::rules::markdown::rules::image::*;
 use crate::rules::markdown::rules::list::*;
 use crate::rules::markdown::rules::list_ext::*;
+use crate::rules::markdown::rules::list_indent::*;
 use crate::rules::markdown::rules::list_spacing::*;
 use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
@@ -99,9 +100,10 @@ impl MarkdownLinterOps {
             Box::new(FirstLineHeadingRule),   // MD041
             Box::new(NoEmptyLinksRule),       // MD042
             /* WHY: List rules */
-            Box::new(UlStyleRule),           // MD004
-            Box::new(OlPrefixRule),          // MD029
-            Box::new(BlanksAroundListsRule), // MD032
+            Box::new(UnorderedListIndentRule), // MD007
+            Box::new(UlStyleRule),             // MD004
+            Box::new(OlPrefixRule),            // MD029
+            Box::new(BlanksAroundListsRule),   // MD032
             /* WHY: Style rules */
             Box::new(HrStyleRule),             // MD035
             Box::new(NoEmphasisAsHeadingRule), // MD036
