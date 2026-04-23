@@ -7,6 +7,7 @@ pub mod fix;
 pub mod parser;
 pub mod rules;
 pub mod types;
+pub mod upstream;
 
 pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
 pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};

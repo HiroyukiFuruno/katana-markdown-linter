@@ -53,12 +53,12 @@ local 実装の source tree と upstream docs を比較する lint を、開発�
 
 ## User Decisions
 
-以下は update tracking 実装前にユーザーと協議して確定する。
+以下は update tracking 実装で確定した。
 
-- upstream snapshot を repository に commit するか、CI 実行時に取得するか
-- deprecated / removed 判定を docs 内の明示記述だけに限定するか、upstream source code の metadata も解析対象に含めるか
-- unknown drift を常に CI failure にするか、allowlist file に明示した差分だけ許可するか
-- drift report の保存先を `target/` の一時 artifact にするか、`tmp/` や `docs/` に reviewable file として出すか
+- upstream snapshot は repository に固定せず、CI 実行時に `DavidAnson/markdownlint` default branch を shallow clone して取得する
+- deprecated / removed 判定は phase5 では docs catalog の有無と明示 lifecycle state に限定する
+- unknown drift は CI failure とし、既知差分は code 上の allowlist で明示する
+- drift report は API で JSON と Markdown summary を生成し、呼び出し側が `target/` など任意の出力先に保存する
 
 ## Migration Plan
 

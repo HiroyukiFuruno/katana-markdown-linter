@@ -24,6 +24,14 @@ jobs:
       - name: Test
         run: cargo test --all-features --locked
 
+      - name: Clone upstream markdownlint
+        run: git clone --depth 1 https://github.com/DavidAnson/markdownlint.git "${RUNNER_TEMP}/markdownlint"
+
+      - name: Upstream drift check
+        env:
+          KML_UPSTREAM_MARKDOWNLINT_DOC_DIR: ${{ runner.temp }}/markdownlint/doc
+        run: cargo test upstream_default_branch_drift_has_no_unknown_items --all-features --locked -- --ignored
+
       - name: Clippy
         run: cargo clippy --all-targets --all-features --locked -- -D warnings
 
