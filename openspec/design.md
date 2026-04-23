@@ -118,8 +118,8 @@ pub trait Rule: Send + Sync {
 ```toml
 [features]
 default = []
-cli = ["clap", "colored"]           # `kml` CLI binary
-jsonc = ["json_comments"]           # `.markdownlint.jsonc` support
+cli = []                            # `kml` CLI binary
+jsonc = []                          # reserved for `.markdownlint.jsonc` support
 ```
 
 ## 5. Library Boundary
@@ -129,7 +129,6 @@ jsonc = ["json_comments"]           # `.markdownlint.jsonc` support
 
 Non-goals:
 
-- 利用側アプリケーションの diagnostic 型へ直接変換する adapter
 - editor UI / LSP UI の contract
 - 特定アプリケーション専用の rule preset
 
