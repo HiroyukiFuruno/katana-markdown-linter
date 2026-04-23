@@ -30,6 +30,39 @@ pub use heading_style::*;
 pub mod image;
 pub use image::*;
 
+pub mod md043;
+pub use md043::*;
+
+pub mod md044;
+pub use md044::*;
+
+pub mod md046;
+pub use md046::*;
+
+pub mod md048;
+pub use md048::*;
+
+pub mod md049;
+pub use md049::*;
+
+pub mod md050;
+pub use md050::*;
+
+pub mod md051;
+pub use md051::*;
+
+pub mod md052;
+pub use md052::*;
+
+pub mod md053;
+pub use md053::*;
+
+pub mod md054;
+pub use md054::*;
+
+pub mod md055;
+pub use md055::*;
+
 pub mod md011;
 pub use md011::*;
 

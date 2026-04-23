@@ -263,6 +263,24 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_style_and_link_variants() {
+        let content = "No heading here.\n\n```rust\ncode\n```\n~~~\ncode\n~~~\n    indented\n*em* and _em_\n**strong** and __strong__\nmarkdownlint and github\nlink [fragment](#frag)\n[ref][]\n[dup]: https://example.com\n[dup]: https://example.com/2\ninline [link](https://example.com)\n| a | b \n";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD043"));
+        assert!(results.iter().any(|result| result.rule_id == "MD044"));
+        assert!(results.iter().any(|result| result.rule_id == "MD046"));
+        assert!(results.iter().any(|result| result.rule_id == "MD048"));
+        assert!(results.iter().any(|result| result.rule_id == "MD049"));
+        assert!(results.iter().any(|result| result.rule_id == "MD050"));
+        assert!(results.iter().any(|result| result.rule_id == "MD051"));
+        assert!(results.iter().any(|result| result.rule_id == "MD052"));
+        assert!(results.iter().any(|result| result.rule_id == "MD053"));
+        assert!(results.iter().any(|result| result.rule_id == "MD054"));
+        assert!(results.iter().any(|result| result.rule_id == "MD055"));
+    }
+
+    #[test]
     fn lint_reports_spacing_inside_emphasis_and_code() {
         let content = "This is * spaced * text and ` code ` span.";
         let options = LintOptions::default();
@@ -320,5 +338,10 @@ mod tests {
         assert!(!rules.iter().any(|rule| rule.id == "MD031"));
         assert!(!rules.iter().any(|rule| rule.id == "MD005"));
         assert!(!rules.iter().any(|rule| rule.id == "MD056"));
+    }
+
+    #[test]
+    fn missing_rules_are_empty() {
+        assert!(missing_rules().is_empty());
     }
 }

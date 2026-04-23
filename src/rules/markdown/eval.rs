@@ -24,6 +24,17 @@ use crate::rules::markdown::rules::md020::*;
 use crate::rules::markdown::rules::md021::*;
 use crate::rules::markdown::rules::md034::*;
 use crate::rules::markdown::rules::md039::*;
+use crate::rules::markdown::rules::md043::*;
+use crate::rules::markdown::rules::md044::*;
+use crate::rules::markdown::rules::md046::*;
+use crate::rules::markdown::rules::md048::*;
+use crate::rules::markdown::rules::md049::*;
+use crate::rules::markdown::rules::md050::*;
+use crate::rules::markdown::rules::md051::*;
+use crate::rules::markdown::rules::md052::*;
+use crate::rules::markdown::rules::md053::*;
+use crate::rules::markdown::rules::md054::*;
+use crate::rules::markdown::rules::md055::*;
 use crate::rules::markdown::rules::md056::*;
 use crate::rules::markdown::rules::md058::*;
 use crate::rules::markdown::rules::md059::*;
@@ -117,6 +128,8 @@ impl MarkdownLinterOps {
             Box::new(TableSpacingRule),       // MD058
             Box::new(ProhibitedLinkTextRule), // MD059
             Box::new(TableColumnStyleRule),   // MD060
+            Box::new(RequiredHeadingsRule),   // MD043
+            Box::new(ProperNamesRule),        // MD044
             /* WHY: List rules */
             Box::new(ListIndentRule),          // MD005
             Box::new(UnorderedListIndentRule), // MD007
@@ -124,9 +137,18 @@ impl MarkdownLinterOps {
             Box::new(OlPrefixRule),            // MD029
             Box::new(BlanksAroundListsRule),   // MD032
             /* WHY: Style rules */
-            Box::new(HrStyleRule),             // MD035
-            Box::new(NoEmphasisAsHeadingRule), // MD036
-            Box::new(NoAltTextRule),           // MD045
+            Box::new(HrStyleRule),              // MD035
+            Box::new(NoEmphasisAsHeadingRule),  // MD036
+            Box::new(NoAltTextRule),            // MD045
+            Box::new(CodeBlockStyleRule),       // MD046
+            Box::new(CodeFenceStyleRule),       // MD048
+            Box::new(EmphasisStyleRule),        // MD049
+            Box::new(StrongStyleRule),          // MD050
+            Box::new(LinkFragmentsRule),        // MD051
+            Box::new(ReferenceLinksImagesRule), // MD052
+            Box::new(LinkDefinitionsRule),      // MD053
+            Box::new(LinkStyleRule),            // MD054
+            Box::new(TablePipeStyleRule),       // MD055
         ]
     }
 
