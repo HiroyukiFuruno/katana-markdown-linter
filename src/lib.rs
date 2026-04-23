@@ -191,6 +191,22 @@ mod tests {
     }
 
     #[test]
+    fn lint_reports_multiple_blank_lines() {
+        let content = "first\n\n\nsecond\n";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD012"));
+    }
+
+    #[test]
+    fn lint_reports_blockquote_spacing_violation() {
+        let content = ">  quote";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD027"));
+    }
+
+    #[test]
     fn lint_reports_spacing_inside_emphasis_and_code() {
         let content = "This is * spaced * text and ` code ` span.";
         let options = LintOptions::default();

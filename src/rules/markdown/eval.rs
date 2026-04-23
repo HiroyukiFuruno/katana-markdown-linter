@@ -74,6 +74,7 @@ impl MarkdownLinterOps {
             Box::new(RuleMD009),            // trailing-spaces
             Box::new(RuleMD010),            // hard-tabs
             Box::new(RuleMD011),            // reversed link syntax
+            Box::new(NoMultipleBlanksRule), // MD012
             Box::new(RuleMD013),            // line length
             Box::new(RuleMD014),            // dollar signs before commands
             Box::new(RuleMD018),            // no-missing-space-atx
@@ -85,7 +86,8 @@ impl MarkdownLinterOps {
             Box::new(NoSpaceInCodeRule),    // MD038
             Box::new(RuleMD039),            // no-space-in-links
             /* WHY: Blockquote rules */
-            Box::new(NoBlanksBlockquoteRule), // MD028
+            Box::new(NoMultipleSpaceBlockquoteRule), // MD027
+            Box::new(NoBlanksBlockquoteRule),        // MD028
             /* WHY: Additional active rules */
             Box::new(NoDuplicateHeadingRule),    // MD024
             Box::new(BlanksAroundFencesRule),    // MD031
