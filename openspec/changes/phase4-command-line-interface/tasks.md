@@ -1,4 +1,5 @@
 ## Definition of Ready
+
 - [x] phase3 の publish validation が CI で通っていること
 - [x] phase1, phase2, phase3 の `tasks.md` が全て完了していること
 - [x] CLI command set が `check` / `fix` / `init-config` に固定されていること
@@ -29,6 +30,7 @@
 - [x] 3.3 失敗理由を CLI 出力で rule error / config error / filesystem error として判別できるようにする
 
 ## Definition of Done
+
 - [x] cargo install 後に CLI が使えること
 - [x] check / fix / init-config がそれぞれ独立して動き、exit code contract がテストで固定されていること
 - [x] `.markdownlint.json` helper が初回導入で役に立つこと
