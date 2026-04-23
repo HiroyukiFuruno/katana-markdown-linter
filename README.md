@@ -23,6 +23,17 @@ cargo install katana-markdown-linter
 
 The binary target is `kml`.
 
+## CLI Usage
+
+```bash
+kml check README.md
+kml check --format json "docs/**/*.md"
+kml fix --config .markdownlint.json README.md
+kml init-config
+```
+
+`check` exits with `1` when lint violations are found. `fix` applies safe fixes and exits with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
+
 ## Configuration
 
 The crate reads and writes markdownlint-compatible JSON and JSONC configuration files:

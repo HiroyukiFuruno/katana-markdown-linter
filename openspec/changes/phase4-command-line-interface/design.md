@@ -52,13 +52,8 @@ automation や CI で扱いやすくするためである。
 - executable name は `kml` とする
 - config support は `.markdownlint.json` と `.markdownlint.jsonc` を phase4 から含める
 - output format は human-readable text に加えて `--format json` を phase4 から含める
-
-## User Decisions
-
-以下は CLI 実装前にユーザーと協議して確定する。
-
-- `fix` command が一部違反を残した場合の exit code を non-zero にするか
-- glob の展開を shell に任せるか、CLI 内で glob pattern を解釈するか
+- `fix` command は修正後に違反が残る場合 non-zero を返す
+- glob pattern は CLI 内でも解釈し、directory input は再帰的に Markdown file を探索する
 
 ## Migration Plan
 

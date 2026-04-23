@@ -11,9 +11,9 @@ categories = ["development-tools", "command-line-utilities", "text-processing"]
 include = [
     "Cargo.toml",
     "README.md",
+    "LICENSE",
     "Markfile",
     "src/**",
-    "openspec/**",
 ]
 
 [lib]
