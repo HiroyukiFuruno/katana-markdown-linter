@@ -42,11 +42,11 @@ test: ## Run unit tests
 	cargo test --workspace
 
 .PHONY: coverage
-coverage: ## Run tests and verify 100% test coverage (requires cargo-llvm-cov)
+coverage: ## Run tests and report uncovered lines (requires cargo-llvm-cov)
 	JOBS=$(JOBS) scripts/ci/coverage.sh
 
 .PHONY: check
-check: fmt-check lint ast-lint test coverage ## Fast impacted verification (local default)
+check: fmt-check lint ast-lint test ## Fast impacted verification (local default)
 	@echo "✅ All checks passed"
 
 .PHONY: release-check

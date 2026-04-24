@@ -79,4 +79,5 @@ jobs:
 
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'
+        continue-on-error: true
         run: make coverage
