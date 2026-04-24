@@ -118,23 +118,6 @@ impl MarkdownRule for FencedCodeLanguageRule {
     }
 }
 
-#[cfg(test)]
-mod content_tests {
-    use super::*;
-
-    #[test]
-    fn fixes_missing_fence_language_with_text() {
-        let rule = FencedCodeLanguageRule;
-        let diagnostics = rule.evaluate(Path::new("doc.md"), "```\ncode\n```\n");
-        let fix = diagnostics[0]
-            .fix_info
-            .as_ref()
-            .expect("missing language should be fixable");
-        assert_eq!(fix.start_column, 4);
-        assert_eq!(fix.replacement, "text");
-    }
-}
-
 /// MD041 / first-line-heading — First line should be a top-level heading.
 pub struct FirstLineHeadingRule;
 
@@ -193,5 +176,22 @@ impl MarkdownRule for FirstLineHeadingRule {
             official_meta: Some(meta),
             fix_info: None,
         }]
+    }
+}
+
+#[cfg(test)]
+mod content_tests {
+    use super::*;
+
+    #[test]
+    fn fixes_missing_fence_language_with_text() {
+        let rule = FencedCodeLanguageRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```\ncode\n```\n");
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("missing language should be fixable");
+        assert_eq!(fix.start_column, 4);
+        assert_eq!(fix.replacement, "text");
     }
 }

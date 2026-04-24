@@ -2,7 +2,11 @@ use katana_markdown_linter::{available_rules, fix, lint, LintOptions, MarkdownLi
 use std::fs;
 use std::path::Path;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+type DynError = Box<dyn std::error::Error>;
+type VisitResult = Result<(), DynError>;
+type FileVisitor<'a> = dyn FnMut(&Path) -> VisitResult + 'a;
+
+fn main() -> Result<(), DynError> {
     let options = LintOptions::default();
 
     let diagnostics = lint("# Title\n\n### Skipped level\n", &options)?;
@@ -23,10 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn lint_markdown_tree(
-    root: &Path,
-    options: &LintOptions,
-) -> Result<usize, Box<dyn std::error::Error>> {
+fn lint_markdown_tree(root: &Path, options: &LintOptions) -> Result<usize, DynError> {
     let mut checked = 0;
     visit_markdown_files(root, &mut |path| {
         let content = fs::read_to_string(path)?;
@@ -38,10 +39,7 @@ fn lint_markdown_tree(
     Ok(checked)
 }
 
-fn visit_markdown_files(
-    dir: &Path,
-    on_file: &mut dyn FnMut(&Path) -> Result<(), Box<dyn std::error::Error>>,
-) -> Result<(), Box<dyn std::error::Error>> {
+fn visit_markdown_files(dir: &Path, on_file: &mut FileVisitor<'_>) -> Result<(), DynError> {
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
         if path

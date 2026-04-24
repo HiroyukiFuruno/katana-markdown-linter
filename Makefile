@@ -53,11 +53,11 @@ fmt-check: ## Check format differences (for CI)
 
 .PHONY: lint
 lint: ## Run Clippy (forces zero warnings)
-	cargo clippy -j $(JOBS) --workspace -- -D warnings
+	cargo clippy -j $(JOBS) --workspace --all-targets --all-features --locked -- -D warnings
 
 .PHONY: lint-fix
 lint-fix: ## Run Clippy and apply automatic fixes
-	cargo clippy --workspace --fix --allow-dirty --allow-staged -- -D warnings
+	cargo clippy --workspace --all-targets --all-features --fix --allow-dirty --allow-staged -- -D warnings
 
 .PHONY: ast-lint
 ast-lint: ## Run AST-based custom linters

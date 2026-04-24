@@ -433,7 +433,6 @@ fn fixable_rules_without_fix_fixtures_have_explicit_metadata() {
         .filter(|rule| rule["fixable"].as_bool() == Some(true))
         .filter(|rule| cases(rule, "fix").next().is_none())
         .map(rule_id)
-        .into_iter()
         .collect::<BTreeSet<_>>();
     let expected = ["MD005", "MD030"].into_iter().collect::<BTreeSet<_>>();
 
