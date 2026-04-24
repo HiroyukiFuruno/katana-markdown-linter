@@ -14,7 +14,7 @@ on:
       - 'docs/**'
       - 'openspec/**'
       - 'scripts/**'
-      - 'tests/fixtures/dogfood-baseline.json'
+      - 'tests/**'
   pull_request:
     branches: [main, master]
     paths:
@@ -28,7 +28,7 @@ on:
       - 'docs/**'
       - 'openspec/**'
       - 'scripts/**'
-      - 'tests/fixtures/dogfood-baseline.json'
+      - 'tests/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

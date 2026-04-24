@@ -78,3 +78,62 @@ thresholds.
 - **WHEN** CLI が file ごとの effective config を validate する
 - **THEN** system は cached user-configurable metadata registry を使って validation を実行する
 - **THEN** system は validation result と CLI behavior を従来と同じに保つ
+
+### Requirement: system SHALL provide an opt-in cross-tool CLI benchmark
+
+システムは、`kml` の CLI performance を `mado` および `rumdl` と比較できる opt-in benchmark を提供しなければならない（SHALL）。
+
+#### Scenario: cross-tool benchmark を実行する
+
+- **WHEN** developer が cross-tool benchmark target を実行する
+- **THEN** system は `target/release/kml` を benchmark 対象として使用する
+- **THEN** system は `mado` と `rumdl` が利用可能な場合に benchmark 対象として含める
+- **THEN** system は missing optional tool を failure ではなく skipped case として report する
+- **THEN** system は JSON report と Markdown summary を生成する
+- **THEN** report は tool version、timing method、mode、enabled rule set、skipped reason を含む
+
+### Requirement: system SHALL separate default and common-subset comparisons
+
+システムは、各 tool の default behavior comparison と、共通 rule subset comparison を区別しなければならない（SHALL）。
+
+#### Scenario: default comparison を実行する
+
+- **WHEN** developer が default comparison を実行する
+- **THEN** system は各 tool の default enabled rule set を使って check benchmark を実行する
+- **THEN** report は mode を `default` として記録する
+- **THEN** report は default mode が各 tool 固有の enabled rule set であることを limitation として記録する
+
+#### Scenario: common-subset comparison を実行する
+
+- **WHEN** developer が common-subset comparison を実行する
+- **THEN** system は共通候補 rule subset 用の generated config を各 tool の format で作成する
+- **THEN** system は `MD001,MD004,MD005,MD009,MD010,MD012,MD013,MD014,MD021,MD022,MD023,MD024,MD025,MD026,MD028,MD029,MD030,MD031,MD033,MD034,MD035,MD036,MD037,MD038,MD039,MD040,MD041,MD046,MD047` を common-subset candidate として扱う
+- **THEN** report は mode を `common` として記録する
+- **THEN** report は unsupported rule または option がある場合に detected limitation として記録する
+
+### Requirement: system SHALL benchmark check and fix workflows safely
+
+システムは、cross-tool benchmark で check workflow と fix workflow を安全に測定しなければならない（SHALL）。
+
+#### Scenario: diagnostics-heavy check benchmark を実行する
+
+- **WHEN** system が diagnostics-heavy corpus に対して check benchmark を実行する
+- **THEN** system は expected violation exit code を successful measured run として normalize する
+- **THEN** system は clean corpus に対する non-zero exit を failed case として report する
+
+#### Scenario: fix benchmark を実行する
+
+- **WHEN** system が fix benchmark を実行する
+- **THEN** system は各 measured run ごとに mutable workspace copy を作成する
+- **THEN** system は source corpus を直接変更しない
+- **THEN** system は fix workflow を提供しない tool を skipped case として report する
+
+### Requirement: system SHALL keep cross-tool benchmarking outside required CI
+
+システムは、cross-tool benchmark を required CI gate から分離しなければならない（SHALL）。
+
+#### Scenario: required CI を実行する
+
+- **WHEN** GitHub Actions required CI または `make check` が実行される
+- **THEN** system は `mado`、`rumdl`、または `hyperfine` の installation を required step としない
+- **THEN** system は cross-tool benchmark を required merge gate として実行しない

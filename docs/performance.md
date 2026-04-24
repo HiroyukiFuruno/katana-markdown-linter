@@ -72,6 +72,54 @@ When changing benchmark shape, update the baseline in the same change:
 make perf-refresh-baseline
 ```
 
+## Cross-Tool CLI Benchmark
+
+The cross-tool benchmark is a manual comparison harness for `kml`, `mado`,
+and `rumdl`. It is opt-in because third-party CLI installation and wall-clock
+timing are not stable enough for required CI.
+
+Run all available cross-tool cases:
+
+```sh
+make bench-cross-tools
+```
+
+Run a narrower comparison:
+
+```sh
+make bench-cross-tools-default
+make bench-cross-tools-common
+make bench-cross-tools-fix
+```
+
+The harness always builds `target/release/kml` first. `mado` and `rumdl` are
+discovered from `PATH` unless explicit paths are supplied through
+`CROSS_TOOL_ARGS`. Missing optional tools are reported as skipped cases rather
+than failures:
+
+```sh
+make bench-cross-tools CROSS_TOOL_ARGS="--mado /path/to/mado --rumdl /path/to/rumdl"
+```
+
+Reports are written to:
+
+- `target/cross-tool-benchmark.json`
+- `target/cross-tool-benchmark.md`
+
+`hyperfine` is used when it is installed. Without it, the harness uses a
+small standard-library timer so the report is still available on a fresh
+development machine.
+
+The benchmark has two comparison modes:
+
+- `default`: each tool runs with its own default rule set
+- `common`: each tool receives a generated config for the common candidate
+  rule subset
+
+`fix` cases run against a temporary workspace copy on every measured sample.
+The committed source corpus under `tests/fixtures/cross-tool-benchmark` is
+never mutated by benchmark execution.
+
 ## Current Hot Path
 
 CLI fix mode used to lint the original file before fix mode, call the public

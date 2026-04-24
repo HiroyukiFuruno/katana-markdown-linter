@@ -16,6 +16,7 @@
 | `make upstream-golden` | Compare selected `kml` diagnostics and fixes with the locked upstream oracle baseline | Yes when golden compatibility is in scope |
 | `make upstream-golden-live` | Run the live upstream markdownlint oracle against the golden corpus | No, manual update check |
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
+| `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
 
 `make lint` is intentionally limited to Clippy. Repository-specific checks belong in `make ast-lint` so Rust style warnings and project invariants can be triaged independently.
@@ -32,6 +33,20 @@
 - public library API and rule catalog entrypoints must remain explicit
 
 These checks are intentionally repo-specific. KatanA UI-specific lint rules are not imported into this crate.
+
+## Manual Performance Probes
+
+`make bench-cross-tools` and its narrower variants are intentionally excluded
+from `make check`, `release-check`, and required CI. They can depend on
+optional third-party binaries and local CPU timing, so they are useful for
+investigation but unsuitable as a merge gate.
+
+Use these targets when comparing CLI behavior or speed against peer tools:
+
+- `make bench-cross-tools`
+- `make bench-cross-tools-default`
+- `make bench-cross-tools-common`
+- `make bench-cross-tools-fix`
 
 ## CI Required Checks
 

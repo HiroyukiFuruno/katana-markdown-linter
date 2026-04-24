@@ -14,6 +14,12 @@ PERF_REPORT ?= target/perf-report.json
 PERF_ITERATIONS ?= 20
 PERF_SAMPLES ?= 5
 PERF_WARMUP ?= 1
+CROSS_TOOL_BIN ?= target/release/kml
+CROSS_TOOL_REPORT ?= target/cross-tool-benchmark.json
+CROSS_TOOL_SUMMARY ?= target/cross-tool-benchmark.md
+CROSS_TOOL_RUNS ?= 5
+CROSS_TOOL_WARMUP ?= 1
+CROSS_TOOL_ARGS ?=
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -120,6 +126,26 @@ perf-check: bench ## Compare performance report with the committed baseline
 .PHONY: perf-refresh-baseline
 perf-refresh-baseline: bench ## Refresh performance baseline after intentional optimization
 	python3 scripts/ci/perf-check.py --update --baseline $(PERF_BASELINE) --report $(PERF_REPORT)
+
+.PHONY: bench-cross-tools
+bench-cross-tools: ## Benchmark kml against optional mado and rumdl CLIs
+	cargo build --release --bin kml --locked
+	python3 scripts/bench/cross-tool-cli-benchmark.py --kml $(CROSS_TOOL_BIN) --output $(CROSS_TOOL_REPORT) --summary $(CROSS_TOOL_SUMMARY) --runs $(CROSS_TOOL_RUNS) --warmup $(CROSS_TOOL_WARMUP) $(CROSS_TOOL_ARGS)
+
+.PHONY: bench-cross-tools-default
+bench-cross-tools-default: ## Benchmark default check behavior across available CLIs
+	cargo build --release --bin kml --locked
+	python3 scripts/bench/cross-tool-cli-benchmark.py --mode default --workflow check --kml $(CROSS_TOOL_BIN) --output $(CROSS_TOOL_REPORT) --summary $(CROSS_TOOL_SUMMARY) --runs $(CROSS_TOOL_RUNS) --warmup $(CROSS_TOOL_WARMUP) $(CROSS_TOOL_ARGS)
+
+.PHONY: bench-cross-tools-common
+bench-cross-tools-common: ## Benchmark common-subset check behavior across available CLIs
+	cargo build --release --bin kml --locked
+	python3 scripts/bench/cross-tool-cli-benchmark.py --mode common --workflow check --kml $(CROSS_TOOL_BIN) --output $(CROSS_TOOL_REPORT) --summary $(CROSS_TOOL_SUMMARY) --runs $(CROSS_TOOL_RUNS) --warmup $(CROSS_TOOL_WARMUP) $(CROSS_TOOL_ARGS)
+
+.PHONY: bench-cross-tools-fix
+bench-cross-tools-fix: ## Benchmark fix behavior across available CLIs
+	cargo build --release --bin kml --locked
+	python3 scripts/bench/cross-tool-cli-benchmark.py --workflow fix --kml $(CROSS_TOOL_BIN) --output $(CROSS_TOOL_REPORT) --summary $(CROSS_TOOL_SUMMARY) --runs $(CROSS_TOOL_RUNS) --warmup $(CROSS_TOOL_WARMUP) $(CROSS_TOOL_ARGS)
 
 .PHONY: examples
 examples: ## Compile public Rust embedding examples
