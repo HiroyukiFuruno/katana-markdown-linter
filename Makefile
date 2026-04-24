@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
+VERSION_BARE := $(patsubst v%,%,$(VERSION))
 export RUSTFLAGS=-D warnings
 
 .PHONY: help
@@ -49,7 +50,7 @@ check: fmt-check lint ast-lint test coverage ## Fast impacted verification (loca
 	@echo "✅ All checks passed"
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint test ## Run local release preflight gates except upstream drift
+release-check: fmt-check lint ast-lint test ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
@@ -58,7 +59,7 @@ release-check: fmt-check lint ast-lint test ## Run local release preflight gates
 .PHONY: release-package
 release-package: ## Build .crate package and sha256 checksum for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
-	scripts/release/package-crate.sh "$(VERSION)"
+	scripts/release/package-crate.sh "$(VERSION_BARE)"
 
 .PHONY: release-github
 release-github: ## Dispatch GitHub Release workflow without crates.io publish
@@ -70,6 +71,9 @@ release-publish: ## Dispatch GitHub Release workflow with crates.io publish
 	scripts/release/verify-version.sh "$(VERSION)"
 	gh secret list --repo HiroyukiFuruno/katana-markdown-linter | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || (echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1)
 	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(VERSION)" -f publish_crate=true
+
+.PHONY: release
+release: release-publish ## Dispatch the full release workflow (GitHub Release + crates.io, VERSION=vX.Y.Z)
 
 .PHONY: release-status
 release-status: ## Show recent Release workflow runs
