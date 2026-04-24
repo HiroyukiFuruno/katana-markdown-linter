@@ -9,6 +9,9 @@ DOGFOOD_CONFIG ?= .markdownlint-dogfood.json
 DOGFOOD_EXCLUDES ?= --exclude "openspec/changes/archive/**" --exclude "target/**"
 DOGFOOD_BASELINE ?= tests/fixtures/dogfood-baseline.json
 DOGFOOD_REPORT ?= target/dogfood-report.json
+PERF_BASELINE ?= tests/fixtures/perf-baseline.json
+PERF_REPORT ?= target/perf-report.json
+PERF_ITERATIONS ?= 20
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -103,6 +106,18 @@ dogfood-refresh-baseline: ## Refresh dogfood baseline after intentional Markdown
 .PHONY: dogfood-archive
 dogfood-archive: ## Explicitly check archived OpenSpec Markdown
 	$(KML) check openspec/changes/archive --statistics
+
+.PHONY: bench
+bench: ## Run repeatable performance benchmarks and write target/perf-report.json
+	cargo run --release --example perf_benchmark --locked -- --output $(PERF_REPORT) --iterations $(PERF_ITERATIONS)
+
+.PHONY: perf-check
+perf-check: bench ## Compare performance report with the committed baseline
+	python3 scripts/ci/perf-check.py --baseline $(PERF_BASELINE) --report $(PERF_REPORT)
+
+.PHONY: perf-refresh-baseline
+perf-refresh-baseline: bench ## Refresh performance baseline after intentional optimization
+	python3 scripts/ci/perf-check.py --update --baseline $(PERF_BASELINE) --report $(PERF_REPORT)
 
 .PHONY: examples
 examples: ## Compile public Rust embedding examples

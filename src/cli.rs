@@ -1,4 +1,4 @@
-use crate::{fix, lint, LintOptions, MarkdownLintConfig, RuleConfig};
+use crate::{fix, fix_with_results, lint, LintOptions, MarkdownLintConfig, RuleConfig};
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
 use serde::Serialize;
@@ -157,13 +157,7 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         };
 
         if fix_mode {
-            let fixed = match fix(&content, &options) {
-                Ok(fixed) => fixed,
-                Err(err) => {
-                    report.errors.push(CliError::rule(&path, err.to_string()));
-                    continue;
-                }
-            };
+            let fixed = fix_with_results(&content, &results);
             let applied_fixes = fixed.applied_fixes;
             let fixed_content = fixed.content;
             let changed = fixed_content != content;

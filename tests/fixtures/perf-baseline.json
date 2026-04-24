@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_by": "examples/perf_benchmark.rs",
+  "iterations": 20,
+  "cases": [
+    {
+      "name": "api_lint_large_document",
+      "iterations": 20,
+      "work_units": 4896,
+      "work_unit_name": "lines",
+      "total_ms": 142.730417,
+      "average_ms": 7.136520849999999,
+      "observed_items": 109000
+    },
+    {
+      "name": "api_fix_large_document",
+      "iterations": 20,
+      "work_units": 4896,
+      "work_unit_name": "lines",
+      "total_ms": 145.630584,
+      "average_ms": 7.2815292,
+      "observed_items": 60000
+    },
+    {
+      "name": "api_lint_many_small_documents",
+      "iterations": 20,
+      "work_units": 250,
+      "work_unit_name": "documents",
+      "total_ms": 284.219875,
+      "average_ms": 14.21099375,
+      "observed_items": 5000
+    },
+    {
+      "name": "api_rule_catalog",
+      "iterations": 1000,
+      "work_units": 1,
+      "work_unit_name": "catalog",
+      "total_ms": 21.714707999999998,
+      "average_ms": 0.021714708,
+      "observed_items": 53000
+    }
+  ]
+}

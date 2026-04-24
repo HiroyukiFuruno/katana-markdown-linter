@@ -26,7 +26,12 @@ pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Err
 /// Applies available fixes to the provided Markdown content.
 pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
     let results = lint(content, options)?;
-    Ok(fix::apply(&results, content))
+    Ok(fix_with_results(content, &results))
+}
+
+/// Applies available fixes from already computed lint results.
+pub fn fix_with_results(content: &str, results: &[LintResult]) -> FixResult {
+    fix::apply(results, content)
 }
 
 /// Returns the set of available rules.
@@ -314,6 +319,23 @@ mod tests {
         assert_ne!(result.content, content);
         let results = lint(&result.content, &options).expect("re-lint should succeed");
         assert!(!results.iter().any(|result| result.rule_id == "MD004"));
+    }
+
+    #[test]
+    fn fix_with_results_matches_fix_output() {
+        let content = "#Title\n\n- item\n+ item";
+        let mut options = LintOptions::default();
+        options.rules.insert(
+            "MD004".to_string(),
+            RuleConfig {
+                enabled: true,
+                properties: std::collections::HashMap::new(),
+            },
+        );
+        let results = lint(content, &options).expect("lint should succeed");
+        let direct = fix(content, &options).expect("fix should succeed");
+        let reused = fix_with_results(content, &results);
+        assert_eq!(direct, reused);
     }
 
     #[test]
