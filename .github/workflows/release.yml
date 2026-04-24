@@ -55,6 +55,15 @@ jobs:
             scripts/release/verify-version.sh "${{ inputs.version }}"
           fi
 
+      - name: Verify release tag exists
+        run: |
+          tag="${{ steps.version.outputs.version }}"
+          git fetch --force origin "refs/tags/${tag}:refs/tags/${tag}"
+          if [[ "$(git cat-file -t "${tag}")" != "tag" ]]; then
+            echo "${tag} must be an annotated signed tag. Run: make release-tag VERSION=${tag}" >&2
+            exit 1
+          fi
+
       - name: Format check
         run: cargo fmt --all --check
 
@@ -101,6 +110,7 @@ jobs:
             gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" --clobber
           else
             gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" \
+              --verify-tag \
               --target "$GITHUB_SHA" \
               --title "katana-markdown-linter ${TAG}" \
               --notes-file RELEASE_NOTES.md

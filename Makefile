@@ -2,7 +2,16 @@
 JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
 VERSION_BARE := $(patsubst v%,%,$(VERSION))
+TAG := v$(VERSION_BARE)
 export RUSTFLAGS=-D warnings
+
+# AI context-aware CLI proxy (mandatory for agents)
+RTK := $(shell command -v rtk 2> /dev/null || echo "")
+
+
+###################################
+# Help
+###################################
 
 .PHONY: help
 help: ## Show this help
@@ -62,23 +71,61 @@ release-package: ## Build .crate package and sha256 checksum for VERSION
 	scripts/release/package-crate.sh "$(VERSION_BARE)"
 
 .PHONY: release-github
-release-github: ## Dispatch GitHub Release workflow without crates.io publish
+release-github: release-tag ## Dispatch GitHub Release workflow without crates.io publish
 	scripts/release/verify-version.sh "$(VERSION)"
-	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(VERSION)" -f publish_crate=false
+	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(TAG)" -f publish_crate=false
 
 .PHONY: release-publish
-release-publish: ## Dispatch GitHub Release workflow with crates.io publish
+release-publish: release-tag ## Dispatch GitHub Release workflow with crates.io publish
 	scripts/release/verify-version.sh "$(VERSION)"
 	gh secret list --repo HiroyukiFuruno/katana-markdown-linter | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || (echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1)
-	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(VERSION)" -f publish_crate=true
+	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(TAG)" -f publish_crate=true
 
 .PHONY: release
 release: release-publish ## Dispatch the full release workflow (GitHub Release + crates.io, VERSION=vX.Y.Z)
+
+.PHONY: release-tag
+release-tag: ## Create and push a signed annotated tag for VERSION
+	scripts/release/verify-version.sh "$(VERSION)"
+	@if git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null; then \
+		if [ "$$(git cat-file -t "$(TAG)")" != "tag" ]; then \
+			echo "$(TAG) exists but is not an annotated signed tag" >&2; \
+			exit 1; \
+		fi; \
+		git tag -v "$(TAG)"; \
+	else \
+		git tag -s "$(TAG)" -m "katana-markdown-linter $(TAG)"; \
+	fi
+	git push origin "refs/tags/$(TAG)"
 
 .PHONY: release-status
 release-status: ## Show recent Release workflow runs
 	gh run list --repo HiroyukiFuruno/katana-markdown-linter --workflow Release --limit 5
 
+###################################
+# Maintenance
+###################################
+
 .PHONY: sweep
-sweep:
-	cargo sweep --time 7 || true
+sweep: ## Sweep old build artifacts locally (older than 7 days)
+	@$(RTK) cargo sweep --time 7 || true
+
+.PHONY: clean
+clean: sweep ## Remove build artifacts
+	cargo clean
+
+.PHONY: update-safe
+update-safe: ## Update dependency crates safely (respects Cargo.toml SemVer)
+	$(RTK) cargo update
+
+.PHONY: update
+update: ## Upgrade ALL dependencies to absolute latest versions (including breaking changes)
+	$(RTK) cargo upgrade -i
+	$(RTK) cargo update
+
+.PHONY: outdated
+outdated: ## List outdated dependencies (requires cargo-outdated)
+	@cp Cargo.toml Cargo.toml.bak
+	@sed -e '/^\[patch\.crates-io\]/,$$d' Cargo.toml.bak > Cargo.toml
+	@$(RTK) cargo outdated --workspace || (mv Cargo.toml.bak Cargo.toml && exit 1)
+	@mv Cargo.toml.bak Cargo.toml
