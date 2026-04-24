@@ -102,6 +102,14 @@ dogfood-archive: ## Explicitly check archived OpenSpec Markdown
 examples: ## Compile public Rust embedding examples
 	cargo build --examples --locked
 
+.PHONY: mcp-build
+mcp-build: ## Build optional experimental MCP server
+	cargo build --bin kml-mcp --features mcp --locked
+
+.PHONY: mcp-test
+mcp-test: ## Run optional experimental MCP server tests
+	cargo test --features mcp --bin kml-mcp --locked
+
 .PHONY: release-check
 release-check: fmt-check lint ast-lint test coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"

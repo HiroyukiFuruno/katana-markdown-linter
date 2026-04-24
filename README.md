@@ -84,6 +84,29 @@ Quality gate details, CI required checks, coverage modes, and release readiness 
 
 MCP integration has been evaluated separately in [`docs/mcp-integration-evaluation.md`](docs/mcp-integration-evaluation.md). The current recommendation is an optional `kml-mcp` prototype that keeps the core crate independent from MCP dependencies.
 
+## MCP Server
+
+`kml-mcp` is an optional, experimental MCP server for agents and editors that want to call the library without shelling out to `kml`.
+
+Build or run it with the `mcp` feature:
+
+```bash
+cargo build --bin kml-mcp --features mcp --locked
+cargo run --bin kml-mcp --features mcp --locked
+```
+
+The prototype exposes read-only, text-first tools:
+
+- `check_text`
+- `fix_text`
+- `config_validate`
+- `rule_list`
+- `rule_get`
+
+`fix_text` returns fixed content only; it does not write files. File read/write MCP tools are intentionally absent until workspace allowlist and dry-run policies are implemented.
+
+More details are in [`docs/mcp-server.md`](docs/mcp-server.md).
+
 ## Release Policy
 
 - The library API is the primary contract.
