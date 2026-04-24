@@ -48,3 +48,6 @@ Use `kml init-config` to create a default `.markdownlint.json`.
 - The library API is the primary contract.
 - The CLI is a thin wrapper over the library.
 - Release validation should include `cargo fmt`, `cargo test`, `cargo clippy`, and publish dry-run checks before publication.
+- `Cargo.toml` package version is the release version source of truth.
+- GitHub Releases are created by the Release workflow with a `vX.Y.Z` tag.
+- crates.io publication requires the `CARGO_REGISTRY_TOKEN` GitHub secret.

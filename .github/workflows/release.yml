@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.1.0 or v0.1.0. Defaults to Cargo.toml version."
+        required: false
+        type: string
+      publish_crate:
+        description: "Publish to crates.io after GitHub Release is created"
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
+          else
+            scripts/release/verify-version.sh "${{ inputs.version }}"
+          fi
+
+      - name: Format check
+        run: cargo fmt --all --check
+
+      - name: Test
+        run: cargo test --all-features --locked
+
+      - name: Clone upstream markdownlint
+        run: git clone --depth 1 https://github.com/DavidAnson/markdownlint.git "${RUNNER_TEMP}/markdownlint"
+
+      - name: Upstream drift check
+        env:
+          KML_UPSTREAM_MARKDOWNLINT_DOC_DIR: ${{ runner.temp }}/markdownlint/doc
+        run: cargo test upstream_default_branch_drift_has_no_unknown_items --all-features --locked -- --ignored
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features --locked -- -D warnings
+
+      - name: Publish dry-run
+        run: cargo publish --dry-run --locked --allow-dirty
+
+      - name: Install smoke test
+        run: |
+          cargo install --path . --locked --force --root "${RUNNER_TEMP}/kml-install-check" --bin kml
+          "${RUNNER_TEMP}/kml-install-check/bin/kml" init-config --config "${RUNNER_TEMP}/kml-install-check/.markdownlint.json"
+
+      - name: Package crate
+        id: package
+        run: scripts/release/package-crate.sh "${{ steps.version.outputs.version_bare }}"
+
+      - name: Build release notes
+        run: scripts/release/release-notes.sh "${{ steps.version.outputs.version_bare }}" > RELEASE_NOTES.md
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.version }}
+          PACKAGE_PATH: ${{ steps.package.outputs.package_path }}
+          CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --title "katana-markdown-linter ${TAG}" \
+              --notes-file RELEASE_NOTES.md
+            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" --clobber
+          else
+            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" \
+              --target "$GITHUB_SHA" \
+              --title "katana-markdown-linter ${TAG}" \
+              --notes-file RELEASE_NOTES.md
+          fi
+
+      - name: Publish crate
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_crate == true
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if [[ -z "${CARGO_REGISTRY_TOKEN:-}" ]]; then
+            echo "CARGO_REGISTRY_TOKEN secret is required to publish to crates.io." >&2
+            exit 1
+          fi
+          cargo publish --locked --allow-dirty --token "$CARGO_REGISTRY_TOKEN"

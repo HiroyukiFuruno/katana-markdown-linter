@@ -21,6 +21,35 @@ This runbook covers the release checks needed before publishing `katana-markdown
 4. Confirm the installed binary path:
    - `cargo install --path . --bin kml`
 
+## CI/CD Release Flow
+
+The Release workflow is defined in `.github/workflows/release.yml`.
+
+1. Confirm `Cargo.toml` `package.version` is the intended version.
+2. Confirm `CHANGELOG.md` has a `## vX.Y.Z` section.
+3. Run the workflow manually from GitHub Actions with:
+   - `version`: `X.Y.Z` or `vX.Y.Z`
+   - `publish_crate`: `false` for GitHub Release only, `true` for GitHub Release plus crates.io
+4. The workflow validates:
+   - Cargo version equals release version
+   - `cargo fmt --all --check`
+   - `cargo test --all-features --locked`
+   - upstream markdownlint drift gate
+   - `cargo clippy --all-targets --all-features --locked -- -D warnings`
+   - `cargo publish --dry-run --locked --allow-dirty`
+   - `cargo install --path . --locked --bin kml`
+5. The workflow creates or updates:
+   - Git tag `vX.Y.Z`
+   - GitHub Release
+   - `.crate` package artifact
+   - `.sha256` checksum
+
+Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and creates or updates the GitHub Release, but it does not publish to crates.io. Use manual dispatch with `publish_crate: true` when crates.io publication is intended.
+
+## Required Secrets
+
+- `CARGO_REGISTRY_TOKEN`: crates.io API token used only when manual dispatch sets `publish_crate: true`.
+
 ## Publish Failure Recovery
 
 ### `cargo package` fails
@@ -37,6 +66,17 @@ This runbook covers the release checks needed before publishing `katana-markdown
 
 - If the version was not accepted, bump `version` in `Cargo.toml`.
 - Re-run `cargo publish --dry-run` before the next publish attempt.
+
+### Release workflow fails before GitHub Release creation
+
+- Fix the failed quality gate.
+- Re-run the workflow with the same version.
+
+### GitHub Release was created but crates.io publish failed
+
+- Check whether the version exists on crates.io.
+- If it was not published, fix the token or package issue and re-run with the same version.
+- If it was partially published, do not reuse the same version for changed content; bump `Cargo.toml` version.
 
 ### Installed binary is missing or renamed
 
