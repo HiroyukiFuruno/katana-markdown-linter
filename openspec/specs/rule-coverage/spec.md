@@ -24,6 +24,8 @@ Rule coverage exposes markdownlint-compatible rule metadata, checking, and fix b
 - **WHEN** system が Markdown 文書を解析する
 - **THEN** system は rule ごとの違反を返す
 - **THEN** system は rule の設定に従って enable / disable を判定する
+- **THEN** system は fixture matrix の pass / fail 期待値と一致する判定を返す
+- **THEN** system は境界値・イレギュラー条件に対しても仕様準拠の判定を返す
 
 ### Requirement: system SHALL support automatic fix only for rules that define fix behavior
 
@@ -35,3 +37,25 @@ Rule coverage exposes markdownlint-compatible rule metadata, checking, and fix b
 - **THEN** system は fixable rule の修正だけを適用する
 - **THEN** system は fix 非対応 rule を無理に変更しない
 - **THEN** system は fix 非対応 rule の理由を metadata として保持する
+
+### Requirement: system SHALL generate a rule fixture parity matrix from official markdownlint documentation
+
+システムは、公式 markdownlint rule document から rule ごとの fixture parity matrix を生成しなければならない（SHALL）。
+
+#### Scenario: fixture matrix を生成する
+
+- **WHEN** developer が upstream rule document を入力する
+- **THEN** system は rule id、aliases、tags、parameters、fixability を抽出する
+- **THEN** system は check / fix / config / edge の fixture coverage を rule ごとに出力する
+- **THEN** system は自動抽出できない記載を `manual_required` として可視化する
+
+### Requirement: system SHALL report stale or incomplete rule fixtures
+
+システムは、公式 markdownlint document と local fixture matrix の乖離を報告しなければならない（SHALL）。
+
+#### Scenario: fixture drift を検出する
+
+- **WHEN** upstream rule document が変更される
+- **THEN** system は local fixture matrix と比較する
+- **THEN** system は missing fixture、stale fixture、manual_required の数を報告する
+- **THEN** system は未知の fixture drift を品質ゲートで検出できる
