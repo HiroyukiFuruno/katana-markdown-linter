@@ -5,10 +5,20 @@ on:
     branches: [main, master]
     paths:
       - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Makefile'
+      - '.github/workflows/**'
+      - 'scripts/**'
   pull_request:
     branches: [main, master]
     paths:
       - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Makefile'
+      - '.github/workflows/**'
+      - 'scripts/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
