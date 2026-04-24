@@ -460,6 +460,27 @@ mod tests {
     }
 
     #[test]
+    fn constructors_and_missing_file_load_return_default_config() {
+        let missing_path = std::env::temp_dir().join(format!(
+            "katana-markdown-linter-missing-{}.json",
+            std::process::id()
+        ));
+        let _ = fs::remove_file(&missing_path);
+
+        assert_eq!(MarkdownLintConfig::new().raw, json!({ "default": true }));
+        assert_eq!(
+            MarkdownLintConfig::create_default().raw,
+            json!({ "default": true })
+        );
+        assert_eq!(
+            MarkdownLintConfig::load(&missing_path)
+                .expect("missing config should load default")
+                .raw,
+            json!({ "default": true })
+        );
+    }
+
+    #[test]
     fn validate_reports_unknown_rules_and_type_mismatches() {
         let mut config = MarkdownLintConfig::default();
         config.set_rule_enabled("MD999", true);
@@ -476,6 +497,120 @@ mod tests {
             error.rule_id.as_deref() == Some("MD001")
                 && error.property.as_deref() == Some("front_matter_title")
                 && matches!(error.kind, ConfigErrorKind::InvalidType { .. })
+        }));
+    }
+
+    #[test]
+    fn validate_covers_root_rule_property_and_enum_errors() {
+        let rules = crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
+
+        let invalid_root = MarkdownLintConfig { raw: json!(true) };
+        let root_errors = invalid_root.validate(&rules);
+        assert_eq!(root_errors.len(), 1);
+        assert_eq!(
+            root_errors[0].to_string(),
+            "config root must be a JSON object"
+        );
+
+        let config = MarkdownLintConfig {
+            raw: json!({
+                "default": "true",
+                "MD001": {
+                    "front_matter_title": "^title$",
+                    "unknown": true
+                },
+                "MD003": { "style": "invalid" },
+                "MD004": { "style": "dash" },
+                "MD007": {
+                    "indent": 2,
+                    "start_indented": false
+                },
+                "MD013": 80,
+                "MD033": {
+                    "allowed_elements": ["br"],
+                    "table_allowed_elements": [1]
+                },
+                "MD043": {
+                    "headings": null,
+                    "match_case": null
+                },
+                "MD051": {
+                    "ignore_case": true,
+                    "ignored_pattern": 1
+                }
+            }),
+        };
+
+        let errors = config.validate(&rules);
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("default")
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType {
+                        actual: "string",
+                        ..
+                    }
+                )
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD001")
+                && error.property.as_deref() == Some("unknown")
+                && matches!(error.kind, ConfigErrorKind::UnknownProperty)
+                && error.to_string() == "MD001.unknown: unknown rule property"
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD003")
+                && matches!(error.kind, ConfigErrorKind::InvalidEnumValue { .. })
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD013")
+                && error.property.is_none()
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType {
+                        actual: "number",
+                        ..
+                    }
+                )
+                && error.to_string() == "MD013: rule config must be a boolean or object"
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD033")
+                && error.property.as_deref() == Some("table_allowed_elements")
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType {
+                        actual: "array",
+                        ..
+                    }
+                )
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD043")
+                && error.property.as_deref() == Some("headings")
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType { actual: "null", .. }
+                )
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD043")
+                && error.property.as_deref() == Some("match_case")
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType { actual: "null", .. }
+                )
+        }));
+        assert!(errors.iter().any(|error| {
+            error.rule_id.as_deref() == Some("MD051")
+                && error.property.as_deref() == Some("ignored_pattern")
+                && matches!(
+                    error.kind,
+                    ConfigErrorKind::InvalidType {
+                        actual: "number",
+                        ..
+                    }
+                )
         }));
     }
 
@@ -507,6 +642,18 @@ mod tests {
     }
 
     #[test]
+    fn parse_config_text_keeps_strings_while_stripping_comments() {
+        let parsed = parse_config_text(
+            "{\n  \"default\": true,\n  \"url\": \"https://example.com//not-comment\",\n  /* block comment */\n  \"escaped\": \"quote: \\\"//not-comment\\\"\",\r\n  // crlf comment\r\n  \"items\": [\"a\",],\n}",
+        )
+        .expect("jsonc should parse");
+
+        assert_eq!(parsed["url"], json!("https://example.com//not-comment"));
+        assert_eq!(parsed["escaped"], json!("quote: \"//not-comment\""));
+        assert_eq!(parsed["items"], json!(["a"]));
+    }
+
+    #[test]
     fn create_default_file_writes_default_when_missing() {
         let path = std::env::temp_dir().join(format!(
             "katana-markdown-linter-default-{}.json",
@@ -520,6 +667,21 @@ mod tests {
 
         let loaded = MarkdownLintConfig::load(&path).expect("created file should load");
         assert_eq!(loaded.raw, config.raw);
+
+        let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn create_default_file_loads_existing_config() {
+        let path = std::env::temp_dir().join(format!(
+            "katana-markdown-linter-existing-{}.json",
+            std::process::id()
+        ));
+        fs::write(&path, r#"{ "default": false }"#).expect("test config should write");
+
+        let config = MarkdownLintConfig::create_default_file(&path)
+            .expect("existing config should be loaded");
+        assert_eq!(config.raw, json!({ "default": false }));
 
         let _ = fs::remove_file(&path);
     }

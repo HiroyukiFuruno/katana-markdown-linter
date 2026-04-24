@@ -256,6 +256,55 @@ mod tests {
     }
 
     #[test]
+    fn implemented_rules_and_error_display_are_public_api() {
+        let rules = implemented_rules();
+        assert!(rules.iter().any(|rule| rule.id == "MD001"));
+        assert!(rules.iter().any(|rule| !rule.docs_url.is_empty()));
+
+        let error = Error::new("sample error");
+        assert_eq!(error.to_string(), "sample error");
+    }
+
+    #[test]
+    fn lint_maps_configured_severity_variants() {
+        let mut options = LintOptions {
+            default_severity: Severity::Error,
+            ..LintOptions::default()
+        };
+        options.rules.insert(
+            "MD001".to_string(),
+            RuleConfig {
+                enabled: true,
+                properties: std::collections::HashMap::new(),
+            },
+        );
+
+        let error_results =
+            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        assert!(error_results.iter().any(|result| {
+            result.rule_id == "MD001" && matches!(result.severity, Severity::Error)
+        }));
+
+        options.default_severity = Severity::Info;
+        let info_results =
+            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        assert!(info_results.iter().any(|result| {
+            result.rule_id == "MD001" && matches!(result.severity, Severity::Info)
+        }));
+
+        options
+            .rules
+            .get_mut("MD001")
+            .expect("MD001 config should exist")
+            .enabled = false;
+        let disabled_results =
+            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        assert!(!disabled_results
+            .iter()
+            .any(|result| result.rule_id == "MD001"));
+    }
+
+    #[test]
     fn lint_reports_regex_based_rule_violations() {
         let content = "\n\n\nReversed (link)[https://example.com]\n\nhttps://example.com";
         let options = LintOptions::default();

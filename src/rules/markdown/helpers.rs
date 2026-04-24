@@ -197,3 +197,74 @@ impl RuleHelpers {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn contains_html_tag_ignores_code_and_detects_likely_tags() {
+        assert!(RuleHelpers::contains_html_tag("<span>text</span>"));
+        assert!(RuleHelpers::contains_html_tag("<foo><img src=\"x\">"));
+        assert!(!RuleHelpers::contains_html_tag("`<span>` <> <unknown> <"));
+    }
+
+    #[test]
+    fn ordered_numbers_and_broken_link_diagnostics_are_reported() {
+        assert_eq!(RuleHelpers::get_ordered_number("12. item"), Some(12));
+
+        let dir = std::env::temp_dir().join(format!(
+            "katana-markdown-linter-helper-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("test directory should be created");
+        std::fs::write(dir.join("present.md"), "").expect("target file should be created");
+
+        let mut diagnostics = Vec::new();
+        RuleHelpers::push_broken_link_violation(
+            &mut diagnostics,
+            Path::new("doc.md"),
+            1,
+            3,
+            9,
+            &dir,
+            "https://example.com",
+        );
+        RuleHelpers::push_broken_link_violation(
+            &mut diagnostics,
+            Path::new("doc.md"),
+            1,
+            3,
+            9,
+            &dir,
+            "#heading",
+        );
+        RuleHelpers::push_broken_link_violation(
+            &mut diagnostics,
+            Path::new("doc.md"),
+            1,
+            3,
+            9,
+            &dir,
+            "present",
+        );
+        RuleHelpers::push_broken_link_violation(
+            &mut diagnostics,
+            Path::new("doc.md"),
+            1,
+            3,
+            9,
+            &dir,
+            "missing",
+        );
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].rule_id, "md-broken-link");
+        assert_eq!(diagnostics[0].range.start_line, 2);
+        assert_eq!(diagnostics[0].range.start_column, 4);
+        assert_eq!(diagnostics[0].range.end_column, 11);
+
+        let _ = std::fs::remove_dir_all(dir);
+    }
+}

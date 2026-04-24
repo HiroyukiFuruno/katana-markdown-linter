@@ -145,4 +145,11 @@ mod tests {
         assert_eq!(fixed.content, "# Title\n");
         assert_eq!(fixed.applied_fixes, 1);
     }
+
+    #[test]
+    fn offset_supports_virtual_eof_and_unicode_boundaries() {
+        assert_eq!(offset_for_position("a", 2, 1), Some(1));
+        assert_eq!(offset_for_position("é", 1, 2), Some(0));
+        assert_eq!(offset_for_position("a", 3, 1), None);
+    }
 }

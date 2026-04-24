@@ -347,11 +347,72 @@ mod tests {
     }
 
     #[test]
+    fn ignore_case_missing_fragment_remains_unfixable() {
+        let rule = LinkFragmentsRule;
+        let config = RuleConfig {
+            enabled: true,
+            properties: HashMap::from([("ignore_case".to_string(), "true".to_string())]),
+        };
+        let diagnostics = rule.evaluate_configured(
+            Path::new("doc.md"),
+            "# Heading Name\n\n[Link](#missing)",
+            Some(&config),
+        );
+
+        assert_eq!(diagnostics.len(), 1);
+        assert!(diagnostics[0].fix_info.is_none());
+    }
+
+    #[test]
     fn accepts_custom_heading_anchor_and_html_fragments() {
         let rule = LinkFragmentsRule;
         let diagnostics = rule.evaluate(
             Path::new("doc.md"),
             "# Heading Name {#custom-name}\n<a id=\"bookmark\"></a>\n<a name='legacy'></a>\n\n[Custom](#custom-name)\n[Bookmark](#bookmark)\n[Legacy](#legacy)",
+        );
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_code_spans_and_unclosed_fragments() {
+        let rule = LinkFragmentsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "`[Code](#missing)` and [Unclosed](#missing",
+        );
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn accepts_duplicate_heading_suffixes_and_line_fragments() {
+        let rule = LinkFragmentsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "# Repeat\n# Repeat\n\n[Second](#repeat-1)\n[Line](#L19C5-L21C11)\n[Top](#top)",
+        );
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn rejects_invalid_custom_heading_anchor() {
+        let rule = LinkFragmentsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "# Heading Name {#Invalid Anchor}\n\n[Custom](#Invalid-Anchor)",
+        );
+
+        assert_eq!(diagnostics.len(), 1);
+    }
+
+    #[test]
+    fn html_attribute_parser_skips_prefixed_and_unquoted_attributes() {
+        let rule = LinkFragmentsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "<span data-id=\"skip\" id=unquoted id=\"bookmark\"></span>\n\n[Bookmark](#bookmark)",
         );
 
         assert!(diagnostics.is_empty());
