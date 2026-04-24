@@ -81,7 +81,7 @@ upstream-golden-live: ## Run live upstream markdownlint oracle against golden co
 
 .PHONY: rule-dashboard
 rule-dashboard: ## Regenerate docs/rule-coverage-dashboard.md from fixture metadata
-	cargo run --quiet --example rule_coverage_dashboard --locked -- tests/fixtures/rule-fixture-matrix.json tests/fixtures/upstream-golden-known-deltas.json docs/rule-coverage-dashboard.md
+	cargo run --quiet --example rule_coverage_dashboard --locked -- tests/fixtures/rule-fixture-matrix.json tests/fixtures/upstream-golden-baseline.json tests/fixtures/upstream-golden-known-deltas.json docs/rule-coverage-dashboard.md
 
 .PHONY: test
 test: ## Run unit tests

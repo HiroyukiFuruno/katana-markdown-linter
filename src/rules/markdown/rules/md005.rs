@@ -20,13 +20,13 @@ impl MarkdownRule for ListIndentRule {
         let meta = self.official_meta().expect("always Some for MD005");
         let mut diagnostics = Vec::new();
         let mut in_code_block = false;
-        let mut expected_indent: Option<usize> = None;
+        let mut previous_list_indent: Option<usize> = None;
 
         for (i, line) in content.lines().enumerate() {
             let trimmed = line.trim_start();
             if RuleHelpers::is_fence(trimmed) {
                 in_code_block = !in_code_block;
-                expected_indent = None;
+                previous_list_indent = None;
                 continue;
             }
             if in_code_block {
@@ -34,8 +34,8 @@ impl MarkdownRule for ListIndentRule {
             }
             if RuleHelpers::is_list_item(trimmed) {
                 let leading = line.len() - trimmed.len();
-                if let Some(expected) = expected_indent {
-                    if leading != expected {
+                if let Some(previous) = previous_list_indent {
+                    if let Some(expected) = safe_expected_indent(previous, leading) {
                         let fix = crate::rules::markdown::types::DiagnosticFix {
                             start_line: i + 1,
                             start_column: 1,
@@ -52,13 +52,68 @@ impl MarkdownRule for ListIndentRule {
                             DiagnosticSeverity::Warning,
                             Some(fix),
                         );
+                        previous_list_indent = Some(expected);
+                        continue;
                     }
-                } else {
-                    expected_indent = Some(leading);
                 }
+                previous_list_indent = Some(leading);
+            } else {
+                previous_list_indent = None;
             }
         }
 
         diagnostics
+    }
+}
+
+fn safe_expected_indent(previous: usize, current: usize) -> Option<usize> {
+    if previous == 0 || current <= previous {
+        return None;
+    }
+    if current - previous == 1 {
+        Some(previous)
+    } else {
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixes_one_space_drift_for_adjacent_nested_siblings() {
+        let rule = ListIndentRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "- one\n  - nested\n   - inconsistent\n",
+        );
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("safe sibling indent should be fixable");
+        assert_eq!(fix.start_line, 3);
+        assert_eq!(fix.replacement, "  ");
+    }
+
+    #[test]
+    fn leaves_ambiguous_top_level_to_nested_transition_unfixed() {
+        let rule = ListIndentRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "- one\n - maybe nested\n");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn leaves_non_adjacent_list_items_unfixed() {
+        let rule = ListIndentRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "  - nested\n  continuation\n   - not adjacent\n",
+        );
+
+        assert!(diagnostics.is_empty());
     }
 }

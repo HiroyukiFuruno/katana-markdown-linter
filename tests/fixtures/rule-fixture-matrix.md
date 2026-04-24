@@ -2,7 +2,7 @@
 
 - upstream source: DavidAnson/markdownlint default branch
 - total rules: 53
-- manual required: 5
+- manual required: 3
 - missing fixtures: 0
 - stale fixtures: 0
 
@@ -11,13 +11,13 @@
 | MD001 | 1 | 1 | 0 | 2 | 2 | 1 |  |
 | MD003 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD004 | 1 | 1 | 1 | 2 | 2 | 0 |  |
-| MD005 | 1 | 1 | 0 | 1 | 1 | 0 | fix unsupported: local fix overlaps with MD007/list indentation strategy and is unsafe in global fix mode |
+| MD005 | 1 | 1 | 1 | 1 | 1 | 1 |  |
 | MD007 | 1 | 1 | 1 | 4 | 4 | 0 |  |
-| MD009 | 1 | 1 | 1 | 5 | 5 | 0 |  |
+| MD009 | 1 | 1 | 1 | 5 | 5 | 1 |  |
 | MD010 | 1 | 1 | 1 | 4 | 4 | 0 |  |
 | MD011 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD012 | 1 | 1 | 1 | 2 | 2 | 0 |  |
-| MD013 | 1 | 1 | 0 | 9 | 9 | 0 |  |
+| MD013 | 1 | 1 | 0 | 9 | 9 | 1 |  |
 | MD014 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD018 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD019 | 1 | 1 | 1 | 1 | 1 | 0 |  |
@@ -31,7 +31,7 @@
 | MD027 | 1 | 1 | 1 | 3 | 2 | 0 |  |
 | MD028 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD029 | 1 | 1 | 1 | 2 | 2 | 0 |  |
-| MD030 | 1 | 1 | 0 | 5 | 5 | 0 | fix unsupported: local list marker spacing fix range is not safe enough to lock before/after output yet |
+| MD030 | 1 | 1 | 2 | 5 | 5 | 1 |  |
 | MD031 | 1 | 1 | 1 | 2 | 2 | 0 |  |
 | MD032 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD033 | 1 | 1 | 0 | 3 | 3 | 0 |  |
@@ -60,4 +60,4 @@
 | MD056 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD058 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD059 | 1 | 1 | 0 | 2 | 2 | 0 |  |
-| MD060 | 1 | 1 | 0 | 3 | 5 | 0 | fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked |
+| MD060 | 1 | 1 | 0 | 3 | 5 | 2 | fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked |

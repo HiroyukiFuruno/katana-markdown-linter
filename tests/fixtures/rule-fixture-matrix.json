@@ -5,7 +5,7 @@
     "rules_with_examples": 53,
     "rules_with_fix_metadata": 33,
     "rules_with_parameters": 34,
-    "manual_required": 5,
+    "manual_required": 3,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -238,7 +238,13 @@
           "expected": "MD005"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "nested_sibling_indent_drift",
+          "source": "- one\n  - nested\n   - inconsistent\n",
+          "expected": "- one\n  - nested\n  - inconsistent\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -253,10 +259,14 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
-      "manual_required": [
-        "fix unsupported: local fix overlaps with MD007/list indentation strategy and is unsafe in global fix mode"
-      ]
+      "edge": [
+        {
+          "name": "ambiguous_top_level_indent_not_auto_fixed",
+          "source": "- one\n - maybe nested\n",
+          "expected": null
+        }
+      ],
+      "manual_required": []
     },
     {
       "rule_id": "MD007",
@@ -466,7 +476,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "crlf_trailing_spaces",
+          "source": "text  \r\n",
+          "expected": "MD009"
+        }
+      ],
       "manual_required": []
     },
     {
@@ -849,7 +865,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "unicode_line_over_limit",
+          "source": "あああああああああああああああああああああああああああああああああああああああああ\n",
+          "expected": "MD013"
+        }
+      ],
       "manual_required": []
     },
     {
@@ -1672,7 +1694,23 @@
           "expected": "MD030"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "default_extra_marker_spaces",
+          "source": "-  item\n1.  item\n",
+          "expected": "- item\n1. item\n"
+        },
+        {
+          "name": "configured_unordered_single_spacing",
+          "source": "- item\n",
+          "expected": "-  item\n",
+          "config": {
+            "MD030": {
+              "ul_single": 2
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -1727,10 +1765,14 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
-      "manual_required": [
-        "fix unsupported: local list marker spacing fix range is not safe enough to lock before/after output yet"
-      ]
+      "edge": [
+        {
+          "name": "fenced_list_marker_spacing_is_ignored",
+          "source": "```\n-  item\n```\n",
+          "expected": null
+        }
+      ],
+      "manual_required": []
     },
     {
       "rule_id": "MD031",
@@ -3447,7 +3489,7 @@
       ],
       "edge": [],
       "manual_required": [
-        "check requires a disabled link style such as MD054.collapsed=false",
+        "check requires a disabled MD054 style such as MD054.collapsed=false",
         "fix requires: disabled style and an inline-safe reference definition"
       ]
     },
@@ -3752,7 +3794,18 @@
           "expected": "invalid enum"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "compact_table_is_accepted",
+          "source": "|A|B|\n|-|-|\n|C|D|\n",
+          "expected": null
+        },
+        {
+          "name": "spaced_table_is_diagnostic_only",
+          "source": "| A | B |\n| --- | - |\n| C | D |\n",
+          "expected": "MD060"
+        }
+      ],
       "manual_required": [
         "fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked"
       ]

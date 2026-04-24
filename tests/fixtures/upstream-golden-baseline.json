@@ -49,6 +49,46 @@
         }
       ],
       "expected_fixed_output": "text\n"
+    },
+    {
+      "rule_id": "MD005",
+      "fixture": "nested_sibling_indent_drift",
+      "source": "- one\n  - nested\n   - inconsistent\n",
+      "expected": [
+        {
+          "rule_id": "MD005",
+          "line": 3,
+          "column": 1,
+          "end_line": 3,
+          "end_column": 17,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "- one\n  - nested\n  - inconsistent\n"
+    },
+    {
+      "rule_id": "MD030",
+      "fixture": "extra_space_after_list_marker",
+      "source": "-  item\n1.  item\n",
+      "expected": [
+        {
+          "rule_id": "MD030",
+          "line": 1,
+          "column": 1,
+          "end_line": 1,
+          "end_column": 7,
+          "fixable": true
+        },
+        {
+          "rule_id": "MD030",
+          "line": 2,
+          "column": 1,
+          "end_line": 2,
+          "end_column": 8,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "- item\n1. item\n"
     }
   ]
 }

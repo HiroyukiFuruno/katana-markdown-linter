@@ -98,7 +98,7 @@ fn fixture_matrix_can_be_loaded_by_harness() {
         .filter_map(|rule| rule.official_meta().map(|meta| meta.code.to_string()))
         .collect::<HashSet<_>>();
 
-    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(5));
+    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(3));
     assert!(rules(&matrix)
         .iter()
         .all(|rule| active.contains(rule_id(rule))));
@@ -185,6 +185,36 @@ fn config_valid_and_invalid_fixtures_execute() {
                 rule_id(rule),
                 case_name(case)
             );
+        }
+    }
+}
+
+#[test]
+fn edge_case_fixtures_execute() {
+    let matrix = matrix();
+
+    for rule in rules(&matrix) {
+        for case in cases(rule, "edge") {
+            let options = options_for_case(case);
+            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            match case["expected"].as_str() {
+                Some(expected) => assert!(
+                    diagnostics
+                        .iter()
+                        .any(|diagnostic| diagnostic.rule_id == expected),
+                    "{} / {} did not report expected edge violation",
+                    rule_id(rule),
+                    case_name(case)
+                ),
+                None => assert!(
+                    diagnostics
+                        .iter()
+                        .all(|diagnostic| diagnostic.rule_id != rule_id(rule)),
+                    "{} / {} unexpectedly reported edge violation",
+                    rule_id(rule),
+                    case_name(case)
+                ),
+            }
         }
     }
 }
@@ -434,7 +464,7 @@ fn fixable_rules_without_fix_fixtures_have_explicit_metadata() {
         .filter(|rule| cases(rule, "fix").next().is_none())
         .map(rule_id)
         .collect::<BTreeSet<_>>();
-    let expected = ["MD005", "MD030"].into_iter().collect::<BTreeSet<_>>();
+    let expected = BTreeSet::<&str>::new();
 
     assert_eq!(unsupported, expected);
     for rule in rules(&matrix)
