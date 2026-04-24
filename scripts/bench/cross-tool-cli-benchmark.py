@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import pathlib
+import re
 import shlex
 import shutil
 import statistics
@@ -174,10 +176,11 @@ def benchmark_command(args: argparse.Namespace) -> int:
             if case.workflow == "fix" and case.tool.name == "mado":
                 cases.append(skipped_case(case, "mado fix workflow is not configured"))
                 continue
+            fix_validation = validate_fix_case(case) if case.workflow == "fix" else None
             if use_hyperfine:
-                cases.append(run_hyperfine_case(case, args.runs, args.warmup))
+                cases.append(run_hyperfine_case(case, args.runs, args.warmup, fix_validation))
             else:
-                cases.append(run_fallback_case(case, args.runs, args.warmup))
+                cases.append(run_fallback_case(case, args.runs, args.warmup, fix_validation))
 
     report = {
         "schema_version": SCHEMA_VERSION,
@@ -329,13 +332,18 @@ def run_case_command(args: argparse.Namespace) -> int:
     return completed.returncode or 1
 
 
-def run_fallback_case(case: Case, runs: int, warmup: int) -> dict[str, Any]:
+def run_fallback_case(
+    case: Case,
+    runs: int,
+    warmup: int,
+    fix_validation: dict[str, Any] | None,
+) -> dict[str, Any]:
     version = tool_version(case.tool)
     observed_exit_codes: list[int] = []
     for _ in range(warmup):
         completed = execute_case_once(case)
         if completed.returncode not in expected_exit_codes(case):
-            return failed_case(case, version, completed, "warmup")
+            return failed_case(case, version, completed, "warmup", fix_validation)
 
     samples: list[float] = []
     for _ in range(runs):
@@ -344,13 +352,25 @@ def run_fallback_case(case: Case, runs: int, warmup: int) -> dict[str, Any]:
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         observed_exit_codes.append(completed.returncode)
         if completed.returncode not in expected_exit_codes(case):
-            return failed_case(case, version, completed, "measure")
+            return failed_case(case, version, completed, "measure", fix_validation)
         samples.append(elapsed_ms)
 
-    return measured_case(case, version, "fallback", samples, observed_exit_codes)
+    return measured_case(
+        case,
+        version,
+        "fallback",
+        samples,
+        observed_exit_codes,
+        fix_validation,
+    )
 
 
-def run_hyperfine_case(case: Case, runs: int, warmup: int) -> dict[str, Any]:
+def run_hyperfine_case(
+    case: Case,
+    runs: int,
+    warmup: int,
+    fix_validation: dict[str, Any] | None,
+) -> dict[str, Any]:
     version = tool_version(case.tool)
     assert case.tool.binary is not None
     with tempfile.TemporaryDirectory(prefix="kml-cross-tool-hyperfine-") as tmp:
@@ -395,10 +415,107 @@ def run_hyperfine_case(case: Case, runs: int, warmup: int) -> dict[str, Any]:
             cwd=isolated_cwd(),
         )
         if completed.returncode != 0:
-            return failed_case(case, version, completed, "hyperfine")
+            return failed_case(case, version, completed, "hyperfine", fix_validation)
         payload = json.loads(export_path.read_text(encoding="utf-8"))
         times = [float(value) * 1000.0 for value in payload["results"][0]["times"]]
-        return measured_case(case, version, "hyperfine", times, [])
+        return measured_case(case, version, "hyperfine", times, [], fix_validation)
+
+
+def validate_fix_case(case: Case) -> dict[str, Any]:
+    if case.tool.binary is None:
+        return {"status": "skipped", "reason": "tool binary was not found"}
+
+    source = case.source_corpus or case.corpus
+    source_digest_before = directory_digest(source)
+    with tempfile.TemporaryDirectory(prefix=f"kml-cross-tool-fix-validate-{case.tool.name}-") as tmp:
+        workspace = pathlib.Path(tmp) / "workspace"
+        shutil.copytree(case.corpus, workspace)
+        workspace_digest_before = directory_digest(workspace)
+        check_case = Case(
+            case.tool,
+            case.mode,
+            "check",
+            case.corpus_kind,
+            workspace,
+            case.config,
+            case.source_corpus,
+        )
+        before = run_validation_command(check_case, workspace)
+        fixed = run_validation_command(case, workspace)
+        workspace_digest_after = directory_digest(workspace)
+        after = run_validation_command(check_case, workspace)
+
+    source_digest_after = directory_digest(source)
+    before_issues = issue_count_from_output(before)
+    after_issues = issue_count_from_output(after)
+    workspace_changed = workspace_digest_before != workspace_digest_after
+    source_changed = source_digest_before != source_digest_after
+    status = "passed" if after.returncode == 0 and workspace_changed and not source_changed else "remaining_issues"
+    if source_changed:
+        status = "source_changed"
+    elif not workspace_changed:
+        status = "no_changes"
+
+    return {
+        "status": status,
+        "before_check_exit_code": before.returncode,
+        "fix_exit_code": fixed.returncode,
+        "after_check_exit_code": after.returncode,
+        "before_issues": before_issues,
+        "after_issues": after_issues,
+        "workspace_changed": workspace_changed,
+        "source_changed": source_changed,
+    }
+
+
+def run_validation_command(
+    case: Case,
+    corpus: pathlib.Path,
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        validation_command_for_case(case, corpus),
+        text=True,
+        capture_output=True,
+        check=False,
+        env=isolated_env(),
+        cwd=isolated_cwd(),
+    )
+
+
+def validation_command_for_case(case: Case, corpus: pathlib.Path) -> list[str]:
+    command = command_for_case(case, corpus)
+    if case.tool.name == "kml":
+        command.extend(["--output", "json"])
+    return command
+
+
+def directory_digest(path: pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    for file in sorted(path.rglob("*")):
+        if not file.is_file():
+            continue
+        digest.update(str(file.relative_to(path)).encode())
+        digest.update(b"\0")
+        digest.update(file.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def issue_count_from_output(completed: subprocess.CompletedProcess[str]) -> int | None:
+    output = completed.stdout.strip()
+    if output.startswith("{"):
+        try:
+            payload = json.loads(output)
+            return int(payload["summary"]["total_issues"])
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            return None
+    combined = f"{completed.stdout}\n{completed.stderr}"
+    if re.search(r"\bNo issues\b", combined) or re.search(r"\bSuccess: No issues\b", combined):
+        return 0
+    match = re.search(r"Found\s+(\d+)\s+(?:issues|errors)", combined)
+    if match:
+        return int(match.group(1))
+    return None
 
 
 def execute_case_once(case: Case) -> subprocess.CompletedProcess[str]:
@@ -506,6 +623,7 @@ def measured_case(
     timing_method: str,
     samples: list[float],
     observed_exit_codes: list[int],
+    fix_validation: dict[str, Any] | None,
 ) -> dict[str, Any]:
     return {
         **base_case(case, version),
@@ -521,6 +639,7 @@ def measured_case(
         "max_ms": max(samples),
         "stddev_ms": statistics.pstdev(samples) if len(samples) > 1 else 0.0,
         "observed_exit_codes": observed_exit_codes,
+        "fix_validation": fix_validation,
     }
 
 
@@ -539,6 +658,7 @@ def skipped_case(case: Case, reason: str) -> dict[str, Any]:
         "max_ms": None,
         "stddev_ms": None,
         "observed_exit_codes": [],
+        "fix_validation": None,
     }
 
 
@@ -547,6 +667,7 @@ def failed_case(
     version: str | None,
     completed: subprocess.CompletedProcess[str],
     phase: str,
+    fix_validation: dict[str, Any] | None,
 ) -> dict[str, Any]:
     reason = (
         f"{phase} command exited {completed.returncode}; "
@@ -571,6 +692,7 @@ def failed_case(
         "max_ms": None,
         "stddev_ms": None,
         "observed_exit_codes": [completed.returncode],
+        "fix_validation": fix_validation,
     }
 
 
@@ -638,6 +760,8 @@ def markdown_summary(report: dict[str, Any]) -> str:
         median = case["median_ms"]
         median_text = f"{median:.3f}" if isinstance(median, (int, float)) else ""
         note = case["skip_reason"] or case["failure_reason"] or ""
+        if not note and case.get("fix_validation"):
+            note = fix_validation_note(case["fix_validation"])
         lines.append(
             "| {tool} | {mode} | {case} | {status} | {median} | {version} | {note} |".format(
                 tool=case["tool"],
@@ -650,6 +774,15 @@ def markdown_summary(report: dict[str, Any]) -> str:
             )
         )
     return "\n".join(lines)
+
+
+def fix_validation_note(validation: dict[str, Any]) -> str:
+    before = validation.get("before_issues")
+    after = validation.get("after_issues")
+    status = validation["status"]
+    if isinstance(before, int) and isinstance(after, int):
+        return f"fix validation: {status} ({before}->{after})"
+    return f"fix validation: {status}"
 
 
 def print_summary(

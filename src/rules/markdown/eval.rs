@@ -15,6 +15,8 @@ use crate::rules::markdown::rules::list::*;
 use crate::rules::markdown::rules::list_ext::*;
 use crate::rules::markdown::rules::list_indent::*;
 use crate::rules::markdown::rules::list_spacing::*;
+use crate::rules::markdown::rules::md009::*;
+use crate::rules::markdown::rules::md010::*;
 use crate::rules::markdown::rules::md011::*;
 use crate::rules::markdown::rules::md013::*;
 use crate::rules::markdown::rules::md014::*;
@@ -43,7 +45,6 @@ use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
 use crate::rules::markdown::rules::whitespace::*;
-use crate::rules::markdown::stubs_regex::*;
 use crate::rules::markdown::{MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta};
 use std::collections::HashMap;
 use std::sync::OnceLock;
@@ -90,17 +91,17 @@ rule_entry!(blanks_around_headings_rule_entry: BlanksAroundHeadingsRule, "MD022"
 rule_entry!(heading_start_left_rule_entry: HeadingStartLeftRule, "MD023");
 rule_entry!(single_h1_rule_entry: SingleH1Rule, "MD025");
 rule_entry!(no_trailing_punctuation_rule_entry: NoTrailingPunctuationRule, "MD026");
-rule_entry!(rule_md009_entry: RuleMD009, "MD009");
-rule_entry!(rule_md010_entry: RuleMD010, "MD010");
+rule_entry!(no_trailing_spaces_rule_entry: NoTrailingSpacesRule, "MD009");
+rule_entry!(no_hard_tabs_rule_entry: NoHardTabsRule, "MD010");
 rule_entry!(no_reversed_links_rule_entry: NoReversedLinksRule, "MD011");
 rule_entry!(no_multiple_blanks_rule_entry: NoMultipleBlanksRule, "MD012");
 rule_entry!(line_length_rule_entry: LineLengthRule, "MD013");
 rule_entry!(dollar_signs_before_commands_rule_entry: DollarSignsBeforeCommandsRule, "MD014");
 rule_entry!(no_missing_space_atx_rule_entry: NoMissingSpaceAtxRule, "MD018");
 rule_entry!(no_multiple_space_atx_rule_entry: NoMultipleSpaceAtxRule, "MD019");
-rule_entry!(no_space_in_blockquote_rule_entry: NoSpaceInBlockquoteRule, "MD020");
+rule_entry!(no_missing_space_closed_atx_rule_entry: NoMissingSpaceClosedAtxRule, "MD020");
 rule_entry!(
-    no_multiple_space_in_blockquote_rule_entry: NoMultipleSpaceInBlockquoteRule,
+    no_multiple_space_closed_atx_rule_entry: NoMultipleSpaceClosedAtxRule,
     "MD021"
 );
 rule_entry!(no_bare_urls_rule_entry: NoBareUrlsRule, "MD034");
@@ -149,16 +150,16 @@ static OFFICIAL_RULES: &[RuleEntry] = &[
     heading_start_left_rule_entry::ENTRY,
     single_h1_rule_entry::ENTRY,
     no_trailing_punctuation_rule_entry::ENTRY,
-    rule_md009_entry::ENTRY,
-    rule_md010_entry::ENTRY,
+    no_trailing_spaces_rule_entry::ENTRY,
+    no_hard_tabs_rule_entry::ENTRY,
     no_reversed_links_rule_entry::ENTRY,
     no_multiple_blanks_rule_entry::ENTRY,
     line_length_rule_entry::ENTRY,
     dollar_signs_before_commands_rule_entry::ENTRY,
     no_missing_space_atx_rule_entry::ENTRY,
     no_multiple_space_atx_rule_entry::ENTRY,
-    no_space_in_blockquote_rule_entry::ENTRY,
-    no_multiple_space_in_blockquote_rule_entry::ENTRY,
+    no_missing_space_closed_atx_rule_entry::ENTRY,
+    no_multiple_space_closed_atx_rule_entry::ENTRY,
     no_bare_urls_rule_entry::ENTRY,
     spaces_in_emphasis_rule_entry::ENTRY,
     no_space_in_code_rule_entry::ENTRY,
@@ -205,16 +206,16 @@ static USER_CONFIGURABLE_RULES: &[RuleEntry] = &[
     heading_start_left_rule_entry::ENTRY,
     single_h1_rule_entry::ENTRY,
     no_trailing_punctuation_rule_entry::ENTRY,
-    rule_md009_entry::ENTRY,
-    rule_md010_entry::ENTRY,
+    no_trailing_spaces_rule_entry::ENTRY,
+    no_hard_tabs_rule_entry::ENTRY,
     no_reversed_links_rule_entry::ENTRY,
     no_multiple_blanks_rule_entry::ENTRY,
     line_length_rule_entry::ENTRY,
     dollar_signs_before_commands_rule_entry::ENTRY,
     no_missing_space_atx_rule_entry::ENTRY,
     no_multiple_space_atx_rule_entry::ENTRY,
-    no_space_in_blockquote_rule_entry::ENTRY,
-    no_multiple_space_in_blockquote_rule_entry::ENTRY,
+    no_missing_space_closed_atx_rule_entry::ENTRY,
+    no_multiple_space_closed_atx_rule_entry::ENTRY,
     no_bare_urls_rule_entry::ENTRY,
     spaces_in_emphasis_rule_entry::ENTRY,
     no_space_in_code_rule_entry::ENTRY,
@@ -263,6 +264,7 @@ impl MarkdownLinterOps {
             String,
             Option<crate::rules::markdown::DiagnosticSeverity>,
         >,
+        rule_configs: &std::collections::HashMap<String, crate::RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let mut diagnostics = Vec::new();
 
@@ -278,7 +280,8 @@ impl MarkdownLinterOps {
                 .copied()
                 .unwrap_or(Some(crate::rules::markdown::DiagnosticSeverity::Warning));
             if let Some(severity) = sev_opt {
-                let mut diags = rule.evaluate(file_path, content);
+                let mut diags =
+                    rule.evaluate_configured(file_path, content, rule_configs.get(rule_id));
                 for d in &mut diags {
                     d.severity = severity;
                 }
@@ -310,20 +313,20 @@ impl MarkdownLinterOps {
             Box::new(SingleH1Rule),              // MD025
             Box::new(NoTrailingPunctuationRule), // MD026
             /* WHY: Regex-based rules */
-            Box::new(RuleMD009),                       // trailing-spaces
-            Box::new(RuleMD010),                       // hard-tabs
-            Box::new(NoReversedLinksRule),             // MD011
-            Box::new(NoMultipleBlanksRule),            // MD012
-            Box::new(LineLengthRule),                  // MD013
-            Box::new(DollarSignsBeforeCommandsRule),   // MD014
-            Box::new(NoMissingSpaceAtxRule),           // MD018
-            Box::new(NoMultipleSpaceAtxRule),          // MD019
-            Box::new(NoSpaceInBlockquoteRule),         // MD020
-            Box::new(NoMultipleSpaceInBlockquoteRule), // MD021
-            Box::new(NoBareUrlsRule),                  // MD034
-            Box::new(SpacesInEmphasisRule),            // MD037
-            Box::new(NoSpaceInCodeRule),               // MD038
-            Box::new(NoSpacesInLinksRule),             // MD039
+            Box::new(NoTrailingSpacesRule),          // MD009
+            Box::new(NoHardTabsRule),                // MD010
+            Box::new(NoReversedLinksRule),           // MD011
+            Box::new(NoMultipleBlanksRule),          // MD012
+            Box::new(LineLengthRule),                // MD013
+            Box::new(DollarSignsBeforeCommandsRule), // MD014
+            Box::new(NoMissingSpaceAtxRule),         // MD018
+            Box::new(NoMultipleSpaceAtxRule),        // MD019
+            Box::new(NoMissingSpaceClosedAtxRule),   // MD020
+            Box::new(NoMultipleSpaceClosedAtxRule),  // MD021
+            Box::new(NoBareUrlsRule),                // MD034
+            Box::new(SpacesInEmphasisRule),          // MD037
+            Box::new(NoSpaceInCodeRule),             // MD038
+            Box::new(NoSpacesInLinksRule),           // MD039
             /* WHY: Blockquote rules */
             Box::new(NoMultipleSpaceBlockquoteRule), // MD027
             Box::new(NoBlanksBlockquoteRule),        // MD028

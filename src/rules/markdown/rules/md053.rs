@@ -27,17 +27,48 @@ impl MarkdownRule for LinkDefinitionsRule {
                 .and_then(|rest| rest.split_once("]:"))
             {
                 if !seen.insert(label.0.to_lowercase()) {
-                    RuleHelpers::push_diag(
+                    let fix = crate::rules::markdown::types::DiagnosticFix {
+                        start_line: i + 1,
+                        start_column: 1,
+                        end_line: i + 2,
+                        end_column: 1,
+                        replacement: String::new(),
+                    };
+                    RuleHelpers::push_diag_with_fix(
                         &mut diagnostics,
                         file_path,
                         i,
                         line,
                         &meta,
                         DiagnosticSeverity::Warning,
+                        Some(fix),
                     );
                 }
             }
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixes_duplicate_link_definition_by_removing_later_definition() {
+        let rule = LinkDefinitionsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "[one]: https://example.com/1\n[one]: https://example.com/2\nText\n",
+        );
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("duplicate link definition should be fixable");
+        assert_eq!(fix.start_line, 2);
+        assert_eq!(fix.end_line, 3);
+        assert_eq!(fix.replacement, "");
     }
 }

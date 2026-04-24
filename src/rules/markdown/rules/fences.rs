@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -21,28 +21,77 @@ impl MarkdownRule for BlanksAroundFencesRule {
         let mut diagnostics = Vec::new();
         let lines: Vec<&str> = content.lines().collect();
 
+        let mut in_code_block = false;
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim_start();
             if !RuleHelpers::is_fence(trimmed) {
                 continue;
             }
 
-            let has_blank_before = i == 0 || lines[i - 1].trim().is_empty();
-            let has_blank_after = i + 1 >= lines.len() || lines[i + 1].trim().is_empty();
-
-            if !has_blank_before || !has_blank_after {
-                RuleHelpers::push_diag(
-                    &mut diagnostics,
-                    file_path,
-                    i,
-                    line,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                );
+            if !in_code_block {
+                if i > 0 && !lines[i - 1].trim().is_empty() {
+                    diagnostics.push(fence_blank_fix(
+                        file_path,
+                        i,
+                        line,
+                        &meta,
+                        FenceBlankFix::Before,
+                    ));
+                }
+                in_code_block = true;
+            } else {
+                if i + 1 < lines.len() && !lines[i + 1].trim().is_empty() {
+                    diagnostics.push(fence_blank_fix(
+                        file_path,
+                        i,
+                        line,
+                        &meta,
+                        FenceBlankFix::After,
+                    ));
+                }
+                in_code_block = false;
             }
         }
 
         diagnostics
+    }
+}
+
+enum FenceBlankFix {
+    Before,
+    After,
+}
+
+fn fence_blank_fix(
+    file_path: &Path,
+    line_idx: usize,
+    line: &str,
+    meta: &OfficialRuleMeta,
+    kind: FenceBlankFix,
+) -> MarkdownDiagnostic {
+    let (start_column, replacement) = match kind {
+        FenceBlankFix::Before => (1, "\n".to_string()),
+        FenceBlankFix::After => (line.len() + 1, "\n".to_string()),
+    };
+    MarkdownDiagnostic {
+        file: file_path.to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line_idx + 1,
+            start_column,
+            end_line: line_idx + 1,
+            end_column: start_column,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+            start_line: line_idx + 1,
+            start_column,
+            end_line: line_idx + 1,
+            end_column: start_column,
+            replacement,
+        }),
     }
 }
 
@@ -55,6 +104,9 @@ mod tests {
         let rule = BlanksAroundFencesRule;
         let content = "Paragraph\n```rust\ncode\n```\nNext";
         let diagnostics = rule.evaluate(Path::new("doc.md"), content);
-        assert!(!diagnostics.is_empty());
+        assert_eq!(diagnostics.len(), 2);
+        assert!(diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.fix_info.is_some()));
     }
 }

@@ -63,7 +63,7 @@ impl MarkdownRule for FencedCodeLanguageRule {
             description: "Fenced code blocks should have a language specified.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md040.md",
             parity: RuleParityStatus::Official,
-            is_fixable: false,
+            is_fixable: true,
             properties: &[
                 crate::rule_prop!(StringArray, "allowed_languages", "List of languages", "[]"),
                 crate::rule_prop!(Boolean, "language_only", "Require language only", "false"),
@@ -84,19 +84,54 @@ impl MarkdownRule for FencedCodeLanguageRule {
             if !in_code_block {
                 let after_fence = trimmed.trim_start_matches('`').trim_start_matches('~');
                 if after_fence.trim().is_empty() {
-                    RuleHelpers::push_diag(
-                        &mut diagnostics,
-                        file_path,
-                        i,
-                        line,
-                        &meta,
-                        DiagnosticSeverity::Warning,
-                    );
+                    let indent = line.len() - trimmed.len();
+                    let fence_len = trimmed
+                        .chars()
+                        .take_while(|ch| *ch == '`' || *ch == '~')
+                        .count();
+                    let column = indent + fence_len + 1;
+                    diagnostics.push(MarkdownDiagnostic {
+                        file: file_path.to_path_buf(),
+                        severity: DiagnosticSeverity::Warning,
+                        range: DiagnosticRange {
+                            start_line: i + 1,
+                            start_column: column,
+                            end_line: i + 1,
+                            end_column: column,
+                        },
+                        message: meta.description.to_string(),
+                        rule_id: meta.code.to_string(),
+                        official_meta: Some(meta.clone()),
+                        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+                            start_line: i + 1,
+                            start_column: column,
+                            end_line: i + 1,
+                            end_column: column,
+                            replacement: "text".to_string(),
+                        }),
+                    });
                 }
             }
             in_code_block = !in_code_block;
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod content_tests {
+    use super::*;
+
+    #[test]
+    fn fixes_missing_fence_language_with_text() {
+        let rule = FencedCodeLanguageRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```\ncode\n```\n");
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("missing language should be fixable");
+        assert_eq!(fix.start_column, 4);
+        assert_eq!(fix.replacement, "text");
     }
 }
 

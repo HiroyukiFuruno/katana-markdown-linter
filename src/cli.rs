@@ -1,4 +1,4 @@
-use crate::{fix, fix_with_results, lint, LintOptions, MarkdownLintConfig, RuleConfig};
+use crate::{fix_with_results, lint, LintOptions, MarkdownLintConfig, RuleConfig};
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
 use serde::Serialize;
@@ -156,9 +156,11 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         };
 
         if fix_mode {
-            let fixed = fix_with_results(&content, &results);
-            let applied_fixes = fixed.applied_fixes;
-            let fixed_content = fixed.content;
+            let FixedContent {
+                content: fixed_content,
+                diagnostics,
+                applied_fixes,
+            } = apply_fixes_until_stable(&content, results, &options)?;
             let changed = fixed_content != content;
             if changed {
                 if cli.diff {
@@ -170,7 +172,6 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
                 }
             }
 
-            let diagnostics = lint(&fixed_content, &options).map_err(|err| err.to_string())?;
             report.files.push(FileReport {
                 path: path.display().to_string(),
                 diagnostics,
@@ -217,7 +218,8 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
     let config = load_effective_config(Path::new("<stdin>"), cli.config.as_deref())?;
     let options = options_from_config(&config);
     if fix_mode {
-        let fixed = fix(&content, &options).map_err(|err| err.to_string())?;
+        let results = lint(&content, &options).map_err(|err| err.to_string())?;
+        let fixed = apply_fixes_until_stable(&content, results, &options)?;
         if cli.diff {
             print_diff(Path::new("<stdin>"), &content, &fixed.content);
         } else {
@@ -250,6 +252,48 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         1
     } else {
         0
+    })
+}
+
+struct FixedContent {
+    content: String,
+    diagnostics: Vec<crate::LintResult>,
+    applied_fixes: usize,
+}
+
+fn apply_fixes_until_stable(
+    content: &str,
+    initial_results: Vec<crate::LintResult>,
+    options: &LintOptions,
+) -> Result<FixedContent, String> {
+    const MAX_FIX_PASSES: usize = 8;
+
+    let mut content = content.to_string();
+    let mut diagnostics = initial_results;
+    let mut applied_fixes = 0;
+
+    for _ in 0..MAX_FIX_PASSES {
+        if !diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.fix.is_some())
+        {
+            break;
+        }
+
+        let fixed = fix_with_results(&content, &diagnostics);
+        if fixed.applied_fixes == 0 || fixed.content == content {
+            break;
+        }
+
+        applied_fixes += fixed.applied_fixes;
+        content = fixed.content;
+        diagnostics = lint(&content, options).map_err(|err| err.to_string())?;
+    }
+
+    Ok(FixedContent {
+        content,
+        diagnostics,
+        applied_fixes,
     })
 }
 
@@ -434,7 +478,21 @@ fn options_from_config(config: &MarkdownLintConfig) -> LintOptions {
                 .unwrap_or(default_enabled),
             _ => default_enabled,
         };
-        options.rules.entry(key.clone()).or_default().enabled = enabled;
+        let entry = options.rules.entry(key.clone()).or_default();
+        entry.enabled = enabled;
+        if let serde_json::Value::Object(properties) = value {
+            entry.properties = properties
+                .iter()
+                .filter(|(property, _)| property.as_str() != "enabled")
+                .map(|(property, value)| {
+                    let value = value
+                        .as_str()
+                        .map(ToOwned::to_owned)
+                        .unwrap_or_else(|| value.to_string());
+                    (property.clone(), value)
+                })
+                .collect();
+        }
     }
 
     options

@@ -3,9 +3,9 @@
   "summary": {
     "total_rules": 53,
     "rules_with_examples": 53,
-    "rules_with_fix_metadata": 20,
-    "rules_with_parameters": 1,
-    "manual_required": 8,
+    "rules_with_fix_metadata": 33,
+    "rules_with_parameters": 34,
+    "manual_required": 5,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -18,7 +18,14 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "front_matter_title",
+          "value_type": "string",
+          "default_value": "^\\s*title\\s*[:=]",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -40,12 +47,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD001\": true }",
           "expected": null
+        },
+        {
+          "name": "front_matter_title_valid",
+          "source": "{ \"MD001\": { \"front_matter_title\": \"^\\\\s*title\\\\s*[:=]\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD001\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "front_matter_title_invalid_type",
+          "source": "{ \"MD001\": { \"front_matter_title\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -66,7 +83,21 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "atx",
+            "atx_closed",
+            "consistent",
+            "setext",
+            "setext_with_atx",
+            "setext_with_atx_closed"
+          ]
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -88,12 +119,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD003\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD003\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD003\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD003\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -109,7 +150,20 @@
         "bullet",
         "ul"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "asterisk",
+            "consistent",
+            "dash",
+            "plus",
+            "sublist"
+          ]
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -137,12 +191,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD004\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD004\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD004\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD004\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -203,7 +267,26 @@
         "bullet",
         "indentation"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "indent",
+          "value_type": "integer",
+          "default_value": "2",
+          "values": []
+        },
+        {
+          "key": "start_indent",
+          "value_type": "integer",
+          "default_value": "2",
+          "values": []
+        },
+        {
+          "key": "start_indented",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -231,12 +314,42 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD007\": true }",
           "expected": null
+        },
+        {
+          "name": "indent_valid",
+          "source": "{ \"MD007\": { \"indent\": 2 } }",
+          "expected": null
+        },
+        {
+          "name": "start_indent_valid",
+          "source": "{ \"MD007\": { \"start_indent\": 2 } }",
+          "expected": null
+        },
+        {
+          "name": "start_indented_valid",
+          "source": "{ \"MD007\": { \"start_indented\": false } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD007\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "indent_invalid_type",
+          "source": "{ \"MD007\": { \"indent\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "start_indent_invalid_type",
+          "source": "{ \"MD007\": { \"start_indent\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "start_indented_invalid_type",
+          "source": "{ \"MD007\": { \"start_indented\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -251,7 +364,32 @@
       "tags": [
         "whitespace"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "br_spaces",
+          "value_type": "integer",
+          "default_value": "2",
+          "values": []
+        },
+        {
+          "key": "code_blocks",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "list_item_empty_lines",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "strict",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -267,11 +405,37 @@
           "expected": "MD009"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "remove_trailing_spaces",
+          "source": "text   \n",
+          "expected": "text\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD009\": true }",
+          "expected": null
+        },
+        {
+          "name": "br_spaces_valid",
+          "source": "{ \"MD009\": { \"br_spaces\": 2 } }",
+          "expected": null
+        },
+        {
+          "name": "code_blocks_valid",
+          "source": "{ \"MD009\": { \"code_blocks\": false } }",
+          "expected": null
+        },
+        {
+          "name": "list_item_empty_lines_valid",
+          "source": "{ \"MD009\": { \"list_item_empty_lines\": false } }",
+          "expected": null
+        },
+        {
+          "name": "strict_valid",
+          "source": "{ \"MD009\": { \"strict\": false } }",
           "expected": null
         }
       ],
@@ -280,12 +444,30 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD009\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "br_spaces_invalid_type",
+          "source": "{ \"MD009\": { \"br_spaces\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "code_blocks_invalid_type",
+          "source": "{ \"MD009\": { \"code_blocks\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "list_item_empty_lines_invalid_type",
+          "source": "{ \"MD009\": { \"list_item_empty_lines\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "strict_invalid_type",
+          "source": "{ \"MD009\": { \"strict\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": [
-        "fix unsupported: local regex implementation reports diagnostics only and has no safe trailing-space fix_info yet"
-      ]
+      "manual_required": []
     },
     {
       "rule_id": "MD010",
@@ -296,7 +478,26 @@
         "whitespace",
         "hard_tab"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "code_blocks",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "ignore_code_languages",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        },
+        {
+          "key": "spaces_per_tab",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -312,11 +513,32 @@
           "expected": "MD010"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "replace_hard_tab_with_space",
+          "source": "a\tb\n",
+          "expected": "a b\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD010\": true }",
+          "expected": null
+        },
+        {
+          "name": "code_blocks_valid",
+          "source": "{ \"MD010\": { \"code_blocks\": true } }",
+          "expected": null
+        },
+        {
+          "name": "ignore_code_languages_valid",
+          "source": "{ \"MD010\": { \"ignore_code_languages\": [] } }",
+          "expected": null
+        },
+        {
+          "name": "spaces_per_tab_valid",
+          "source": "{ \"MD010\": { \"spaces_per_tab\": 1 } }",
           "expected": null
         }
       ],
@@ -325,12 +547,25 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD010\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "code_blocks_invalid_type",
+          "source": "{ \"MD010\": { \"code_blocks\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ignore_code_languages_invalid_type",
+          "source": "{ \"MD010\": { \"ignore_code_languages\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "spaces_per_tab_invalid_type",
+          "source": "{ \"MD010\": { \"spaces_per_tab\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": [
-        "fix unsupported: local regex implementation reports diagnostics only and has no safe tab replacement fix_info yet"
-      ]
+      "manual_required": []
     },
     {
       "rule_id": "MD011",
@@ -341,7 +576,7 @@
         "links"
       ],
       "parameters": [],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "normal_link",
@@ -352,11 +587,17 @@
       "check_fail": [
         {
           "name": "reversed_link",
-          "source": "[link](text[\n",
+          "source": "(link)[https://example.com]\n",
           "expected": "MD011"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "swap_reversed_link_syntax",
+          "source": "(Example)[https://example.com]\n",
+          "expected": "[Example](https://example.com)\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -383,7 +624,14 @@
         "whitespace",
         "blank_lines"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "maximum",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -399,11 +647,22 @@
           "expected": "MD012"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "collapse_multiple_blank_lines",
+          "source": "a\n\n\nb\n",
+          "expected": "a\n\nb\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD012\": true }",
+          "expected": null
+        },
+        {
+          "name": "maximum_valid",
+          "source": "{ \"MD012\": { \"maximum\": 1 } }",
           "expected": null
         }
       ],
@@ -412,12 +671,15 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD012\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "maximum_invalid_type",
+          "source": "{ \"MD012\": { \"maximum\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": [
-        "fix unsupported: local fix is multi-line and current fix engine intentionally skips multi-line edits"
-      ]
+      "manual_required": []
     },
     {
       "rule_id": "MD013",
@@ -427,7 +689,56 @@
       "tags": [
         "line_length"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "code_block_line_length",
+          "value_type": "integer",
+          "default_value": "80",
+          "values": []
+        },
+        {
+          "key": "code_blocks",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "heading_line_length",
+          "value_type": "integer",
+          "default_value": "80",
+          "values": []
+        },
+        {
+          "key": "headings",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "line_length",
+          "value_type": "integer",
+          "default_value": "80",
+          "values": []
+        },
+        {
+          "key": "stern",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "strict",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "tables",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -449,12 +760,92 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD013\": true }",
           "expected": null
+        },
+        {
+          "name": "code_block_line_length_valid",
+          "source": "{ \"MD013\": { \"code_block_line_length\": 80 } }",
+          "expected": null
+        },
+        {
+          "name": "code_blocks_valid",
+          "source": "{ \"MD013\": { \"code_blocks\": true } }",
+          "expected": null
+        },
+        {
+          "name": "heading_line_length_valid",
+          "source": "{ \"MD013\": { \"heading_line_length\": 80 } }",
+          "expected": null
+        },
+        {
+          "name": "headings_valid",
+          "source": "{ \"MD013\": { \"headings\": true } }",
+          "expected": null
+        },
+        {
+          "name": "line_length_valid",
+          "source": "{ \"MD013\": { \"line_length\": 80 } }",
+          "expected": null
+        },
+        {
+          "name": "stern_valid",
+          "source": "{ \"MD013\": { \"stern\": false } }",
+          "expected": null
+        },
+        {
+          "name": "strict_valid",
+          "source": "{ \"MD013\": { \"strict\": false } }",
+          "expected": null
+        },
+        {
+          "name": "tables_valid",
+          "source": "{ \"MD013\": { \"tables\": true } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD013\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "code_block_line_length_invalid_type",
+          "source": "{ \"MD013\": { \"code_block_line_length\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "code_blocks_invalid_type",
+          "source": "{ \"MD013\": { \"code_blocks\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "heading_line_length_invalid_type",
+          "source": "{ \"MD013\": { \"heading_line_length\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "headings_invalid_type",
+          "source": "{ \"MD013\": { \"headings\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "line_length_invalid_type",
+          "source": "{ \"MD013\": { \"line_length\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "stern_invalid_type",
+          "source": "{ \"MD013\": { \"stern\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "strict_invalid_type",
+          "source": "{ \"MD013\": { \"strict\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "tables_invalid_type",
+          "source": "{ \"MD013\": { \"tables\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -470,7 +861,7 @@
         "code"
       ],
       "parameters": [],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "dollar_prompt_with_space",
@@ -485,7 +876,13 @@
           "expected": "MD014"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "remove_dollar_prompt_without_space",
+          "source": "$echo hi\n",
+          "expected": "echo hi\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -609,30 +1006,31 @@
         "no-missing-space-closed-atx"
       ],
       "tags": [
-        "blockquote",
+        "atx_closed",
+        "headings",
         "spaces"
       ],
       "parameters": [],
       "fixable": true,
       "check_pass": [
         {
-          "name": "blockquote_without_space",
-          "source": ">quote\n",
+          "name": "closed_atx_with_single_spaces",
+          "source": "# Heading #\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
-          "name": "blockquote_with_space",
-          "source": "> quote\n",
+          "name": "closed_atx_missing_inner_spaces",
+          "source": "#Heading#\n",
           "expected": "MD020"
         }
       ],
       "fix": [
         {
-          "name": "remove_space_after_blockquote_marker",
-          "source": "> quote\n",
-          "expected": ">quote\n"
+          "name": "add_inner_spaces_to_closed_atx",
+          "source": "#Heading#\n",
+          "expected": "# Heading #\n"
         }
       ],
       "config_valid": [
@@ -658,26 +1056,33 @@
         "no-multiple-space-closed-atx"
       ],
       "tags": [
-        "blockquote",
+        "atx_closed",
+        "headings",
         "spaces"
       ],
       "parameters": [],
       "fixable": true,
       "check_pass": [
         {
-          "name": "blockquote_with_single_space",
-          "source": "> quote\n",
+          "name": "closed_atx_with_single_spaces",
+          "source": "# Heading #\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
-          "name": "blockquote_with_multiple_spaces",
-          "source": ">  quote\n",
+          "name": "closed_atx_with_multiple_inner_spaces",
+          "source": "#  Heading  #\n",
           "expected": "MD021"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "collapse_inner_spaces_in_closed_atx",
+          "source": "#  Heading  #\n",
+          "expected": "# Heading #\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -693,9 +1098,7 @@
         }
       ],
       "edge": [],
-      "manual_required": [
-        "fix unsupported: local fix overlaps with MD027 blockquote spacing in global fix mode"
-      ]
+      "manual_required": []
     },
     {
       "rule_id": "MD022",
@@ -706,7 +1109,20 @@
         "headings",
         "blank_lines"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "lines_above",
+          "value_type": "integer|integer[]",
+          "default_value": "1",
+          "values": []
+        },
+        {
+          "key": "lines_below",
+          "value_type": "integer|integer[]",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -734,12 +1150,32 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD022\": true }",
           "expected": null
+        },
+        {
+          "name": "lines_above_valid",
+          "source": "{ \"MD022\": { \"lines_above\": \"1\" } }",
+          "expected": null
+        },
+        {
+          "name": "lines_below_valid",
+          "source": "{ \"MD022\": { \"lines_below\": \"1\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD022\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "lines_above_invalid_type",
+          "source": "{ \"MD022\": { \"lines_above\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "lines_below_invalid_type",
+          "source": "{ \"MD022\": { \"lines_below\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -803,7 +1239,14 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "siblings_only",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -825,12 +1268,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD024\": true }",
           "expected": null
+        },
+        {
+          "name": "siblings_only_valid",
+          "source": "{ \"MD024\": { \"siblings_only\": false } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD024\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "siblings_only_invalid_type",
+          "source": "{ \"MD024\": { \"siblings_only\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -846,7 +1299,20 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "front_matter_title",
+          "value_type": "string",
+          "default_value": "^\\s*title\\s*[:=]",
+          "values": []
+        },
+        {
+          "key": "level",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -862,11 +1328,27 @@
           "expected": "MD025"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "collapse_spaces_after_blockquote_marker",
+          "source": ">  quote\n",
+          "expected": "> quote\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD025\": true }",
+          "expected": null
+        },
+        {
+          "name": "front_matter_title_valid",
+          "source": "{ \"MD025\": { \"front_matter_title\": \"^\\\\s*title\\\\s*[:=]\" } }",
+          "expected": null
+        },
+        {
+          "name": "level_valid",
+          "source": "{ \"MD025\": { \"level\": 1 } }",
           "expected": null
         }
       ],
@@ -874,6 +1356,16 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD025\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "front_matter_title_invalid_type",
+          "source": "{ \"MD025\": { \"front_matter_title\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "level_invalid_type",
+          "source": "{ \"MD025\": { \"level\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -888,8 +1380,15 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "punctuation",
+          "value_type": "string",
+          "default_value": ".,;:!\u3002\uff0c\uff1b\uff1a\uff01",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "heading_without_trailing_punctuation",
@@ -904,11 +1403,22 @@
           "expected": "MD026"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "remove_trailing_heading_punctuation",
+          "source": "# Heading!\n",
+          "expected": "# Heading\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD026\": true }",
+          "expected": null
+        },
+        {
+          "name": "punctuation_valid",
+          "source": "{ \"MD026\": { \"punctuation\": \".,;:!\\u3002\\uff0c\\uff1b\\uff1a\\uff01\" } }",
           "expected": null
         }
       ],
@@ -916,6 +1426,11 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD026\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "punctuation_invalid_type",
+          "source": "{ \"MD026\": { \"punctuation\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -931,7 +1446,14 @@
         "blockquote",
         "spaces"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "list_items",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -947,11 +1469,27 @@
           "expected": "MD027"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "collapse_spaces_after_blockquote_marker",
+          "source": ">  quote\n",
+          "expected": "> quote\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD027\": true }",
+          "expected": null
+        },
+        {
+          "name": "list_items_false_valid",
+          "source": "{ \"MD027\": { \"list_items\": false } }",
+          "expected": null
+        },
+        {
+          "name": "list_items_valid",
+          "source": "{ \"MD027\": { \"list_items\": true } }",
           "expected": null
         }
       ],
@@ -960,12 +1498,15 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD027\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "list_items_invalid_type",
+          "source": "{ \"MD027\": { \"list_items\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": [
-        "fix unsupported: local fix overlaps with MD021 blockquote spacing in global fix mode"
-      ]
+      "manual_required": []
     },
     {
       "rule_id": "MD028",
@@ -1018,7 +1559,19 @@
       "tags": [
         "ol"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "one_or_ordered",
+          "values": [
+            "one",
+            "one_or_ordered",
+            "ordered",
+            "zero"
+          ]
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -1046,12 +1599,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD029\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD029\": { \"style\": \"one_or_ordered\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD029\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD029\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1068,7 +1631,32 @@
         "ul",
         "spaces"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "ol_multi",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        },
+        {
+          "key": "ol_single",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        },
+        {
+          "key": "ul_multi",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        },
+        {
+          "key": "ul_single",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": true,
       "check_pass": [
         {
@@ -1090,12 +1678,52 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD030\": true }",
           "expected": null
+        },
+        {
+          "name": "ol_multi_valid",
+          "source": "{ \"MD030\": { \"ol_multi\": 1 } }",
+          "expected": null
+        },
+        {
+          "name": "ol_single_valid",
+          "source": "{ \"MD030\": { \"ol_single\": 1 } }",
+          "expected": null
+        },
+        {
+          "name": "ul_multi_valid",
+          "source": "{ \"MD030\": { \"ul_multi\": 1 } }",
+          "expected": null
+        },
+        {
+          "name": "ul_single_valid",
+          "source": "{ \"MD030\": { \"ul_single\": 1 } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD030\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ol_multi_invalid_type",
+          "source": "{ \"MD030\": { \"ol_multi\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ol_single_invalid_type",
+          "source": "{ \"MD030\": { \"ol_single\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ul_multi_invalid_type",
+          "source": "{ \"MD030\": { \"ul_multi\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ul_single_invalid_type",
+          "source": "{ \"MD030\": { \"ul_single\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1113,8 +1741,15 @@
         "code",
         "blank_lines"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "list_items",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "fence_surrounded_by_blank_lines",
@@ -1129,11 +1764,22 @@
           "expected": "MD031"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "surround_fenced_code_with_blank_lines",
+          "source": "Text\n```\ncode\n```\nNext\n",
+          "expected": "Text\n\n```text\ncode\n```\n\nNext\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD031\": true }",
+          "expected": null
+        },
+        {
+          "name": "list_items_valid",
+          "source": "{ \"MD031\": { \"list_items\": true } }",
           "expected": null
         }
       ],
@@ -1141,6 +1787,11 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD031\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "list_items_invalid_type",
+          "source": "{ \"MD031\": { \"list_items\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1204,7 +1855,20 @@
       "tags": [
         "html"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "allowed_elements",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        },
+        {
+          "key": "table_allowed_elements",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1226,12 +1890,32 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD033\": true }",
           "expected": null
+        },
+        {
+          "name": "allowed_elements_valid",
+          "source": "{ \"MD033\": { \"allowed_elements\": [] } }",
+          "expected": null
+        },
+        {
+          "name": "table_allowed_elements_valid",
+          "source": "{ \"MD033\": { \"table_allowed_elements\": [] } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD033\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "allowed_elements_invalid_type",
+          "source": "{ \"MD033\": { \"allowed_elements\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "table_allowed_elements_invalid_type",
+          "source": "{ \"MD033\": { \"table_allowed_elements\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1248,7 +1932,7 @@
         "url"
       ],
       "parameters": [],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "no_url",
@@ -1263,7 +1947,13 @@
           "expected": "MD034"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "wrap_bare_url_with_angle_brackets",
+          "source": "See http://example.com now.\n",
+          "expected": "See <http://example.com> now.\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -1289,7 +1979,14 @@
       "tags": [
         "hr"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1311,12 +2008,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD035\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD035\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD035\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD035\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1332,7 +2039,14 @@
         "emphasis",
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "punctuation",
+          "value_type": "string",
+          "default_value": ".,;:!?\u3002\uff0c\uff1b\uff1a\uff01\uff1f",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1354,12 +2068,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD036\": true }",
           "expected": null
+        },
+        {
+          "name": "punctuation_valid",
+          "source": "{ \"MD036\": { \"punctuation\": \".,;:!?\\u3002\\uff0c\\uff1b\\uff1a\\uff01\\uff1f\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD036\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "punctuation_invalid_type",
+          "source": "{ \"MD036\": { \"punctuation\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1474,7 +2198,7 @@
         "whitespace"
       ],
       "parameters": [],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "link_without_inner_spaces",
@@ -1489,7 +2213,13 @@
           "expected": "MD039"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "trim_spaces_inside_link_text",
+          "source": "[ text ](target)\n",
+          "expected": "[text](target)\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -1516,8 +2246,21 @@
         "code",
         "language"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "allowed_languages",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        },
+        {
+          "key": "language_only",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "fence_with_language",
@@ -1532,11 +2275,27 @@
           "expected": "MD040"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "insert_default_fence_language",
+          "source": "```\ncode\n```\n",
+          "expected": "```text\ncode\n```\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD040\": true }",
+          "expected": null
+        },
+        {
+          "name": "allowed_languages_valid",
+          "source": "{ \"MD040\": { \"allowed_languages\": [] } }",
+          "expected": null
+        },
+        {
+          "name": "language_only_valid",
+          "source": "{ \"MD040\": { \"language_only\": false } }",
           "expected": null
         }
       ],
@@ -1544,6 +2303,16 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD040\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "allowed_languages_invalid_type",
+          "source": "{ \"MD040\": { \"allowed_languages\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "language_only_invalid_type",
+          "source": "{ \"MD040\": { \"language_only\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1558,7 +2327,26 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "allow_preamble",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "front_matter_title",
+          "value_type": "string",
+          "default_value": "^\\s*title\\s*[:=]",
+          "values": []
+        },
+        {
+          "key": "level",
+          "value_type": "integer",
+          "default_value": "1",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1580,12 +2368,42 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD041\": true }",
           "expected": null
+        },
+        {
+          "name": "allow_preamble_valid",
+          "source": "{ \"MD041\": { \"allow_preamble\": false } }",
+          "expected": null
+        },
+        {
+          "name": "front_matter_title_valid",
+          "source": "{ \"MD041\": { \"front_matter_title\": \"^\\\\s*title\\\\s*[:=]\" } }",
+          "expected": null
+        },
+        {
+          "name": "level_valid",
+          "source": "{ \"MD041\": { \"level\": 1 } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD041\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "allow_preamble_invalid_type",
+          "source": "{ \"MD041\": { \"allow_preamble\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "front_matter_title_invalid_type",
+          "source": "{ \"MD041\": { \"front_matter_title\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "level_invalid_type",
+          "source": "{ \"MD041\": { \"level\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1642,7 +2460,20 @@
       "tags": [
         "headings"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "headings",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        },
+        {
+          "key": "match_case",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1664,12 +2495,32 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD043\": true }",
           "expected": null
+        },
+        {
+          "name": "headings_valid",
+          "source": "{ \"MD043\": { \"headings\": [] } }",
+          "expected": null
+        },
+        {
+          "name": "match_case_valid",
+          "source": "{ \"MD043\": { \"match_case\": false } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD043\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "headings_invalid_type",
+          "source": "{ \"MD043\": { \"headings\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "match_case_invalid_type",
+          "source": "{ \"MD043\": { \"match_case\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1684,27 +2535,96 @@
       "tags": [
         "spelling"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "code_blocks",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "html_elements",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "names",
+          "value_type": "array",
+          "default_value": "[]",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
-          "name": "proper_names_capitalized",
-          "source": "Markdownlint and GitHub\n",
+          "name": "default_without_names_does_not_guess",
+          "source": "markdownlint and github\n",
           "expected": null
+        },
+        {
+          "name": "configured_proper_names_capitalized",
+          "source": "Markdownlint and GitHub\n",
+          "expected": null,
+          "config": {
+            "MD044": {
+              "names": [
+                "Markdownlint",
+                "GitHub"
+              ]
+            }
+          }
         }
       ],
       "check_fail": [
         {
-          "name": "proper_names_lowercase",
+          "name": "configured_proper_names_lowercase",
           "source": "markdownlint and github\n",
-          "expected": "MD044"
+          "expected": "MD044",
+          "config": {
+            "MD044": {
+              "names": [
+                "Markdownlint",
+                "GitHub"
+              ]
+            }
+          }
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "fix_configured_proper_names",
+          "source": "markdownlint and github\n",
+          "expected": "Markdownlint and GitHub\n",
+          "config": {
+            "MD044": {
+              "names": [
+                "Markdownlint",
+                "GitHub"
+              ]
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD044\": true }",
+          "expected": null
+        },
+        {
+          "name": "code_blocks_valid",
+          "source": "{ \"MD044\": { \"code_blocks\": true } }",
+          "expected": null
+        },
+        {
+          "name": "html_elements_valid",
+          "source": "{ \"MD044\": { \"html_elements\": true } }",
+          "expected": null
+        },
+        {
+          "name": "names_valid",
+          "source": "{ \"MD044\": { \"names\": [] } }",
           "expected": null
         }
       ],
@@ -1713,10 +2633,28 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD044\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "code_blocks_invalid_type",
+          "source": "{ \"MD044\": { \"code_blocks\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "html_elements_invalid_type",
+          "source": "{ \"MD044\": { \"html_elements\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "names_invalid_type",
+          "source": "{ \"MD044\": { \"names\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "check requires configured MD044.names; default markdownlint names is empty",
+        "fix requires: configured MD044.names to avoid guessing product capitalization"
+      ]
     },
     {
       "rule_id": "MD045",
@@ -1769,7 +2707,18 @@
       "tags": [
         "code"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "consistent",
+            "fenced",
+            "indented"
+          ]
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1791,12 +2740,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD046\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD046\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD046\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD046\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1859,7 +2818,18 @@
       "tags": [
         "code"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "backtick",
+            "consistent",
+            "tilde"
+          ]
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -1881,12 +2851,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD048\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD048\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD048\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD048\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1901,8 +2881,19 @@
       "tags": [
         "emphasis"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "asterisk",
+            "consistent",
+            "underscore"
+          ]
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "consistent_emphasis_style",
@@ -1917,11 +2908,32 @@
           "expected": "MD049"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "normalize_emphasis_to_first_style",
+          "source": "*one* and _two_\n",
+          "expected": "*one* and *two*\n"
+        },
+        {
+          "name": "normalize_emphasis_to_configured_style",
+          "source": "*one*\n",
+          "expected": "_one_\n",
+          "config": {
+            "MD049": {
+              "style": "underscore"
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD049\": true }",
+          "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD049\": { \"style\": \"consistent\" } }",
           "expected": null
         }
       ],
@@ -1929,6 +2941,11 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD049\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD049\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1943,8 +2960,19 @@
       "tags": [
         "emphasis"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "asterisk",
+            "consistent",
+            "underscore"
+          ]
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "consistent_strong_style",
@@ -1959,11 +2987,32 @@
           "expected": "MD050"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "normalize_strong_to_first_style",
+          "source": "**one** and __two__\n",
+          "expected": "**one** and **two**\n"
+        },
+        {
+          "name": "normalize_strong_to_configured_style",
+          "source": "**one**\n",
+          "expected": "__one__\n",
+          "config": {
+            "MD050": {
+              "style": "underscore"
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD050\": true }",
+          "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD050\": { \"style\": \"consistent\" } }",
           "expected": null
         }
       ],
@@ -1971,6 +3020,11 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD050\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD050\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -1985,13 +3039,56 @@
       "tags": [
         "links"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "ignore_case",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "ignored_pattern",
+          "value_type": "string",
+          "default_value": "",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "link_without_fragment",
           "source": "[link](target)\n",
           "expected": null
+        },
+        {
+          "name": "custom_heading_anchor",
+          "source": "# Heading Name {#custom-name}\n\n[link](#custom-name)\n",
+          "expected": null
+        },
+        {
+          "name": "html_id_anchor",
+          "source": "<a id=\"bookmark\"></a>\n\n[link](#bookmark)\n",
+          "expected": null
+        },
+        {
+          "name": "ignore_case_configured",
+          "source": "# Heading Name\n\n[link](#Heading-Name)\n",
+          "expected": null,
+          "config": {
+            "MD051": {
+              "ignore_case": true
+            }
+          }
+        },
+        {
+          "name": "ignored_pattern_configured",
+          "source": "[link](#figure-1)\n",
+          "expected": null,
+          "config": {
+            "MD051": {
+              "ignored_pattern": "^figure-"
+            }
+          }
         }
       ],
       "check_fail": [
@@ -2001,11 +3098,27 @@
           "expected": "MD051"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "fix_heading_fragment_case",
+          "source": "# Heading Name\n\n[Link](#Heading-Name)\n",
+          "expected": "# Heading Name\n\n[Link](#heading-name)\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD051\": true }",
+          "expected": null
+        },
+        {
+          "name": "ignore_case_valid",
+          "source": "{ \"MD051\": { \"ignore_case\": true } }",
+          "expected": null
+        },
+        {
+          "name": "ignored_pattern_valid",
+          "source": "{ \"MD051\": { \"ignored_pattern\": \"^figure-\" } }",
           "expected": null
         }
       ],
@@ -2013,6 +3126,16 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD051\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ignore_case_invalid_type",
+          "source": "{ \"MD051\": { \"ignore_case\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ignored_pattern_invalid_type",
+          "source": "{ \"MD051\": { \"ignored_pattern\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -2028,7 +3151,20 @@
         "links",
         "images"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "ignored_labels",
+          "value_type": "array",
+          "default_value": "[\"x\"]",
+          "values": []
+        },
+        {
+          "key": "shortcut_syntax",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -2050,12 +3186,32 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD052\": true }",
           "expected": null
+        },
+        {
+          "name": "ignored_labels_valid",
+          "source": "{ \"MD052\": { \"ignored_labels\": [\"x\"] } }",
+          "expected": null
+        },
+        {
+          "name": "shortcut_syntax_valid",
+          "source": "{ \"MD052\": { \"shortcut_syntax\": false } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD052\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ignored_labels_invalid_type",
+          "source": "{ \"MD052\": { \"ignored_labels\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "shortcut_syntax_invalid_type",
+          "source": "{ \"MD052\": { \"shortcut_syntax\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -2070,8 +3226,15 @@
       "tags": [
         "links"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "ignored_definitions",
+          "value_type": "array",
+          "default_value": "[\"//\"]",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
         {
           "name": "unique_link_definitions",
@@ -2086,11 +3249,22 @@
           "expected": "MD053"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "remove_duplicate_link_definition",
+          "source": "[a]: target\n[a]: duplicate\nText\n",
+          "expected": "[a]: target\nText\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD053\": true }",
+          "expected": null
+        },
+        {
+          "name": "ignored_definitions_valid",
+          "source": "{ \"MD053\": { \"ignored_definitions\": [\"//\"] } }",
           "expected": null
         }
       ],
@@ -2098,6 +3272,11 @@
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD053\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "ignored_definitions_invalid_type",
+          "source": "{ \"MD053\": { \"ignored_definitions\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -2112,27 +3291,120 @@
       "tags": [
         "links"
       ],
-      "parameters": [],
-      "fixable": null,
+      "parameters": [
+        {
+          "key": "autolink",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "collapsed",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "full",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "inline",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "shortcut",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        },
+        {
+          "key": "url_inline",
+          "value_type": "boolean",
+          "default_value": "true",
+          "values": []
+        }
+      ],
+      "fixable": true,
       "check_pass": [
+        {
+          "name": "default_allows_collapsed_reference",
+          "source": "[inline](target)\n[ref][]\n[ref]: target\n",
+          "expected": null
+        },
         {
           "name": "inline_links_only",
           "source": "[link](target)\n",
-          "expected": null
+          "expected": null,
+          "config": {
+            "MD054": {
+              "collapsed": false
+            }
+          }
         }
       ],
       "check_fail": [
         {
-          "name": "mixed_link_styles",
+          "name": "collapsed_reference_when_disabled",
           "source": "[inline](target)\n[ref][]\n[ref]: target\n",
-          "expected": "MD054"
+          "expected": "MD054",
+          "config": {
+            "MD054": {
+              "collapsed": false
+            }
+          }
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "inline_collapsed_reference_when_disabled",
+          "source": "[inline](target)\n[ref][]\n[ref]: target\n",
+          "expected": "[inline](target)\n[ref](target)\n[ref]: target\n",
+          "config": {
+            "MD054": {
+              "collapsed": false
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
           "source": "{ \"MD054\": true }",
+          "expected": null
+        },
+        {
+          "name": "autolink_valid",
+          "source": "{ \"MD054\": { \"autolink\": true } }",
+          "expected": null
+        },
+        {
+          "name": "collapsed_valid",
+          "source": "{ \"MD054\": { \"collapsed\": true } }",
+          "expected": null
+        },
+        {
+          "name": "full_valid",
+          "source": "{ \"MD054\": { \"full\": true } }",
+          "expected": null
+        },
+        {
+          "name": "inline_valid",
+          "source": "{ \"MD054\": { \"inline\": true } }",
+          "expected": null
+        },
+        {
+          "name": "shortcut_valid",
+          "source": "{ \"MD054\": { \"shortcut\": true } }",
+          "expected": null
+        },
+        {
+          "name": "url_inline_valid",
+          "source": "{ \"MD054\": { \"url_inline\": true } }",
           "expected": null
         }
       ],
@@ -2141,10 +3413,43 @@
           "name": "rule_config_invalid_type",
           "source": "{ \"MD054\": \"warn\" }",
           "expected": "invalid type"
+        },
+        {
+          "name": "autolink_invalid_type",
+          "source": "{ \"MD054\": { \"autolink\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "collapsed_invalid_type",
+          "source": "{ \"MD054\": { \"collapsed\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "full_invalid_type",
+          "source": "{ \"MD054\": { \"full\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "inline_invalid_type",
+          "source": "{ \"MD054\": { \"inline\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "shortcut_invalid_type",
+          "source": "{ \"MD054\": { \"shortcut\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "url_inline_invalid_type",
+          "source": "{ \"MD054\": { \"url_inline\": null } }",
+          "expected": "invalid type"
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "check requires a disabled link style such as MD054.collapsed=false",
+        "fix requires: disabled style and an inline-safe reference definition"
+      ]
     },
     {
       "rule_id": "MD055",
@@ -2154,7 +3459,20 @@
       "tags": [
         "table"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "consistent",
+          "values": [
+            "consistent",
+            "leading_and_trailing",
+            "leading_only",
+            "no_leading_or_trailing",
+            "trailing_only"
+          ]
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -2176,12 +3494,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD055\": true }",
           "expected": null
+        },
+        {
+          "name": "style_valid",
+          "source": "{ \"MD055\": { \"style\": \"consistent\" } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD055\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD055\": { \"style\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -2233,28 +3561,34 @@
     {
       "rule_id": "MD058",
       "aliases": [
-        "table-spacing"
+        "blanks-around-tables"
       ],
       "tags": [
         "table"
       ],
       "parameters": [],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
-          "name": "single_spaces_in_table",
-          "source": "| a | b |\n",
+          "name": "table_at_document_boundary",
+          "source": "| a | b |\n| --- | --- |\n| 1 | 2 |\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
-          "name": "multiple_spaces_in_table",
-          "source": "| a  | b |\n",
+          "name": "table_without_surrounding_blank_lines",
+          "source": "Text\n| a | b |\n| --- | --- |\n| 1 | 2 |\n> Quote\n",
           "expected": "MD058"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "surround_table_with_blank_lines",
+          "source": "Text\n| A | B |\n| --- | --- |\n| 1 | 2 |\n> Quote\n",
+          "expected": "Text\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\n> Quote\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -2280,7 +3614,14 @@
       "tags": [
         "links"
       ],
-      "parameters": [],
+      "parameters": [
+        {
+          "key": "prohibited_texts",
+          "value_type": "array",
+          "default_value": "[\"click here\",\"here\",\"link\",\"more\"]",
+          "values": []
+        }
+      ],
       "fixable": null,
       "check_pass": [
         {
@@ -2302,12 +3643,22 @@
           "name": "rule_enabled_valid",
           "source": "{ \"MD059\": true }",
           "expected": null
+        },
+        {
+          "name": "prohibited_texts_valid",
+          "source": "{ \"MD059\": { \"prohibited_texts\": [\"click here\",\"here\",\"link\",\"more\"] } }",
+          "expected": null
         }
       ],
       "config_invalid": [
         {
           "name": "rule_config_invalid_type",
           "source": "{ \"MD059\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "prohibited_texts_invalid_type",
+          "source": "{ \"MD059\": { \"prohibited_texts\": null } }",
           "expected": "invalid type"
         }
       ],
@@ -2341,7 +3692,7 @@
           ]
         }
       ],
-      "fixable": true,
+      "fixable": null,
       "check_pass": [
         {
           "name": "compact_table",

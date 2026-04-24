@@ -1,6 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleParityStatus,
 };
 use std::path::Path;
 
@@ -67,7 +68,7 @@ impl MarkdownRule for NoTrailingPunctuationRule {
             description: "Trailing punctuation in heading.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md026.md",
             parity: RuleParityStatus::Official,
-            is_fixable: false,
+            is_fixable: true,
             properties: &[crate::rule_prop!(
                 String,
                 "punctuation",
@@ -91,21 +92,56 @@ impl MarkdownRule for NoTrailingPunctuationRule {
                 continue;
             }
             let heading_text = trimmed.trim_start_matches('#').trim();
-            if heading_text
-                .chars()
-                .last()
-                .is_some_and(|c| ".,;:!".contains(c))
-            {
-                RuleHelpers::push_diag(
-                    &mut diagnostics,
-                    file_path,
-                    i,
-                    line,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                );
+            let Some(punctuation) = heading_text.chars().last() else {
+                continue;
+            };
+            if !".,;:!".contains(punctuation) {
+                continue;
             }
+
+            let trimmed_end = line.trim_end();
+            let start = trimmed_end.len() - punctuation.len_utf8();
+            diagnostics.push(MarkdownDiagnostic {
+                file: file_path.to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: i + 1,
+                    start_column: start + 1,
+                    end_line: i + 1,
+                    end_column: trimmed_end.len() + 1,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+                    start_line: i + 1,
+                    start_column: start + 1,
+                    end_line: i + 1,
+                    end_column: trimmed_end.len() + 1,
+                    replacement: String::new(),
+                }),
+            });
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixes_trailing_punctuation_in_heading() {
+        let rule = NoTrailingPunctuationRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "# Heading!\n\nText");
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("heading punctuation should be fixable");
+        assert_eq!(fix.start_column, 10);
+        assert_eq!(fix.end_column, 11);
+        assert_eq!(fix.replacement, "");
     }
 }

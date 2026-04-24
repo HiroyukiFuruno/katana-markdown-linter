@@ -1,41 +1,13 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 73,
+  "total_diagnostics": 62,
   "diagnostics": [
-    {
-      "path": "docs/dogfooding.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
-      "count": 1
-    },
     {
       "path": "docs/dogfooding.md",
       "rule_id": "MD059",
       "message": "Link text should be descriptive",
       "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
-      "count": 1
-    },
-    {
-      "path": "docs/mcp-integration-evaluation.md",
-      "rule_id": "MD034",
-      "message": "Bare URL used",
-      "line_text": "- Official Rust SDK repository: <https://github.com/modelcontextprotocol/rust-sdk>",
-      "count": 1
-    },
-    {
-      "path": "docs/mcp-integration-evaluation.md",
-      "rule_id": "MD034",
-      "message": "Bare URL used",
-      "line_text": "- Official SDK list: <https://modelcontextprotocol.io/docs/sdk>",
-      "count": 1
-    },
-    {
-      "path": "docs/mcp-integration-evaluation.md",
-      "rule_id": "MD034",
-      "message": "Bare URL used",
-      "line_text": "- `rmcp` crate docs: <https://docs.rs/rmcp>",
       "count": 1
     },
     {
@@ -456,55 +428,6 @@
       "rule_id": "MD059",
       "message": "Link text should be descriptive",
       "line_text": "│   │   ├── link.rs         # MD034, MD039, MD042, MD053-MD058",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] CI（GitHub Actions）でのテスト・lint・ドキュメント生成",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] `cargo add katana-markdown-linter` でライブラリとして利用可能",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] `lint()` / `fix()` のシンプルな公開 API",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] `pulldown-cmark` ベースの AST パーサによる正確なルール評価",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] docs.rs で 100% の API ドキュメンテーション",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] markdownlint 互換の active rule ID",
-      "count": 1
-    },
-    {
-      "path": "openspec/proposal.md",
-      "rule_id": "MD039",
-      "message": "Spaces inside link text",
-      "line_text": "- [ ] 利用側アプリケーション固有の型や UI contract に依存しない",
       "count": 1
     },
     {

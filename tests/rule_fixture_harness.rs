@@ -1,9 +1,10 @@
 use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
 use katana_markdown_linter::{
-    fix, lint, ConfigErrorKind, LintOptions, LintResult, MarkdownLintConfig, Range,
+    fix, lint, ConfigErrorKind, LintOptions, LintResult, MarkdownLintConfig, Range, RuleConfig,
 };
 use serde_json::Value;
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::path::Path;
 
 fn matrix() -> Value {
     serde_json::from_str(include_str!("fixtures/rule-fixture-matrix.json"))
@@ -41,6 +42,54 @@ fn case_source(case: &Value) -> &str {
         .expect("fixture case should have source")
 }
 
+fn options_for_case(case: &Value) -> LintOptions {
+    let mut options = LintOptions::default();
+    let Some(config) = case.get("config").and_then(Value::as_object) else {
+        return options;
+    };
+
+    for (rule_id, value) in config {
+        match value {
+            Value::Bool(enabled) => {
+                options.rules.insert(
+                    rule_id.clone(),
+                    RuleConfig {
+                        enabled: *enabled,
+                        properties: Default::default(),
+                    },
+                );
+            }
+            Value::Object(properties) => {
+                let enabled = properties
+                    .get("enabled")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(true);
+                let properties = properties
+                    .iter()
+                    .filter(|(key, _)| key.as_str() != "enabled")
+                    .map(|(key, value)| {
+                        let value = value
+                            .as_str()
+                            .map(ToOwned::to_owned)
+                            .unwrap_or_else(|| value.to_string());
+                        (key.clone(), value)
+                    })
+                    .collect();
+                options.rules.insert(
+                    rule_id.clone(),
+                    RuleConfig {
+                        enabled,
+                        properties,
+                    },
+                );
+            }
+            _ => {}
+        }
+    }
+
+    options
+}
+
 #[test]
 fn fixture_matrix_can_be_loaded_by_harness() {
     let matrix = matrix();
@@ -49,7 +98,7 @@ fn fixture_matrix_can_be_loaded_by_harness() {
         .filter_map(|rule| rule.official_meta().map(|meta| meta.code.to_string()))
         .collect::<HashSet<_>>();
 
-    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(8));
+    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(5));
     assert!(rules(&matrix)
         .iter()
         .all(|rule| active.contains(rule_id(rule))));
@@ -58,10 +107,10 @@ fn fixture_matrix_can_be_loaded_by_harness() {
 #[test]
 fn check_pass_and_fail_fixtures_execute() {
     let matrix = matrix();
-    let options = LintOptions::default();
 
     for rule in rules(&matrix) {
         for case in cases(rule, "check_pass") {
+            let options = options_for_case(case);
             let diagnostics = lint(case_source(case), &options).expect("lint should run");
             assert!(
                 diagnostics
@@ -73,6 +122,7 @@ fn check_pass_and_fail_fixtures_execute() {
             );
         }
         for case in cases(rule, "check_fail") {
+            let options = options_for_case(case);
             let diagnostics = lint(case_source(case), &options).expect("lint should run");
             assert!(
                 diagnostics
@@ -89,10 +139,10 @@ fn check_pass_and_fail_fixtures_execute() {
 #[test]
 fn fix_fixtures_compare_before_and_after() {
     let matrix = matrix();
-    let options = LintOptions::default();
 
     for rule in rules(&matrix) {
         for case in cases(rule, "fix") {
+            let options = options_for_case(case);
             let fixed = fix(case_source(case), &options).expect("fix should run");
             assert_eq!(
                 fixed.content,
@@ -260,16 +310,119 @@ fn fixable_rule_set_is_explicit_in_matrix() {
     let actual = rules(&matrix)
         .iter()
         .filter(|rule| rule["fixable"].as_bool() == Some(true))
-        .map(rule_id)
+        .map(|rule| rule_id(rule).to_string())
         .collect::<BTreeSet<_>>();
-    let expected = [
-        "MD004", "MD005", "MD007", "MD009", "MD010", "MD012", "MD018", "MD019", "MD020", "MD021",
-        "MD022", "MD023", "MD027", "MD029", "MD030", "MD032", "MD037", "MD038", "MD047", "MD060",
-    ]
-    .into_iter()
-    .collect::<BTreeSet<_>>();
+    let expected = katana_markdown_linter::available_rules()
+        .into_iter()
+        .filter(|rule| rule.fixable)
+        .map(|rule| rule.id)
+        .collect::<BTreeSet<_>>();
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn matrix_markdown_summary_matches_json_counts() {
+    let matrix = matrix();
+    let markdown = include_str!("fixtures/rule-fixture-matrix.md");
+    let expected_manual = matrix["summary"]["manual_required"]
+        .as_u64()
+        .expect("summary should contain manual_required");
+    assert!(
+        markdown.contains(&format!("- manual required: {expected_manual}")),
+        "markdown summary manual_required should match JSON"
+    );
+}
+
+#[test]
+fn fixture_matrix_parameters_match_upstream_docs() {
+    let matrix = matrix();
+    let upstream =
+        katana_markdown_linter::upstream::load_catalog_from_dir(Path::new("upstream_docs"))
+            .expect("upstream docs should load");
+    let upstream_params = upstream
+        .rules
+        .iter()
+        .map(|rule| {
+            let params = rule
+                .properties
+                .iter()
+                .map(|property| {
+                    (
+                        property.key.clone(),
+                        (
+                            property.value_type.clone(),
+                            property.default_value.clone().unwrap_or_default(),
+                            property.values.clone(),
+                        ),
+                    )
+                })
+                .collect::<BTreeMap<_, _>>();
+            (rule.id.as_str(), params)
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    for rule in rules(&matrix) {
+        let actual = rule["parameters"]
+            .as_array()
+            .expect("parameters should be an array")
+            .iter()
+            .map(|param| {
+                (
+                    param["key"].as_str().unwrap_or_default().to_string(),
+                    (
+                        param["value_type"].as_str().unwrap_or_default().to_string(),
+                        param["default_value"]
+                            .as_str()
+                            .unwrap_or_default()
+                            .to_string(),
+                        param["values"]
+                            .as_array()
+                            .expect("values should be an array")
+                            .iter()
+                            .filter_map(|value| value.as_str().map(str::to_string))
+                            .collect::<Vec<_>>(),
+                    ),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+        let expected = upstream_params
+            .get(rule_id(rule))
+            .unwrap_or_else(|| panic!("{} missing upstream parameters", rule_id(rule)));
+        assert_eq!(
+            &actual,
+            expected,
+            "{} parameters drifted from upstream_docs",
+            rule_id(rule)
+        );
+    }
+}
+
+#[test]
+fn fixable_rules_without_fix_fixtures_explain_why() {
+    let matrix = matrix();
+    let unsupported = rules(&matrix)
+        .iter()
+        .filter(|rule| rule["fixable"].as_bool() == Some(true))
+        .filter(|rule| cases(rule, "fix").next().is_none())
+        .collect::<Vec<_>>();
+
+    for rule in unsupported {
+        let manual_required = rule["manual_required"]
+            .as_array()
+            .expect("manual_required should be an array");
+        assert!(
+            manual_required.iter().any(|reason| {
+                reason.as_str().is_some_and(|value| {
+                    value.starts_with("fix unsupported:")
+                        || value.starts_with("fix requires:")
+                        || value.starts_with("fix deferred:")
+                })
+            }),
+            "{} should explain why fix is unsupported or gated",
+            rule_id(rule)
+        );
+    }
 }
 
 #[test]
@@ -280,12 +433,9 @@ fn fixable_rules_without_fix_fixtures_have_explicit_metadata() {
         .filter(|rule| rule["fixable"].as_bool() == Some(true))
         .filter(|rule| cases(rule, "fix").next().is_none())
         .map(rule_id)
+        .into_iter()
         .collect::<BTreeSet<_>>();
-    let expected = [
-        "MD005", "MD009", "MD010", "MD012", "MD021", "MD027", "MD030", "MD060",
-    ]
-    .into_iter()
-    .collect::<BTreeSet<_>>();
+    let expected = ["MD005", "MD030"].into_iter().collect::<BTreeSet<_>>();
 
     assert_eq!(unsupported, expected);
     for rule in rules(&matrix)

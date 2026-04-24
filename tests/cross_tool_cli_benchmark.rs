@@ -92,6 +92,44 @@ esac
     make_executable(path);
 }
 
+fn write_content_aware_mock_kml(path: &Path) {
+    let script = r#"#!/bin/sh
+if [ "${1:-}" = "--version" ]; then
+  echo "kml-mock 1.0.0"
+  exit 0
+fi
+
+fix=0
+target=""
+skip=0
+for arg in "$@"; do
+  if [ "$skip" = "1" ]; then
+    skip=0
+    continue
+  fi
+  case "$arg" in
+    --fix) fix=1 ;;
+    check) true ;;
+    --output|--config) skip=1 ;;
+    --*) true ;;
+    *) target="$arg" ;;
+  esac
+done
+
+if [ "$fix" = "1" ]; then
+  printf '\nfixed\n' >> "$target/doc.md"
+  exit 0
+fi
+
+if grep -q "fixed" "$target/doc.md"; then
+  exit 0
+fi
+exit 1
+"#;
+    fs::write(path, script).expect("content-aware mock should be written");
+    make_executable(path);
+}
+
 fn make_executable(path: &Path) {
     #[cfg(unix)]
     {
@@ -282,4 +320,66 @@ fn fix_workflow_uses_temporary_workspace_copy() {
     );
     let after = fs::read_to_string(source).expect("source should be readable after fix case");
     assert_eq!(after, before, "fix benchmark must not mutate source corpus");
+}
+
+#[test]
+fn fix_workflow_reports_post_fix_validation() {
+    let dir = TestDir::new("fix-validation");
+    let (clean, dirty) = write_corpus(dir.path());
+    let source = dirty.join("doc.md");
+    let before = fs::read_to_string(&source).expect("source should be readable");
+    let mock = dir.path().join("kml-mock");
+    write_content_aware_mock_kml(&mock);
+    let output = dir.path().join("report.json");
+    let summary = dir.path().join("summary.md");
+
+    let result = run_python(&[
+        script_path().display().to_string(),
+        "--no-hyperfine".to_string(),
+        "--runs".to_string(),
+        "1".to_string(),
+        "--warmup".to_string(),
+        "0".to_string(),
+        "--tools".to_string(),
+        "kml".to_string(),
+        "--kml".to_string(),
+        mock.display().to_string(),
+        "--mode".to_string(),
+        "default".to_string(),
+        "--workflow".to_string(),
+        "fix".to_string(),
+        "--clean-corpus".to_string(),
+        clean.display().to_string(),
+        "--dirty-corpus".to_string(),
+        dirty.display().to_string(),
+        "--output".to_string(),
+        output.display().to_string(),
+        "--summary".to_string(),
+        summary.display().to_string(),
+    ]);
+    assert!(
+        result.status.success(),
+        "benchmark should succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+
+    let report: Value =
+        serde_json::from_str(&fs::read_to_string(output).expect("report should be readable"))
+            .expect("report should be json");
+    let case = &report["cases"]
+        .as_array()
+        .expect("cases should be an array")[0];
+    assert_eq!(case["fix_validation"]["status"], "passed");
+    assert_eq!(case["fix_validation"]["before_check_exit_code"], 1);
+    assert_eq!(case["fix_validation"]["after_check_exit_code"], 0);
+    assert_eq!(case["fix_validation"]["source_changed"], false);
+    assert!(fs::read_to_string(summary)
+        .expect("summary should be readable")
+        .contains("fix validation: passed"));
+    let after = fs::read_to_string(source).expect("source should be readable after benchmark");
+    assert_eq!(
+        after, before,
+        "benchmark validation must not mutate source corpus"
+    );
 }

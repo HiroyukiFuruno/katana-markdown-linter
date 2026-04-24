@@ -27,16 +27,45 @@ impl MarkdownRule for DollarSignsBeforeCommandsRule {
                     .nth(1)
                     .is_some_and(|next| !next.is_whitespace())
             {
-                RuleHelpers::push_diag(
+                let indent = line.len() - trimmed.len();
+                let fix = crate::rules::markdown::types::DiagnosticFix {
+                    start_line: i + 1,
+                    start_column: indent + 1,
+                    end_line: i + 1,
+                    end_column: indent + 2,
+                    replacement: String::new(),
+                };
+                RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
                     file_path,
                     i,
                     line,
                     &meta,
                     DiagnosticSeverity::Warning,
+                    Some(fix),
                 );
             }
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixes_dollar_sign_before_command() {
+        let rule = DollarSignsBeforeCommandsRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "$echo hi\n$ ls");
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("dollar prompt should be fixable");
+        assert_eq!(fix.replacement, "");
+        assert_eq!(fix.start_column, 1);
+        assert_eq!(fix.end_column, 2);
     }
 }

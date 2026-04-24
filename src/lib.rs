@@ -18,15 +18,42 @@ use std::path::Path;
 pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error> {
     let file_path = Path::new("<memory>");
     let severity_map = build_severity_map(options);
-    let diags =
-        rules::markdown::MarkdownLinterOps::evaluate_all(file_path, content, true, &severity_map);
+    let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
+        file_path,
+        content,
+        true,
+        &severity_map,
+        &options.rules,
+    );
     Ok(diags.into_iter().map(Into::into).collect())
 }
 
 /// Applies available fixes to the provided Markdown content.
 pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
-    let results = lint(content, options)?;
-    Ok(fix_with_results(content, &results))
+    const MAX_FIX_PASSES: usize = 8;
+
+    let mut content = content.to_string();
+    let mut applied_fixes = 0;
+
+    for _ in 0..MAX_FIX_PASSES {
+        let results = lint(&content, options)?;
+        if !results.iter().any(|result| result.fix.is_some()) {
+            break;
+        }
+
+        let fixed = fix_with_results(&content, &results);
+        if fixed.applied_fixes == 0 || fixed.content == content {
+            break;
+        }
+
+        applied_fixes += fixed.applied_fixes;
+        content = fixed.content;
+    }
+
+    Ok(FixResult {
+        content,
+        applied_fixes,
+    })
 }
 
 /// Applies available fixes from already computed lint results.
@@ -230,10 +257,9 @@ mod tests {
 
     #[test]
     fn lint_reports_regex_based_rule_violations() {
-        let content = "> no space\n\n\nReversed [link](text[\n\nhttps://example.com";
+        let content = "\n\n\nReversed (link)[https://example.com]\n\nhttps://example.com";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
-        assert!(results.iter().any(|result| result.rule_id == "MD020"));
         assert!(results.iter().any(|result| result.rule_id == "MD011"));
         assert!(results.iter().any(|result| result.rule_id == "MD034"));
     }
@@ -248,12 +274,20 @@ mod tests {
     }
 
     #[test]
-    fn lint_reports_blockquote_spacing_variants() {
-        let content = "> no space\n>  too many";
+    fn lint_reports_closed_atx_spacing_variants() {
+        let content = "#Title#\n##  Title  ##";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD020"));
         assert!(results.iter().any(|result| result.rule_id == "MD021"));
+    }
+
+    #[test]
+    fn lint_reports_blockquote_spacing_variants() {
+        let content = ">  too many";
+        let options = LintOptions::default();
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD027"));
     }
 
     #[test]
@@ -298,7 +332,7 @@ mod tests {
 
     #[test]
     fn lint_reports_table_rules() {
-        let content = "| a | b |\n| 1 | 2 | 3 |\n| 1  | 2 |\nclick here";
+        let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\nclick here";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD056"));
@@ -313,7 +347,6 @@ mod tests {
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD043"));
-        assert!(results.iter().any(|result| result.rule_id == "MD044"));
         assert!(results.iter().any(|result| result.rule_id == "MD046"));
         assert!(results.iter().any(|result| result.rule_id == "MD048"));
         assert!(results.iter().any(|result| result.rule_id == "MD049"));
@@ -321,8 +354,38 @@ mod tests {
         assert!(results.iter().any(|result| result.rule_id == "MD051"));
         assert!(results.iter().any(|result| result.rule_id == "MD052"));
         assert!(results.iter().any(|result| result.rule_id == "MD053"));
-        assert!(results.iter().any(|result| result.rule_id == "MD054"));
         assert!(results.iter().any(|result| result.rule_id == "MD055"));
+    }
+
+    #[test]
+    fn lint_reports_configured_proper_names_and_link_style() {
+        let content = "markdownlint and github\n[inline](target)\n[ref][]\n[ref]: target\n";
+        let mut options = LintOptions::default();
+        options.rules.insert(
+            "MD044".to_string(),
+            RuleConfig {
+                enabled: true,
+                properties: [(
+                    "names".to_string(),
+                    "[\"Markdownlint\",\"GitHub\"]".to_string(),
+                )]
+                .into_iter()
+                .collect(),
+            },
+        );
+        options.rules.insert(
+            "MD054".to_string(),
+            RuleConfig {
+                enabled: true,
+                properties: [("collapsed".to_string(), "false".to_string())]
+                    .into_iter()
+                    .collect(),
+            },
+        );
+
+        let results = lint(content, &options).expect("lint should succeed");
+        assert!(results.iter().any(|result| result.rule_id == "MD044"));
+        assert!(results.iter().any(|result| result.rule_id == "MD054"));
     }
 
     #[test]

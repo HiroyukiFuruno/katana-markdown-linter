@@ -1,7 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    RuleParityStatus,
+    RuleConfig, RuleParityStatus,
 };
 use std::path::Path;
 
@@ -89,6 +89,30 @@ impl MarkdownRule for NoMultipleSpaceBlockquoteRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        self.evaluate_with_list_items(file_path, content, true)
+    }
+
+    fn evaluate_configured(
+        &self,
+        file_path: &Path,
+        content: &str,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let include_list_items = config
+            .and_then(|config| config.properties.get("list_items"))
+            .map(|value| value != "false")
+            .unwrap_or(true);
+        self.evaluate_with_list_items(file_path, content, include_list_items)
+    }
+}
+
+impl NoMultipleSpaceBlockquoteRule {
+    fn evaluate_with_list_items(
+        &self,
+        file_path: &Path,
+        content: &str,
+        include_list_items: bool,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD027");
         let mut diagnostics = Vec::new();
         let mut in_code_block = false;
@@ -101,10 +125,11 @@ impl MarkdownRule for NoMultipleSpaceBlockquoteRule {
             if in_code_block {
                 continue;
             }
-            /* WHY: Detect ">  " (blockquote followed by 2+ spaces) */
-            if trimmed
-                .strip_prefix('>')
-                .is_some_and(|after| after.starts_with("  "))
+            let Some(after_marker) = trimmed.strip_prefix('>') else {
+                continue;
+            };
+            if after_marker.starts_with("  ")
+                && (include_list_items || !RuleHelpers::is_list_item(after_marker.trim_start()))
             {
                 let gt_pos = line.find('>').unwrap();
                 let spaces_start = gt_pos + 1;
@@ -182,5 +207,40 @@ impl MarkdownRule for SingleTrailingNewlineRule {
                 replacement: "\n".to_string(),
             }),
         }]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn md027_fixes_extra_spaces_after_blockquote_marker() {
+        let rule = NoMultipleSpaceBlockquoteRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), ">  quote");
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(
+            diagnostics[0]
+                .fix_info
+                .as_ref()
+                .expect("fix exists")
+                .replacement,
+            " "
+        );
+    }
+
+    #[test]
+    fn md027_can_ignore_list_items_when_configured() {
+        let rule = NoMultipleSpaceBlockquoteRule;
+        let config = RuleConfig {
+            enabled: true,
+            properties: HashMap::from([("list_items".to_string(), "false".to_string())]),
+        };
+        let diagnostics =
+            rule.evaluate_configured(Path::new("doc.md"), ">  - nested item", Some(&config));
+
+        assert!(diagnostics.is_empty());
     }
 }

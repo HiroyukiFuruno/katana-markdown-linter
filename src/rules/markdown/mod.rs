@@ -3,6 +3,7 @@ pub use types::*;
 pub mod catalog;
 
 use crate::rules::markdown::helpers::RuleHelpers;
+use crate::types::RuleConfig;
 use std::path::Path;
 
 pub trait MarkdownRule: Send + Sync {
@@ -11,6 +12,15 @@ pub trait MarkdownRule: Send + Sync {
     /// `None` means the rule is hidden (internal-only).
     fn official_meta(&self) -> Option<OfficialRuleMeta>;
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic>;
+
+    fn evaluate_configured(
+        &self,
+        file_path: &Path,
+        content: &str,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        self.evaluate(file_path, content)
+    }
 }
 
 /* WHY: Section: Official rule implementations

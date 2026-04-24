@@ -66,6 +66,12 @@ pub use md055::*;
 pub mod md011;
 pub use md011::*;
 
+pub mod md009;
+pub use md009::*;
+
+pub mod md010;
+pub use md010::*;
+
 pub mod md013;
 pub use md013::*;
 
