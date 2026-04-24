@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "upstream_source": "locked upstream markdownlint oracle",
+  "cases": [
+    {
+      "rule_id": "MD001",
+      "fixture": "skipped_heading_level",
+      "source": "# H1\n\n### H3\n",
+      "expected": [
+        {
+          "rule_id": "MD001",
+          "line": 3,
+          "column": 1,
+          "end_line": 3,
+          "end_column": 6,
+          "fixable": false
+        }
+      ],
+      "expected_fixed_output": null
+    },
+    {
+      "rule_id": "MD022",
+      "fixture": "heading_without_surrounding_blank_lines",
+      "source": "paragraph\n# Heading\nparagraph\n",
+      "expected": [
+        {
+          "rule_id": "MD022",
+          "line": 2,
+          "column": 1,
+          "end_line": 2,
+          "end_column": 9,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "paragraph\n\n# Heading\n\nparagraph\n"
+    },
+    {
+      "rule_id": "MD047",
+      "fixture": "missing_final_newline",
+      "source": "text",
+      "expected": [
+        {
+          "rule_id": "MD047",
+          "line": 1,
+          "column": 1,
+          "end_line": 1,
+          "end_column": 1,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "text\n"
+    }
+  ]
+}

@@ -12,6 +12,9 @@
 | `make coverage` | Report uncovered lines against the current test suite | No |
 | `make coverage-blocking` | Fail when uncovered lines exceed `scripts/ci/coverage-baseline.txt` | Yes |
 | `make upstream-drift` | Compare local rule catalog with upstream markdownlint docs | Yes when upstream docs are provided |
+| `make upstream-golden` | Compare selected `kml` diagnostics and fixes with the locked upstream oracle baseline | Yes when golden compatibility is in scope |
+| `make upstream-golden-live` | Run the live upstream markdownlint oracle against the golden corpus | No, manual update check |
+| `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
 
 `make lint` is intentionally limited to Clippy. Repository-specific checks belong in `make ast-lint` so Rust style warnings and project invariants can be triaged independently.
@@ -57,6 +60,8 @@ make release-check VERSION=vX.Y.Z
 ```
 
 The local release check runs formatting, Clippy, AST lint, tests, coverage regression, version verification, dry-run publish, and install smoke checks. The GitHub release workflows additionally clone upstream markdownlint and run `make upstream-drift` against the default branch docs.
+
+Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 
 ## Failure Recovery
 

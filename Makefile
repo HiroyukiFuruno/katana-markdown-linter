@@ -3,6 +3,10 @@ JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
 VERSION_BARE := $(patsubst v%,%,$(VERSION))
 TAG := v$(VERSION_BARE)
+KML ?= cargo run --quiet --bin kml --
+DOGFOOD_TARGETS ?= README.md docs openspec
+DOGFOOD_CONFIG ?= .markdownlint-dogfood.json
+DOGFOOD_EXCLUDES ?= --exclude "openspec/changes/archive/**" --exclude "target/**"
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -50,6 +54,18 @@ ast-lint: ## Run AST-based custom linters
 upstream-drift: ## Run upstream markdownlint default-branch drift gate (requires KML_UPSTREAM_MARKDOWNLINT_DOC_DIR)
 	cargo test upstream_default_branch_drift_has_no_unknown_items --all-features --locked -- --ignored
 
+.PHONY: upstream-golden
+upstream-golden: ## Run deterministic upstream markdownlint golden comparison
+	cargo test --test upstream_golden_comparison --locked
+
+.PHONY: upstream-golden-live
+upstream-golden-live: ## Run live upstream markdownlint oracle against golden corpus
+	sh scripts/upstream/markdownlint-oracle.sh tests/fixtures/upstream-golden-corpus
+
+.PHONY: rule-dashboard
+rule-dashboard: ## Regenerate docs/rule-coverage-dashboard.md from fixture metadata
+	cargo run --quiet --example rule_coverage_dashboard --locked -- tests/fixtures/rule-fixture-matrix.json tests/fixtures/upstream-golden-known-deltas.json docs/rule-coverage-dashboard.md
+
 .PHONY: test
 test: ## Run unit tests
 	cargo test --workspace
@@ -65,6 +81,26 @@ coverage-blocking: ## Fail when uncovered lines exceed scripts/ci/coverage-basel
 .PHONY: check
 check: fmt-check lint ast-lint test ## Fast impacted verification (local default)
 	@echo "✅ All checks passed"
+
+.PHONY: dogfood
+dogfood: ## Run kml against this repository's Markdown docs (check-only)
+	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --statistics
+
+.PHONY: dogfood-fix
+dogfood-fix: ## Apply safe kml fixes to this repository's non-archived Markdown docs
+	$(KML) check --fix $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --statistics
+
+.PHONY: dogfood-json
+dogfood-json: ## Emit dogfood diagnostics as JSON
+	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
+
+.PHONY: dogfood-archive
+dogfood-archive: ## Explicitly check archived OpenSpec Markdown
+	$(KML) check openspec/changes/archive --statistics
+
+.PHONY: examples
+examples: ## Compile public Rust embedding examples
+	cargo build --examples --locked
 
 .PHONY: release-check
 release-check: fmt-check lint ast-lint test coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)

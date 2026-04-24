@@ -14,6 +14,8 @@ include = [
     "LICENSE",
     "Markfile",
     "build.rs",
+    "docs/**",
+    "examples/**",
     "upstream_docs/**",
     "src/**",
     "tests/**",

@@ -13,6 +13,10 @@ Use the crate directly when embedding linting into another Rust application.
 - `missing_rules()`
 - `MarkdownLintConfig`
 
+Minimal embedding examples are available under [`examples/`](examples/):
+
+- `embedding.rs`: string checks, file tree checks, string fixes, config loading
+
 ## CLI Install
 
 Install the bundled CLI with Cargo:
@@ -72,7 +76,13 @@ Use `kml init-config` to create a default `.markdownlint.json`.
 
 Use `make check` for the default local gate. It runs format, Clippy, AST lint, and tests.
 
+Use `make dogfood` to run `kml` against this repository's Markdown documentation without modifying files. Use `make dogfood-fix` only when you intend to apply safe Markdown fixes. Archived OpenSpec documents are excluded from the default dogfood targets; run `make dogfood-archive` to check them explicitly.
+
+Use `make examples` to compile the public Rust embedding examples.
+
 Quality gate details, CI required checks, coverage modes, and release readiness are documented in [`docs/quality-gates.md`](docs/quality-gates.md).
+
+MCP integration has been evaluated separately in [`docs/mcp-integration-evaluation.md`](docs/mcp-integration-evaluation.md). The current recommendation is an optional `kml-mcp` prototype that keeps the core crate independent from MCP dependencies.
 
 ## Release Policy
 
