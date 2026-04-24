@@ -1,5 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -12,20 +12,7 @@ impl MarkdownRule for StrongStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD050",
-            title: "strong-style",
-            description: "Strong style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md050.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Strong style",
-                "consistent",
-                &["consistent", "asterisk", "underscore"]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD050")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

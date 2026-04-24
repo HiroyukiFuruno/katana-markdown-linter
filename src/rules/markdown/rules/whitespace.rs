@@ -17,20 +17,7 @@ impl MarkdownRule for NoMultipleBlanksRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD012",
-            title: "no-multiple-blanks",
-            description: "Multiple consecutive blank lines.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md012.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[crate::rule_prop!(
-                Number,
-                "maximum",
-                "Consecutive blank lines",
-                "1"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD012")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

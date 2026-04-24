@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,15 +13,7 @@ impl MarkdownRule for DollarSignsBeforeCommandsRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD014",
-            title: "dollar-signs-before-commands",
-            description: "Dollar signs used before commands without spaces.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md014.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD014")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

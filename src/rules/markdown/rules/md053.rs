@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,20 +13,7 @@ impl MarkdownRule for LinkDefinitionsRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD053",
-            title: "link-definitions",
-            description: "Link definitions.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md053.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop!(
-                StringArray,
-                "ignored_definitions",
-                "Ignored definitions",
-                "[\"//\"]"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD053")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

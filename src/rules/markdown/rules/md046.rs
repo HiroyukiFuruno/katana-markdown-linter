@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,20 +13,7 @@ impl MarkdownRule for CodeBlockStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD046",
-            title: "code-block-style",
-            description: "Code block style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md046.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Block style",
-                "consistent",
-                &["consistent", "fenced", "indented"]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD046")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

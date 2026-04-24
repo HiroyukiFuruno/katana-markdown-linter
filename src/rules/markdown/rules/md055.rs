@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,26 +13,7 @@ impl MarkdownRule for TablePipeStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD055",
-            title: "table-pipe-style",
-            description: "Table pipe style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md055.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Table pipe style",
-                "consistent",
-                &[
-                    "consistent",
-                    "leading_only",
-                    "trailing_only",
-                    "leading_and_trailing",
-                    "no_leading_or_trailing"
-                ]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD055")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,5 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -12,20 +12,7 @@ impl MarkdownRule for EmphasisStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD049",
-            title: "emphasis-style",
-            description: "Emphasis style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md049.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Emphasis style",
-                "consistent",
-                &["consistent", "asterisk", "underscore"]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD049")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,5 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -12,37 +12,7 @@ impl MarkdownRule for LinkStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD054",
-            title: "link-style",
-            description: "Link style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md054.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop!(Boolean, "autolink", "Allow autolinks", "true"),
-                crate::rule_prop!(Boolean, "inline", "Allow inline links and images", "true"),
-                crate::rule_prop!(
-                    Boolean,
-                    "full",
-                    "Allow full reference links and images",
-                    "true"
-                ),
-                crate::rule_prop!(
-                    Boolean,
-                    "collapsed",
-                    "Allow collapsed reference links and images",
-                    "true"
-                ),
-                crate::rule_prop!(
-                    Boolean,
-                    "shortcut",
-                    "Allow shortcut reference links and images",
-                    "true"
-                ),
-                crate::rule_prop!(Boolean, "url_inline", "Allow URLs as inline links", "true"),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD054")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

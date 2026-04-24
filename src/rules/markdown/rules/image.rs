@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,15 +13,7 @@ impl MarkdownRule for NoAltTextRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD045",
-            title: "no-alt-text",
-            description: "Images should have alternate text (alt text).",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md045.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD045")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

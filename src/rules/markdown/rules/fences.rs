@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,20 +13,7 @@ impl MarkdownRule for BlanksAroundFencesRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD031",
-            title: "blanks-around-fences",
-            description: "Fenced code blocks should be surrounded by blank lines.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md031.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[crate::rule_prop!(
-                Boolean,
-                "list_items",
-                "Include list items",
-                "true"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD031")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

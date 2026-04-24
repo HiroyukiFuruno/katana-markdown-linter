@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,20 +13,7 @@ impl MarkdownRule for UnorderedListIndentRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD007",
-            title: "ul-indent",
-            description: "Unordered list indentation.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md007.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[crate::rule_prop!(
-                Number,
-                "indent",
-                "Spaces for indent",
-                "2"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD007")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

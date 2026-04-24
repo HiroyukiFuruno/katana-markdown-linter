@@ -1,5 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -12,19 +12,7 @@ impl MarkdownRule for ProperNamesRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD044",
-            title: "proper-names",
-            description: "Proper names.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md044.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop!(StringArray, "names", "List of proper names", "[]"),
-                crate::rule_prop!(Boolean, "code_blocks", "Include code blocks", "true"),
-                crate::rule_prop!(Boolean, "html_elements", "Include HTML elements", "true"),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD044")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

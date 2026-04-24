@@ -16,18 +16,7 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD022",
-            title: "blanks-around-headings",
-            description: "Headings should be surrounded by blank lines.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md022.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[
-                crate::rule_prop!(Number, "lines_above", "Blank lines above heading", "1"),
-                crate::rule_prop!(Number, "lines_below", "Blank lines below heading", "1"),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD022")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

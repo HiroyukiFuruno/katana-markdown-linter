@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,18 +13,7 @@ impl MarkdownRule for RequiredHeadingsRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD043",
-            title: "required-headings",
-            description: "Required headings.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md043.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop!(StringArray, "headings", "List of headings", "[]"),
-                crate::rule_prop!(Boolean, "match_case", "Match case of headings", "false"),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD043")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

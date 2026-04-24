@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,15 +13,7 @@ impl MarkdownRule for NoSpaceInBlockquoteRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD020",
-            title: "no-space-in-blockquote",
-            description: "No space inside blockquote marker.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md020.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD020")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use regex::Regex;
 use std::path::Path;
@@ -14,15 +14,7 @@ impl MarkdownRule for NoReversedLinksRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD011",
-            title: "no-reversed-links",
-            description: "Reversed link syntax.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md011.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD011")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,28 +13,7 @@ impl MarkdownRule for ReferenceLinksImagesRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD052",
-            title: "reference-links-images",
-            description: "Reference links and images.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md052.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop!(
-                    StringArray,
-                    "ignored_labels",
-                    "Ignored link labels",
-                    "[\"x\"]"
-                ),
-                crate::rule_prop!(
-                    Boolean,
-                    "shortcut_syntax",
-                    "Include shortcut syntax",
-                    "false"
-                ),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD052")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

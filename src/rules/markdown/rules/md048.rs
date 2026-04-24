@@ -1,5 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -12,20 +12,7 @@ impl MarkdownRule for CodeFenceStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD048",
-            title: "code-fence-style",
-            description: "Code fence style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md048.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Code fence style",
-                "consistent",
-                &["consistent", "backtick", "tilde"]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD048")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

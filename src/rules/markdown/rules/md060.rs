@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,28 +13,7 @@ impl MarkdownRule for TableColumnStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD060",
-            title: "table-column-style",
-            description: "Table column style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md060.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop_enum!(
-                    "style",
-                    "Table column style",
-                    "any",
-                    &["any", "aligned", "compact", "tight"]
-                ),
-                crate::rule_prop!(
-                    Boolean,
-                    "aligned_delimiter",
-                    "Aligned delimiter columns",
-                    "false"
-                ),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD060")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,5 +1,6 @@
 mod types;
 pub use types::*;
+pub mod catalog;
 
 use crate::rules::markdown::helpers::RuleHelpers;
 use std::path::Path;
@@ -24,20 +25,7 @@ impl MarkdownRule for HeadingIncrementRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD001",
-            title: "heading-increment",
-            description: "Heading levels should only increment by one level at a time.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md001.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop!(
-                String,
-                "front_matter_title",
-                "RegExp for matching title in front matter",
-                "^\\s*title\\s*[:=]"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD001")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

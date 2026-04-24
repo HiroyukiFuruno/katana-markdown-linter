@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,27 +13,7 @@ impl MarkdownRule for HeadingStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD003",
-            title: "heading-style",
-            description: "Heading style should be consistent (atx expected).",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md003.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "Heading style",
-                "consistent",
-                &[
-                    "consistent",
-                    "atx",
-                    "atx_closed",
-                    "setext",
-                    "setext_with_atx",
-                    "setext_with_atx_closed"
-                ]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD003")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

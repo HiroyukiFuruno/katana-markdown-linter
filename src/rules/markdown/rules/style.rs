@@ -21,20 +21,7 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD036",
-            title: "no-emphasis-as-heading",
-            description: "Emphasis used instead of a heading.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md036.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop!(
-                String,
-                "punctuation",
-                "Punctuation characters",
-                ".,;:!?。，；：！？"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD036")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,40 +13,7 @@ impl MarkdownRule for ListMarkerSpaceRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD030",
-            title: "list-marker-space",
-            description: "Spaces after list markers.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md030.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[
-                crate::rule_prop!(
-                    Number,
-                    "ul_single",
-                    "Spaces for single-line unordered list items",
-                    "1"
-                ),
-                crate::rule_prop!(
-                    Number,
-                    "ol_single",
-                    "Spaces for single-line ordered list items",
-                    "1"
-                ),
-                crate::rule_prop!(
-                    Number,
-                    "ul_multi",
-                    "Spaces for multi-line unordered list items",
-                    "1"
-                ),
-                crate::rule_prop!(
-                    Number,
-                    "ol_multi",
-                    "Spaces for multi-line ordered list items",
-                    "1"
-                ),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD030")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,15 +13,7 @@ impl MarkdownRule for TableColumnCountRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD056",
-            title: "table-column-count",
-            description: "Table column count consistency.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md056.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD056")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

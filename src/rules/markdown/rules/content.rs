@@ -17,23 +17,7 @@ impl MarkdownRule for NoInlineHtmlRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD033",
-            title: "no-inline-html",
-            description: "Inline HTML.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md033.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[
-                crate::rule_prop!(StringArray, "allowed_elements", "Allowed elements", "[]"),
-                crate::rule_prop!(
-                    StringArray,
-                    "table_allowed_elements",
-                    "Allowed elements in tables",
-                    "[]"
-                ),
-            ],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD033")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

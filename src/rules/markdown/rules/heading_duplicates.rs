@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::collections::HashSet;
 use std::path::Path;
@@ -14,20 +14,7 @@ impl MarkdownRule for NoDuplicateHeadingRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD024",
-            title: "no-duplicate-heading",
-            description: "Multiple headings with the same content.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md024.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop!(
-                Boolean,
-                "siblings_only",
-                "Only check sibling headings",
-                "false"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD024")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -13,20 +13,7 @@ impl MarkdownRule for LineLengthRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD013",
-            title: "line-length",
-            description: "Line length.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md013.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: false,
-            properties: &[crate::rule_prop!(
-                Number,
-                "line_length",
-                "Number of characters",
-                "80"
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD013")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {

@@ -16,20 +16,7 @@ impl MarkdownRule for UlStyleRule {
     }
 
     fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        Some(OfficialRuleMeta {
-            code: "MD004",
-            title: "ul-style",
-            description: "Unordered list style.",
-            docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md004.md",
-            parity: RuleParityStatus::Official,
-            is_fixable: true,
-            properties: &[crate::rule_prop_enum!(
-                "style",
-                "List style",
-                "consistent",
-                &["consistent", "asterisk", "plus", "dash", "sublist"]
-            )],
-        })
+        crate::rules::markdown::catalog::get_official_meta("MD004")
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
