@@ -655,7 +655,7 @@ fn compare_rule_properties(
 
 fn local_rule_map() -> BTreeMap<&'static str, crate::rules::markdown::OfficialRuleMeta> {
     let mut map = BTreeMap::new();
-    for rule in crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules() {
+    for rule in crate::rules::markdown::MarkdownLinterOps::user_configurable_rules() {
         if let Some(meta) = rule.official_meta() {
             map.insert(meta.code, meta);
         }

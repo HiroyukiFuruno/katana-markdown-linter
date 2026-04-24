@@ -44,9 +44,215 @@ use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
 use crate::rules::markdown::rules::whitespace::*;
 use crate::rules::markdown::stubs_regex::*;
-use crate::rules::markdown::{MarkdownDiagnostic, MarkdownRule};
+use crate::rules::markdown::{MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta};
+use std::collections::HashMap;
+use std::sync::OnceLock;
 
 pub struct MarkdownLinterOps;
+
+#[derive(Clone, Copy)]
+pub struct RuleEntry {
+    id: &'static str,
+    official_meta: fn() -> Option<OfficialRuleMeta>,
+}
+
+impl RuleEntry {
+    pub fn id(&self) -> &'static str {
+        self.id
+    }
+
+    pub fn official_meta(&self) -> Option<OfficialRuleMeta> {
+        (self.official_meta)()
+    }
+}
+
+macro_rules! rule_entry {
+    ($module:ident: $rule:ident, $id:literal) => {
+        mod $module {
+            use super::*;
+
+            pub fn official_meta() -> Option<OfficialRuleMeta> {
+                $rule.official_meta()
+            }
+
+            pub const ENTRY: RuleEntry = RuleEntry {
+                id: $id,
+                official_meta,
+            };
+        }
+    };
+}
+
+rule_entry!(heading_structure_rule_entry: HeadingStructureRule, "MD001");
+rule_entry!(broken_link_rule_entry: BrokenLinkRule, "md-broken-link");
+rule_entry!(heading_style_rule_entry: HeadingStyleRule, "MD003");
+rule_entry!(blanks_around_headings_rule_entry: BlanksAroundHeadingsRule, "MD022");
+rule_entry!(heading_start_left_rule_entry: HeadingStartLeftRule, "MD023");
+rule_entry!(single_h1_rule_entry: SingleH1Rule, "MD025");
+rule_entry!(no_trailing_punctuation_rule_entry: NoTrailingPunctuationRule, "MD026");
+rule_entry!(rule_md009_entry: RuleMD009, "MD009");
+rule_entry!(rule_md010_entry: RuleMD010, "MD010");
+rule_entry!(no_reversed_links_rule_entry: NoReversedLinksRule, "MD011");
+rule_entry!(no_multiple_blanks_rule_entry: NoMultipleBlanksRule, "MD012");
+rule_entry!(line_length_rule_entry: LineLengthRule, "MD013");
+rule_entry!(dollar_signs_before_commands_rule_entry: DollarSignsBeforeCommandsRule, "MD014");
+rule_entry!(no_missing_space_atx_rule_entry: NoMissingSpaceAtxRule, "MD018");
+rule_entry!(no_multiple_space_atx_rule_entry: NoMultipleSpaceAtxRule, "MD019");
+rule_entry!(no_space_in_blockquote_rule_entry: NoSpaceInBlockquoteRule, "MD020");
+rule_entry!(
+    no_multiple_space_in_blockquote_rule_entry: NoMultipleSpaceInBlockquoteRule,
+    "MD021"
+);
+rule_entry!(no_bare_urls_rule_entry: NoBareUrlsRule, "MD034");
+rule_entry!(spaces_in_emphasis_rule_entry: SpacesInEmphasisRule, "MD037");
+rule_entry!(no_space_in_code_rule_entry: NoSpaceInCodeRule, "MD038");
+rule_entry!(no_spaces_in_links_rule_entry: NoSpacesInLinksRule, "MD039");
+rule_entry!(no_multiple_space_blockquote_rule_entry: NoMultipleSpaceBlockquoteRule, "MD027");
+rule_entry!(no_blanks_blockquote_rule_entry: NoBlanksBlockquoteRule, "MD028");
+rule_entry!(no_duplicate_heading_rule_entry: NoDuplicateHeadingRule, "MD024");
+rule_entry!(blanks_around_fences_rule_entry: BlanksAroundFencesRule, "MD031");
+rule_entry!(list_marker_space_rule_entry: ListMarkerSpaceRule, "MD030");
+rule_entry!(single_trailing_newline_rule_entry: SingleTrailingNewlineRule, "MD047");
+rule_entry!(no_inline_html_rule_entry: NoInlineHtmlRule, "MD033");
+rule_entry!(fenced_code_language_rule_entry: FencedCodeLanguageRule, "MD040");
+rule_entry!(first_line_heading_rule_entry: FirstLineHeadingRule, "MD041");
+rule_entry!(no_empty_links_rule_entry: NoEmptyLinksRule, "MD042");
+rule_entry!(table_column_count_rule_entry: TableColumnCountRule, "MD056");
+rule_entry!(table_spacing_rule_entry: TableSpacingRule, "MD058");
+rule_entry!(prohibited_link_text_rule_entry: ProhibitedLinkTextRule, "MD059");
+rule_entry!(table_column_style_rule_entry: TableColumnStyleRule, "MD060");
+rule_entry!(required_headings_rule_entry: RequiredHeadingsRule, "MD043");
+rule_entry!(proper_names_rule_entry: ProperNamesRule, "MD044");
+rule_entry!(list_indent_rule_entry: ListIndentRule, "MD005");
+rule_entry!(unordered_list_indent_rule_entry: UnorderedListIndentRule, "MD007");
+rule_entry!(ul_style_rule_entry: UlStyleRule, "MD004");
+rule_entry!(ol_prefix_rule_entry: OlPrefixRule, "MD029");
+rule_entry!(blanks_around_lists_rule_entry: BlanksAroundListsRule, "MD032");
+rule_entry!(hr_style_rule_entry: HrStyleRule, "MD035");
+rule_entry!(no_emphasis_as_heading_rule_entry: NoEmphasisAsHeadingRule, "MD036");
+rule_entry!(no_alt_text_rule_entry: NoAltTextRule, "MD045");
+rule_entry!(code_block_style_rule_entry: CodeBlockStyleRule, "MD046");
+rule_entry!(code_fence_style_rule_entry: CodeFenceStyleRule, "MD048");
+rule_entry!(emphasis_style_rule_entry: EmphasisStyleRule, "MD049");
+rule_entry!(strong_style_rule_entry: StrongStyleRule, "MD050");
+rule_entry!(link_fragments_rule_entry: LinkFragmentsRule, "MD051");
+rule_entry!(reference_links_images_rule_entry: ReferenceLinksImagesRule, "MD052");
+rule_entry!(link_definitions_rule_entry: LinkDefinitionsRule, "MD053");
+rule_entry!(link_style_rule_entry: LinkStyleRule, "MD054");
+rule_entry!(table_pipe_style_rule_entry: TablePipeStyleRule, "MD055");
+
+static OFFICIAL_RULES: &[RuleEntry] = &[
+    heading_structure_rule_entry::ENTRY,
+    broken_link_rule_entry::ENTRY,
+    heading_style_rule_entry::ENTRY,
+    blanks_around_headings_rule_entry::ENTRY,
+    heading_start_left_rule_entry::ENTRY,
+    single_h1_rule_entry::ENTRY,
+    no_trailing_punctuation_rule_entry::ENTRY,
+    rule_md009_entry::ENTRY,
+    rule_md010_entry::ENTRY,
+    no_reversed_links_rule_entry::ENTRY,
+    no_multiple_blanks_rule_entry::ENTRY,
+    line_length_rule_entry::ENTRY,
+    dollar_signs_before_commands_rule_entry::ENTRY,
+    no_missing_space_atx_rule_entry::ENTRY,
+    no_multiple_space_atx_rule_entry::ENTRY,
+    no_space_in_blockquote_rule_entry::ENTRY,
+    no_multiple_space_in_blockquote_rule_entry::ENTRY,
+    no_bare_urls_rule_entry::ENTRY,
+    spaces_in_emphasis_rule_entry::ENTRY,
+    no_space_in_code_rule_entry::ENTRY,
+    no_spaces_in_links_rule_entry::ENTRY,
+    no_multiple_space_blockquote_rule_entry::ENTRY,
+    no_blanks_blockquote_rule_entry::ENTRY,
+    no_duplicate_heading_rule_entry::ENTRY,
+    blanks_around_fences_rule_entry::ENTRY,
+    list_marker_space_rule_entry::ENTRY,
+    single_trailing_newline_rule_entry::ENTRY,
+    no_inline_html_rule_entry::ENTRY,
+    fenced_code_language_rule_entry::ENTRY,
+    first_line_heading_rule_entry::ENTRY,
+    no_empty_links_rule_entry::ENTRY,
+    table_column_count_rule_entry::ENTRY,
+    table_spacing_rule_entry::ENTRY,
+    prohibited_link_text_rule_entry::ENTRY,
+    table_column_style_rule_entry::ENTRY,
+    required_headings_rule_entry::ENTRY,
+    proper_names_rule_entry::ENTRY,
+    list_indent_rule_entry::ENTRY,
+    unordered_list_indent_rule_entry::ENTRY,
+    ul_style_rule_entry::ENTRY,
+    ol_prefix_rule_entry::ENTRY,
+    blanks_around_lists_rule_entry::ENTRY,
+    hr_style_rule_entry::ENTRY,
+    no_emphasis_as_heading_rule_entry::ENTRY,
+    no_alt_text_rule_entry::ENTRY,
+    code_block_style_rule_entry::ENTRY,
+    code_fence_style_rule_entry::ENTRY,
+    emphasis_style_rule_entry::ENTRY,
+    strong_style_rule_entry::ENTRY,
+    link_fragments_rule_entry::ENTRY,
+    reference_links_images_rule_entry::ENTRY,
+    link_definitions_rule_entry::ENTRY,
+    link_style_rule_entry::ENTRY,
+    table_pipe_style_rule_entry::ENTRY,
+];
+
+static USER_CONFIGURABLE_RULES: &[RuleEntry] = &[
+    heading_structure_rule_entry::ENTRY,
+    heading_style_rule_entry::ENTRY,
+    blanks_around_headings_rule_entry::ENTRY,
+    heading_start_left_rule_entry::ENTRY,
+    single_h1_rule_entry::ENTRY,
+    no_trailing_punctuation_rule_entry::ENTRY,
+    rule_md009_entry::ENTRY,
+    rule_md010_entry::ENTRY,
+    no_reversed_links_rule_entry::ENTRY,
+    no_multiple_blanks_rule_entry::ENTRY,
+    line_length_rule_entry::ENTRY,
+    dollar_signs_before_commands_rule_entry::ENTRY,
+    no_missing_space_atx_rule_entry::ENTRY,
+    no_multiple_space_atx_rule_entry::ENTRY,
+    no_space_in_blockquote_rule_entry::ENTRY,
+    no_multiple_space_in_blockquote_rule_entry::ENTRY,
+    no_bare_urls_rule_entry::ENTRY,
+    spaces_in_emphasis_rule_entry::ENTRY,
+    no_space_in_code_rule_entry::ENTRY,
+    no_spaces_in_links_rule_entry::ENTRY,
+    no_multiple_space_blockquote_rule_entry::ENTRY,
+    no_blanks_blockquote_rule_entry::ENTRY,
+    no_duplicate_heading_rule_entry::ENTRY,
+    blanks_around_fences_rule_entry::ENTRY,
+    list_marker_space_rule_entry::ENTRY,
+    single_trailing_newline_rule_entry::ENTRY,
+    no_inline_html_rule_entry::ENTRY,
+    fenced_code_language_rule_entry::ENTRY,
+    first_line_heading_rule_entry::ENTRY,
+    no_empty_links_rule_entry::ENTRY,
+    table_column_count_rule_entry::ENTRY,
+    table_spacing_rule_entry::ENTRY,
+    prohibited_link_text_rule_entry::ENTRY,
+    table_column_style_rule_entry::ENTRY,
+    required_headings_rule_entry::ENTRY,
+    proper_names_rule_entry::ENTRY,
+    list_indent_rule_entry::ENTRY,
+    unordered_list_indent_rule_entry::ENTRY,
+    ul_style_rule_entry::ENTRY,
+    ol_prefix_rule_entry::ENTRY,
+    blanks_around_lists_rule_entry::ENTRY,
+    hr_style_rule_entry::ENTRY,
+    no_emphasis_as_heading_rule_entry::ENTRY,
+    no_alt_text_rule_entry::ENTRY,
+    code_block_style_rule_entry::ENTRY,
+    code_fence_style_rule_entry::ENTRY,
+    emphasis_style_rule_entry::ENTRY,
+    strong_style_rule_entry::ENTRY,
+    link_fragments_rule_entry::ENTRY,
+    reference_links_images_rule_entry::ENTRY,
+    link_definitions_rule_entry::ENTRY,
+    link_style_rule_entry::ENTRY,
+    table_pipe_style_rule_entry::ENTRY,
+];
 
 impl MarkdownLinterOps {
     pub fn evaluate_all(
@@ -60,12 +266,11 @@ impl MarkdownLinterOps {
     ) -> Vec<MarkdownDiagnostic> {
         let mut diagnostics = Vec::new();
 
-        let rules = Self::get_official_rules();
-
         if !enabled {
             return diagnostics;
         }
 
+        let rules = Self::get_official_rules();
         for rule in rules {
             let rule_id = rule.id();
             let sev_opt = severity_map
@@ -84,7 +289,15 @@ impl MarkdownLinterOps {
         diagnostics
     }
 
+    pub fn official_rules() -> &'static [RuleEntry] {
+        OFFICIAL_RULES
+    }
+
     pub fn get_official_rules() -> Vec<Box<dyn MarkdownRule>> {
+        Self::build_official_rules()
+    }
+
+    fn build_official_rules() -> Vec<Box<dyn MarkdownRule>> {
         vec![
             /* WHY: MD001 — heading-increment (full impl in mod.rs) */
             Box::new(HeadingStructureRule),
@@ -156,9 +369,27 @@ impl MarkdownLinterOps {
      * This includes both actively evaluated rules AND stub rules (official rules that are not
      * yet fully implemented). All are shown in the settings UI so the user can configure
      * severity for when they become active. Rules are deduplicated by ID and sorted. */
+    pub fn user_configurable_rules() -> &'static [RuleEntry] {
+        USER_CONFIGURABLE_RULES
+    }
+
+    pub fn user_configurable_rule_meta_map() -> &'static HashMap<&'static str, OfficialRuleMeta> {
+        static RULE_META_MAP: OnceLock<HashMap<&'static str, OfficialRuleMeta>> = OnceLock::new();
+        RULE_META_MAP.get_or_init(|| {
+            Self::user_configurable_rules()
+                .iter()
+                .filter_map(|rule| rule.official_meta().map(|meta| (meta.code, meta)))
+                .collect()
+        })
+    }
+
     pub fn get_user_configurable_rules() -> Vec<Box<dyn MarkdownRule>> {
+        Self::build_user_configurable_rules()
+    }
+
+    fn build_user_configurable_rules() -> Vec<Box<dyn MarkdownRule>> {
         use crate::rules::markdown::stubs::*;
-        let mut all: Vec<Box<dyn MarkdownRule>> = Self::get_official_rules()
+        let mut all: Vec<Box<dyn MarkdownRule>> = Self::build_official_rules()
             .into_iter()
             .filter(|r| r.official_meta().is_some())
             .collect();

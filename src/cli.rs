@@ -136,8 +136,7 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
                 continue;
             }
         };
-        let config_errors = config
-            .validate(&crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules());
+        let config_errors = config.validate_cached_rules();
         if !config_errors.is_empty() {
             for error in config_errors {
                 report
@@ -407,7 +406,7 @@ fn options_from_config(config: &MarkdownLintConfig) -> LintOptions {
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(true);
 
-    for rule in crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules() {
+    for rule in crate::rules::markdown::MarkdownLinterOps::user_configurable_rules() {
         if let Some(meta) = rule.official_meta() {
             options.rules.insert(
                 meta.code.to_string(),

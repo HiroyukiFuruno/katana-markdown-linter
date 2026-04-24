@@ -320,9 +320,7 @@ fn catalog_rules() -> Vec<RuleMetadata> {
 
 fn validate_config(raw: Value) -> Vec<ConfigValidationError> {
     MarkdownLintConfig { raw }
-        .validate(
-            &katana_markdown_linter::rules::markdown::MarkdownLinterOps::get_user_configurable_rules(),
-        )
+        .validate_cached_rules()
         .into_iter()
         .map(Into::into)
         .collect()

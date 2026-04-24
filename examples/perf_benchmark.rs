@@ -1,5 +1,4 @@
 use katana_markdown_linter::cli::{run, Cli, Command, OutputFormat};
-use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
 use katana_markdown_linter::{available_rules, fix, lint, LintOptions, MarkdownLintConfig};
 use serde::Serialize;
 use std::fs;
@@ -245,8 +244,9 @@ fn run_cli_check(workspace: &Path) -> BenchResult<usize> {
 
 fn validate_config(config_path: &Path) -> BenchResult<usize> {
     let config = MarkdownLintConfig::load(config_path)?;
-    let rules = MarkdownLinterOps::get_user_configurable_rules();
-    let errors = config.validate(&rules);
+    let rules =
+        katana_markdown_linter::rules::markdown::MarkdownLinterOps::user_configurable_rules();
+    let errors = config.validate_cached_rules();
     if !errors.is_empty() {
         return Err(std::io::Error::other(format!(
             "config validation failed with {} errors",

@@ -1,5 +1,6 @@
 use crate::RuleMeta;
 use serde::Serialize;
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum RuleLifecycleState {
@@ -28,14 +29,19 @@ pub struct RuleCatalog {
 
 impl RuleCatalog {
     pub fn build() -> Self {
-        let available = crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
-        let implemented_ids = crate::rules::markdown::MarkdownLinterOps::get_official_rules()
-            .into_iter()
-            .map(|rule| rule.id().to_string())
+        static CATALOG: OnceLock<RuleCatalog> = OnceLock::new();
+        CATALOG.get_or_init(Self::build_uncached).clone()
+    }
+
+    fn build_uncached() -> Self {
+        let available = crate::rules::markdown::MarkdownLinterOps::user_configurable_rules();
+        let implemented_ids = crate::rules::markdown::MarkdownLinterOps::official_rules()
+            .iter()
+            .map(|rule| rule.id())
             .collect::<std::collections::HashSet<_>>();
 
         let mut active: Vec<RuleCatalogEntry> = available
-            .into_iter()
+            .iter()
             .filter_map(|rule| {
                 rule.official_meta().map(|meta| RuleCatalogEntry {
                     implemented_check: implemented_ids.contains(meta.code),

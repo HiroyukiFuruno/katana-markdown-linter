@@ -1,6 +1,7 @@
 use crate::rules::markdown::{MarkdownRule, RulePropertyType};
 use crate::Error;
 use serde_json::{Map, Value};
+use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use std::path::Path;
@@ -81,14 +82,33 @@ impl MarkdownLintConfig {
     }
 
     pub fn validate(&self, rules: &[Box<dyn MarkdownRule>]) -> Vec<ConfigError> {
-        let mut errors = Vec::new();
+        self.validate_rule_iter(rules.iter().map(|rule| rule.as_ref()))
+    }
+
+    pub fn validate_cached_rules(&self) -> Vec<ConfigError> {
+        self.validate_meta_map(
+            crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map(),
+        )
+    }
+
+    fn validate_rule_iter<'a>(
+        &self,
+        rules: impl IntoIterator<Item = &'a dyn MarkdownRule>,
+    ) -> Vec<ConfigError> {
         let mut rule_map = std::collections::HashMap::new();
         for rule in rules {
             if let Some(meta) = rule.official_meta() {
                 rule_map.insert(meta.code, meta);
             }
         }
+        self.validate_meta_map(&rule_map)
+    }
 
+    fn validate_meta_map(
+        &self,
+        rule_map: &HashMap<&'static str, crate::rules::markdown::OfficialRuleMeta>,
+    ) -> Vec<ConfigError> {
+        let mut errors = Vec::new();
         let Some(root) = self.raw.as_object() else {
             errors.push(ConfigError::new(
                 None,

@@ -5,7 +5,7 @@ pub mod catalog;
 use crate::rules::markdown::helpers::RuleHelpers;
 use std::path::Path;
 
-pub trait MarkdownRule {
+pub trait MarkdownRule: Send + Sync {
     fn id(&self) -> &'static str;
     /// Returns official markdownlint metadata for this rule, if any.
     /// `None` means the rule is hidden (internal-only).

@@ -41,8 +41,8 @@ pub fn available_rules() -> Vec<RuleMeta> {
 
 /// Returns the set of rules that are currently executed by the linter.
 pub fn implemented_rules() -> Vec<RuleMeta> {
-    rules::markdown::MarkdownLinterOps::get_official_rules()
-        .into_iter()
+    rules::markdown::MarkdownLinterOps::official_rules()
+        .iter()
         .filter_map(|rule| rule.official_meta())
         .map(Into::into)
         .collect()
@@ -179,6 +179,45 @@ mod tests {
         assert!(catalog.active_rules().any(|rule| rule.id == "MD001"));
         assert!(catalog.deprecated.is_empty());
         assert!(catalog.removed.is_empty());
+    }
+
+    #[test]
+    fn cached_rule_registries_match_owned_compatibility_apis() {
+        let official = rules::markdown::MarkdownLinterOps::official_rules();
+        let same_official = rules::markdown::MarkdownLinterOps::official_rules();
+        assert!(std::ptr::eq(official, same_official));
+        assert_eq!(
+            official.len(),
+            rules::markdown::MarkdownLinterOps::get_official_rules().len()
+        );
+
+        let configurable = rules::markdown::MarkdownLinterOps::user_configurable_rules();
+        let same_configurable = rules::markdown::MarkdownLinterOps::user_configurable_rules();
+        assert!(std::ptr::eq(configurable, same_configurable));
+        assert_eq!(
+            configurable.len(),
+            rules::markdown::MarkdownLinterOps::get_user_configurable_rules().len()
+        );
+
+        let meta_map = rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
+        let same_meta_map = rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
+        assert!(std::ptr::eq(meta_map, same_meta_map));
+        assert_eq!(meta_map.len(), configurable.len());
+        assert!(meta_map.contains_key("MD060"));
+        assert!(!meta_map.contains_key("md-broken-link"));
+    }
+
+    #[test]
+    fn cached_config_validation_matches_owned_rule_validation() {
+        let config = MarkdownLintConfig {
+            raw: json!({
+                "default": true,
+                "MD013": false,
+                "MD999": true
+            }),
+        };
+        let owned = rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
+        assert_eq!(config.validate(&owned), config.validate_cached_rules());
     }
 
     #[test]
