@@ -3,9 +3,9 @@
   "summary": {
     "total_rules": 53,
     "rules_with_examples": 53,
-    "rules_with_fix_metadata": 31,
-    "rules_with_parameters": 2,
-    "manual_required": 0,
+    "rules_with_fix_metadata": 20,
+    "rules_with_parameters": 1,
+    "manual_required": 8,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -35,8 +35,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD001\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD001\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [
         {
           "name": "code_fence_heading_is_ignored",
@@ -71,8 +83,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD003\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD003\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -108,8 +132,20 @@
           "expected": "- one\n- two\n"
         }
       ],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD004\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD004\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -139,10 +175,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD005\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD005\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local fix overlaps with MD007/list indentation strategy and is unsafe in global fix mode"
+      ]
     },
     {
       "rule_id": "MD007",
@@ -169,9 +219,27 @@
           "expected": "MD007"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "normalize_unordered_indent",
+          "source": "   - item\n",
+          "expected": "  - item\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD007\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD007\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -200,10 +268,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD009\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD009\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local regex implementation reports diagnostics only and has no safe trailing-space fix_info yet"
+      ]
     },
     {
       "rule_id": "MD010",
@@ -231,10 +313,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD010\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD010\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local regex implementation reports diagnostics only and has no safe tab replacement fix_info yet"
+      ]
     },
     {
       "rule_id": "MD011",
@@ -261,8 +357,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD011\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD011\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -292,10 +400,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD012\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD012\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local fix is multi-line and current fix engine intentionally skips multi-line edits"
+      ]
     },
     {
       "rule_id": "MD013",
@@ -322,8 +444,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD013\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD013\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -352,8 +486,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD014\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD014\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -390,8 +536,20 @@
           "expected": "# Heading\n"
         }
       ],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD018\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD018\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -421,9 +579,27 @@
           "expected": "MD019"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "collapse_multiple_spaces_after_atx_marker",
+          "source": "#  Heading\n",
+          "expected": "# Heading\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD019\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD019\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -452,9 +628,27 @@
           "expected": "MD020"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "remove_space_after_blockquote_marker",
+          "source": "> quote\n",
+          "expected": ">quote\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD020\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD020\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -484,10 +678,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD021\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD021\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local fix overlaps with MD027 blockquote spacing in global fix mode"
+      ]
     },
     {
       "rule_id": "MD022",
@@ -514,9 +722,27 @@
           "expected": "MD022"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "surround_heading_with_blank_lines",
+          "source": "text\n# Heading\ntext\n",
+          "expected": "text\n\n# Heading\n\ntext\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD022\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD022\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -545,9 +771,27 @@
           "expected": "MD023"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "dedent_heading",
+          "source": "  # Heading\n",
+          "expected": "# Heading\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD023\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD023\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -576,8 +820,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD024\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD024\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -607,8 +863,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD025\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD025\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -637,8 +905,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD026\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD026\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -668,10 +948,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD027\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD027\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local fix overlaps with MD021 blockquote spacing in global fix mode"
+      ]
     },
     {
       "rule_id": "MD028",
@@ -699,8 +993,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD028\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD028\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -728,9 +1034,27 @@
           "expected": "MD029"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "renumber_ordered_list",
+          "source": "1. one\n3. two\n",
+          "expected": "1. one\n2. two\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD029\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD029\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -761,10 +1085,24 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD030\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD030\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: local list marker spacing fix range is not safe enough to lock before/after output yet"
+      ]
     },
     {
       "rule_id": "MD031",
@@ -792,8 +1130,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD031\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD031\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -822,9 +1172,27 @@
           "expected": "MD032"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "insert_blank_line_before_list",
+          "source": "Paragraph\n- item\n",
+          "expected": "Paragraph\n\n- item\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD032\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD032\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -853,8 +1221,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD033\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD033\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -884,8 +1264,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD034\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD034\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -914,8 +1306,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD035\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD035\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -945,8 +1349,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD036\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD036\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -975,9 +1391,27 @@
           "expected": "MD037"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "trim_space_inside_emphasis",
+          "source": "This is * text *.\n",
+          "expected": "This is *text*.\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD037\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD037\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1006,9 +1440,27 @@
           "expected": "MD038"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "trim_space_inside_code_span",
+          "source": "` code `\n",
+          "expected": "`code`\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD038\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD038\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1038,8 +1490,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD039\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD039\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1069,8 +1533,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD040\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD040\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1099,8 +1575,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD041\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD041\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1129,8 +1617,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD042\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD042\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1159,8 +1659,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD043\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD043\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1189,8 +1701,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD044\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD044\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1220,8 +1744,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD045\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD045\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1250,8 +1786,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD046\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD046\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1279,9 +1827,27 @@
           "expected": "MD047"
         }
       ],
-      "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "fix": [
+        {
+          "name": "append_single_trailing_newline",
+          "source": "text",
+          "expected": "text\n"
+        }
+      ],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD047\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD047\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1310,8 +1876,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD048\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD048\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1340,8 +1918,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD049\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD049\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1370,8 +1960,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD050\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD050\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1400,8 +2002,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD051\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD051\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1431,8 +2045,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD052\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD052\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1461,8 +2087,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD053\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD053\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1491,8 +2129,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD054\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD054\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1521,8 +2171,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD055\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD055\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1551,8 +2213,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD056\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD056\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1581,8 +2255,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD058\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD058\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1611,8 +2297,20 @@
         }
       ],
       "fix": [],
-      "config_valid": [],
-      "config_invalid": [],
+      "config_valid": [
+        {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD059\": true }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD059\": \"warn\" }",
+          "expected": "invalid type"
+        }
+      ],
       "edge": [],
       "manual_required": []
     },
@@ -1661,6 +2359,11 @@
       "fix": [],
       "config_valid": [
         {
+          "name": "rule_enabled_valid",
+          "source": "{ \"MD060\": true }",
+          "expected": null
+        },
+        {
           "name": "style_valid",
           "source": "{ \"MD060\": { \"style\": \"any\" } }",
           "expected": null
@@ -1673,6 +2376,11 @@
       ],
       "config_invalid": [
         {
+          "name": "rule_config_invalid_type",
+          "source": "{ \"MD060\": \"warn\" }",
+          "expected": "invalid type"
+        },
+        {
           "name": "style_invalid_type",
           "source": "{ \"MD060\": { \"style\": null } }",
           "expected": "invalid type"
@@ -1681,10 +2389,22 @@
           "name": "aligned_delimiter_invalid_type",
           "source": "{ \"MD060\": { \"aligned_delimiter\": null } }",
           "expected": "invalid type"
+        },
+        {
+          "name": "unknown_property_invalid",
+          "source": "{ \"MD060\": { \"unknown\": true } }",
+          "expected": "unknown property"
+        },
+        {
+          "name": "style_invalid_enum",
+          "source": "{ \"MD060\": { \"style\": \"invalid\" } }",
+          "expected": "invalid enum"
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked"
+      ]
     }
   ]
 }

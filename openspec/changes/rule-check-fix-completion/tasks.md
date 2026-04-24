@@ -29,27 +29,27 @@
 ## 3. Rule Fix Coverage
 
 - [x] 3.1 fixable rule一覧をmatrixから確定する
-- [ ] 3.2 fixable ruleのbefore/after fixtureを追加する
-- [ ] 3.3 unsafeまたは曖昧なfixは非対応理由をmetadata化する
-- [ ] 3.4 複数fixの同一範囲衝突を検出するtestを追加する
+- [x] 3.2 fixable ruleのbefore/after fixtureを追加する
+- [x] 3.3 unsafeまたは曖昧なfixは非対応理由をmetadata化する
+- [x] 3.4 複数fixの同一範囲衝突を検出するtestを追加する
 
 ## 4. Config Coverage
 
-- [ ] 4.1 全ruleのvalid config fixtureを通す
-- [ ] 4.2 全ruleのinvalid config fixtureを通す
-- [ ] 4.3 alias / deprecated / removed ruleの扱いをfixtureで固定する
-- [ ] 4.4 unknown property / wrong type / invalid enumをfixtureで固定する
+- [x] 4.1 全ruleのvalid config fixtureを通す
+- [x] 4.2 全ruleのinvalid config fixtureを通す
+- [x] 4.3 alias / deprecated / removed ruleの扱いをfixtureで固定する
+- [x] 4.4 unknown property / wrong type / invalid enumをfixtureで固定する
 
 ## 5. Edge and Regression Coverage
 
-- [ ] 5.1 空ファイル、改行なし、巨大行、code fence内、HTML混在をfixture化する
-- [ ] 5.2 list / heading / table の境界値をfixture化する
-- [ ] 5.3 front matter とGFM extensionの扱いを明示する
-- [ ] 5.4 rumdl / mado の公開CLI挙動から有用なedge caseを参考として追加する
+- [x] 5.1 空ファイル、改行なし、巨大行、code fence内、HTML混在をfixture化する
+- [x] 5.2 list / heading / table の境界値をfixture化する
+- [x] 5.3 front matter とGFM extensionの扱いを明示する
+- [x] 5.4 rumdl / mado の公開CLI挙動から有用なedge caseを参考として追加する
 
 ## Definition of Done
 
 - [x] 全active ruleのcheck fixtureが通っていること
-- [ ] fixable ruleのfix fixtureが通っていること
-- [ ] 全ruleのconfig valid / invalid fixtureが通っていること
-- [ ] 未対応・非対応・manual_requiredが0または明示された例外として記録されていること
+- [x] fixable ruleのfix fixtureが通っていること
+- [x] 全ruleのconfig valid / invalid fixtureが通っていること
+- [x] 未対応・非対応・manual_requiredが0または明示された例外として記録されていること

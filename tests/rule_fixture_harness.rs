@@ -1,5 +1,7 @@
 use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
-use katana_markdown_linter::{fix, lint, LintOptions, MarkdownLintConfig};
+use katana_markdown_linter::{
+    fix, lint, ConfigErrorKind, LintOptions, LintResult, MarkdownLintConfig, Range,
+};
 use serde_json::Value;
 use std::collections::{BTreeSet, HashSet};
 
@@ -47,7 +49,7 @@ fn fixture_matrix_can_be_loaded_by_harness() {
         .filter_map(|rule| rule.official_meta().map(|meta| meta.code.to_string()))
         .collect::<HashSet<_>>();
 
-    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(0));
+    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(8));
     assert!(rules(&matrix)
         .iter()
         .all(|rule| active.contains(rule_id(rule))));
@@ -138,6 +140,121 @@ fn config_valid_and_invalid_fixtures_execute() {
 }
 
 #[test]
+fn config_alias_and_lifecycle_behavior_is_fixed() {
+    let rules = MarkdownLinterOps::get_user_configurable_rules();
+    let alias_config = MarkdownLintConfig {
+        raw: serde_json::json!({ "heading-increment": true }),
+    };
+    let alias_errors = alias_config.validate(&rules);
+    assert!(alias_errors
+        .iter()
+        .any(|error| matches!(error.kind, ConfigErrorKind::UnknownRule)));
+
+    let catalog = katana_markdown_linter::rule_catalog();
+    assert!(catalog.deprecated.is_empty());
+    assert!(catalog.removed.is_empty());
+}
+
+#[test]
+fn config_property_error_shapes_are_fixed() {
+    let rules = MarkdownLinterOps::get_user_configurable_rules();
+    let cases = [
+        (
+            serde_json::json!({ "MD060": { "unknown": true } }),
+            "unknown property",
+        ),
+        (
+            serde_json::json!({ "MD060": { "aligned_delimiter": null } }),
+            "wrong type",
+        ),
+        (
+            serde_json::json!({ "MD060": { "style": "invalid" } }),
+            "invalid enum",
+        ),
+    ];
+
+    for (raw, label) in cases {
+        let errors = MarkdownLintConfig { raw }.validate(&rules);
+        assert!(!errors.is_empty(), "{label} should be invalid");
+    }
+}
+
+#[test]
+fn edge_cases_cover_empty_no_newline_long_code_fence_and_html() {
+    let options = LintOptions::default();
+    let empty = lint("", &options).expect("lint should run");
+    assert!(empty.iter().any(|diagnostic| diagnostic.rule_id == "MD043"));
+
+    let missing_newline = lint("text", &options).expect("lint should run");
+    assert!(missing_newline
+        .iter()
+        .any(|diagnostic| diagnostic.rule_id == "MD047"));
+
+    let long_line = format!("{}\n", "a".repeat(81));
+    let long_line_diagnostics = lint(&long_line, &options).expect("lint should run");
+    assert!(long_line_diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.rule_id == "MD013"));
+
+    let fenced_heading =
+        lint("# Title\n\n```\n### skipped\n```\n", &options).expect("lint should run");
+    assert!(fenced_heading
+        .iter()
+        .all(|diagnostic| diagnostic.rule_id != "MD001"));
+
+    let html = lint("<span>text</span>\n", &options).expect("lint should run");
+    assert!(html.iter().any(|diagnostic| diagnostic.rule_id == "MD033"));
+}
+
+#[test]
+fn edge_cases_cover_list_heading_and_table_boundaries() {
+    let options = LintOptions::default();
+    let list = lint("- one\n  - nested\n   - off\n", &options).expect("lint should run");
+    assert!(list.iter().any(|diagnostic| diagnostic.rule_id == "MD005"));
+    assert!(list.iter().any(|diagnostic| diagnostic.rule_id == "MD007"));
+
+    let heading = lint("# H1\n\n### H3\n", &options).expect("lint should run");
+    assert!(heading
+        .iter()
+        .any(|diagnostic| diagnostic.rule_id == "MD001"));
+
+    let table = lint("| a | b |\n| 1 | 2 | 3 |\n", &options).expect("lint should run");
+    assert!(table.iter().any(|diagnostic| diagnostic.rule_id == "MD056"));
+}
+
+#[test]
+fn front_matter_and_gfm_extension_behavior_is_explicit() {
+    let options = LintOptions::default();
+    let front_matter = "---\ntitle: Doc\n---\n\n# Doc\n";
+    let diagnostics = lint(front_matter, &options).expect("lint should run");
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.rule_id == "MD041"),
+        "front matter is currently parsed as markdown content, not skipped for first-line heading"
+    );
+
+    let gfm_table = "| a | b |\n| - | - |\n| c | d |\n";
+    let table_diagnostics = lint(gfm_table, &options).expect("lint should run");
+    assert!(table_diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.rule_id == "MD060"));
+}
+
+#[test]
+fn cli_reference_edge_cases_are_represented_without_copying_implementations() {
+    let matrix = matrix();
+    let matrix_rule_ids = rules(&matrix).iter().map(rule_id).collect::<BTreeSet<_>>();
+
+    for rule_id in ["MD013", "MD033", "MD047", "MD056", "MD060"] {
+        assert!(
+            matrix_rule_ids.contains(rule_id),
+            "{rule_id} is kept as a CLI-parity edge case inspired by rumdl/mado behavior"
+        );
+    }
+}
+
+#[test]
 fn fixable_rule_set_is_explicit_in_matrix() {
     let matrix = matrix();
     let actual = rules(&matrix)
@@ -153,4 +270,84 @@ fn fixable_rule_set_is_explicit_in_matrix() {
     .collect::<BTreeSet<_>>();
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn fixable_rules_without_fix_fixtures_have_explicit_metadata() {
+    let matrix = matrix();
+    let unsupported = rules(&matrix)
+        .iter()
+        .filter(|rule| rule["fixable"].as_bool() == Some(true))
+        .filter(|rule| cases(rule, "fix").next().is_none())
+        .map(rule_id)
+        .collect::<BTreeSet<_>>();
+    let expected = [
+        "MD005", "MD009", "MD010", "MD012", "MD021", "MD027", "MD030", "MD060",
+    ]
+    .into_iter()
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(unsupported, expected);
+    for rule in rules(&matrix)
+        .iter()
+        .filter(|rule| unsupported.contains(rule_id(rule)))
+    {
+        let manual_required = rule["manual_required"]
+            .as_array()
+            .expect("manual_required should be an array");
+        assert!(
+            manual_required.iter().any(|reason| reason
+                .as_str()
+                .is_some_and(|value| value.starts_with("fix unsupported:"))),
+            "{} should explain why fix is unsupported",
+            rule_id(rule)
+        );
+    }
+}
+
+#[test]
+fn overlapping_fix_ranges_are_detectable_before_application() {
+    let first = LintResult {
+        rule_id: "TEST001".to_string(),
+        rule_name: "first".to_string(),
+        message: "first".to_string(),
+        severity: Default::default(),
+        line: 1,
+        column: 1,
+        end_line: 1,
+        end_column: 3,
+        fix: Some(katana_markdown_linter::Fix {
+            range: Range {
+                start_line: 1,
+                start_column: 1,
+                end_line: 1,
+                end_column: 3,
+            },
+            replacement: "A".to_string(),
+        }),
+    };
+    let mut second = first.clone();
+    second.rule_id = "TEST002".to_string();
+    second.fix.as_mut().expect("fix exists").range.start_column = 2;
+
+    assert!(has_overlapping_fix_ranges(&[first, second]));
+}
+
+fn has_overlapping_fix_ranges(results: &[LintResult]) -> bool {
+    let fixes = results
+        .iter()
+        .filter_map(|result| result.fix.as_ref().map(|fix| (&result.rule_id, &fix.range)))
+        .collect::<Vec<_>>();
+
+    for (idx, (left_rule, left)) in fixes.iter().enumerate() {
+        for (right_rule, right) in fixes.iter().skip(idx + 1) {
+            if left_rule == right_rule || left.start_line != right.start_line {
+                continue;
+            }
+            if left.start_column < right.end_column && right.start_column < left.end_column {
+                return true;
+            }
+        }
+    }
+    false
 }
