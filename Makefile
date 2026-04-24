@@ -3,6 +3,9 @@ JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
 VERSION_BARE := $(patsubst v%,%,$(VERSION))
 TAG := v$(VERSION_BARE)
+RELEASE_REPO ?= HiroyukiFuruno/katana-markdown-linter
+RELEASE_TAGGER_NAME ?= HiroyukiFuruno
+RELEASE_TAGGER_EMAIL ?= hfuruno0114@gmail.com
 KML ?= cargo run --quiet --bin kml --
 DOGFOOD_TARGETS ?= README.md docs openspec
 DOGFOOD_CONFIG ?= .markdownlint-dogfood.json
@@ -159,8 +162,12 @@ mcp-build: ## Build optional experimental MCP server
 mcp-test: ## Run optional experimental MCP server tests
 	cargo test --features mcp --bin kml-mcp --locked
 
+.PHONY: release-test
+release-test: ## Run release-equivalent tests with all optional features
+	cargo test --all-features --locked
+
 .PHONY: release-check
-release-check: fmt-check lint ast-lint test dogfood coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
@@ -174,13 +181,14 @@ release-package: ## Build .crate package and sha256 checksum for VERSION
 .PHONY: release-github
 release-github: release-tag ## Dispatch GitHub Release workflow without crates.io publish
 	scripts/release/verify-version.sh "$(VERSION)"
-	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(TAG)" -f publish_crate=false
+	gh workflow run release.yml --repo $(RELEASE_REPO) --ref main -f version="$(TAG)" -f publish_crate=false
 
 .PHONY: release-publish
 release-publish: release-tag ## Dispatch GitHub Release workflow with crates.io publish
 	scripts/release/verify-version.sh "$(VERSION)"
-	gh secret list --repo HiroyukiFuruno/katana-markdown-linter | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || (echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1)
-	gh workflow run release.yml --repo HiroyukiFuruno/katana-markdown-linter --ref main -f version="$(TAG)" -f publish_crate=true
+	scripts/release/assert-crate-not-published.sh "$(VERSION_BARE)"
+	gh secret list --repo $(RELEASE_REPO) | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || (echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1)
+	gh workflow run release.yml --repo $(RELEASE_REPO) --ref main -f version="$(TAG)" -f publish_crate=true
 
 .PHONY: release
 release: release-publish ## Dispatch the full release workflow (GitHub Release + crates.io, VERSION=vX.Y.Z)
@@ -188,6 +196,7 @@ release: release-publish ## Dispatch the full release workflow (GitHub Release +
 .PHONY: release-tag
 release-tag: ## Create and push a signed annotated tag for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
+	scripts/release/assert-tag-safe.sh "$(TAG)"
 	@if git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null; then \
 		if [ "$$(git cat-file -t "$(TAG)")" != "tag" ]; then \
 			echo "$(TAG) exists but is not an annotated signed tag" >&2; \
@@ -195,13 +204,22 @@ release-tag: ## Create and push a signed annotated tag for VERSION
 		fi; \
 		git tag -v "$(TAG)"; \
 	else \
-		git tag -s "$(TAG)" -m "katana-markdown-linter $(TAG)"; \
+		GIT_COMMITTER_NAME="$(RELEASE_TAGGER_NAME)" \
+		GIT_COMMITTER_EMAIL="$(RELEASE_TAGGER_EMAIL)" \
+		git -c user.name="$(RELEASE_TAGGER_NAME)" -c user.email="$(RELEASE_TAGGER_EMAIL)" tag -s "$(TAG)" -m "katana-markdown-linter $(TAG)"; \
 	fi
 	git push origin "refs/tags/$(TAG)"
+	scripts/release/verify-tag-verified.sh "$(TAG)" "$(RELEASE_REPO)"
+
+.PHONY: release-verify
+release-verify: ## Verify tag, GitHub Release, and crates.io state after publication
+	scripts/release/verify-version.sh "$(VERSION)"
+	scripts/release/verify-tag-verified.sh "$(TAG)" "$(RELEASE_REPO)"
+	scripts/release/verify-release-published.sh "$(VERSION_BARE)" "$(RELEASE_REPO)"
 
 .PHONY: release-status
 release-status: ## Show recent Release workflow runs
-	gh run list --repo HiroyukiFuruno/katana-markdown-linter --workflow Release --limit 5
+	gh run list --repo $(RELEASE_REPO) --workflow Release --limit 5
 
 ###################################
 # Maintenance

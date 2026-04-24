@@ -18,6 +18,7 @@
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
+| `make release-verify` | Verify published tag, GitHub Release, and crates.io state | Yes after publication |
 
 `make lint` is intentionally limited to Clippy. Repository-specific checks belong in `make ast-lint` so Rust style warnings and project invariants can be triaged independently.
 
@@ -28,7 +29,8 @@
 - source code must not contain lazy macros such as `todo!`, `unimplemented!`, or `dbg!`
 - CLI directory traversal must use the parallel `ignore` walker and respect gitignore controls
 - fixture matrix entries must match the active rule catalog and keep the expected schema fields
-- release workflow must require an existing annotated signed tag
+- release workflow must require an existing annotated signed tag that GitHub reports as Verified
+- release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - public library API and rule catalog entrypoints must remain explicit
 
@@ -76,9 +78,27 @@ make release-check VERSION=vX.Y.Z
 ```
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
-coverage regression, version verification, dry-run publish, and install smoke
-checks. The GitHub release workflows additionally clone upstream markdownlint
-and run `make upstream-drift` against the default branch docs.
+coverage regression, example builds, optional MCP build, version verification,
+dry-run publish, and install smoke checks. The GitHub release workflows
+additionally clone upstream markdownlint and run `make upstream-drift` against
+the default branch docs.
+
+Use `make release-tag VERSION=vX.Y.Z` before dispatching a release. It creates
+or verifies a signed annotated tag and then requires GitHub to report the tag as
+`Verified`.
+
+Use `make release-github VERSION=vX.Y.Z` for GitHub Release-only publication.
+Use `make release VERSION=vX.Y.Z` only when crates.io publication is intended.
+`make release` fails before dispatch when the requested version already exists on crates.io.
+
+After publication, run:
+
+```bash
+make release-verify VERSION=vX.Y.Z
+```
+
+That command compares the local tag target, GitHub Release target, GitHub tag
+verification state, and crates.io version.
 
 Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 
@@ -90,3 +110,5 @@ Run `make upstream-golden` before changing rule behavior or fix behavior. It is 
 - `make dogfood` fails: fix the Markdown change, or run `make dogfood-refresh-baseline` only when the diagnostic change is intentional.
 - `make upstream-drift` fails: inspect new, removed, deprecated, or changed markdownlint rules and update local rule/catalog/config metadata before releasing.
 - CI required checks are pending or missing: verify workflow job names still match the branch protection required check names.
+- Release tag verification fails: recreate the tag only when no GitHub Release exists, the version is not published on crates.io, and the failed workflow did not publish artifacts.
+- `make release` fails because the version is already on crates.io: bump `Cargo.toml` and create a new changelog section instead of retrying the same version.

@@ -55,20 +55,25 @@ jobs:
             scripts/release/verify-version.sh "${{ inputs.version }}"
           fi
 
-      - name: Verify release tag exists
+      - name: Verify release tag is GitHub Verified
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           tag="${{ steps.version.outputs.version }}"
           git fetch --force origin "refs/tags/${tag}:refs/tags/${tag}"
-          if [[ "$(git cat-file -t "${tag}")" != "tag" ]]; then
-            echo "${tag} must be an annotated signed tag. Run: make release-tag VERSION=${tag}" >&2
-            exit 1
-          fi
+          scripts/release/verify-tag-verified.sh "${tag}" "${GITHUB_REPOSITORY}"
 
       - name: Format check
         run: make fmt-check
 
       - name: Test
         run: cargo test --all-features --locked
+
+      - name: Examples
+        run: make examples
+
+      - name: MCP build
+        run: make mcp-build
 
       - name: Dogfood
         run: make dogfood
@@ -82,7 +87,7 @@ jobs:
         run: make upstream-drift
 
       - name: Clippy
-        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+        run: make lint
 
       - name: Publish dry-run
         run: cargo publish --dry-run --locked --allow-dirty
@@ -128,4 +133,5 @@ jobs:
             echo "CARGO_REGISTRY_TOKEN secret is required to publish to crates.io." >&2
             exit 1
           fi
+          scripts/release/assert-crate-not-published.sh "${{ steps.version.outputs.version_bare }}"
           cargo publish --locked --allow-dirty --token "$CARGO_REGISTRY_TOKEN"

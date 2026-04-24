@@ -168,21 +168,122 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
 }
 
 #[test]
-fn ast_linter_release_workflow_requires_existing_signed_tag() {
+fn ast_linter_release_workflow_requires_github_verified_signed_tag() {
+    let makefile = read_workspace_file("Makefile");
     let workflow = read_workspace_file(".github/workflows/release.yml");
+    let verifier = read_workspace_file("scripts/release/verify-tag-verified.sh");
+    let tag_guard = read_workspace_file("scripts/release/assert-tag-safe.sh");
     let required = [
-        "Verify release tag exists",
-        "git cat-file -t",
-        "must be an annotated signed tag",
-        "--verify-tag",
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "Verify release tag is GitHub Verified",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "scripts/release/verify-tag-verified.sh",
+        ),
+        (".github/workflows/release.yml", &workflow, "--verify-tag"),
+        ("Makefile", &makefile, "RELEASE_TAGGER_NAME"),
+        ("Makefile", &makefile, "RELEASE_TAGGER_EMAIL"),
+        ("Makefile", &makefile, "GIT_COMMITTER_NAME"),
+        (
+            "scripts/release/verify-tag-verified.sh",
+            &verifier,
+            "git cat-file -t",
+        ),
+        (
+            "scripts/release/verify-tag-verified.sh",
+            &verifier,
+            "git tag -v",
+        ),
+        (
+            "scripts/release/verify-tag-verified.sh",
+            &verifier,
+            ".verification.verified",
+        ),
+        (
+            "scripts/release/verify-tag-verified.sh",
+            &verifier,
+            "Use a tagger identity that GitHub can associate with the signing key.",
+        ),
+        ("Makefile", &makefile, "scripts/release/assert-tag-safe.sh"),
+        (
+            "scripts/release/assert-tag-safe.sh",
+            &tag_guard,
+            "refusing to overwrite a released tag",
+        ),
     ];
     let violations = required
         .iter()
-        .filter(|required| !workflow.contains(**required))
-        .map(|required| format!(".github/workflows/release.yml: missing `{required}`"))
+        .filter(|(_, content, required)| !content.contains(*required))
+        .map(|(path, _, required)| format!("{path}: missing `{required}`"))
         .collect();
 
-    assert_no_violations("release-signed-tag", violations);
+    assert_no_violations("release-github-verified-tag", violations);
+}
+
+#[test]
+fn ast_linter_release_local_ci_parity_and_retry_safety() {
+    let makefile = read_workspace_file("Makefile");
+    let workflow = read_workspace_file(".github/workflows/release.yml");
+    let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
+    let runbook = read_workspace_file("docs/release-runbook.md");
+    let quality = read_workspace_file("docs/quality-gates.md");
+    let release_notes = read_workspace_file("scripts/release/release-notes.sh");
+    let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
+    let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
+    let required = [
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build"),
+        ("Makefile", &makefile, "release-test:"),
+        ("Makefile", &makefile, "cargo test --all-features --locked"),
+        ("Makefile", &makefile, "scripts/release/assert-crate-not-published.sh"),
+        ("Makefile", &makefile, "release-verify:"),
+        ("Makefile", &makefile, "scripts/release/verify-release-published.sh"),
+        (".github/workflows/release.yml", &workflow, "run: make lint"),
+        (".github/workflows/release.yml", &workflow, "run: make examples"),
+        (".github/workflows/release.yml", &workflow, "run: make mcp-build"),
+        (".github/workflows/release.yml", &workflow, "scripts/release/assert-crate-not-published.sh"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make lint"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make examples"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-build"),
+        ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),
+        ("docs/release-runbook.md", &runbook, "Do not rewrite a tag unless no GitHub Release exists"),
+        ("docs/quality-gates.md", &quality, "release retry helpers must refuse remote tag overwrites"),
+        ("docs/quality-gates.md", &quality, "already exists on crates.io"),
+        ("scripts/release/release-notes.sh", &release_notes, "CHANGELOG.md is missing a non-empty section"),
+        ("scripts/release/assert-crate-not-published.sh", &crate_guard, "Bump Cargo.toml before dispatching"),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "crates_io_version="),
+    ];
+    let violations = required
+        .iter()
+        .filter(|(_, content, required)| !content.contains(*required))
+        .map(|(path, _, required)| format!("{path}: missing `{required}`"))
+        .collect();
+
+    assert_no_violations("release-local-ci-parity-and-retry-safety", violations);
+}
+
+#[test]
+fn ast_linter_readme_rule_map_matches_public_catalog() {
+    let readme = read_workspace_file("README.md");
+    let mut violations = Vec::new();
+
+    if !readme.contains("## Rule Map") {
+        violations.push("README.md: missing `## Rule Map`".to_string());
+    }
+
+    for rule in katana_markdown_linter::available_rules() {
+        let safe_fix = if rule.fixable { "yes" } else { "no" };
+        let row = format!("| `{}` | {} |", rule.id, safe_fix);
+        if !readme.contains(&row) {
+            violations.push(format!("README.md: missing rule map row `{row}`"));
+        }
+    }
+
+    assert_no_violations("readme-rule-map", violations);
 }
 
 #[test]

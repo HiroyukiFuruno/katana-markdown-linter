@@ -26,6 +26,12 @@ jobs:
       - name: Test
         run: cargo test --all-features --locked
 
+      - name: Examples
+        run: make examples
+
+      - name: MCP build
+        run: make mcp-build
+
       - name: Dogfood
         run: make dogfood
 
@@ -38,7 +44,7 @@ jobs:
         run: make upstream-drift
 
       - name: Clippy
-        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+        run: make lint
 
       - name: Package
         run: cargo package --locked --allow-dirty

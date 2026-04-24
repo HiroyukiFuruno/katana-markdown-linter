@@ -63,6 +63,72 @@ When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively pr
 
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
+## Rule Map
+
+kml ships lint checks for the active markdownlint rule catalog. The table below
+matches the public catalog returned by `available_rules()` and
+`kml rule --output json`. Run `kml rule MD013` to inspect one rule with its
+upstream documentation URL.
+
+All rows are lint-supported. `Safe fix` only means kml can rewrite at least one
+violation form automatically; rules marked `no` still report diagnostics.
+
+| Rule | Safe fix |
+| --- | --- |
+| `MD001` | no |
+| `MD003` | no |
+| `MD004` | yes |
+| `MD005` | yes |
+| `MD007` | yes |
+| `MD009` | yes |
+| `MD010` | yes |
+| `MD011` | yes |
+| `MD012` | yes |
+| `MD013` | no |
+| `MD014` | yes |
+| `MD018` | yes |
+| `MD019` | yes |
+| `MD020` | yes |
+| `MD021` | yes |
+| `MD022` | yes |
+| `MD023` | yes |
+| `MD024` | no |
+| `MD025` | no |
+| `MD026` | yes |
+| `MD027` | yes |
+| `MD028` | no |
+| `MD029` | yes |
+| `MD030` | yes |
+| `MD031` | yes |
+| `MD032` | yes |
+| `MD033` | no |
+| `MD034` | yes |
+| `MD035` | no |
+| `MD036` | no |
+| `MD037` | yes |
+| `MD038` | yes |
+| `MD039` | yes |
+| `MD040` | yes |
+| `MD041` | no |
+| `MD042` | no |
+| `MD043` | no |
+| `MD044` | yes |
+| `MD045` | no |
+| `MD046` | no |
+| `MD047` | yes |
+| `MD048` | no |
+| `MD049` | yes |
+| `MD050` | yes |
+| `MD051` | yes |
+| `MD052` | no |
+| `MD053` | yes |
+| `MD054` | yes |
+| `MD055` | no |
+| `MD056` | no |
+| `MD058` | yes |
+| `MD059` | no |
+| `MD060` | no |
+
 ## Configuration
 
 The crate reads and writes markdownlint-compatible JSON and JSONC configuration files:
@@ -117,7 +183,11 @@ See [MCP server documentation](docs/mcp-server.md).
 
 - The library API is the primary contract.
 - The CLI is a thin wrapper over the library.
-- Release validation should include `cargo fmt`, `cargo test`, `cargo clippy`, and publish dry-run checks before publication.
 - `Cargo.toml` package version is the release version source of truth.
-- GitHub Releases are created by the Release workflow with a `vX.Y.Z` tag.
+- Run `make release-check VERSION=vX.Y.Z` before publication.
+- Run `make release-github VERSION=vX.Y.Z` to create or update only the GitHub Release.
+- Run `make release VERSION=vX.Y.Z` only when crates.io publication is intended.
+- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, and crates.io version.
+- GitHub Releases require a signed annotated `vX.Y.Z` tag that GitHub reports as `Verified`.
+- `make release` stops before dispatch when the requested version already exists on crates.io.
 - crates.io publication requires the `CARGO_REGISTRY_TOKEN` GitHub secret.
