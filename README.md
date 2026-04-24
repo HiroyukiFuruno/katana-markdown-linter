@@ -28,16 +28,36 @@ The binary target is `kml`.
 ```bash
 kml check
 kml fix
+kml fmt
+kml check --fix
 kml check README.md
 kml check --file README.md
+kml check --output json "docs/**/*.md"
 kml check --format json "docs/**/*.md"
+kml check --stdin
+kml fix --stdin
+kml check --include "**/*.md" --exclude "target/**"
+kml check --no-ignore --force-exclude --exclude "vendor/**" vendor/README.md
+kml check --statistics --quiet
+kml fix --diff README.md
+kml rule
+kml rule MD013
+kml config file
+kml config get --output json
+kml version
 kml fix --config .markdownlint.json README.md
 kml init-config
 ```
 
-When no files are provided, `kml check` and `kml fix` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
+When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
 
-`check` exits with `1` when lint violations are found. `fix` applies safe fixes and exits with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
+`check` exits with `1` when lint violations are found. `check --fix`, `fix`, and `fmt` apply safe fixes and exit with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
+
+`--output json` is the preferred JSON output flag. `--format json` remains a compatibility alias.
+
+`--stdin` reads Markdown from standard input. `check --stdin` reports diagnostics against `<stdin>`; `fix --stdin` and `fmt --stdin` write fixed Markdown to stdout.
+
+Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
 ## Configuration
 
