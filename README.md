@@ -26,11 +26,16 @@ The binary target is `kml`.
 ## CLI Usage
 
 ```bash
+kml check
+kml fix
 kml check README.md
+kml check --file README.md
 kml check --format json "docs/**/*.md"
 kml fix --config .markdownlint.json README.md
 kml init-config
 ```
+
+When no files are provided, `kml check` and `kml fix` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
 
 `check` exits with `1` when lint violations are found. `fix` applies safe fixes and exits with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
 

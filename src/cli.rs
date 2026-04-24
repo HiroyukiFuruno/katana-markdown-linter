@@ -1,9 +1,11 @@
 use crate::{fix, lint, LintOptions, MarkdownLintConfig, RuleConfig};
 use glob::glob;
+use ignore::{WalkBuilder, WalkState};
 use serde::Serialize;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OutputFormat {
@@ -395,13 +397,40 @@ fn markdown_files_in_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
 }
 
 fn collect_markdown_files(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(), String> {
-    for entry in fs::read_dir(dir).map_err(|err| format!("{}: {err}", dir.display()))? {
-        let entry = entry.map_err(|err| err.to_string())?;
-        let path = entry.path();
-        if path.is_dir() {
-            collect_markdown_files(&path, paths)?;
-        } else if is_markdown_file(&path) {
-            paths.push(path);
+    let (tx, rx) = mpsc::channel();
+    let walker = WalkBuilder::new(dir)
+        .hidden(false)
+        .parents(true)
+        .ignore(true)
+        .git_ignore(true)
+        .git_global(true)
+        .git_exclude(true)
+        .require_git(false)
+        .build_parallel();
+
+    walker.run(|| {
+        let tx = tx.clone();
+        Box::new(move |entry| {
+            match entry {
+                Ok(entry) => {
+                    let path = entry.into_path();
+                    if path.is_file() && is_markdown_file(&path) {
+                        let _ = tx.send(Ok(path));
+                    }
+                }
+                Err(err) => {
+                    let _ = tx.send(Err(err.to_string()));
+                }
+            }
+            WalkState::Continue
+        })
+    });
+    drop(tx);
+
+    for result in rx {
+        match result {
+            Ok(path) => paths.push(path),
+            Err(err) => return Err(format!("{}: {err}", dir.display())),
         }
     }
     Ok(())
@@ -432,6 +461,11 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             "--config" => {
                 if let Some(value) = iter.next() {
                     config = Some(PathBuf::from(value));
+                }
+            }
+            "--file" => {
+                if let Some(value) = iter.next() {
+                    inputs.push(value);
                 }
             }
             "--format" => {
@@ -473,6 +507,52 @@ mod tests {
         assert_eq!(cli.format, OutputFormat::Json);
         assert_eq!(cli.inputs, vec!["docs/*.md".to_string()]);
         assert_eq!(cli.config, Some(PathBuf::from(".markdownlint.jsonc")));
+    }
+
+    #[test]
+    fn parses_explicit_file_inputs() {
+        let cli = parse_args(vec![
+            "check".to_string(),
+            "--file".to_string(),
+            "README.md".to_string(),
+            "--file".to_string(),
+            "docs/guide.md".to_string(),
+        ]);
+
+        assert_eq!(cli.command, Command::Check);
+        assert_eq!(
+            cli.inputs,
+            vec!["README.md".to_string(), "docs/guide.md".to_string()]
+        );
+    }
+
+    #[test]
+    fn empty_input_discovers_markdown_files_from_current_dir() {
+        let dir = test_dir("default-recursive-input");
+        let nested = dir.join("docs");
+        fs::create_dir_all(&nested).expect("test dir should be created");
+        fs::write(dir.join("README.md"), "#Title\n").expect("markdown file should be written");
+        fs::write(nested.join("guide.markdown"), "#Title\n")
+            .expect("markdown file should be written");
+        fs::write(nested.join("ignored.txt"), "#Title\n").expect("text file should be written");
+
+        let original_dir = env::current_dir().expect("current dir should be available");
+        env::set_current_dir(&dir).expect("current dir should be changed");
+        let files = expand_inputs(&[]).expect("empty input should expand from current dir");
+        env::set_current_dir(original_dir).expect("current dir should be restored");
+
+        assert_eq!(
+            files,
+            vec![
+                dir.join("README.md")
+                    .canonicalize()
+                    .expect("path should canonicalize"),
+                dir.join("docs/guide.markdown")
+                    .canonicalize()
+                    .expect("path should canonicalize")
+            ]
+        );
+        let _ = fs::remove_dir_all(dir);
     }
 
     #[test]
@@ -555,6 +635,22 @@ mod tests {
         let files = expand_inputs(&[dir.display().to_string()]).expect("input should expand");
 
         assert_eq!(files, vec![dir.join("bad.md")]);
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn directory_input_respects_gitignore() {
+        let dir = test_dir("directory-gitignore");
+        let ignored_dir = dir.join("ignored");
+        fs::create_dir_all(&ignored_dir).expect("test dir should be created");
+        fs::write(dir.join(".gitignore"), "ignored/\n").expect("gitignore should be written");
+        fs::write(dir.join("kept.md"), "#Title\n").expect("markdown file should be written");
+        fs::write(ignored_dir.join("skipped.md"), "#Title\n")
+            .expect("markdown file should be written");
+
+        let files = expand_inputs(&[dir.display().to_string()]).expect("input should expand");
+
+        assert_eq!(files, vec![dir.join("kept.md")]);
         let _ = fs::remove_dir_all(dir);
     }
 
