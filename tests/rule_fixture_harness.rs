@@ -1,7 +1,7 @@
 use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
 use katana_markdown_linter::{fix, lint, LintOptions, MarkdownLintConfig};
 use serde_json::Value;
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 
 fn matrix() -> Value {
     serde_json::from_str(include_str!("fixtures/rule-fixture-matrix.json"))
@@ -135,4 +135,22 @@ fn config_valid_and_invalid_fixtures_execute() {
             );
         }
     }
+}
+
+#[test]
+fn fixable_rule_set_is_explicit_in_matrix() {
+    let matrix = matrix();
+    let actual = rules(&matrix)
+        .iter()
+        .filter(|rule| rule["fixable"].as_bool() == Some(true))
+        .map(rule_id)
+        .collect::<BTreeSet<_>>();
+    let expected = [
+        "MD004", "MD005", "MD007", "MD009", "MD010", "MD012", "MD018", "MD019", "MD020", "MD021",
+        "MD022", "MD023", "MD027", "MD029", "MD030", "MD032", "MD037", "MD038", "MD047", "MD060",
+    ]
+    .into_iter()
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(actual, expected);
 }

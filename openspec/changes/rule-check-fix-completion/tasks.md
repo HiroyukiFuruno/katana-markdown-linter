@@ -28,7 +28,7 @@
 
 ## 3. Rule Fix Coverage
 
-- [ ] 3.1 fixable rule一覧をmatrixから確定する
+- [x] 3.1 fixable rule一覧をmatrixから確定する
 - [ ] 3.2 fixable ruleのbefore/after fixtureを追加する
 - [ ] 3.3 unsafeまたは曖昧なfixは非対応理由をmetadata化する
 - [ ] 3.4 複数fixの同一範囲衝突を検出するtestを追加する
