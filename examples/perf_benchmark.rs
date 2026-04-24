@@ -1,36 +1,54 @@
-use katana_markdown_linter::{available_rules, fix, lint, LintOptions};
+use katana_markdown_linter::cli::{run, Cli, Command, OutputFormat};
+use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
+use katana_markdown_linter::{available_rules, fix, lint, LintOptions, MarkdownLintConfig};
 use serde::Serialize;
 use std::fs;
 use std::hint::black_box;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+const SCHEMA_VERSION: u32 = 2;
 const DEFAULT_ITERATIONS: usize = 20;
+const DEFAULT_SAMPLES: usize = 5;
+const DEFAULT_WARMUP: usize = 1;
+const CLI_WORKSPACE_FILES: usize = 80;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+type BenchResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+fn main() -> BenchResult<()> {
     let args = Args::parse(std::env::args().skip(1));
     let options = LintOptions::default();
     let large_document = generate_large_document();
+    let clean_large_document = generate_clean_large_document();
     let many_small_documents = generate_many_small_documents();
+    let workspace = prepare_cli_workspace()?;
+    let config_path = prepare_config_fixture()?;
 
     let mut cases = Vec::new();
     cases.push(measure(
         "api_lint_large_document",
-        args.iterations,
+        &args,
         large_document.lines().count(),
         "lines",
-        || lint(black_box(&large_document), black_box(&options)).map(|items| items.len()),
+        || Ok(lint(black_box(&large_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
+        "api_lint_clean_large_document",
+        &args,
+        clean_large_document.lines().count(),
+        "lines",
+        || Ok(lint(black_box(&clean_large_document), black_box(&options))?.len()),
     )?);
     cases.push(measure(
         "api_fix_large_document",
-        args.iterations,
+        &args,
         large_document.lines().count(),
         "lines",
-        || fix(black_box(&large_document), black_box(&options)).map(|result| result.applied_fixes),
+        || Ok(fix(black_box(&large_document), black_box(&options))?.applied_fixes),
     )?);
     cases.push(measure(
         "api_lint_many_small_documents",
-        args.iterations,
+        &args,
         many_small_documents.len(),
         "documents",
         || {
@@ -42,17 +60,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     )?);
     cases.push(measure(
+        "cli_check_many_small_files",
+        &args,
+        CLI_WORKSPACE_FILES,
+        "files",
+        || run_cli_check(&workspace),
+    )?);
+    cases.push(measure(
+        "config_validate_representative",
+        &args.scaled(50),
+        1,
+        "config",
+        || validate_config(&config_path),
+    )?);
+    cases.push(measure(
         "api_rule_catalog",
-        args.iterations * 50,
+        &args.scaled(50),
         1,
         "catalog",
         || Ok(available_rules().len()),
     )?);
 
     let report = Report {
-        schema_version: 1,
+        schema_version: SCHEMA_VERSION,
         generated_by: "examples/perf_benchmark.rs",
         iterations: args.iterations,
+        warmup_iterations: args.warmup,
+        samples: args.samples,
         cases,
     };
 
@@ -64,8 +98,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Performance report written: {}", args.output.display());
     for case in &report.cases {
         println!(
-            "{}: avg={:.3}ms total={:.3}ms observed={}",
-            case.name, case.average_ms, case.total_ms, case.observed_items
+            "{}: median={:.3}ms mean={:.3}ms min={:.3}ms max={:.3}ms observed={}",
+            case.name, case.median_ms, case.mean_ms, case.min_ms, case.max_ms, case.observed_items
         );
     }
     Ok(())
@@ -73,32 +107,56 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn measure<F>(
     name: &'static str,
-    iterations: usize,
+    args: &Args,
     work_units: usize,
     work_unit_name: &'static str,
     mut operation: F,
-) -> Result<Case, katana_markdown_linter::Error>
+) -> BenchResult<Case>
 where
-    F: FnMut() -> Result<usize, katana_markdown_linter::Error>,
+    F: FnMut() -> BenchResult<usize>,
 {
-    black_box(operation()?);
-    let start = Instant::now();
+    for _ in 0..args.warmup {
+        run_iterations(args.iterations, &mut operation)?;
+    }
+
+    let mut sample_ms = Vec::with_capacity(args.samples);
+    let mut total_ms = 0.0;
+    let mut observed_items = 0;
+    for _ in 0..args.samples {
+        let start = Instant::now();
+        observed_items += black_box(run_iterations(args.iterations, &mut operation)?);
+        let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+        total_ms += elapsed;
+        sample_ms.push(elapsed / args.iterations as f64);
+    }
+
+    let stats = Stats::from_samples(&sample_ms, total_ms);
+    Ok(Case {
+        name,
+        iterations: args.iterations,
+        samples: args.samples,
+        work_units,
+        work_unit_name,
+        total_ms: stats.total_ms,
+        mean_ms: stats.mean_ms,
+        median_ms: stats.median_ms,
+        min_ms: stats.min_ms,
+        max_ms: stats.max_ms,
+        stddev_ms: stats.stddev_ms,
+        sample_ms,
+        observed_items,
+    })
+}
+
+fn run_iterations<F>(iterations: usize, operation: &mut F) -> BenchResult<usize>
+where
+    F: FnMut() -> BenchResult<usize>,
+{
     let mut observed_items = 0;
     for _ in 0..iterations {
         observed_items += black_box(operation()?);
     }
-    let elapsed = start.elapsed();
-    let total_ms = elapsed.as_secs_f64() * 1000.0;
-    let average_ms = total_ms / iterations as f64;
-    Ok(Case {
-        name,
-        iterations,
-        work_units,
-        work_unit_name,
-        total_ms,
-        average_ms,
-        observed_items,
-    })
+    Ok(observed_items)
 }
 
 fn generate_large_document() -> String {
@@ -116,6 +174,18 @@ fn generate_large_document() -> String {
     content
 }
 
+fn generate_clean_large_document() -> String {
+    let mut content = String::from("# Title\n\n");
+    for index in 0..400 {
+        content.push_str(&format!("## Section {index}\n\n"));
+        content.push_str("Paragraph text stays short and plain.\n\n");
+        content.push_str("- first item\n");
+        content.push_str("- second item\n\n");
+        content.push_str("```rust\nfn main() {}\n```\n\n");
+    }
+    content
+}
+
 fn generate_many_small_documents() -> Vec<String> {
     (0..250)
         .map(|index| {
@@ -124,16 +194,83 @@ fn generate_many_small_documents() -> Vec<String> {
         .collect()
 }
 
-#[derive(Debug)]
+fn prepare_cli_workspace() -> BenchResult<PathBuf> {
+    let dir = std::env::temp_dir().join(format!("kml-perf-workspace-{}", std::process::id()));
+    if dir.exists() {
+        fs::remove_dir_all(&dir)?;
+    }
+    fs::create_dir_all(&dir)?;
+    fs::write(dir.join(".markdownlint.json"), "{ \"default\": true }\n")?;
+    for index in 0..CLI_WORKSPACE_FILES {
+        fs::write(
+            dir.join(format!("doc-{index:03}.md")),
+            format!("# Document {index}\n\nParagraph text.\n\n"),
+        )?;
+    }
+    Ok(dir)
+}
+
+fn prepare_config_fixture() -> BenchResult<PathBuf> {
+    let dir = std::env::temp_dir().join(format!("kml-perf-config-{}", std::process::id()));
+    fs::create_dir_all(&dir)?;
+    let path = dir.join(".markdownlint.jsonc");
+    fs::write(
+        &path,
+        r#"{
+  "default": true,
+  "MD013": false,
+  "MD024": true,
+  "MD031": true,
+  "MD048": true
+}
+"#,
+    )?;
+    Ok(path)
+}
+
+fn run_cli_check(workspace: &Path) -> BenchResult<usize> {
+    let exit = run(Cli {
+        command: Command::Check,
+        format: OutputFormat::Text,
+        inputs: vec![workspace.display().to_string()],
+        quiet: true,
+        ..Cli::default()
+    })
+    .map_err(std::io::Error::other)?;
+    if exit != 0 {
+        return Err(std::io::Error::other(format!("kml check exited with {exit}")).into());
+    }
+    Ok(CLI_WORKSPACE_FILES)
+}
+
+fn validate_config(config_path: &Path) -> BenchResult<usize> {
+    let config = MarkdownLintConfig::load(config_path)?;
+    let rules = MarkdownLinterOps::get_user_configurable_rules();
+    let errors = config.validate(&rules);
+    if !errors.is_empty() {
+        return Err(std::io::Error::other(format!(
+            "config validation failed with {} errors",
+            errors.len()
+        ))
+        .into());
+    }
+    Ok(rules.len())
+}
+
+#[derive(Debug, Clone)]
 struct Args {
     output: PathBuf,
     iterations: usize,
+    samples: usize,
+    warmup: usize,
 }
 
 impl Args {
     fn parse(args: impl Iterator<Item = String>) -> Self {
         let mut output = PathBuf::from("target/perf-report.json");
         let mut iterations = DEFAULT_ITERATIONS;
+        let mut samples = DEFAULT_SAMPLES;
+        let mut warmup = DEFAULT_WARMUP;
         let mut args = args.peekable();
         while let Some(arg) = args.next() {
             match arg.as_str() {
@@ -144,17 +281,88 @@ impl Args {
                 }
                 "--iterations" => {
                     if let Some(value) = args.next() {
-                        iterations = value
-                            .parse()
-                            .ok()
-                            .filter(|iterations| *iterations > 0)
-                            .unwrap_or(DEFAULT_ITERATIONS);
+                        iterations = parse_positive(&value, DEFAULT_ITERATIONS);
+                    }
+                }
+                "--samples" => {
+                    if let Some(value) = args.next() {
+                        samples = parse_positive(&value, DEFAULT_SAMPLES);
+                    }
+                }
+                "--warmup" => {
+                    if let Some(value) = args.next() {
+                        warmup = value.parse().unwrap_or(DEFAULT_WARMUP);
                     }
                 }
                 _ => {}
             }
         }
-        Self { output, iterations }
+        Self {
+            output,
+            iterations,
+            samples,
+            warmup,
+        }
+    }
+
+    fn scaled(&self, factor: usize) -> Self {
+        let mut args = self.clone();
+        args.iterations *= factor;
+        args
+    }
+}
+
+fn parse_positive(value: &str, default: usize) -> usize {
+    value
+        .parse()
+        .ok()
+        .filter(|parsed| *parsed > 0)
+        .unwrap_or(default)
+}
+
+#[derive(Debug)]
+struct Stats {
+    total_ms: f64,
+    mean_ms: f64,
+    median_ms: f64,
+    min_ms: f64,
+    max_ms: f64,
+    stddev_ms: f64,
+}
+
+impl Stats {
+    fn from_samples(samples: &[f64], total_ms: f64) -> Self {
+        let mut sorted = samples.to_vec();
+        sorted.sort_by(|left, right| left.total_cmp(right));
+        let mean_ms = samples.iter().sum::<f64>() / samples.len() as f64;
+        let median_ms = median(&sorted);
+        let min_ms = *sorted.first().unwrap_or(&0.0);
+        let max_ms = *sorted.last().unwrap_or(&0.0);
+        let variance = samples
+            .iter()
+            .map(|sample| {
+                let delta = sample - mean_ms;
+                delta * delta
+            })
+            .sum::<f64>()
+            / samples.len() as f64;
+        Self {
+            total_ms,
+            mean_ms,
+            median_ms,
+            min_ms,
+            max_ms,
+            stddev_ms: variance.sqrt(),
+        }
+    }
+}
+
+fn median(sorted: &[f64]) -> f64 {
+    let mid = sorted.len() / 2;
+    if sorted.len() % 2 == 0 {
+        (sorted[mid - 1] + sorted[mid]) / 2.0
+    } else {
+        sorted[mid]
     }
 }
 
@@ -163,6 +371,8 @@ struct Report {
     schema_version: u32,
     generated_by: &'static str,
     iterations: usize,
+    warmup_iterations: usize,
+    samples: usize,
     cases: Vec<Case>,
 }
 
@@ -170,9 +380,15 @@ struct Report {
 struct Case {
     name: &'static str,
     iterations: usize,
+    samples: usize,
     work_units: usize,
     work_unit_name: &'static str,
     total_ms: f64,
-    average_ms: f64,
+    mean_ms: f64,
+    median_ms: f64,
+    min_ms: f64,
+    max_ms: f64,
+    stddev_ms: f64,
+    sample_ms: Vec<f64>,
     observed_items: usize,
 }

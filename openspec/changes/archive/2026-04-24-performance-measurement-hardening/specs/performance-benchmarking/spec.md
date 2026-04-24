@@ -1,10 +1,4 @@
-## Purpose
-
-Performance benchmarking defines how this repository measures and reports
-Markdown lint / fix hot paths without making CI depend on unstable wall-clock
-thresholds.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: system SHALL provide repeatable performance reports
 
@@ -29,16 +23,7 @@ thresholds.
 - **THEN** system は required statistic fields が存在することを検証する
 - **THEN** system は median milliseconds を中心とした差分 summary を出力する
 
-### Requirement: system SHALL avoid duplicate lint evaluation in CLI fix mode
-
-システムは、CLI fix mode で同じ content に対する不要な lint evaluation を避けなければならない（SHALL）。
-
-#### Scenario: check --fix を実行する
-
-- **WHEN** developer が `kml check --fix` または `kml fix` を実行する
-- **THEN** system は fix 前 diagnostics を safe fix application に再利用する
-- **THEN** system は fix 後 diagnostics を評価して remaining issues を報告する
-- **THEN** system は従来と同じ fixed content、applied fix count、exit code を維持する
+## ADDED Requirements
 
 ### Requirement: system SHALL benchmark representative API and CLI paths
 

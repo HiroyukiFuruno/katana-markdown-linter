@@ -9,7 +9,39 @@ import pathlib
 import sys
 from typing import Any
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+REQUIRED_CASES = {
+    "api_lint_large_document",
+    "api_lint_clean_large_document",
+    "api_fix_large_document",
+    "api_lint_many_small_documents",
+    "cli_check_many_small_files",
+    "config_validate_representative",
+    "api_rule_catalog",
+}
+REQUIRED_CASE_FIELDS = {
+    "name",
+    "iterations",
+    "samples",
+    "work_units",
+    "work_unit_name",
+    "total_ms",
+    "mean_ms",
+    "median_ms",
+    "min_ms",
+    "max_ms",
+    "stddev_ms",
+    "sample_ms",
+    "observed_items",
+}
+NUMERIC_FIELDS = {
+    "total_ms",
+    "mean_ms",
+    "median_ms",
+    "min_ms",
+    "max_ms",
+    "stddev_ms",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -22,15 +54,47 @@ def parse_args() -> argparse.Namespace:
 
 def load(path: pathlib.Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
+    validate_report(payload, path)
+    return payload
+
+
+def validate_report(payload: dict[str, Any], path: pathlib.Path) -> None:
     if payload.get("schema_version") != SCHEMA_VERSION:
         raise SystemExit(
             f"unsupported perf report schema in {path}: {payload.get('schema_version')}"
         )
-    return payload
+    cases = cases_by_name(payload)
+    missing_cases = sorted(REQUIRED_CASES - set(cases))
+    if missing_cases:
+        fail_list(f"performance report {path} is missing required cases", missing_cases)
+    for name, case in sorted(cases.items()):
+        missing_fields = sorted(REQUIRED_CASE_FIELDS - set(case))
+        if missing_fields:
+            fail_list(f"performance case {name} in {path} is missing fields", missing_fields)
+        for field in NUMERIC_FIELDS:
+            if not isinstance(case[field], (int, float)):
+                raise SystemExit(f"performance case {name} field {field} must be numeric")
+        sample_ms = case["sample_ms"]
+        samples = case["samples"]
+        if not isinstance(samples, int) or samples <= 0:
+            raise SystemExit(f"performance case {name} samples must be a positive integer")
+        if not isinstance(sample_ms, list) or len(sample_ms) != samples:
+            raise SystemExit(
+                f"performance case {name} sample_ms length must match samples"
+            )
+        if not all(isinstance(sample, (int, float)) for sample in sample_ms):
+            raise SystemExit(f"performance case {name} sample_ms values must be numeric")
 
 
 def cases_by_name(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {str(case["name"]): case for case in payload.get("cases", [])}
+
+
+def fail_list(title: str, items: list[str]) -> None:
+    print(title, file=sys.stderr)
+    for item in items:
+        print(f"- {item}", file=sys.stderr)
+    raise SystemExit(1)
 
 
 def main() -> int:
@@ -50,22 +114,19 @@ def main() -> int:
     baseline_cases = cases_by_name(baseline)
     missing = sorted(set(baseline_cases) - set(current_cases))
     if missing:
-        print("Performance report is missing baseline cases:", file=sys.stderr)
-        for name in missing:
-            print(f"- {name}", file=sys.stderr)
-        return 1
+        fail_list("Performance report is missing baseline cases", missing)
 
     print("Performance comparison:")
     for name in sorted(baseline_cases):
-        baseline_avg = float(baseline_cases[name]["average_ms"])
-        current_avg = float(current_cases[name]["average_ms"])
-        ratio = current_avg / baseline_avg if baseline_avg > 0 else 0.0
+        baseline_median = float(baseline_cases[name]["median_ms"])
+        current_median = float(current_cases[name]["median_ms"])
+        ratio = current_median / baseline_median if baseline_median > 0 else 0.0
         print(
-            f"- {name}: current={current_avg:.3f}ms "
-            f"baseline={baseline_avg:.3f}ms ratio={ratio:.2f}x"
+            f"- {name}: current_median={current_median:.3f}ms "
+            f"baseline_median={baseline_median:.3f}ms ratio={ratio:.2f}x"
         )
     print(
-        "Performance check is report-first; missing cases fail, "
+        "Performance check is report-first; missing cases or schema errors fail, "
         "timing regressions are informational."
     )
     return 0

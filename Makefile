@@ -12,6 +12,8 @@ DOGFOOD_REPORT ?= target/dogfood-report.json
 PERF_BASELINE ?= tests/fixtures/perf-baseline.json
 PERF_REPORT ?= target/perf-report.json
 PERF_ITERATIONS ?= 20
+PERF_SAMPLES ?= 5
+PERF_WARMUP ?= 1
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -109,7 +111,7 @@ dogfood-archive: ## Explicitly check archived OpenSpec Markdown
 
 .PHONY: bench
 bench: ## Run repeatable performance benchmarks and write target/perf-report.json
-	cargo run --release --example perf_benchmark --locked -- --output $(PERF_REPORT) --iterations $(PERF_ITERATIONS)
+	cargo run --release --example perf_benchmark --locked -- --output $(PERF_REPORT) --iterations $(PERF_ITERATIONS) --samples $(PERF_SAMPLES) --warmup $(PERF_WARMUP)
 
 .PHONY: perf-check
 perf-check: bench ## Compare performance report with the committed baseline
