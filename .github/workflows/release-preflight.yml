@@ -14,12 +14,14 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
       - name: Format check
-        run: cargo fmt --all --check
+        run: make fmt-check
 
       - name: Test
         run: cargo test --all-features --locked
@@ -30,10 +32,10 @@ jobs:
       - name: Upstream drift check
         env:
           KML_UPSTREAM_MARKDOWNLINT_DOC_DIR: ${{ runner.temp }}/markdownlint/doc
-        run: cargo test upstream_default_branch_drift_has_no_unknown_items --all-features --locked -- --ignored
+        run: make upstream-drift
 
       - name: Clippy
-        run: cargo clippy --all-targets --all-features --locked -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
       - name: Package
         run: cargo package --locked --allow-dirty

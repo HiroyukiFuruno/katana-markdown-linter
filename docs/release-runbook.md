@@ -13,12 +13,10 @@ This runbook covers the release checks needed before publishing `katana-markdown
    - `description`, `keywords`, and `categories` are still accurate
 2. Confirm package contents are limited to source, manifest, README, license, and other intentional files.
 3. Run local validation:
-   - `cargo fmt --all --check`
-   - `cargo test --all-features`
-   - `cargo clippy --all-targets --all-features -- -D warnings`
-   - `cargo package --locked --allow-dirty`
-   - `cargo publish --dry-run --locked --allow-dirty`
-4. Confirm the installed binary path:
+   - `make release-check VERSION=vX.Y.Z`
+4. If validating upstream drift locally, clone upstream docs and run:
+   - `KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc make upstream-drift`
+5. Confirm the installed binary path:
    - `cargo install --path . --bin kml`
 
 ## CI/CD Release Flow
@@ -32,10 +30,10 @@ The Release workflow is defined in `.github/workflows/release.yml`.
    - `publish_crate`: `false` for GitHub Release only, `true` for GitHub Release plus crates.io
 4. The workflow validates:
    - Cargo version equals release version
-   - `cargo fmt --all --check`
+   - `make fmt-check`
    - `cargo test --all-features --locked`
    - upstream markdownlint drift gate
-   - `cargo clippy --all-targets --all-features --locked -- -D warnings`
+   - `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings`
    - `cargo publish --dry-run --locked --allow-dirty`
    - `cargo install --path . --locked --bin kml`
 5. The workflow creates or updates:
@@ -49,6 +47,17 @@ Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and create
 ## Required Secrets
 
 - `CARGO_REGISTRY_TOKEN`: crates.io API token used only when manual dispatch sets `publish_crate: true`.
+
+## Quality Gates and Branch Protection
+
+See `docs/quality-gates.md` for the authoritative mapping between local `make` targets, CI required checks, and branch protection.
+
+Current `main` branch protection requires:
+
+- `Test and Build (macos-latest)`
+- `Test and Build (ubuntu-latest)`
+
+If workflow job names are changed, update branch protection in the same change. Direct pushes to `main` are blocked for non-admin users; admin bypasses should be treated as exceptions and verified by CI immediately after push.
 
 ## Publish Failure Recovery
 
@@ -71,6 +80,17 @@ Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and create
 
 - Fix the failed quality gate.
 - Re-run the workflow with the same version.
+
+### Upstream drift gate fails
+
+- Inspect the reported markdownlint rule drift.
+- Update local rule metadata, config properties, fixture matrix, or allowlist intentionally.
+- Re-run `make upstream-drift` with the same upstream docs checkout.
+
+### Coverage blocking gate fails
+
+- Add tests for the newly uncovered paths.
+- If the gap is intentional, update `scripts/ci/coverage-baseline.txt` in the same review and explain why the baseline increased.
 
 ### GitHub Release was created but crates.io publish failed
 

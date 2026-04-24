@@ -68,6 +68,12 @@ The crate reads and writes markdownlint-compatible JSON and JSONC configuration 
 
 Use `kml init-config` to create a default `.markdownlint.json`.
 
+## Quality Gates
+
+Use `make check` for the default local gate. It runs format, Clippy, AST lint, and tests.
+
+Quality gate details, CI required checks, coverage modes, and release readiness are documented in [`docs/quality-gates.md`](docs/quality-gates.md).
+
 ## Release Policy
 
 - The library API is the primary contract.

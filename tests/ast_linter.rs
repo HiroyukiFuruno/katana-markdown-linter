@@ -1,4 +1,6 @@
 use ignore::{WalkBuilder, WalkState};
+use serde_json::Value;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 
@@ -63,6 +65,109 @@ fn ast_linter_cli_directory_walk_uses_parallel_ignore_walker() {
 }
 
 #[test]
+fn ast_linter_fixture_matrix_covers_active_rule_catalog() {
+    let matrix = rule_fixture_matrix();
+    let matrix_rules = matrix["rules"]
+        .as_array()
+        .expect("fixture matrix rules should be an array");
+    let matrix_ids = matrix_rules
+        .iter()
+        .filter_map(|rule| rule["rule_id"].as_str())
+        .collect::<BTreeSet<_>>();
+    let catalog = katana_markdown_linter::rule_catalog();
+    let catalog_ids = catalog
+        .active_rules()
+        .map(|rule| rule.id.as_str())
+        .collect::<BTreeSet<_>>();
+
+    let mut violations = Vec::new();
+    for missing in catalog_ids.difference(&matrix_ids) {
+        violations.push(format!(
+            "tests/fixtures/rule-fixture-matrix.json: missing fixture entry for {missing}"
+        ));
+    }
+    for stale in matrix_ids.difference(&catalog_ids) {
+        violations.push(format!(
+            "tests/fixtures/rule-fixture-matrix.json: stale fixture entry for {stale}"
+        ));
+    }
+    for field in [
+        "rule_id",
+        "aliases",
+        "tags",
+        "parameters",
+        "fixable",
+        "check_pass",
+        "check_fail",
+        "fix",
+        "config_valid",
+        "config_invalid",
+        "edge",
+        "manual_required",
+    ] {
+        for rule in matrix_rules {
+            if rule.get(field).is_none() {
+                violations.push(format!(
+                    "tests/fixtures/rule-fixture-matrix.json: {} missing `{field}`",
+                    rule["rule_id"].as_str().unwrap_or("<unknown>")
+                ));
+            }
+        }
+    }
+
+    assert_no_violations("fixture-matrix-coverage", violations);
+}
+
+#[test]
+fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
+    let makefile = read_workspace_file("Makefile");
+    let release = read_workspace_file(".github/workflows/release.yml");
+    let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
+    let upstream = read_workspace_file("src/upstream.rs");
+    let required = [
+        (
+            "Makefile",
+            &makefile,
+            "upstream_default_branch_drift_has_no_unknown_items",
+        ),
+        ("Makefile", &makefile, "-- --ignored"),
+        (
+            ".github/workflows/release.yml",
+            &release,
+            "KML_UPSTREAM_MARKDOWNLINT_DOC_DIR",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &release,
+            "make upstream-drift",
+        ),
+        (
+            ".github/workflows/release-preflight.yml",
+            &preflight,
+            "KML_UPSTREAM_MARKDOWNLINT_DOC_DIR",
+        ),
+        (
+            ".github/workflows/release-preflight.yml",
+            &preflight,
+            "make upstream-drift",
+        ),
+        ("src/upstream.rs", &upstream, "assert_no_unknown_drift"),
+        (
+            "src/upstream.rs",
+            &upstream,
+            "known_current_drift_allowlist",
+        ),
+    ];
+    let violations = required
+        .iter()
+        .filter(|(_, content, required)| !content.contains(*required))
+        .map(|(path, _, required)| format!("{path}: missing `{required}`"))
+        .collect();
+
+    assert_no_violations("upstream-drift-gate-wiring", violations);
+}
+
+#[test]
 fn ast_linter_release_workflow_requires_existing_signed_tag() {
     let workflow = read_workspace_file(".github/workflows/release.yml");
     let required = [
@@ -98,12 +203,53 @@ fn ast_linter_markdown_rule_catalog_has_unique_rule_ids() {
     assert_no_violations("markdown-rule-ids", duplicates);
 }
 
+#[test]
+fn ast_linter_public_api_surface_is_explicit() {
+    let lib = read_workspace_file("src/lib.rs");
+    let required = [
+        "pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error>",
+        "pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error>",
+        "pub fn available_rules() -> Vec<RuleMeta>",
+        "pub fn implemented_rules() -> Vec<RuleMeta>",
+        "pub fn missing_rules() -> Vec<RuleMeta>",
+        "pub fn rule_catalog() -> catalog::RuleCatalog",
+        "pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};",
+        "pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};",
+    ];
+    let mut violations = required
+        .iter()
+        .filter(|required| !lib.contains(**required))
+        .map(|required| format!("src/lib.rs: public API surface missing `{required}`"))
+        .collect::<Vec<_>>();
+
+    let catalog = katana_markdown_linter::rule_catalog();
+    if !catalog.active_rules().any(|rule| rule.id == "MD001") {
+        violations.push("rule catalog: missing MD001 active rule".to_string());
+    }
+    if !catalog.active_rules().any(|rule| rule.id == "MD060") {
+        violations.push("rule catalog: missing MD060 active rule".to_string());
+    }
+    if !katana_markdown_linter::missing_rules().is_empty() {
+        violations
+            .push("public API: missing_rules must stay empty after full rule parity".to_string());
+    }
+
+    assert_no_violations("public-api-surface", violations);
+}
+
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn read_workspace_file(path: &str) -> String {
     std::fs::read_to_string(workspace_root().join(path)).expect("workspace file should be readable")
+}
+
+fn rule_fixture_matrix() -> Value {
+    serde_json::from_str(&read_workspace_file(
+        "tests/fixtures/rule-fixture-matrix.json",
+    ))
+    .expect("fixture matrix should be valid json")
 }
 
 fn scan_rust_sources<F>(roots: &[PathBuf], lint: F) -> Vec<String>

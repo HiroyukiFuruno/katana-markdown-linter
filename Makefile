@@ -46,20 +46,28 @@ lint-fix: ## Run Clippy and apply automatic fixes
 ast-lint: ## Run AST-based custom linters
 	cargo test -j $(JOBS) --test ast_linter -- --nocapture
 
+.PHONY: upstream-drift
+upstream-drift: ## Run upstream markdownlint default-branch drift gate (requires KML_UPSTREAM_MARKDOWNLINT_DOC_DIR)
+	cargo test upstream_default_branch_drift_has_no_unknown_items --all-features --locked -- --ignored
+
 .PHONY: test
 test: ## Run unit tests
 	cargo test --workspace
 
 .PHONY: coverage
-coverage: ## Run tests and report uncovered lines (requires cargo-llvm-cov)
+coverage: ## Report uncovered lines without failing the build (requires cargo-llvm-cov)
 	JOBS=$(JOBS) scripts/ci/coverage.sh
+
+.PHONY: coverage-blocking
+coverage-blocking: ## Fail when uncovered lines exceed scripts/ci/coverage-baseline.txt
+	COVERAGE_MODE=blocking JOBS=$(JOBS) scripts/ci/coverage.sh
 
 .PHONY: check
 check: fmt-check lint ast-lint test ## Fast impacted verification (local default)
 	@echo "✅ All checks passed"
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint test ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint test coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml

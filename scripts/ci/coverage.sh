@@ -15,6 +15,8 @@ header()  { echo "\033[1m\033[0;36m==> $*\033[0m"; }
 header "Testing Code Coverage Gate"
 
 JOBS=${JOBS:-2}
+COVERAGE_MODE=${COVERAGE_MODE:-report}
+BASELINE_FILE=${COVERAGE_BASELINE_FILE:-scripts/ci/coverage-baseline.txt}
 info "Cleaning up old coverage data..."
 cargo llvm-cov clean --workspace
 
@@ -40,6 +42,22 @@ if [[ "$UNCOV" -ne 0 ]]; then
     cargo llvm-cov report \
         ${COVERAGE_IGNORE:+--ignore-filename-regex "$COVERAGE_IGNORE"} \
         --text 2>&1 | grep '^ *[0-9]*|  *0|' | grep -vE 'panic!|^[^|]*\|[^|]*\|[[:space:]]*((\}[;,]?)|(\}\);?))[[:space:]]*$|return None;|return;|continue[;,]|\)\?;'
+    if [[ "$COVERAGE_MODE" == "blocking" ]]; then
+        if [[ ! -f "$BASELINE_FILE" ]]; then
+            error "Coverage baseline file is missing: $BASELINE_FILE"
+            exit 1
+        fi
+        BASELINE=$(tr -d '[:space:]' < "$BASELINE_FILE")
+        if [[ ! "$BASELINE" =~ ^[0-9]+$ ]]; then
+            error "Coverage baseline must be an integer: $BASELINE_FILE"
+            exit 1
+        fi
+        if [[ "$UNCOV" -gt "$BASELINE" ]]; then
+            error "Coverage regression: $UNCOV uncovered lines exceeds baseline $BASELINE"
+            exit 1
+        fi
+        success "Coverage blocking gate passed: $UNCOV uncovered lines <= baseline $BASELINE."
+    fi
     exit 0
 fi
 
