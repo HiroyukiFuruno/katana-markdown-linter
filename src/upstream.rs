@@ -1,10 +1,10 @@
 use crate::rules::markdown::RulePropertyType;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UpstreamRuleDocument {
     pub id: String,
     pub name: String,
@@ -17,13 +17,13 @@ pub struct UpstreamRuleDocument {
     pub source_path: Option<PathBuf>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UpstreamRuleExample {
     pub language: Option<String>,
     pub content: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UpstreamRuleProperty {
     pub key: String,
     pub value_type: String,
@@ -31,20 +31,20 @@ pub struct UpstreamRuleProperty {
     pub values: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UpstreamCatalog {
     pub source: String,
     pub rules: Vec<UpstreamRuleDocument>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureMatrix {
     pub upstream_source: String,
     pub summary: RuleFixtureMatrixSummary,
     pub rules: Vec<RuleFixtureEntry>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureMatrixSummary {
     pub total_rules: usize,
     pub rules_with_examples: usize,
@@ -55,7 +55,7 @@ pub struct RuleFixtureMatrixSummary {
     pub stale_fixtures: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureEntry {
     pub rule_id: String,
     pub aliases: Vec<String>,
@@ -71,21 +71,21 @@ pub struct RuleFixtureEntry {
     pub manual_required: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureCase {
     pub name: String,
     pub source: String,
     pub expected: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureDriftReport {
     pub upstream_source: String,
     pub summary: RuleFixtureDriftSummary,
     pub items: Vec<RuleFixtureDriftItem>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureDriftSummary {
     pub upstream_rules: usize,
     pub matrix_rules: usize,
@@ -94,14 +94,14 @@ pub struct RuleFixtureDriftSummary {
     pub manual_required: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RuleFixtureDriftItem {
     pub rule_id: String,
     pub drift_type: RuleFixtureDriftType,
     pub message: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RuleFixtureDriftType {
     MissingFixture,

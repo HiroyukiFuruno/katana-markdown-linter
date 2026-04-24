@@ -1,0 +1,1690 @@
+{
+  "upstream_source": "DavidAnson/markdownlint default branch",
+  "summary": {
+    "total_rules": 53,
+    "rules_with_examples": 53,
+    "rules_with_fix_metadata": 31,
+    "rules_with_parameters": 2,
+    "manual_required": 0,
+    "missing_fixtures": 0,
+    "stale_fixtures": 0
+  },
+  "rules": [
+    {
+      "rule_id": "MD001",
+      "aliases": [
+        "heading-increment"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "sequential_heading_levels",
+          "source": "# H1\n\n## H2\n\n### H3\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "skipped_heading_level",
+          "source": "# H1\n\n### H3\n",
+          "expected": "MD001"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [
+        {
+          "name": "code_fence_heading_is_ignored",
+          "source": "# H1\n\n```\n### not a heading\n```\n",
+          "expected": null
+        }
+      ],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD003",
+      "aliases": [
+        "heading-style"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "atx_heading_style",
+          "source": "# Heading\n\n## Subheading\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "setext_heading_style",
+          "source": "Heading\n=======\n",
+          "expected": "MD003"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD004",
+      "aliases": [
+        "ul-style"
+      ],
+      "tags": [
+        "bullet",
+        "ul"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "consistent_unordered_markers",
+          "source": "- one\n- two\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_unordered_markers",
+          "source": "- one\n+ two\n",
+          "expected": "MD004"
+        }
+      ],
+      "fix": [
+        {
+          "name": "normalize_unordered_marker",
+          "source": "- one\n+ two\n",
+          "expected": "- one\n- two\n"
+        }
+      ],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD005",
+      "aliases": [
+        "list-indent"
+      ],
+      "tags": [
+        "bullet",
+        "indentation"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "consistent_list_indentation",
+          "source": "- one\n- two\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "inconsistent_list_indentation",
+          "source": "- one\n  - nested\n   - inconsistent\n",
+          "expected": "MD005"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD007",
+      "aliases": [
+        "ul-indent"
+      ],
+      "tags": [
+        "bullet",
+        "indentation"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "unordered_indent_multiple_of_two",
+          "source": "- one\n  - nested\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "unordered_indent_not_multiple_of_two",
+          "source": "   - item\n",
+          "expected": "MD007"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD009",
+      "aliases": [
+        "no-trailing-spaces"
+      ],
+      "tags": [
+        "whitespace"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "line_without_trailing_spaces",
+          "source": "text\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "line_with_trailing_spaces",
+          "source": "text   \n",
+          "expected": "MD009"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD010",
+      "aliases": [
+        "no-hard-tabs"
+      ],
+      "tags": [
+        "whitespace",
+        "hard_tab"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "line_without_tab",
+          "source": "text\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "line_with_hard_tab",
+          "source": "text\twith tab\n",
+          "expected": "MD010"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD011",
+      "aliases": [
+        "no-reversed-links"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "normal_link",
+          "source": "[link](https://example.com)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "reversed_link",
+          "source": "[link](text[\n",
+          "expected": "MD011"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD012",
+      "aliases": [
+        "no-multiple-blanks"
+      ],
+      "tags": [
+        "whitespace",
+        "blank_lines"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "single_blank_line",
+          "source": "first\n\nsecond\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "multiple_blank_lines",
+          "source": "first\n\n\nsecond\n",
+          "expected": "MD012"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD013",
+      "aliases": [
+        "line-length"
+      ],
+      "tags": [
+        "line_length"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "line_at_limit",
+          "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwx\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "line_over_limit",
+          "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh\n",
+          "expected": "MD013"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD014",
+      "aliases": [
+        "commands-show-output"
+      ],
+      "tags": [
+        "code"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "dollar_prompt_with_space",
+          "source": "$ echo hello\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "dollar_prompt_without_space",
+          "source": "$echo hello\n",
+          "expected": "MD014"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD018",
+      "aliases": [
+        "no-missing-space-atx"
+      ],
+      "tags": [
+        "headings",
+        "atx",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "atx_heading_has_space",
+          "source": "# Heading\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "atx_heading_missing_space",
+          "source": "#Heading\n",
+          "expected": "MD018"
+        }
+      ],
+      "fix": [
+        {
+          "name": "insert_missing_space_after_atx_marker",
+          "source": "#Heading\n",
+          "expected": "# Heading\n"
+        }
+      ],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD019",
+      "aliases": [
+        "no-multiple-space-atx"
+      ],
+      "tags": [
+        "headings",
+        "atx",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "single_space_after_atx_marker",
+          "source": "# Heading\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "multiple_spaces_after_atx_marker",
+          "source": "#  Heading\n",
+          "expected": "MD019"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD020",
+      "aliases": [
+        "no-missing-space-closed-atx"
+      ],
+      "tags": [
+        "blockquote",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "blockquote_without_space",
+          "source": ">quote\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "blockquote_with_space",
+          "source": "> quote\n",
+          "expected": "MD020"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD021",
+      "aliases": [
+        "no-multiple-space-closed-atx"
+      ],
+      "tags": [
+        "blockquote",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "blockquote_with_single_space",
+          "source": "> quote\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "blockquote_with_multiple_spaces",
+          "source": ">  quote\n",
+          "expected": "MD021"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD022",
+      "aliases": [
+        "blanks-around-headings"
+      ],
+      "tags": [
+        "headings",
+        "blank_lines"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "heading_surrounded_by_blank_lines",
+          "source": "text\n\n# Heading\n\ntext\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "heading_without_blank_lines",
+          "source": "text\n# Heading\ntext\n",
+          "expected": "MD022"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD023",
+      "aliases": [
+        "heading-start-left"
+      ],
+      "tags": [
+        "headings",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "heading_starts_left",
+          "source": "# Heading\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "indented_heading",
+          "source": "  # Heading\n",
+          "expected": "MD023"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD024",
+      "aliases": [
+        "no-duplicate-heading"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "unique_headings",
+          "source": "# One\n\n## Two\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "duplicate_heading",
+          "source": "# Title\n\n## Section\n\n# Title\n",
+          "expected": "MD024"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD025",
+      "aliases": [
+        "single-title",
+        "single-h1"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "single_h1",
+          "source": "# Title\n\n## Section\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "multiple_h1",
+          "source": "# Title\n\n# Another\n",
+          "expected": "MD025"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD026",
+      "aliases": [
+        "no-trailing-punctuation"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "heading_without_trailing_punctuation",
+          "source": "# Heading\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "heading_with_trailing_punctuation",
+          "source": "# Heading!\n",
+          "expected": "MD026"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD027",
+      "aliases": [
+        "no-multiple-space-blockquote"
+      ],
+      "tags": [
+        "blockquote",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "blockquote_single_space",
+          "source": "> quote\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "blockquote_multiple_spaces",
+          "source": ">  quote\n",
+          "expected": "MD027"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD028",
+      "aliases": [
+        "no-blanks-blockquote"
+      ],
+      "tags": [
+        "blockquote",
+        "blank_lines"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "continuous_blockquote",
+          "source": "> quote\n> more\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "blank_line_inside_blockquote",
+          "source": "> quote\n\n> more\n",
+          "expected": "MD028"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD029",
+      "aliases": [
+        "ol-prefix"
+      ],
+      "tags": [
+        "ol"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "ordered_prefixes_increment",
+          "source": "1. one\n2. two\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "ordered_prefix_skips_number",
+          "source": "1. one\n3. two\n",
+          "expected": "MD029"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD030",
+      "aliases": [
+        "list-marker-space"
+      ],
+      "tags": [
+        "ol",
+        "ul",
+        "spaces"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "single_space_after_list_marker",
+          "source": "- item\n1. item\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "extra_space_after_list_marker",
+          "source": "-  item\n1.  item\n",
+          "expected": "MD030"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD031",
+      "aliases": [
+        "blanks-around-fences"
+      ],
+      "tags": [
+        "code",
+        "blank_lines"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "fence_surrounded_by_blank_lines",
+          "source": "Paragraph\n\n```rust\n\n```\n\nNext\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "fence_without_blank_lines",
+          "source": "Paragraph\n```rust\ncode\n```\nNext\n",
+          "expected": "MD031"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD032",
+      "aliases": [
+        "blanks-around-lists"
+      ],
+      "tags": [
+        "bullet",
+        "blank_lines"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "list_has_blank_line_before",
+          "source": "Paragraph\n\n- item\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "list_missing_blank_line_before",
+          "source": "Paragraph\n- item\n",
+          "expected": "MD032"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD033",
+      "aliases": [
+        "no-inline-html"
+      ],
+      "tags": [
+        "html"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "plain_markdown",
+          "source": "Paragraph\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "inline_html",
+          "source": "<span>text</span>\n",
+          "expected": "MD033"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD034",
+      "aliases": [
+        "no-bare-urls"
+      ],
+      "tags": [
+        "links",
+        "url"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "no_url",
+          "source": "Paragraph\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "bare_url",
+          "source": "https://example.com\n",
+          "expected": "MD034"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD035",
+      "aliases": [
+        "hr-style"
+      ],
+      "tags": [
+        "hr"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "consistent_hr_style",
+          "source": "---\n\n---\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "inconsistent_hr_style",
+          "source": "---\n\n***\n",
+          "expected": "MD035"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD036",
+      "aliases": [
+        "no-emphasis-as-heading"
+      ],
+      "tags": [
+        "emphasis",
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "normal_emphasis_in_paragraph",
+          "source": "This is **important** text.\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "emphasis_as_heading",
+          "source": "**Important**\n\nText\n",
+          "expected": "MD036"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD037",
+      "aliases": [
+        "no-space-in-emphasis"
+      ],
+      "tags": [
+        "emphasis",
+        "whitespace"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "emphasis_without_inner_spaces",
+          "source": "This is *text*.\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "emphasis_with_inner_spaces",
+          "source": "This is * text *.\n",
+          "expected": "MD037"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD038",
+      "aliases": [
+        "no-space-in-code"
+      ],
+      "tags": [
+        "code",
+        "whitespace"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "code_span_without_inner_spaces",
+          "source": "`code`\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "code_span_with_inner_spaces",
+          "source": "` code `\n",
+          "expected": "MD038"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD039",
+      "aliases": [
+        "no-space-in-links"
+      ],
+      "tags": [
+        "links",
+        "whitespace"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "link_without_inner_spaces",
+          "source": "[link](target)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "link_with_inner_spaces",
+          "source": "[ link ](target)\n",
+          "expected": "MD039"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD040",
+      "aliases": [
+        "fenced-code-language"
+      ],
+      "tags": [
+        "code",
+        "language"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "fence_with_language",
+          "source": "```rust\ncode\n```\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "fence_without_language",
+          "source": "```\ncode\n```\n",
+          "expected": "MD040"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD041",
+      "aliases": [
+        "first-line-heading"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "first_line_h1",
+          "source": "# Title\n\nText\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "first_line_not_heading",
+          "source": "Text\n\n# Title\n",
+          "expected": "MD041"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD042",
+      "aliases": [
+        "no-empty-links"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "non_empty_link",
+          "source": "[link](target)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "empty_link",
+          "source": "[link]()\n",
+          "expected": "MD042"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD043",
+      "aliases": [
+        "required-headings"
+      ],
+      "tags": [
+        "headings"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "has_heading",
+          "source": "# Title\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "missing_heading",
+          "source": "No heading here.\n",
+          "expected": "MD043"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD044",
+      "aliases": [
+        "proper-names"
+      ],
+      "tags": [
+        "spelling"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "proper_names_capitalized",
+          "source": "Markdownlint and GitHub\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "proper_names_lowercase",
+          "source": "markdownlint and github\n",
+          "expected": "MD044"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD045",
+      "aliases": [
+        "no-alt-text"
+      ],
+      "tags": [
+        "images",
+        "accessibility"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "image_with_alt_text",
+          "source": "![alt](image.png)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "image_without_alt_text",
+          "source": "![](image.png)\n",
+          "expected": "MD045"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD046",
+      "aliases": [
+        "code-block-style"
+      ],
+      "tags": [
+        "code"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "only_fenced_code_block",
+          "source": "```rust\ncode\n```\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_code_block_styles",
+          "source": "```rust\ncode\n```\n\n    indented\n",
+          "expected": "MD046"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD047",
+      "aliases": [
+        "single-trailing-newline"
+      ],
+      "tags": [
+        "whitespace"
+      ],
+      "parameters": [],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "ends_with_newline",
+          "source": "text\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "missing_trailing_newline",
+          "source": "text",
+          "expected": "MD047"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD048",
+      "aliases": [
+        "code-fence-style"
+      ],
+      "tags": [
+        "code"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "consistent_fence_style",
+          "source": "```rust\ncode\n```\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_fence_style",
+          "source": "```rust\ncode\n```\n\n~~~\ncode\n~~~\n",
+          "expected": "MD048"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD049",
+      "aliases": [
+        "emphasis-style"
+      ],
+      "tags": [
+        "emphasis"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "consistent_emphasis_style",
+          "source": "*one* and *two*\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_emphasis_style",
+          "source": "*one* and _two_\n",
+          "expected": "MD049"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD050",
+      "aliases": [
+        "strong-style"
+      ],
+      "tags": [
+        "emphasis"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "consistent_strong_style",
+          "source": "**one** and **two**\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_strong_style",
+          "source": "**one** and __two__\n",
+          "expected": "MD050"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD051",
+      "aliases": [
+        "link-fragments"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "link_without_fragment",
+          "source": "[link](target)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "link_fragment",
+          "source": "[fragment](#missing)\n",
+          "expected": "MD051"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD052",
+      "aliases": [
+        "reference-links-images"
+      ],
+      "tags": [
+        "links",
+        "images"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "inline_link",
+          "source": "[link](target)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "shortcut_reference_link",
+          "source": "[ref][]\n",
+          "expected": "MD052"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD053",
+      "aliases": [
+        "link-definitions"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "unique_link_definitions",
+          "source": "[one]: https://example.com\n[two]: https://example.com\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "duplicate_link_definition",
+          "source": "[dup]: https://example.com\n[dup]: https://example.com/2\n",
+          "expected": "MD053"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD054",
+      "aliases": [
+        "link-style"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "inline_links_only",
+          "source": "[link](target)\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "mixed_link_styles",
+          "source": "[inline](target)\n[ref][]\n[ref]: target\n",
+          "expected": "MD054"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD055",
+      "aliases": [
+        "table-pipe-style"
+      ],
+      "tags": [
+        "table"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "table_with_leading_and_trailing_pipes",
+          "source": "| a | b |\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "table_missing_boundary_pipe",
+          "source": "| a | b \n",
+          "expected": "MD055"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD056",
+      "aliases": [
+        "table-column-count"
+      ],
+      "tags": [
+        "table"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "consistent_table_column_count",
+          "source": "| a | b |\n| 1 | 2 |\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "inconsistent_table_column_count",
+          "source": "| a | b |\n| 1 | 2 | 3 |\n",
+          "expected": "MD056"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD058",
+      "aliases": [
+        "table-spacing"
+      ],
+      "tags": [
+        "table"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "single_spaces_in_table",
+          "source": "| a | b |\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "multiple_spaces_in_table",
+          "source": "| a  | b |\n",
+          "expected": "MD058"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD059",
+      "aliases": [
+        "link-text"
+      ],
+      "tags": [
+        "links"
+      ],
+      "parameters": [],
+      "fixable": null,
+      "check_pass": [
+        {
+          "name": "descriptive_link_text",
+          "source": "Read the documentation.\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "prohibited_link_text",
+          "source": "click here\n",
+          "expected": "MD059"
+        }
+      ],
+      "fix": [],
+      "config_valid": [],
+      "config_invalid": [],
+      "edge": [],
+      "manual_required": []
+    },
+    {
+      "rule_id": "MD060",
+      "aliases": [
+        "table-column-style"
+      ],
+      "tags": [
+        "table"
+      ],
+      "parameters": [
+        {
+          "key": "aligned_delimiter",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
+        },
+        {
+          "key": "style",
+          "value_type": "string",
+          "default_value": "any",
+          "values": [
+            "aligned",
+            "any",
+            "compact",
+            "tight"
+          ]
+        }
+      ],
+      "fixable": true,
+      "check_pass": [
+        {
+          "name": "compact_table",
+          "source": "|A|B|\n|-|-|\n|C|D|\n",
+          "expected": null
+        }
+      ],
+      "check_fail": [
+        {
+          "name": "inconsistent_table_style",
+          "source": "| A | B |\n| --- | - |\n| C | D |\n",
+          "expected": "MD060"
+        }
+      ],
+      "fix": [],
+      "config_valid": [
+        {
+          "name": "style_valid",
+          "source": "{ \"MD060\": { \"style\": \"any\" } }",
+          "expected": null
+        },
+        {
+          "name": "aligned_delimiter_valid",
+          "source": "{ \"MD060\": { \"aligned_delimiter\": false } }",
+          "expected": null
+        }
+      ],
+      "config_invalid": [
+        {
+          "name": "style_invalid_type",
+          "source": "{ \"MD060\": { \"style\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "aligned_delimiter_invalid_type",
+          "source": "{ \"MD060\": { \"aligned_delimiter\": null } }",
+          "expected": "invalid type"
+        }
+      ],
+      "edge": [],
+      "manual_required": []
+    }
+  ]
+}

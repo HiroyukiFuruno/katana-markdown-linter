@@ -1,30 +1,30 @@
 ## Definition of Ready
 
-- [ ] `rule-fixture-parity-matrix` のtasksが全て完了していること
-- [ ] fixture matrix JSON / Markdown summary が生成済みであること
-- [ ] `mdxxx.rs` は check / fix のみを責務にする方針が維持されていること
-- [ ] safe fix の判断基準が公式docまたは互換実装の挙動で説明できること
-- [ ] rule順序依存はrule実装ではなくstrategy側課題として記録すること
+- [x] `rule-fixture-parity-matrix` のtasksが全て完了していること
+- [x] fixture matrix JSON / Markdown summary が生成済みであること
+- [x] `mdxxx.rs` は check / fix のみを責務にする方針が維持されていること
+- [x] safe fix の判断基準が公式docまたは互換実装の挙動で説明できること
+- [x] rule順序依存はrule実装ではなくstrategy側課題として記録すること
 
 ## 1. Test Harness
 
-- [ ] 1.1 fixture matrixを読み込むunit test harnessを追加する
-- [ ] 1.2 check pass / fail fixtureを実行できるようにする
-- [ ] 1.3 fix fixtureをbefore/after比較できるようにする
-- [ ] 1.4 config valid / invalid fixtureを検証できるようにする
+- [x] 1.1 fixture matrixを読み込むunit test harnessを追加する
+- [x] 1.2 check pass / fail fixtureを実行できるようにする
+- [x] 1.3 fix fixtureをbefore/after比較できるようにする
+- [x] 1.4 config valid / invalid fixtureを検証できるようにする
 
 ## 2. Rule Check Coverage
 
-- [ ] 2.1 MD001 check fixtureを通す
-- [ ] 2.2 MD003 check fixtureを通す
-- [ ] 2.3 MD004 check fixtureを通す
-- [ ] 2.4 MD005 check fixtureを通す
-- [ ] 2.5 MD007 check fixtureを通す
-- [ ] 2.6 MD009-MD014 check fixtureを通す
-- [ ] 2.7 MD018-MD024 check fixtureを通す
-- [ ] 2.8 MD025-MD035 check fixtureを通す
-- [ ] 2.9 MD036-MD046 check fixtureを通す
-- [ ] 2.10 MD047-MD060 check fixtureを通す
+- [x] 2.1 MD001 check fixtureを通す
+- [x] 2.2 MD003 check fixtureを通す
+- [x] 2.3 MD004 check fixtureを通す
+- [x] 2.4 MD005 check fixtureを通す
+- [x] 2.5 MD007 check fixtureを通す
+- [x] 2.6 MD009-MD014 check fixtureを通す
+- [x] 2.7 MD018-MD024 check fixtureを通す
+- [x] 2.8 MD025-MD035 check fixtureを通す
+- [x] 2.9 MD036-MD046 check fixtureを通す
+- [x] 2.10 MD047-MD060 check fixtureを通す
 
 ## 3. Rule Fix Coverage
 
@@ -49,7 +49,7 @@
 
 ## Definition of Done
 
-- [ ] 全active ruleのcheck fixtureが通っていること
+- [x] 全active ruleのcheck fixtureが通っていること
 - [ ] fixable ruleのfix fixtureが通っていること
 - [ ] 全ruleのconfig valid / invalid fixtureが通っていること
 - [ ] 未対応・非対応・manual_requiredが0または明示された例外として記録されていること
