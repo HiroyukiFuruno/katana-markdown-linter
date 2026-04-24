@@ -460,6 +460,10 @@ fn overlapping_fix_ranges_are_detectable_before_application() {
         rule_id: "TEST001".to_string(),
         rule_name: "first".to_string(),
         message: "first".to_string(),
+        message_id: "rule.generic".to_string(),
+        message_params: katana_markdown_linter::i18n::diagnostic_message_params(
+            "TEST001", "first", "first",
+        ),
         severity: Default::default(),
         line: 1,
         column: 1,

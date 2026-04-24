@@ -33,6 +33,7 @@
 - release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - public library API and rule catalog entrypoints must remain explicit
+- localization catalog tests must keep supported locales on the same message id set and preserve English fallback behavior
 
 These checks are intentionally repo-specific. KatanA UI-specific lint rules are not imported into this crate.
 

@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize)]
 pub enum Severity {
@@ -28,6 +28,8 @@ pub struct LintResult {
     pub rule_id: String,
     pub rule_name: String,
     pub message: String,
+    pub message_id: String,
+    pub message_params: BTreeMap<String, String>,
     pub severity: Severity,
     pub line: usize,
     pub column: usize,

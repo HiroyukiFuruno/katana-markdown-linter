@@ -80,6 +80,8 @@ mod tests {
             rule_id: rule_id.to_string(),
             rule_name: String::new(),
             message: String::new(),
+            message_id: "rule.generic".to_string(),
+            message_params: crate::i18n::diagnostic_message_params(rule_id, "", ""),
             severity: Severity::Warning,
             line: range.start_line,
             column: range.start_column,

@@ -4,6 +4,7 @@ pub mod catalog;
 pub mod cli;
 pub mod config;
 pub mod fix;
+pub mod i18n;
 pub mod parser;
 pub mod rules;
 pub mod types;
@@ -128,6 +129,16 @@ impl From<rules::markdown::MarkdownDiagnostic> for LintResult {
             replacement: fix_info.replacement,
         });
         Self {
+            message_id: crate::i18n::diagnostic_message_id(&value.rule_id, &value.message),
+            message_params: crate::i18n::diagnostic_message_params(
+                &value.rule_id,
+                value
+                    .official_meta
+                    .as_ref()
+                    .map(|meta| meta.title)
+                    .unwrap_or_default(),
+                &value.message,
+            ),
             rule_id: value.rule_id,
             rule_name: value
                 .official_meta

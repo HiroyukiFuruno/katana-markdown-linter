@@ -9,6 +9,7 @@ RELEASE_TAGGER_EMAIL ?= hfuruno0114@gmail.com
 KML ?= cargo run --quiet --bin kml --
 DOGFOOD_TARGETS ?= README.md docs openspec
 DOGFOOD_CONFIG ?= .markdownlint-dogfood.json
+DOGFOOD_LOCALE ?= --local en
 DOGFOOD_EXCLUDES ?= --exclude "openspec/changes/archive/**" --exclude "target/**"
 DOGFOOD_BASELINE ?= tests/fixtures/dogfood-baseline.json
 DOGFOOD_REPORT ?= target/dogfood-report.json
@@ -100,19 +101,19 @@ check: fmt-check lint ast-lint test dogfood ## Fast impacted verification (local
 
 .PHONY: dogfood
 dogfood: ## Run kml against repository Markdown and fail only on new diagnostics
-	python3 scripts/ci/dogfood-baseline.py --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
+	python3 scripts/ci/dogfood-baseline.py --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) $(DOGFOOD_LOCALE) --force-exclude $(DOGFOOD_EXCLUDES) --output json
 
 .PHONY: dogfood-fix
 dogfood-fix: ## Apply safe kml fixes to this repository's non-archived Markdown docs
-	$(KML) check --fix $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --statistics
+	$(KML) check --fix $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) $(DOGFOOD_LOCALE) --force-exclude $(DOGFOOD_EXCLUDES) --statistics
 
 .PHONY: dogfood-json
 dogfood-json: ## Emit dogfood diagnostics as JSON
-	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
+	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) $(DOGFOOD_LOCALE) --force-exclude $(DOGFOOD_EXCLUDES) --output json
 
 .PHONY: dogfood-refresh-baseline
 dogfood-refresh-baseline: ## Refresh dogfood baseline after intentional Markdown cleanup
-	python3 scripts/ci/dogfood-baseline.py --update --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
+	python3 scripts/ci/dogfood-baseline.py --update --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) $(DOGFOOD_LOCALE) --force-exclude $(DOGFOOD_EXCLUDES) --output json
 
 .PHONY: dogfood-archive
 dogfood-archive: ## Explicitly check archived OpenSpec Markdown

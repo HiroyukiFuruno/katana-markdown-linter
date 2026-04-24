@@ -31,6 +31,8 @@ The binary target is `kml`.
 
 ```bash
 kml check
+kml check --local en
+kml check -l ja
 kml fix
 kml fmt
 kml check --fix
@@ -62,6 +64,12 @@ When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively pr
 `--stdin` reads Markdown from standard input. `check --stdin` reports diagnostics against `<stdin>`; `fix --stdin` and `fmt --stdin` write fixed Markdown to stdout.
 
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
+
+`--local <locale>` and `-l <locale>` select user-facing CLI message locale.
+Supported values currently resolve to English (`en`, `en-US`) or Japanese
+(`ja`, `ja-JP`). When omitted, `kml` reads OS locale environment variables and
+falls back to English if the locale is unavailable or unsupported. Explicit
+unsupported locales fail with a CLI error.
 
 ## Rule Map
 

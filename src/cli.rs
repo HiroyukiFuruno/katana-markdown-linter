@@ -1,3 +1,4 @@
+use crate::i18n::{Locale, LocalizedDiagnostic, MessageParams};
 use crate::{fix_with_results, lint, LintOptions, MarkdownLintConfig, RuleConfig};
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
@@ -47,6 +48,7 @@ pub struct Cli {
     pub quiet: bool,
     pub verbose: bool,
     pub diff: bool,
+    pub locale: Option<String>,
 }
 
 impl Default for Cli {
@@ -66,6 +68,7 @@ impl Default for Cli {
             quiet: false,
             verbose: false,
             diff: false,
+            locale: None,
         }
     }
 }
@@ -81,6 +84,7 @@ pub fn run_from_env() -> i32 {
 }
 
 pub fn run(cli: Cli) -> Result<i32, String> {
+    let locale = Locale::resolve(cli.locale.as_deref()).map_err(|err| err.to_string())?;
     match cli.command {
         Command::InitConfig => {
             let path = cli
@@ -90,11 +94,11 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(0)
         }
         Command::Check => {
-            let exit = run_check_like(cli.check_fix, &cli)?;
+            let exit = run_check_like(cli.check_fix, &cli, locale)?;
             Ok(exit)
         }
         Command::Fix | Command::Fmt => {
-            let exit = run_check_like(true, &cli)?;
+            let exit = run_check_like(true, &cli, locale)?;
             Ok(exit)
         }
         Command::Rule(rule_id) => run_rule(rule_id.as_deref(), cli.format),
@@ -106,7 +110,7 @@ pub fn run(cli: Cli) -> Result<i32, String> {
     }
 }
 
-fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
+fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
     let command = if fix_mode { "fix" } else { "check" };
     let mut report = CliReport {
         command,
@@ -115,10 +119,18 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         summary: CliSummary::default(),
     };
     if cli.stdin {
-        return run_stdin_check_like(fix_mode, cli);
+        return run_stdin_check_like(fix_mode, cli, locale);
     }
 
-    let files = expand_inputs(cli)?;
+    let files = match expand_inputs(cli) {
+        Ok(files) => files,
+        Err(err) => {
+            report.errors.push(CliError::from_input_expand_error(err));
+            report.recompute_summary();
+            output_report(&report, fix_mode, cli, locale)?;
+            return Ok(2);
+        }
+    };
 
     for path in files {
         let content = match fs::read_to_string(&path) {
@@ -197,25 +209,30 @@ fn run_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         0
     };
 
-    match cli.format {
-        OutputFormat::Text => print_text_report(&report, fix_mode, cli),
-        OutputFormat::Json => {
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&report).map_err(|err| err.to_string())?
-            );
-        }
-    }
+    output_report(&report, fix_mode, cli, locale)?;
 
     Ok(exit_code)
 }
 
-fn run_stdin_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
+fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
     let mut content = String::new();
     io::stdin()
         .read_to_string(&mut content)
         .map_err(|err| err.to_string())?;
-    let config = load_effective_config(Path::new("<stdin>"), cli.config.as_deref())?;
+    let config = match load_effective_config(Path::new("<stdin>"), cli.config.as_deref()) {
+        Ok(config) => config,
+        Err(err) => {
+            let mut report = CliReport {
+                command: "check",
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: vec![CliError::config(Path::new("<stdin>"), err)],
+            };
+            report.recompute_summary();
+            output_report(&report, fix_mode, cli, locale)?;
+            return Ok(2);
+        }
+    };
     let options = options_from_config(&config);
     if fix_mode {
         let results = lint(&content, &options).map_err(|err| err.to_string())?;
@@ -228,7 +245,20 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         return Ok(0);
     }
 
-    let diagnostics = lint(&content, &options).map_err(|err| err.to_string())?;
+    let diagnostics = match lint(&content, &options) {
+        Ok(diagnostics) => diagnostics,
+        Err(err) => {
+            let mut report = CliReport {
+                command: "check",
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: vec![CliError::rule(Path::new("<stdin>"), err.to_string())],
+            };
+            report.recompute_summary();
+            output_report(&report, false, cli, locale)?;
+            return Ok(2);
+        }
+    };
     let mut report = CliReport {
         command: "check",
         summary: CliSummary::default(),
@@ -241,13 +271,7 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli) -> Result<i32, String> {
         errors: Vec::new(),
     };
     report.recompute_summary();
-    match cli.format {
-        OutputFormat::Text => print_text_report(&report, false, cli),
-        OutputFormat::Json => println!(
-            "{}",
-            serde_json::to_string_pretty(&report).map_err(|err| err.to_string())?
-        ),
-    }
+    output_report(&report, false, cli, locale)?;
     Ok(if report.summary.total_issues > 0 {
         1
     } else {
@@ -366,26 +390,59 @@ fn render_config(command: ConfigCommand, cli: &Cli) -> Result<String, String> {
     }
 }
 
-fn print_text_report(report: &CliReport, fix_mode: bool, cli: &Cli) {
+fn print_text_report(report: &CliReport, fix_mode: bool, cli: &Cli, locale: Locale) {
     for error in &report.errors {
         if let Some(path) = &error.path {
-            eprintln!("{}: {} error: {}", path, error.kind, error.message);
+            eprintln!(
+                "{}: {} error: {}",
+                path,
+                error.kind,
+                error.localized_message(locale)
+            );
         } else {
-            eprintln!("{} error: {}", error.kind, error.message);
+            eprintln!("{} error: {}", error.kind, error.localized_message(locale));
         }
     }
-    print!("{}", render_text_report(report, fix_mode, cli));
+    print!("{}", render_text_report(report, fix_mode, cli, locale));
 }
 
-fn render_text_report(report: &CliReport, fix_mode: bool, cli: &Cli) -> String {
+fn output_report(
+    report: &CliReport,
+    fix_mode: bool,
+    cli: &Cli,
+    locale: Locale,
+) -> Result<(), String> {
+    match cli.format {
+        OutputFormat::Text => print_text_report(report, fix_mode, cli, locale),
+        OutputFormat::Json => {
+            let report = LocalizedCliReport::from_report(report, locale);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).map_err(|err| err.to_string())?
+            );
+        }
+    }
+    Ok(())
+}
+
+fn render_text_report(report: &CliReport, fix_mode: bool, cli: &Cli, locale: Locale) -> String {
     let mut output = String::new();
     for file in &report.files {
         if fix_mode && file.applied_fixes > 0 && !cli.quiet {
-            output.push_str(&format!(
+            let mut params = MessageParams::new();
+            params.insert("path".to_string(), file.path.clone());
+            params.insert("count".to_string(), file.applied_fixes.to_string());
+            let fallback = format!(
                 "{}: fixed {} issue{}",
                 file.path,
                 file.applied_fixes,
                 plural(file.applied_fixes)
+            );
+            output.push_str(&crate::i18n::render_message(
+                locale,
+                "fix.fixed_count",
+                &params,
+                &fallback,
             ));
             output.push('\n');
         }
@@ -394,25 +451,61 @@ fn render_text_report(report: &CliReport, fix_mode: bool, cli: &Cli) -> String {
             if cli.quiet {
                 continue;
             }
+            let message = crate::i18n::render_message(
+                locale,
+                result.message_id.as_str(),
+                &result.message_params,
+                result.message.as_str(),
+            );
             output.push_str(&format!(
                 "{}:{}:{} {} {}",
-                file.path, result.line, result.column, result.rule_id, result.message
+                file.path, result.line, result.column, result.rule_id, message
             ));
             output.push('\n');
         }
     }
 
     if report.files.is_empty() && report.errors.is_empty() {
-        output.push_str("No Markdown files found\n");
+        output.push_str(&crate::i18n::render_message(
+            locale,
+            "summary.no_files",
+            &MessageParams::new(),
+            "No Markdown files found",
+        ));
+        output.push('\n');
     }
     if cli.statistics {
-        output.push_str(&format!(
+        let mut params = MessageParams::new();
+        params.insert("files".to_string(), report.summary.total_files.to_string());
+        params.insert(
+            "files_with_issues".to_string(),
+            report.summary.files_with_issues.to_string(),
+        );
+        params.insert(
+            "issues".to_string(),
+            report.summary.total_issues.to_string(),
+        );
+        params.insert(
+            "fixable".to_string(),
+            report.summary.fixable_issues.to_string(),
+        );
+        params.insert(
+            "fixed".to_string(),
+            report.summary.applied_fixes.to_string(),
+        );
+        let fallback = format!(
             "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
             report.summary.total_files,
             report.summary.files_with_issues,
             report.summary.total_issues,
             report.summary.fixable_issues,
             report.summary.applied_fixes
+        );
+        output.push_str(&crate::i18n::render_message(
+            locale,
+            "summary.statistics",
+            &params,
+            &fallback,
         ));
         output.push('\n');
     }
@@ -548,18 +641,87 @@ struct FileReport {
 }
 
 #[derive(Debug, Clone, Serialize)]
+struct LocalizedCliReport {
+    command: &'static str,
+    summary: CliSummary,
+    files: Vec<LocalizedFileReport>,
+    errors: Vec<LocalizedCliError>,
+}
+
+impl LocalizedCliReport {
+    fn from_report(report: &CliReport, locale: Locale) -> Self {
+        Self {
+            command: report.command,
+            summary: report.summary.clone(),
+            files: report
+                .files
+                .iter()
+                .map(|file| LocalizedFileReport {
+                    path: file.path.clone(),
+                    diagnostics: file
+                        .diagnostics
+                        .iter()
+                        .map(|diagnostic| LocalizedDiagnostic::from_result(diagnostic, locale))
+                        .collect(),
+                    applied_fixes: file.applied_fixes,
+                    changed: file.changed,
+                })
+                .collect(),
+            errors: report
+                .errors
+                .iter()
+                .map(|error| LocalizedCliError::from_error(error, locale))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalizedFileReport {
+    path: String,
+    diagnostics: Vec<LocalizedDiagnostic>,
+    applied_fixes: usize,
+    changed: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
 struct CliError {
     kind: &'static str,
     path: Option<String>,
     message: String,
+    message_id: String,
+    message_params: MessageParams,
 }
 
 impl CliError {
     fn filesystem(path: &Path, err: impl std::fmt::Display) -> Self {
+        let message = err.to_string();
         Self {
             kind: "filesystem",
             path: Some(path.display().to_string()),
-            message: err.to_string(),
+            message_params: message_params(&message),
+            message,
+            message_id: "filesystem.error".to_string(),
+        }
+    }
+
+    fn filesystem_message(message: String) -> Self {
+        Self {
+            kind: "filesystem",
+            path: None,
+            message_params: message_params(&message),
+            message,
+            message_id: "filesystem.error".to_string(),
+        }
+    }
+
+    fn glob(message: String) -> Self {
+        Self {
+            kind: "glob",
+            path: None,
+            message_params: message_params(&message),
+            message,
+            message_id: "glob.error".to_string(),
         }
     }
 
@@ -567,7 +729,9 @@ impl CliError {
         Self {
             kind: "config",
             path: Some(path.display().to_string()),
+            message_params: message_params(&message),
             message,
+            message_id: "config.error".to_string(),
         }
     }
 
@@ -575,9 +739,54 @@ impl CliError {
         Self {
             kind: "rule",
             path: Some(path.display().to_string()),
+            message_params: message_params(&message),
             message,
+            message_id: "rule.error".to_string(),
         }
     }
+
+    fn from_input_expand_error(error: InputExpandError) -> Self {
+        match error {
+            InputExpandError::Filesystem(message) => Self::filesystem_message(message),
+            InputExpandError::Glob(message) => Self::glob(message),
+        }
+    }
+
+    fn localized_message(&self, locale: Locale) -> String {
+        crate::i18n::render_message(
+            locale,
+            self.message_id.as_str(),
+            &self.message_params,
+            self.message.as_str(),
+        )
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalizedCliError {
+    kind: &'static str,
+    path: Option<String>,
+    message: String,
+    message_id: String,
+    message_params: MessageParams,
+}
+
+impl LocalizedCliError {
+    fn from_error(error: &CliError, locale: Locale) -> Self {
+        Self {
+            kind: error.kind,
+            path: error.path.clone(),
+            message: error.localized_message(locale),
+            message_id: error.message_id.clone(),
+            message_params: error.message_params.clone(),
+        }
+    }
+}
+
+fn message_params(message: &str) -> MessageParams {
+    let mut params = MessageParams::new();
+    params.insert("message".to_string(), message.to_string());
+    params
 }
 
 fn load_effective_config(
@@ -607,14 +816,27 @@ fn load_effective_config(
     Ok(MarkdownLintConfig::default())
 }
 
-fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, String> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum InputExpandError {
+    Filesystem(String),
+    Glob(String),
+}
+
+impl From<String> for InputExpandError {
+    fn from(value: String) -> Self {
+        Self::Filesystem(value)
+    }
+}
+
+fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError> {
     let inputs = &cli.inputs;
     if inputs.is_empty() {
         return filter_paths(
             markdown_files_in_dir(
-                &env::current_dir().map_err(|err| err.to_string())?,
+                &env::current_dir().map_err(|err| InputExpandError::Filesystem(err.to_string()))?,
                 cli.respect_gitignore,
-            )?,
+            )
+            .map_err(InputExpandError::Filesystem)?,
             cli,
             false,
         );
@@ -623,10 +845,10 @@ fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, String> {
     let mut paths = Vec::new();
     for input in inputs {
         if has_glob_chars(input) {
-            for entry in glob(input).map_err(|err| err.to_string())? {
+            for entry in glob(input).map_err(|err| InputExpandError::Glob(err.to_string()))? {
                 match entry {
                     Ok(path) => paths.push(path),
-                    Err(err) => return Err(err.to_string()),
+                    Err(err) => return Err(InputExpandError::Glob(err.to_string())),
                 }
             }
         } else {
@@ -637,7 +859,10 @@ fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, String> {
     let mut expanded = Vec::new();
     for path in paths {
         if path.is_dir() {
-            expanded.extend(markdown_files_in_dir(&path, cli.respect_gitignore)?);
+            expanded.extend(
+                markdown_files_in_dir(&path, cli.respect_gitignore)
+                    .map_err(InputExpandError::Filesystem)?,
+            );
         } else {
             expanded.push(path);
         }
@@ -702,7 +927,11 @@ fn collect_markdown_files(
     Ok(())
 }
 
-fn filter_paths(paths: Vec<PathBuf>, cli: &Cli, explicit: bool) -> Result<Vec<PathBuf>, String> {
+fn filter_paths(
+    paths: Vec<PathBuf>,
+    cli: &Cli,
+    explicit: bool,
+) -> Result<Vec<PathBuf>, InputExpandError> {
     let includes = compile_patterns(&cli.include)?;
     let excludes = compile_patterns(&cli.exclude)?;
     Ok(paths
@@ -717,10 +946,10 @@ fn filter_paths(paths: Vec<PathBuf>, cli: &Cli, explicit: bool) -> Result<Vec<Pa
         .collect())
 }
 
-fn compile_patterns(patterns: &[String]) -> Result<Vec<Pattern>, String> {
+fn compile_patterns(patterns: &[String]) -> Result<Vec<Pattern>, InputExpandError> {
     patterns
         .iter()
-        .map(|pattern| Pattern::new(pattern).map_err(|err| err.to_string()))
+        .map(|pattern| Pattern::new(pattern).map_err(|err| InputExpandError::Glob(err.to_string())))
         .collect()
 }
 
@@ -749,6 +978,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
     let mut quiet = false;
     let mut verbose = false;
     let mut diff = false;
+    let mut locale = None;
     let mut iter = args.into_iter().peekable();
 
     while let Some(arg) = iter.next() {
@@ -801,6 +1031,11 @@ pub fn parse_args(args: Vec<String>) -> Cli {
                     }
                 }
             }
+            "--local" | "-l" => {
+                if let Some(value) = iter.next() {
+                    locale = Some(value);
+                }
+            }
             "--include" => {
                 if let Some(value) = iter.next() {
                     include.push(value);
@@ -838,6 +1073,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
         quiet,
         verbose,
         diff,
+        locale,
     }
 }
 
@@ -945,6 +1181,37 @@ mod tests {
     }
 
     #[test]
+    fn parses_locale_options() {
+        let long_ja = parse_args(vec![
+            "check".to_string(),
+            "--local".to_string(),
+            "ja".to_string(),
+        ]);
+        assert_eq!(long_ja.locale.as_deref(), Some("ja"));
+
+        let long_en = parse_args(vec![
+            "check".to_string(),
+            "--local".to_string(),
+            "en".to_string(),
+        ]);
+        assert_eq!(long_en.locale.as_deref(), Some("en"));
+
+        let short_en = parse_args(vec![
+            "check".to_string(),
+            "-l".to_string(),
+            "en".to_string(),
+        ]);
+        assert_eq!(short_en.locale.as_deref(), Some("en"));
+
+        let short_ja = parse_args(vec![
+            "check".to_string(),
+            "-l".to_string(),
+            "ja".to_string(),
+        ]);
+        assert_eq!(short_ja.locale.as_deref(), Some("ja"));
+    }
+
+    #[test]
     fn renders_rule_list_and_detail_contract() {
         let list = render_rule(None, OutputFormat::Text).expect("rule list should render");
         assert!(list.contains("MD013 line-length"));
@@ -999,6 +1266,12 @@ mod tests {
                     rule_id: "MD018".to_string(),
                     rule_name: "no-missing-space-atx".to_string(),
                     message: "No space after hash on atx style heading".to_string(),
+                    message_id: "rule.generic".to_string(),
+                    message_params: crate::i18n::diagnostic_message_params(
+                        "MD018",
+                        "no-missing-space-atx",
+                        "No space after hash on atx style heading",
+                    ),
                     severity: Severity::Warning,
                     line: 1,
                     column: 1,
@@ -1021,6 +1294,7 @@ mod tests {
                 verbose: true,
                 ..Cli::default()
             },
+            Locale::En,
         );
 
         assert!(output.contains("<stdin>:1:1 MD018 No space after hash"));
@@ -1039,6 +1313,12 @@ mod tests {
                     rule_id: "MD018".to_string(),
                     rule_name: "no-missing-space-atx".to_string(),
                     message: "No space after hash on atx style heading".to_string(),
+                    message_id: "rule.generic".to_string(),
+                    message_params: crate::i18n::diagnostic_message_params(
+                        "MD018",
+                        "no-missing-space-atx",
+                        "No space after hash on atx style heading",
+                    ),
                     severity: Severity::Warning,
                     line: 1,
                     column: 1,
@@ -1061,10 +1341,137 @@ mod tests {
                 statistics: true,
                 ..Cli::default()
             },
+            Locale::En,
         );
 
         assert!(!output.contains("MD018"));
         assert!(output.contains("issues: 1"));
+    }
+
+    #[test]
+    fn text_report_uses_selected_japanese_locale() {
+        let mut report = CliReport {
+            command: "check",
+            summary: CliSummary::default(),
+            files: vec![FileReport {
+                path: "README.md".to_string(),
+                diagnostics: vec![LintResult {
+                    rule_id: "MD018".to_string(),
+                    rule_name: "no-missing-space-atx".to_string(),
+                    message: "No space after hash on atx style heading".to_string(),
+                    message_id: "rule.generic".to_string(),
+                    message_params: crate::i18n::diagnostic_message_params(
+                        "MD018",
+                        "no-missing-space-atx",
+                        "No space after hash on atx style heading",
+                    ),
+                    severity: Severity::Warning,
+                    line: 1,
+                    column: 1,
+                    end_line: 1,
+                    end_column: 6,
+                    fix: None,
+                }],
+                applied_fixes: 0,
+                changed: false,
+            }],
+            errors: Vec::new(),
+        };
+        report.recompute_summary();
+
+        let output = render_text_report(&report, false, &Cli::default(), Locale::Ja);
+
+        assert!(output.contains("README.md:1:1 MD018 ATX 見出し"));
+    }
+
+    #[test]
+    fn json_report_keeps_shape_and_adds_localized_message_metadata() {
+        let mut report = CliReport {
+            command: "check",
+            summary: CliSummary::default(),
+            files: vec![FileReport {
+                path: "README.md".to_string(),
+                diagnostics: vec![LintResult {
+                    rule_id: "MD018".to_string(),
+                    rule_name: "no-missing-space-atx".to_string(),
+                    message: "No space after hash on atx style heading".to_string(),
+                    message_id: "rule.generic".to_string(),
+                    message_params: crate::i18n::diagnostic_message_params(
+                        "MD018",
+                        "no-missing-space-atx",
+                        "No space after hash on atx style heading",
+                    ),
+                    severity: Severity::Warning,
+                    line: 1,
+                    column: 1,
+                    end_line: 1,
+                    end_column: 6,
+                    fix: None,
+                }],
+                applied_fixes: 0,
+                changed: false,
+            }],
+            errors: Vec::new(),
+        };
+        report.recompute_summary();
+
+        let json = serde_json::to_value(LocalizedCliReport::from_report(&report, Locale::Ja))
+            .expect("localized report should serialize");
+
+        assert_eq!(
+            json["files"][0]["diagnostics"][0]["message_id"],
+            "rule.generic"
+        );
+        assert_eq!(
+            json["files"][0]["diagnostics"][0]["message_params"]["rule_id"],
+            "MD018"
+        );
+        assert!(json["files"][0]["diagnostics"][0]["message"]
+            .as_str()
+            .expect("message should be string")
+            .contains("ATX 見出し"));
+    }
+
+    #[test]
+    fn json_report_localizes_config_errors_with_stable_metadata() {
+        let report = CliReport {
+            command: "check",
+            summary: CliSummary::default(),
+            files: Vec::new(),
+            errors: vec![CliError::config(
+                Path::new("<stdin>"),
+                "config file not found: missing.json".to_string(),
+            )],
+        };
+
+        let json = serde_json::to_value(LocalizedCliReport::from_report(&report, Locale::Ja))
+            .expect("localized report should serialize");
+
+        assert_eq!(json["errors"][0]["message_id"], "config.error");
+        assert!(json["errors"][0]["message"]
+            .as_str()
+            .expect("message should be string")
+            .contains("設定エラー"));
+    }
+
+    #[test]
+    fn json_report_localizes_glob_errors_with_stable_metadata() {
+        let report = CliReport {
+            command: "check",
+            summary: CliSummary::default(),
+            files: Vec::new(),
+            errors: vec![CliError::glob("invalid glob pattern".to_string())],
+        };
+
+        let json = serde_json::to_value(LocalizedCliReport::from_report(&report, Locale::Ja))
+            .expect("localized report should serialize");
+
+        assert_eq!(json["errors"][0]["kind"], "glob");
+        assert_eq!(json["errors"][0]["message_id"], "glob.error");
+        assert!(json["errors"][0]["message"]
+            .as_str()
+            .expect("message should be string")
+            .contains("glob エラー"));
     }
 
     #[test]
