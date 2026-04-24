@@ -1,6 +1,6 @@
 [package]
 name = "katana-markdown-linter"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "markdownlint-compatible Markdown linter library"
@@ -13,6 +13,8 @@ include = [
     "README.md",
     "LICENSE",
     "Markfile",
+    "build.rs",
+    "upstream_docs/**",
     "src/**",
     "tests/**",
 ]
