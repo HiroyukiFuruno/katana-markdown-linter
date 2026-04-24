@@ -8,8 +8,13 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Makefile'
+      - '.markdownlint-dogfood.json'
       - '.github/workflows/**'
+      - 'README.md'
+      - 'docs/**'
+      - 'openspec/**'
       - 'scripts/**'
+      - 'tests/fixtures/dogfood-baseline.json'
   pull_request:
     branches: [main, master]
     paths:
@@ -17,8 +22,13 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Makefile'
+      - '.markdownlint-dogfood.json'
       - '.github/workflows/**'
+      - 'README.md'
+      - 'docs/**'
+      - 'openspec/**'
       - 'scripts/**'
+      - 'tests/fixtures/dogfood-baseline.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -76,6 +86,9 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace
+
+      - name: Run dogfood
+        run: make dogfood
 
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'

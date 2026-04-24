@@ -1,0 +1,518 @@
+{
+  "schema_version": 1,
+  "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
+  "total_diagnostics": 73,
+  "diagnostics": [
+    {
+      "path": "docs/dogfooding.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
+      "count": 1
+    },
+    {
+      "path": "docs/dogfooding.md",
+      "rule_id": "MD059",
+      "message": "Link text should be descriptive",
+      "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
+      "count": 1
+    },
+    {
+      "path": "docs/mcp-integration-evaluation.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "- Official Rust SDK repository: <https://github.com/modelcontextprotocol/rust-sdk>",
+      "count": 1
+    },
+    {
+      "path": "docs/mcp-integration-evaluation.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "- Official SDK list: <https://modelcontextprotocol.io/docs/sdk>",
+      "count": 1
+    },
+    {
+      "path": "docs/mcp-integration-evaluation.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "- `rmcp` crate docs: <https://docs.rs/rmcp>",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- Cargo version equals release version",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- Git tag `vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- GitHub Release",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `.crate` package artifact",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `.sha256` checksum",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc make upstream-drift`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `cargo install --path . --bin kml`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `cargo install --path . --locked --bin kml`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `cargo publish --dry-run --locked --allow-dirty`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `cargo test --all-features --locked`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `description`, `keywords`, and `categories` are still accurate",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `license = \"MIT\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `make fmt-check`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `make release-check VERSION=vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `publish_crate`: `false` for GitHub Release only, `true` for GitHub Release plus crates.io",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `readme = \"README.md\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `repository = \"https://github.com/HiroyukiFuruno/katana-markdown-linter\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- `version`: `X.Y.Z` or `vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD005",
+      "message": "Inconsistent indentation for list items at the same level",
+      "line_text": "- upstream markdownlint drift gate",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- Cargo version equals release version",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- Git tag `vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- GitHub Release",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `.crate` package artifact",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `.sha256` checksum",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc make upstream-drift`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `cargo install --path . --bin kml`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `cargo install --path . --locked --bin kml`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `cargo publish --dry-run --locked --allow-dirty`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `cargo test --all-features --locked`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `description`, `keywords`, and `categories` are still accurate",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `license = \"MIT\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `make fmt-check`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `make release-check VERSION=vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `publish_crate`: `false` for GitHub Release only, `true` for GitHub Release plus crates.io",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `readme = \"README.md\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `repository = \"https://github.com/HiroyukiFuruno/katana-markdown-linter\"`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- `version`: `X.Y.Z` or `vX.Y.Z`",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD007",
+      "message": "Unordered list indentation",
+      "line_text": "- upstream markdownlint drift gate",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "2. Confirm package contents are limited to source, manifest, README, license, and other intentional files.",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "3. Run local validation:",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "4. If validating upstream drift locally, clone upstream docs and run:",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "4. The workflow validates:",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "5. Confirm the installed binary path:",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "5. The workflow creates or updates:",
+      "count": 1
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "- `repository = \"https://github.com/HiroyukiFuruno/katana-markdown-linter\"`",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Phase 1: 基盤構築",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Phase 2: Rule Parity",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Phase 3: Public Release 準備",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Phase 4: CLI",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Phase 5: Upstream Update Tracking",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- `kml check`",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- crates.io 向け metadata",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- upstream default branch 追従",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- クレートの初期化（Cargo.toml, CI, docs.rs 設定）",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- 公式 markdownlint の全 active rule の check 実装",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD040",
+      "message": "Fenced code blocks should have a language specified.",
+      "line_text": "```",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD046",
+      "message": "Code block style",
+      "line_text": "# katana-markdown-linter 設計",
+      "count": 1
+    },
+    {
+      "path": "openspec/design.md",
+      "rule_id": "MD059",
+      "message": "Link text should be descriptive",
+      "line_text": "│   │   ├── link.rs         # MD034, MD039, MD042, MD053-MD058",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] CI（GitHub Actions）でのテスト・lint・ドキュメント生成",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] `cargo add katana-markdown-linter` でライブラリとして利用可能",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] `lint()` / `fix()` のシンプルな公開 API",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] `pulldown-cmark` ベースの AST パーサによる正確なルール評価",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] docs.rs で 100% の API ドキュメンテーション",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] markdownlint 互換の active rule ID",
+      "count": 1
+    },
+    {
+      "path": "openspec/proposal.md",
+      "rule_id": "MD039",
+      "message": "Spaces inside link text",
+      "line_text": "- [ ] 利用側アプリケーション固有の型や UI contract に依存しない",
+      "count": 1
+    },
+    {
+      "path": "openspec/specs/public-api-examples/spec.md",
+      "rule_id": "MD059",
+      "message": "Link text should be descriptive",
+      "line_text": "### Requirement: README SHALL link CLI and library usage paths",
+      "count": 1
+    }
+  ]
+}

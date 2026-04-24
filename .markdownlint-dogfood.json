@@ -11,10 +11,7 @@
       ""
     ]
   },
-  "MD013": {
-    "code_block_line_length": 10000,
-    "line_length": 10000
-  },
+  "MD013": false,
   "MD022": true,
   "MD024": false,
   "MD029": {
@@ -22,18 +19,15 @@
   },
   "MD033": false,
   "MD041": false,
-  "MD044": {
-    "names": []
-  },
+  "MD031": false,
+  "MD044": false,
   "MD046": {
     "style": "indented"
   },
   "MD048": {
     "style": "tilde"
   },
-  "MD049": {
-    "style": "asterisk"
-  },
+  "MD049": false,
   "MD050": {
     "style": "asterisk"
   },
@@ -47,5 +41,6 @@
   },
   "MD055": {
     "style": "consistent"
-  }
+  },
+  "MD060": false
 }

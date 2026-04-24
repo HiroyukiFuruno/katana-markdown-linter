@@ -26,6 +26,9 @@ jobs:
       - name: Test
         run: cargo test --all-features --locked
 
+      - name: Dogfood
+        run: make dogfood
+
       - name: Clone upstream markdownlint
         run: git clone --depth 1 https://github.com/DavidAnson/markdownlint.git "${RUNNER_TEMP}/markdownlint"
 

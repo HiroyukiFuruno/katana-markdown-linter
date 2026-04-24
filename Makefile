@@ -7,6 +7,8 @@ KML ?= cargo run --quiet --bin kml --
 DOGFOOD_TARGETS ?= README.md docs openspec
 DOGFOOD_CONFIG ?= .markdownlint-dogfood.json
 DOGFOOD_EXCLUDES ?= --exclude "openspec/changes/archive/**" --exclude "target/**"
+DOGFOOD_BASELINE ?= tests/fixtures/dogfood-baseline.json
+DOGFOOD_REPORT ?= target/dogfood-report.json
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -79,12 +81,12 @@ coverage-blocking: ## Fail when uncovered lines exceed scripts/ci/coverage-basel
 	COVERAGE_MODE=blocking JOBS=$(JOBS) scripts/ci/coverage.sh
 
 .PHONY: check
-check: fmt-check lint ast-lint test ## Fast impacted verification (local default)
+check: fmt-check lint ast-lint test dogfood ## Fast impacted verification (local default)
 	@echo "✅ All checks passed"
 
 .PHONY: dogfood
-dogfood: ## Run kml against this repository's Markdown docs (check-only)
-	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --statistics
+dogfood: ## Run kml against repository Markdown and fail only on new diagnostics
+	python3 scripts/ci/dogfood-baseline.py --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
 
 .PHONY: dogfood-fix
 dogfood-fix: ## Apply safe kml fixes to this repository's non-archived Markdown docs
@@ -93,6 +95,10 @@ dogfood-fix: ## Apply safe kml fixes to this repository's non-archived Markdown 
 .PHONY: dogfood-json
 dogfood-json: ## Emit dogfood diagnostics as JSON
 	$(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
+
+.PHONY: dogfood-refresh-baseline
+dogfood-refresh-baseline: ## Refresh dogfood baseline after intentional Markdown cleanup
+	python3 scripts/ci/dogfood-baseline.py --update --baseline $(DOGFOOD_BASELINE) --report $(DOGFOOD_REPORT) -- $(KML) check $(DOGFOOD_TARGETS) --config $(DOGFOOD_CONFIG) --force-exclude $(DOGFOOD_EXCLUDES) --output json
 
 .PHONY: dogfood-archive
 dogfood-archive: ## Explicitly check archived OpenSpec Markdown
@@ -111,7 +117,7 @@ mcp-test: ## Run optional experimental MCP server tests
 	cargo test --features mcp --bin kml-mcp --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint test coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint test dogfood coverage-blocking ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml

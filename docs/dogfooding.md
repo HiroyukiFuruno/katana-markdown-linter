@@ -22,11 +22,30 @@ Machine-readable report:
 make dogfood-json
 ```
 
+Refresh the committed baseline after intentional cleanup:
+
+```bash
+make dogfood-refresh-baseline
+```
+
 Archived OpenSpec documents are checked only when explicitly requested:
 
 ```bash
 make dogfood-archive
 ```
+
+## Gate Model
+
+`make dogfood` is a regression gate. It runs `kml` against maintained Markdown
+and compares the current diagnostics with `tests/fixtures/dogfood-baseline.json`.
+It is included in `make check` and the GitHub CI workflow.
+
+The gate fails when a diagnostic fingerprint exceeds the committed baseline.
+The fingerprint uses path, rule ID, message, and trimmed source line so ordinary
+line movement does not create noise.
+
+When documentation cleanup intentionally removes diagnostics, run
+`make dogfood-refresh-baseline` and commit the reduced baseline.
 
 ## Default Scope
 
@@ -45,9 +64,13 @@ The default command uses `--force-exclude` so explicit directory inputs still ho
 
 The default command uses `.markdownlint-dogfood.json` instead of `.markdownlint.json`. The existing repository config includes official markdownlint aliases and one property shape that the current validator does not accept yet; that compatibility gap is tracked below as a CLI finding.
 
+The dogfood config is staged. Rules with known noisy property handling or false
+positives are disabled until rule parity work can make them useful as a blocking
+repository gate.
+
 ## Initial Run
 
-Status: completed with known findings.
+Status: completed with known findings, then converted into a baseline gate.
 
 First command:
 
@@ -62,6 +85,12 @@ Result:
 - issues: 483
 - fixable: 56
 - exit code: 1 after switching to `.markdownlint-dogfood.json`
+
+Current baseline:
+
+- diagnostics: 73
+- behavior: `make dogfood` exits successfully unless new diagnostics appear
+- raw report: `target/dogfood-report.json`
 
 The first run classified findings into:
 
