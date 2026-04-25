@@ -1,12 +1,15 @@
 use crate::types::{FixResult, LintResult};
 
-pub fn apply(results: &[LintResult], content: &str) -> FixResult {
+pub fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
     let mut applied_fixes = 0;
     let line_index = LineOffsetIndex::new(content);
     let mut edits = results
         .iter()
         .filter_map(|result| {
             let fix = result.fix.as_ref()?;
+            if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
+                return None;
+            }
             let start =
                 line_index.offset_for_position(fix.range.start_line, fix.range.start_column)?;
             let end = line_index.offset_for_position(fix.range.end_line, fix.range.end_column)?;
@@ -109,7 +112,7 @@ fn previous_char_boundary(content: &str, mut offset: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{Fix, Range, Severity};
+    use crate::types::{Fix, FixSafety, Range, Severity};
 
     fn result(rule_id: &str, range: Range, replacement: &str) -> LintResult {
         LintResult {
@@ -126,6 +129,7 @@ mod tests {
             fix: Some(Fix {
                 range,
                 replacement: replacement.to_string(),
+                safety: FixSafety::Safe,
             }),
         }
     }
@@ -145,6 +149,7 @@ mod tests {
                 "",
             )],
             content,
+            false,
         );
 
         assert_eq!(fixed.content, "# Title\n\nParagraph\n");
@@ -178,6 +183,7 @@ mod tests {
                 ),
             ],
             content,
+            false,
         );
 
         assert_eq!(fixed.content, "# Title\n");

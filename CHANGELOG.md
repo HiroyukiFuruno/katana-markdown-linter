@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0
+
+- Adds fix safety metadata to public diagnostics so consumers can distinguish `safe` and `unsafe` candidates.
+- Keeps default `fix`, `fmt`, and `check --fix` behavior safe-only.
+- Adds `--unsafe` CLI mode with `[Y/n]` confirmation for interactive runs and `--unsafe --yes` for non-interactive automation.
+- Adds an unsafe `MD036` candidate that converts emphasis-only section labels into ATX headings when explicitly opted in.
+- Extends JSON and dashboard reporting with safe/unsafe fix visibility.
+
 ## v0.8.1
 
 - Improves `MD048` code fence style checks by evaluating parsed fenced code blocks and honoring `style = consistent`, `backtick`, and `tilde`.

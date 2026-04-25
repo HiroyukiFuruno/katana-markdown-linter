@@ -23,7 +23,7 @@ diagnostic-only at the start of the change.
 | `MD028` | `unsafe-candidate` | Official docs allow either separating quotes or joining them with `>`. |
 | `MD033` | `manual-required` | Removing or replacing inline HTML changes rendered output. |
 | `MD035` | `safe-now` | Horizontal rule style normalization preserves Markdown meaning. Implemented in `v0.8.0` first batch. |
-| `MD036` | `unsafe-candidate` | Converting emphasis to heading changes structure and anchors. |
+| `MD036` | `unsafe-candidate` | Converting emphasis to heading changes structure and anchors. Exposed as an unsafe fix candidate in `v0.9.0`. |
 | `MD041` | `manual-required` | First heading text cannot be inferred safely. |
 | `MD042` | `manual-required` | Empty URL or image targets require author-provided destinations. |
 | `MD043` | `manual-required` | Required headings require author-provided sections and order. |

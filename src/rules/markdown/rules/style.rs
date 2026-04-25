@@ -9,8 +9,6 @@ use std::path::Path;
 /* WHY: Section: Style/emphasis markdownlint rule implementations
 ======================================================= */
 
-/* WHY: Minimum marker length for bold/italic (e.g. `**x**` = 5 chars, so content must be > 4) */
-const MIN_BOLD_LEN: usize = 4;
 /* WHY: Minimum char count for a valid horizontal rule (---) */
 const MIN_HR_CHARS: usize = 3;
 
@@ -40,15 +38,27 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
             if in_code_block {
                 continue;
             }
-            if is_emphasis_heading(trimmed, &lines, i) {
-                RuleHelpers::push_diag(
-                    &mut diagnostics,
-                    file_path,
-                    i,
-                    line,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                );
+            if let Some(heading_text) = emphasis_heading_text(trimmed, &lines, i) {
+                diagnostics.push(MarkdownDiagnostic {
+                    file: file_path.to_path_buf(),
+                    severity: DiagnosticSeverity::Warning,
+                    range: DiagnosticRange {
+                        start_line: i + 1,
+                        start_column: 1,
+                        end_line: i + 1,
+                        end_column: line.len().max(1),
+                    },
+                    message: meta.description.to_string(),
+                    rule_id: meta.code.to_string(),
+                    official_meta: Some(meta.clone()),
+                    fix_info: Some(DiagnosticFix {
+                        start_line: i + 1,
+                        start_column: 1,
+                        end_line: i + 1,
+                        end_column: line.len() + 1,
+                        replacement: format!("{}# {}", leading_spaces(line), heading_text),
+                    }),
+                });
             }
         }
         diagnostics
@@ -167,17 +177,17 @@ fn leading_spaces(line: &str) -> &str {
     &line[..count]
 }
 
-fn is_emphasis_heading(trimmed: &str, lines: &[&str], idx: usize) -> bool {
-    let is_bold = (trimmed.starts_with("**")
-        && trimmed.ends_with("**")
-        && trimmed.len() > MIN_BOLD_LEN)
-        || (trimmed.starts_with("__") && trimmed.ends_with("__") && trimmed.len() > MIN_BOLD_LEN);
-    if !is_bold {
-        return false;
+fn emphasis_heading_text<'a>(trimmed: &'a str, lines: &[&str], idx: usize) -> Option<&'a str> {
+    let heading_text = ["**", "__", "*", "_"].into_iter().find_map(|marker| {
+        let text = trimmed.strip_prefix(marker)?.strip_suffix(marker)?;
+        (!text.is_empty()).then_some(text)
+    })?;
+    if heading_text.trim().is_empty() {
+        return None;
     }
     let blank_before = idx == 0 || lines[idx - 1].trim().is_empty();
     let blank_after = idx + 1 >= lines.len() || lines[idx + 1].trim().is_empty();
-    blank_before && blank_after
+    (blank_before && blank_after).then_some(heading_text)
 }
 
 fn is_horizontal_rule(trimmed: &str) -> bool {
@@ -241,5 +251,24 @@ mod tests {
         let results = lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|result| result.rule_id != "MD035"));
+    }
+
+    #[test]
+    fn md036_exposes_unsafe_heading_fix_without_default_application() {
+        let content = "**Important**\n\nText\n";
+        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let md036 = results
+            .iter()
+            .find(|result| result.rule_id == "MD036")
+            .expect("MD036 diagnostic exists");
+
+        assert_eq!(
+            md036.fix.as_ref().map(|fix| fix.safety),
+            Some(crate::FixSafety::Unsafe)
+        );
+        let safe_fixed = fix_with_results(content, &results);
+        assert_eq!(safe_fixed.content, content);
+        let unsafe_fixed = crate::fix_with_results_including_unsafe(content, &results);
+        assert_eq!(unsafe_fixed.content, "# Important\n\nText\n");
     }
 }

@@ -238,6 +238,11 @@ impl Diagnostic {
                 end_line: fix.range.end_line,
                 end_column: fix.range.end_column,
                 replacement: fix.replacement,
+                safety: match fix.safety {
+                    katana_markdown_linter::FixSafety::Safe => "safe",
+                    katana_markdown_linter::FixSafety::Unsafe => "unsafe",
+                }
+                .to_string(),
             }),
         }
     }
@@ -250,6 +255,7 @@ struct TextFix {
     end_line: usize,
     end_column: usize,
     replacement: String,
+    safety: String,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]

@@ -1,11 +1,14 @@
 use crate::i18n::{Locale, LocalizedDiagnostic, MessageParams};
-use crate::{fix_with_results, lint, LintOptions, MarkdownLintConfig};
+use crate::{
+    fix_with_results, fix_with_results_including_unsafe, lint, FixSafety, LintOptions,
+    MarkdownLintConfig,
+};
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
 use serde::Serialize;
 use std::env;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, BufRead, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 
@@ -49,6 +52,8 @@ pub struct Cli {
     pub verbose: bool,
     pub diff: bool,
     pub locale: Option<String>,
+    pub unsafe_fixes: bool,
+    pub yes: bool,
 }
 
 impl Default for Cli {
@@ -69,6 +74,8 @@ impl Default for Cli {
             verbose: false,
             diff: false,
             locale: None,
+            unsafe_fixes: false,
+            yes: false,
         }
     }
 }
@@ -132,6 +139,17 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
         }
     };
 
+    let unsafe_policy = if fix_mode {
+        resolve_unsafe_fix_policy(cli, &files, locale)?
+    } else {
+        UnsafeFixPolicy::default()
+    };
+    if unsafe_policy.declined {
+        report.summary.unsafe_fix_status = Some("confirmation_declined".to_string());
+        output_report(&report, fix_mode, cli, locale)?;
+        return Ok(1);
+    }
+
     for path in files {
         let content = match fs::read_to_string(&path) {
             Ok(content) => content,
@@ -172,7 +190,12 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
                 content: fixed_content,
                 diagnostics,
                 applied_fixes,
-            } = apply_fixes_until_stable(&content, results, &options)?;
+            } = apply_fixes_until_stable(
+                &content,
+                results,
+                &options,
+                unsafe_policy.include_unsafe,
+            )?;
             let changed = fixed_content != content;
             if changed {
                 if cli.diff {
@@ -235,8 +258,14 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
     };
     let options = config.to_lint_options();
     if fix_mode {
+        if cli.unsafe_fixes && !cli.yes {
+            return Err(
+                "unsafe fixes with --stdin require --yes because stdin is used for content"
+                    .to_string(),
+            );
+        }
         let results = lint(&content, &options).map_err(|err| err.to_string())?;
-        let fixed = apply_fixes_until_stable(&content, results, &options)?;
+        let fixed = apply_fixes_until_stable(&content, results, &options, cli.unsafe_fixes)?;
         if cli.diff {
             print_diff(Path::new("<stdin>"), &content, &fixed.content);
         } else {
@@ -285,10 +314,162 @@ struct FixedContent {
     applied_fixes: usize,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+struct UnsafeFixPolicy {
+    include_unsafe: bool,
+    declined: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct UnsafeFixCandidateSummary {
+    path: String,
+    rule_id: String,
+    count: usize,
+}
+
+fn resolve_unsafe_fix_policy(
+    cli: &Cli,
+    files: &[PathBuf],
+    locale: Locale,
+) -> Result<UnsafeFixPolicy, String> {
+    if !cli.unsafe_fixes {
+        return Ok(UnsafeFixPolicy::default());
+    }
+    let candidates = collect_unsafe_fix_candidates(files, cli)?;
+    if candidates.is_empty() {
+        // Do not broaden later fix passes unless the initial diagnostic set exposed an unsafe
+        // candidate that the user could review before any write.
+        return Ok(UnsafeFixPolicy {
+            include_unsafe: false,
+            declined: false,
+        });
+    }
+    let mut stderr = io::stderr();
+    write_unsafe_fix_summary(&mut stderr, &candidates, locale)?;
+    if cli.yes {
+        writeln!(stderr, "Unsafe fixes approved by --yes.").map_err(|err| err.to_string())?;
+        return Ok(UnsafeFixPolicy {
+            include_unsafe: true,
+            declined: false,
+        });
+    }
+    if !io::stdin().is_terminal() {
+        return Err("unsafe fixes require --yes in non-interactive mode".to_string());
+    }
+
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
+    let approved = prompt_unsafe_confirmation(&mut stdin, &mut stderr)?;
+    if approved {
+        writeln!(stderr, "Unsafe fixes approved.").map_err(|err| err.to_string())?;
+    } else {
+        writeln!(stderr, "Unsafe fixes declined; no files changed.")
+            .map_err(|err| err.to_string())?;
+    }
+    Ok(UnsafeFixPolicy {
+        include_unsafe: approved,
+        declined: !approved,
+    })
+}
+
+fn collect_unsafe_fix_candidates(
+    files: &[PathBuf],
+    cli: &Cli,
+) -> Result<Vec<UnsafeFixCandidateSummary>, String> {
+    let mut summaries = Vec::new();
+    for path in files {
+        let content = match fs::read_to_string(path) {
+            Ok(content) => content,
+            Err(_) => continue,
+        };
+        let config = match load_effective_config(path, cli.config.as_deref()) {
+            Ok(config) => config,
+            Err(_) => continue,
+        };
+        if !config.validate_cached_rules().is_empty() {
+            continue;
+        }
+        let options = config.to_lint_options();
+        let diagnostics = lint(&content, &options).map_err(|err| err.to_string())?;
+        let mut by_rule = std::collections::BTreeMap::<String, usize>::new();
+        for diagnostic in diagnostics {
+            if diagnostic
+                .fix
+                .as_ref()
+                .is_some_and(|fix| fix.safety == FixSafety::Unsafe)
+            {
+                *by_rule.entry(diagnostic.rule_id).or_default() += 1;
+            }
+        }
+        summaries.extend(
+            by_rule
+                .into_iter()
+                .map(|(rule_id, count)| UnsafeFixCandidateSummary {
+                    path: path.display().to_string(),
+                    rule_id,
+                    count,
+                }),
+        );
+    }
+    Ok(summaries)
+}
+
+fn write_unsafe_fix_summary(
+    mut writer: impl Write,
+    candidates: &[UnsafeFixCandidateSummary],
+    _locale: Locale,
+) -> Result<(), String> {
+    let total = candidates
+        .iter()
+        .map(|candidate| candidate.count)
+        .sum::<usize>();
+    writeln!(
+        writer,
+        "Unsafe fixes requested: {total} candidate{}",
+        plural(total)
+    )
+    .map_err(|err| err.to_string())?;
+    for candidate in candidates {
+        writeln!(
+            writer,
+            "- {} {}: {} candidate{}",
+            candidate.path,
+            candidate.rule_id,
+            candidate.count,
+            plural(candidate.count)
+        )
+        .map_err(|err| err.to_string())?;
+    }
+    Ok(())
+}
+
+fn prompt_unsafe_confirmation(
+    reader: &mut impl BufRead,
+    writer: &mut impl Write,
+) -> Result<bool, String> {
+    write!(writer, "Apply unsafe fixes? [Y/n] ").map_err(|err| err.to_string())?;
+    writer.flush().map_err(|err| err.to_string())?;
+
+    let mut answer = String::new();
+    match reader
+        .read_line(&mut answer)
+        .map_err(|err| err.to_string())?
+    {
+        0 => Ok(false),
+        _ => {
+            let answer = answer.trim();
+            Ok(answer.is_empty()
+                || answer.eq_ignore_ascii_case("y")
+                || answer.eq_ignore_ascii_case("yes"))
+        }
+    }
+}
+
 fn apply_fixes_until_stable(
     content: &str,
     initial_results: Vec<crate::LintResult>,
     options: &LintOptions,
+    include_unsafe: bool,
 ) -> Result<FixedContent, String> {
     const MAX_FIX_PASSES: usize = 8;
 
@@ -299,12 +480,16 @@ fn apply_fixes_until_stable(
     for _ in 0..MAX_FIX_PASSES {
         if !diagnostics
             .iter()
-            .any(|diagnostic| diagnostic.fix.is_some())
+            .any(|diagnostic| is_applicable_fix(diagnostic, include_unsafe))
         {
             break;
         }
 
-        let fixed = fix_with_results(&content, &diagnostics);
+        let fixed = if include_unsafe {
+            fix_with_results_including_unsafe(&content, &diagnostics)
+        } else {
+            fix_with_results(&content, &diagnostics)
+        };
         if fixed.applied_fixes == 0 || fixed.content == content {
             break;
         }
@@ -319,6 +504,13 @@ fn apply_fixes_until_stable(
         diagnostics,
         applied_fixes,
     })
+}
+
+fn is_applicable_fix(diagnostic: &crate::LintResult, include_unsafe: bool) -> bool {
+    diagnostic
+        .fix
+        .as_ref()
+        .is_some_and(|fix| include_unsafe || fix.safety == FixSafety::Safe)
 }
 
 fn run_rule(rule_id: Option<&str>, format: OutputFormat, locale: Locale) -> Result<i32, String> {
@@ -530,15 +722,25 @@ fn render_text_report(report: &CliReport, fix_mode: bool, cli: &Cli, locale: Loc
             report.summary.fixable_issues.to_string(),
         );
         params.insert(
+            "safe_fixable".to_string(),
+            report.summary.safe_fixable_issues.to_string(),
+        );
+        params.insert(
+            "unsafe_fixable".to_string(),
+            report.summary.unsafe_fixable_issues.to_string(),
+        );
+        params.insert(
             "fixed".to_string(),
             report.summary.applied_fixes.to_string(),
         );
         let fallback = format!(
-            "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
+            "files: {}, files_with_issues: {}, issues: {}, fixable: {}, safe_fixable: {}, unsafe_fixable: {}, fixed: {}",
             report.summary.total_files,
             report.summary.files_with_issues,
             report.summary.total_issues,
             report.summary.fixable_issues,
+            report.summary.safe_fixable_issues,
+            report.summary.unsafe_fixable_issues,
             report.summary.applied_fixes
         );
         output.push_str(&crate::i18n::render_message(
@@ -599,9 +801,34 @@ impl CliReport {
                 .iter()
                 .filter(|diagnostic| diagnostic.fix.is_some())
                 .count();
+            summary.safe_fixable_issues += file
+                .diagnostics
+                .iter()
+                .filter(|diagnostic| {
+                    diagnostic
+                        .fix
+                        .as_ref()
+                        .is_some_and(|fix| fix.safety == FixSafety::Safe)
+                })
+                .count();
+            summary.unsafe_fixable_issues += file
+                .diagnostics
+                .iter()
+                .filter(|diagnostic| {
+                    diagnostic
+                        .fix
+                        .as_ref()
+                        .is_some_and(|fix| fix.safety == FixSafety::Unsafe)
+                })
+                .count();
             summary.applied_fixes += file.applied_fixes;
         }
 
+        if summary.unsafe_fixable_issues > 0 {
+            summary
+                .unsafe_fix_status
+                .get_or_insert_with(|| "unsafe_mode_not_enabled".to_string());
+        }
         self.summary = summary;
     }
 }
@@ -612,7 +839,10 @@ struct CliSummary {
     files_with_issues: usize,
     total_issues: usize,
     fixable_issues: usize,
+    safe_fixable_issues: usize,
+    unsafe_fixable_issues: usize,
     applied_fixes: usize,
+    unsafe_fix_status: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -972,6 +1202,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
     let mut verbose = false;
     let mut diff = false;
     let mut locale = None;
+    let mut unsafe_fixes = false;
+    let mut yes = false;
     let mut iter = args.into_iter().peekable();
 
     while let Some(arg) = iter.next() {
@@ -1046,6 +1278,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             "--quiet" => quiet = true,
             "--verbose" => verbose = true,
             "--diff" => diff = true,
+            "--unsafe" => unsafe_fixes = true,
+            "--yes" | "-y" => yes = true,
             other if other.starts_with('-') => {}
             other => inputs.push(other.to_string()),
         }
@@ -1067,6 +1301,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
         verbose,
         diff,
         locale,
+        unsafe_fixes,
+        yes,
     }
 }
 
@@ -1130,6 +1366,15 @@ mod tests {
         assert!(check_fix.verbose);
         assert!(check_fix.diff);
         assert!(check_fix.stdin);
+
+        let unsafe_fix = parse_args(vec![
+            "fix".to_string(),
+            "--unsafe".to_string(),
+            "--yes".to_string(),
+        ]);
+        assert_eq!(unsafe_fix.command, Command::Fix);
+        assert!(unsafe_fix.unsafe_fixes);
+        assert!(unsafe_fix.yes);
 
         assert_eq!(parse_args(vec!["fmt".to_string()]).command, Command::Fmt);
         assert_eq!(
@@ -1343,7 +1588,16 @@ mod tests {
                     column: 1,
                     end_line: 1,
                     end_column: 6,
-                    fix: None,
+                    fix: Some(crate::Fix {
+                        range: crate::Range {
+                            start_line: 1,
+                            start_column: 1,
+                            end_line: 1,
+                            end_column: 6,
+                        },
+                        replacement: "# Heading".to_string(),
+                        safety: crate::FixSafety::Unsafe,
+                    }),
                 }],
                 applied_fixes: 0,
                 changed: false,
@@ -1425,7 +1679,16 @@ mod tests {
                     column: 1,
                     end_line: 1,
                     end_column: 6,
-                    fix: None,
+                    fix: Some(crate::Fix {
+                        range: crate::Range {
+                            start_line: 1,
+                            start_column: 1,
+                            end_line: 1,
+                            end_column: 6,
+                        },
+                        replacement: "# Heading".to_string(),
+                        safety: crate::FixSafety::Unsafe,
+                    }),
                 }],
                 applied_fixes: 0,
                 changed: false,
@@ -1449,6 +1712,15 @@ mod tests {
             .as_str()
             .expect("message should be string")
             .contains("ATX 見出し"));
+        assert_eq!(
+            json["files"][0]["diagnostics"][0]["fix"]["safety"],
+            "unsafe"
+        );
+        assert_eq!(json["summary"]["unsafe_fixable_issues"], 1);
+        assert_eq!(
+            json["summary"]["unsafe_fix_status"],
+            "unsafe_mode_not_enabled"
+        );
     }
 
     #[test]
@@ -1593,6 +1865,109 @@ mod tests {
             "# Title\n"
         );
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn default_fix_does_not_apply_unsafe_candidates() {
+        let dir = test_dir("unsafe-default");
+        fs::create_dir_all(&dir).expect("test dir should be created");
+        let file = dir.join("bad.md");
+        let config = dir.join(".markdownlint.json");
+        fs::write(&file, "**Important**\n\nText\n").expect("test file should be written");
+        fs::write(&config, "{ \"default\": false, \"MD036\": true }\n")
+            .expect("config should be written");
+
+        let exit = run(Cli {
+            command: Command::Fix,
+            config: Some(config),
+            inputs: vec![file.display().to_string()],
+            ..Cli::default()
+        })
+        .expect("fix should run");
+
+        assert_eq!(exit, 1);
+        assert_eq!(
+            fs::read_to_string(&file).expect("file should be readable"),
+            "**Important**\n\nText\n"
+        );
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn unsafe_fix_requires_yes_in_non_interactive_mode() {
+        let dir = test_dir("unsafe-needs-yes");
+        fs::create_dir_all(&dir).expect("test dir should be created");
+        let file = dir.join("bad.md");
+        let config = dir.join(".markdownlint.json");
+        fs::write(&file, "**Important**\n\nText\n").expect("test file should be written");
+        fs::write(&config, "{ \"default\": false, \"MD036\": true }\n")
+            .expect("config should be written");
+
+        let result = run(Cli {
+            command: Command::Fix,
+            config: Some(config),
+            inputs: vec![file.display().to_string()],
+            unsafe_fixes: true,
+            ..Cli::default()
+        });
+
+        assert!(result
+            .expect_err("unsafe non-interactive run should fail")
+            .contains("--yes"));
+        assert_eq!(
+            fs::read_to_string(&file).expect("file should be readable"),
+            "**Important**\n\nText\n"
+        );
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn unsafe_yes_applies_unsafe_fix() {
+        let dir = test_dir("unsafe-yes");
+        fs::create_dir_all(&dir).expect("test dir should be created");
+        let file = dir.join("bad.md");
+        let config = dir.join(".markdownlint.json");
+        fs::write(&file, "**Important**\n\nText\n").expect("test file should be written");
+        fs::write(&config, "{ \"default\": false, \"MD036\": true }\n")
+            .expect("config should be written");
+
+        let exit = run(Cli {
+            command: Command::Fix,
+            config: Some(config),
+            inputs: vec![file.display().to_string()],
+            unsafe_fixes: true,
+            yes: true,
+            ..Cli::default()
+        })
+        .expect("unsafe fix should run with --yes");
+
+        assert_eq!(exit, 0);
+        assert_eq!(
+            fs::read_to_string(&file).expect("file should be readable"),
+            "# Important\n\nText\n"
+        );
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn unsafe_confirmation_accepts_only_explicit_yes() {
+        let mut yes = std::io::Cursor::new(b"Y".to_vec());
+        let mut output = Vec::new();
+        assert!(prompt_unsafe_confirmation(&mut yes, &mut output).expect("prompt should run"));
+
+        let mut default_yes = std::io::Cursor::new(b"\n".to_vec());
+        let mut output = Vec::new();
+        assert!(
+            prompt_unsafe_confirmation(&mut default_yes, &mut output).expect("prompt should run")
+        );
+
+        let mut no = std::io::Cursor::new(b"n".to_vec());
+        let mut output = Vec::new();
+        assert!(!prompt_unsafe_confirmation(&mut no, &mut output).expect("prompt should run"));
+
+        let mut eof = std::io::Cursor::new(Vec::<u8>::new());
+        let mut output = Vec::new();
+        assert!(!prompt_unsafe_confirmation(&mut eof, &mut output).expect("prompt should run"));
     }
 
     #[test]

@@ -21,6 +21,15 @@ pub struct Range {
 pub struct Fix {
     pub range: Range,
     pub replacement: String,
+    pub safety: FixSafety,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FixSafety {
+    #[default]
+    Safe,
+    Unsafe,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
