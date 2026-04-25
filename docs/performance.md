@@ -163,3 +163,36 @@ fix convergence over a diagnostics-heavy synthetic corpus that now applies 4200
 fixes per measured operation. `fix::apply` now builds the edited output in one
 linear pass after overlap resolution, but reducing multi-pass convergence cost
 requires a separate fix-planning change.
+
+## v0.7.0 Fix Range Snapshot
+
+`v0-7-0-performance-hotpath` removes repeated full-document scans from
+`fix::apply`. The fix pipeline already had all diagnostics as line/column
+ranges; applying them used to convert each range back to a byte range by
+rescanning the content. The new implementation builds one line-start index per
+apply call and reuses it for every candidate fix.
+
+Short local snapshot with `PERF_ITERATIONS=10 PERF_SAMPLES=3`:
+
+| Case | Before | After |
+| --- | ---: | ---: |
+| `api_fix_large_document` | 211.807 ms | 21.271 ms |
+
+Full local baseline after the change:
+
+| Case | Median |
+| --- | ---: |
+| `api_lint_large_document` | 9.760 ms |
+| `api_lint_clean_large_document` | 6.286 ms |
+| `api_fix_large_document` | 18.684 ms |
+| `api_lint_many_small_documents` | 2.287 ms |
+| `context_build_large_document` | 0.074 ms |
+| `context_heading_index_large_document` | 1.029 ms |
+| `context_table_index_large_document` | 1.065 ms |
+| `cli_check_many_small_files` | 9.479 ms |
+| `config_validate_representative` | 0.035 ms |
+| `api_rule_catalog` | 0.012 ms |
+
+The optimization is internal and preserves the public fix contract, including
+multi-line ranges, virtual EOF positions, UTF-8 boundary clamping, and overlap
+resolution.

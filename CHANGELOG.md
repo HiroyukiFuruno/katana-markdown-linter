@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.0
+
+- Optimizes safe fix application by replacing repeated full-document range scans with a per-apply line offset index.
+- Preserves multi-line fix ranges, virtual EOF insertion, UTF-8 boundary clamping, and overlap resolution behavior.
+- Refreshes performance baselines and documents the v0.7.0 fix range snapshot.
+- Reorganizes the roadmap so linter precision and safe fix coverage come before unsafe fix mode, formatter productization, and tool distribution expansion.
+- Adds OpenSpec planning for safe fix coverage, formatter productization, and rumdl-inspired distribution/editor expansion.
+
 ## v0.6.0
 
 - Promotes i18n to a library, CLI, and MCP product surface while keeping English and Japanese as the supported locale set.

@@ -2,12 +2,14 @@ use crate::types::{FixResult, LintResult};
 
 pub fn apply(results: &[LintResult], content: &str) -> FixResult {
     let mut applied_fixes = 0;
+    let line_index = LineOffsetIndex::new(content);
     let mut edits = results
         .iter()
         .filter_map(|result| {
             let fix = result.fix.as_ref()?;
-            let start = offset_for_position(content, fix.range.start_line, fix.range.start_column)?;
-            let end = offset_for_position(content, fix.range.end_line, fix.range.end_column)?;
+            let start =
+                line_index.offset_for_position(fix.range.start_line, fix.range.start_column)?;
+            let end = line_index.offset_for_position(fix.range.end_line, fix.range.end_column)?;
             if start > end {
                 return None;
             }
@@ -44,33 +46,57 @@ pub fn apply(results: &[LintResult], content: &str) -> FixResult {
     }
 }
 
-fn offset_for_position(content: &str, line: usize, column: usize) -> Option<usize> {
-    if line == 0 || column == 0 {
-        return None;
+struct LineOffsetIndex<'a> {
+    content: &'a str,
+    line_starts: Vec<usize>,
+}
+
+impl<'a> LineOffsetIndex<'a> {
+    fn new(content: &'a str) -> Self {
+        let mut line_starts = Vec::with_capacity(
+            content
+                .as_bytes()
+                .iter()
+                .filter(|byte| **byte == b'\n')
+                .count()
+                + 1,
+        );
+        line_starts.push(0);
+        for (index, byte) in content.bytes().enumerate() {
+            if byte == b'\n' {
+                line_starts.push(index + 1);
+            }
+        }
+        Self {
+            content,
+            line_starts,
+        }
     }
 
-    let mut current_line = 1;
-    let mut line_start = 0;
-    for (index, byte) in content.bytes().enumerate() {
-        if current_line == line {
-            break;
+    fn offset_for_position(&self, line: usize, column: usize) -> Option<usize> {
+        if line == 0 || column == 0 {
+            return None;
         }
-        if byte == b'\n' {
-            current_line += 1;
-            line_start = index + 1;
-        }
-    }
 
-    if current_line != line {
-        return if current_line + 1 == line && column == 1 {
-            Some(content.len())
+        let line_start = if let Some(line_start) = self.line_starts.get(line - 1) {
+            *line_start
+        } else if line == self.line_starts.len() + 1 && column == 1 {
+            return Some(self.content.len());
         } else {
-            None
+            return None;
         };
-    }
 
-    let raw = line_start.saturating_add(column.saturating_sub(1));
-    Some(previous_char_boundary(content, raw.min(content.len())))
+        let raw = line_start.saturating_add(column.saturating_sub(1));
+        Some(previous_char_boundary(
+            self.content,
+            raw.min(self.content.len()),
+        ))
+    }
+}
+
+#[cfg(test)]
+fn offset_for_position(content: &str, line: usize, column: usize) -> Option<usize> {
+    LineOffsetIndex::new(content).offset_for_position(line, column)
 }
 
 fn previous_char_boundary(content: &str, mut offset: usize) -> usize {
@@ -161,7 +187,20 @@ mod tests {
     #[test]
     fn offset_supports_virtual_eof_and_unicode_boundaries() {
         assert_eq!(offset_for_position("a", 2, 1), Some(1));
+        assert_eq!(offset_for_position("a\n", 2, 1), Some(2));
+        assert_eq!(offset_for_position("a\n", 3, 1), Some(2));
         assert_eq!(offset_for_position("é", 1, 2), Some(0));
         assert_eq!(offset_for_position("a", 3, 1), None);
+    }
+
+    #[test]
+    fn offset_index_handles_multi_line_ranges_without_rescanning() {
+        let content = "alpha\nbeta\ngamma\n";
+        assert_eq!(offset_for_position(content, 1, 1), Some(0));
+        assert_eq!(offset_for_position(content, 2, 1), Some(6));
+        assert_eq!(offset_for_position(content, 3, 3), Some(13));
+        assert_eq!(offset_for_position(content, 4, 1), Some(content.len()));
+        assert_eq!(offset_for_position(content, 5, 1), Some(content.len()));
+        assert_eq!(offset_for_position(content, 6, 1), None);
     }
 }
