@@ -243,36 +243,40 @@ Quality gate details, CI required checks, coverage modes, and release readiness 
 Distribution channel status and deferral notes are documented in
 [`docs/distribution.md`](docs/distribution.md).
 
-MCP integration has been evaluated separately in
-[`docs/mcp-integration-evaluation.md`](docs/mcp-integration-evaluation.md).
-The current recommendation is an optional `kml-mcp` prototype that keeps the
-core crate independent from MCP dependencies.
-
 ## MCP Server
 
-`kml-mcp` is an optional, experimental MCP server for agents and editors that
-want to call the library without shelling out to `kml`.
+`kml-mcp` is an optional MCP server for agents and editors that want structured
+library access over stdio while keeping the core crate independent from MCP
+dependencies.
 
-Build or run it with the `mcp` feature:
+Build or install it with the `mcp` feature:
 
 ~~~bash
 cargo build --bin kml-mcp --features mcp --locked
-cargo run --bin kml-mcp --features mcp --locked
+cargo install katana-markdown-linter --locked --features mcp --bin kml-mcp
 ~~~
 
-The prototype exposes read-only, text-first tools:
+The server exposes text, config, rule metadata, and workspace-safe file tools:
 
 - `check_text`
 - `fix_text`
 - `config_validate`
 - `rule_list`
 - `rule_get`
+- `check_file`
+- `check_directory`
+- `fix_file_preview`
+- `fix_file_apply`
 
-`fix_text` returns fixed content only; it does not write files. File read/write
-MCP tools are intentionally absent until workspace allowlist and dry-run
-policies are implemented.
+Workspace paths must stay under the configured `--workspace-root`. File writes
+are limited to `fix_file_apply` and require `apply: true`; no directory apply
+tool is exposed.
 
-See [MCP server documentation](docs/mcp-server.md).
+Run `make mcp-stdio-smoke` to exercise the installed MCP server through
+JSON-RPC stdio calls.
+
+See [MCP server documentation](docs/mcp-server.md) and the earlier
+[MCP integration evaluation](docs/mcp-integration-evaluation.md).
 
 ## Release Policy
 

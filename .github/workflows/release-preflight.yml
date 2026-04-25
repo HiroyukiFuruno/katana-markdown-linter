@@ -32,6 +32,9 @@ jobs:
       - name: MCP build
         run: make mcp-build
 
+      - name: MCP stdio smoke
+        run: make mcp-stdio-smoke
+
       - name: Action smoke
         run: make action-smoke
 

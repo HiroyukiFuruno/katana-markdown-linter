@@ -25,6 +25,7 @@ CROSS_TOOL_RUNS ?= 5
 CROSS_TOOL_WARMUP ?= 1
 CROSS_TOOL_ARGS ?=
 ACTION_SMOKE_DIR ?= target/action-smoke
+MCP_INSTALL_SMOKE_DIR ?= target/mcp-install-smoke
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -172,12 +173,21 @@ mcp-build: ## Build optional experimental MCP server
 mcp-test: ## Run optional experimental MCP server tests
 	cargo test --features mcp --bin kml-mcp --locked
 
+.PHONY: mcp-install-smoke
+mcp-install-smoke: ## Install optional MCP server binary into a local smoke-test root
+	cargo install --path . --locked --features mcp --bin kml-mcp --root "$(MCP_INSTALL_SMOKE_DIR)" --force
+	test -x "$(MCP_INSTALL_SMOKE_DIR)/bin/kml-mcp"
+
+.PHONY: mcp-stdio-smoke
+mcp-stdio-smoke: mcp-install-smoke ## Exercise kml-mcp through MCP stdio JSON-RPC
+	python3 scripts/ci/mcp-stdio-smoke.py --bin "$(MCP_INSTALL_SMOKE_DIR)/bin/kml-mcp"
+
 .PHONY: release-test
 release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml

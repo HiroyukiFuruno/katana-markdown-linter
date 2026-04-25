@@ -96,6 +96,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: make action-smoke
 
+      - name: Run MCP stdio smoke
+        if: matrix.os == 'ubuntu-latest'
+        run: make mcp-stdio-smoke
+
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'
         continue-on-error: true

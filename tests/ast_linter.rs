@@ -238,7 +238,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build action-smoke"),
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke action-smoke"),
         ("Makefile", &makefile, "release-test:"),
         ("Makefile", &makefile, "cargo test --all-features --locked"),
         ("Makefile", &makefile, "scripts/release/assert-crate-not-published.sh"),
