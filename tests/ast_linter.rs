@@ -358,7 +358,7 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         let safe_fix = rule_map_safe_fix_status(rules, rule.id.as_str());
         let unsafe_fix = rule_map_unsafe_fix_status(rules, rule.id.as_str());
         let row = format!(
-            "| `{}` | Supported | {} | {} |",
+            "| `{}` | Implemented | {} | {} |",
             rule.id, safe_fix, unsafe_fix
         );
         if !readme.contains(&row) {
@@ -393,9 +393,9 @@ fn rule_map_safe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
         .is_some_and(|fixes| !fixes.is_empty());
 
     if has_safe_fix {
-        "Partial"
+        "Implemented subset"
     } else {
-        "Not implemented"
+        "Diagnostic only"
     }
 }
 
@@ -408,11 +408,11 @@ fn rule_map_unsafe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
         .is_some_and(|fixes| !fixes.is_empty());
 
     if has_unsafe_fix {
-        "Partial"
-    } else if rule_id == "MD060" {
-        "Not implemented"
+        "Implemented subset"
+    } else if rule_map_safe_fix_status(rules, rule_id) == "Implemented subset" {
+        "Not applicable"
     } else {
-        "Not planned"
+        "Needs triage"
     }
 }
 
