@@ -21,7 +21,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Source-preserving document context for `v0.5.0` | `source-preserving-document-context` | Completed for `v0.5.0`; `DocumentContext` now shares source-preserving structure across migrated rule families. |
 | Done | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Completed for `v0.6.0`; Rust API, CLI rule/config output, MCP metadata, and translation coverage gates now share stable localized metadata. |
 | Done | Performance hot path for `v0.7.0` | `v0-7-0-performance-hotpath` | Completed for `v0.7.0`; fix range application now uses a per-apply line offset index and the release is published. |
-| P1 | Linter precision and safe fix expansion for `v0.8.0` | `safe-fix-coverage-continuous-expansion` | Continuously raise check accuracy and safe fix coverage for currently diagnostic-only rules before introducing formatter semantics. |
+| Done | Linter precision and safe fix expansion for `v0.8.0` | `safe-fix-coverage-continuous-expansion` | Completed for `v0.8.0`; `MD035` and `MD055` safe fixes are fixture/golden locked and the release is published. |
 | P2 | Unsafe fix mode for `v0.9.0` | `unsafe-fix-mode-and-confirmation` | Unsafe fix requires explicit user opt-in, CLI confirmation, and automation guardrails. |
 | P2 | Formatter productization for `v0.10.0` | `formatter-productization` | Separate formatter semantics from lint-driven safe fixes after linter precision is stronger. |
 | P3 | Tool distribution and editor expansion for `v0.11.0` | `tool-distribution-and-editor-expansion` | Use rumdl as a reference for distribution, pre-commit, GitHub Action, schema, and editor workflows without copying implementation. |
@@ -36,15 +36,15 @@ Archived completed changes:
 - `performance-hotpath-competition` -> `openspec/changes/archive/2026-04-25-performance-hotpath-competition`
 - `v0-6-0-i18n-expansion-draft` -> `openspec/changes/archive/2026-04-25-v0-6-0-i18n-expansion-draft`
 - `v0-7-0-performance-hotpath` -> `openspec/changes/archive/2026-04-25-v0-7-0-performance-hotpath`
+- `safe-fix-coverage-continuous-expansion` -> `openspec/changes/archive/2026-04-25-safe-fix-coverage-continuous-expansion`
 
 ## Suggested Order
 
-1. Apply `safe-fix-coverage-continuous-expansion` for `v0.8.0`.
-2. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
-3. Apply `formatter-productization` for `v0.10.0`.
-4. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
-5. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-6. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
+2. Apply `formatter-productization` for `v0.10.0`.
+3. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
+4. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
+5. Use `source-preserving-document-context` as the baseline for later structural fix work.
 
 ## Repository Guardrails
 
