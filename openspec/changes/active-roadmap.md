@@ -20,7 +20,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Table strategy for `v0.5.0` | `v0-5-0-table-strategy-md060` | Completed for `v0.5.0`; `MD060` now has table-block parsing, official style checks, and safe fix subsets. |
 | Done | Source-preserving document context for `v0.5.0` | `source-preserving-document-context` | Completed for `v0.5.0`; `DocumentContext` now shares source-preserving structure across migrated rule families. |
 | Done | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Completed for `v0.6.0`; Rust API, CLI rule/config output, MCP metadata, and translation coverage gates now share stable localized metadata. |
-| P0 | Performance hot path for `v0.7.0` | `v0-7-0-performance-hotpath` | Active; optimize measured fix/lint hot paths before expanding broader product contracts. |
+| Done | Performance hot path for `v0.7.0` | `v0-7-0-performance-hotpath` | Completed for `v0.7.0`; fix range application now uses a per-apply line offset index and the release is published. |
 | P1 | Linter precision and safe fix expansion for `v0.8.0` | `safe-fix-coverage-continuous-expansion` | Continuously raise check accuracy and safe fix coverage for currently diagnostic-only rules before introducing formatter semantics. |
 | P2 | Unsafe fix mode for `v0.9.0` | `unsafe-fix-mode-and-confirmation` | Unsafe fix requires explicit user opt-in, CLI confirmation, and automation guardrails. |
 | P2 | Formatter productization for `v0.10.0` | `formatter-productization` | Separate formatter semantics from lint-driven safe fixes after linter precision is stronger. |
@@ -35,16 +35,16 @@ Archived completed changes:
 - `v0-5-0-table-strategy-md060` -> `openspec/changes/archive/2026-04-25-v0-5-0-table-strategy-md060`
 - `performance-hotpath-competition` -> `openspec/changes/archive/2026-04-25-performance-hotpath-competition`
 - `v0-6-0-i18n-expansion-draft` -> `openspec/changes/archive/2026-04-25-v0-6-0-i18n-expansion-draft`
+- `v0-7-0-performance-hotpath` -> `openspec/changes/archive/2026-04-25-v0-7-0-performance-hotpath`
 
 ## Suggested Order
 
-1. Complete `v0-7-0-performance-hotpath` before adding unsafe fix mode.
-2. Apply `safe-fix-coverage-continuous-expansion` for `v0.8.0`.
-3. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
-4. Apply `formatter-productization` for `v0.10.0`.
-5. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
-6. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-7. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `safe-fix-coverage-continuous-expansion` for `v0.8.0`.
+2. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
+3. Apply `formatter-productization` for `v0.10.0`.
+4. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
+5. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
+6. Use `source-preserving-document-context` as the baseline for later structural fix work.
 
 ## Repository Guardrails
 
