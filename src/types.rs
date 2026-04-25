@@ -64,3 +64,9 @@ pub struct RuleMeta {
     pub docs_url: String,
     pub fixable: bool,
 }
+
+impl RuleMeta {
+    pub fn localized_description(&self, language_code: &str) -> String {
+        crate::i18n::localized_rule_description(&self.id, &self.description, language_code)
+    }
+}

@@ -11,6 +11,10 @@ pub mod types;
 pub mod upstream;
 
 pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
+pub use i18n::{
+    localized_rule_description, resolve_locale_code, resolve_locale_code_or, Locale, LocaleError,
+    LocalizedDiagnostic,
+};
 pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};
 
 use std::path::Path;
@@ -209,6 +213,20 @@ mod tests {
         sorted.sort();
         sorted.dedup();
         assert_eq!(ids, sorted);
+    }
+
+    #[test]
+    fn rule_meta_exposes_localized_description_helper() {
+        let rule = available_rules()
+            .into_iter()
+            .find(|rule| rule.id == "MD003")
+            .expect("MD003 should be in public catalog");
+
+        assert_eq!(
+            rule.localized_description("ja-JP"),
+            "見出しのスタイルを統一してください"
+        );
+        assert_eq!(resolve_locale_code_or("fr", Locale::Ja), Locale::Ja);
     }
 
     #[test]

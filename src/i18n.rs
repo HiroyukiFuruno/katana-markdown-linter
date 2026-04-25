@@ -49,6 +49,14 @@ impl Locale {
             _ => None,
         }
     }
+
+    pub fn resolve_code(value: &str) -> Self {
+        Self::resolve_code_or(value, Self::En)
+    }
+
+    pub fn resolve_code_or(value: &str, fallback: Self) -> Self {
+        Self::parse(value).unwrap_or(fallback)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -100,6 +108,31 @@ impl LocalizedDiagnostic {
             fix: localized.fix,
         }
     }
+}
+
+pub fn resolve_locale_code(language_code: &str) -> Locale {
+    Locale::resolve_code(language_code)
+}
+
+pub fn resolve_locale_code_or(language_code: &str, fallback: Locale) -> Locale {
+    Locale::resolve_code_or(language_code, fallback)
+}
+
+pub fn localized_rule_description(
+    rule_id: &str,
+    fallback_description: &str,
+    language_code: &str,
+) -> String {
+    let mut params = MessageParams::new();
+    params.insert("rule_id".to_string(), rule_id.to_string());
+    params.insert("rule_name".to_string(), String::new());
+    params.insert("message".to_string(), fallback_description.to_string());
+    render_message(
+        resolve_locale_code(language_code),
+        "rule.generic",
+        &params,
+        fallback_description,
+    )
 }
 
 pub fn diagnostic_message_id(rule_id: &str, message: &str) -> String {
@@ -271,6 +304,17 @@ mod tests {
     }
 
     #[test]
+    fn public_locale_resolvers_accept_ui_language_codes() {
+        assert_eq!(resolve_locale_code("en"), Locale::En);
+        assert_eq!(resolve_locale_code("EN_us.UTF-8"), Locale::En);
+        assert_eq!(resolve_locale_code("ja"), Locale::Ja);
+        assert_eq!(resolve_locale_code("ja-JP"), Locale::Ja);
+        assert_eq!(resolve_locale_code(""), Locale::En);
+        assert_eq!(resolve_locale_code("fr"), Locale::En);
+        assert_eq!(resolve_locale_code_or("fr", Locale::Ja), Locale::Ja);
+    }
+
+    #[test]
     fn explicit_locale_overrides_os_locale_and_unsupported_os_falls_back_to_english() {
         assert_eq!(
             Locale::resolve_with(Some("en"), |_| Some("ja_JP.UTF-8".to_string())),
@@ -309,5 +353,19 @@ mod tests {
         );
         assert_eq!(params["expected"], "h2");
         assert_eq!(params["actual"], "h4");
+    }
+
+    #[test]
+    fn localized_rule_description_uses_catalog_without_diagnostic_params() {
+        assert_eq!(
+            localized_rule_description("MD003", "Heading style should be consistent", "ja-JP"),
+            "見出しのスタイルを統一してください"
+        );
+        assert_eq!(
+            localized_rule_description("MD003", "Heading style should be consistent", "fr"),
+            "Heading style should be consistent"
+        );
+        assert!(localized_rule_description("MD999", "Custom fallback", "ja")
+            .contains("Custom fallback"));
     }
 }
