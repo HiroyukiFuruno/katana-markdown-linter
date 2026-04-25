@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1
+
+- Fixes the locale CLI option spelling by adding `--locale` as the canonical long flag.
+- Keeps `--local` as a backward-compatible alias for v0.4.0 users.
+- Updates repository dogfood and README examples to use `--locale`.
+
 ## v0.4.0
 
 - Adds localized `kml check` diagnostics with `--local` / `-l`, English and Japanese output, OS locale fallback, and stable JSON `message_id` / `message_params`.

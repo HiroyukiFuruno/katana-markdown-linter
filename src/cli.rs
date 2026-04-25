@@ -1031,7 +1031,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
                     }
                 }
             }
-            "--local" | "-l" => {
+            "--locale" | "--local" | "-l" => {
                 if let Some(value) = iter.next() {
                     locale = Some(value);
                 }
@@ -1184,17 +1184,24 @@ mod tests {
     fn parses_locale_options() {
         let long_ja = parse_args(vec![
             "check".to_string(),
-            "--local".to_string(),
+            "--locale".to_string(),
             "ja".to_string(),
         ]);
         assert_eq!(long_ja.locale.as_deref(), Some("ja"));
 
         let long_en = parse_args(vec![
             "check".to_string(),
-            "--local".to_string(),
+            "--locale".to_string(),
             "en".to_string(),
         ]);
         assert_eq!(long_en.locale.as_deref(), Some("en"));
+
+        let typo_alias = parse_args(vec![
+            "check".to_string(),
+            "--local".to_string(),
+            "ja".to_string(),
+        ]);
+        assert_eq!(typo_alias.locale.as_deref(), Some("ja"));
 
         let short_en = parse_args(vec![
             "check".to_string(),

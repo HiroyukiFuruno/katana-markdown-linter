@@ -31,7 +31,7 @@ The binary target is `kml`.
 
 ```bash
 kml check
-kml check --local en
+kml check --locale en
 kml check -l ja
 kml fix
 kml fmt
@@ -65,11 +65,12 @@ When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively pr
 
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
-`--local <locale>` and `-l <locale>` select user-facing CLI message locale.
+`--locale <locale>` and `-l <locale>` select user-facing CLI message locale.
 Supported values currently resolve to English (`en`, `en-US`) or Japanese
 (`ja`, `ja-JP`). When omitted, `kml` reads OS locale environment variables and
 falls back to English if the locale is unavailable or unsupported. Explicit
-unsupported locales fail with a CLI error.
+unsupported locales fail with a CLI error. `--local` is accepted as a
+backward-compatible alias for v0.4.0 users.
 
 ## Rule Map
 
