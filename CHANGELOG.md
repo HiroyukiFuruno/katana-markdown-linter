@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.1
+
+- Clarifies the README rule map states so implemented checks and conservative safe-fix subsets are not presented as unfinished work.
+- Replaces unsafe fix `Not planned` states with `Needs triage` or `Not applicable` to better reflect the current safety policy.
+- Updates dependency lockfile entries with `make update`.
+
 ## v0.11.0
 
 - Adds an official root GitHub Action for running `kml` in CI from release tags.

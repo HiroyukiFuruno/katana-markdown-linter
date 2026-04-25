@@ -140,82 +140,84 @@ The short version:
 
 | Capability | Status |
 | --- | --- |
-| Check coverage | `Supported` for all 53 active rules |
-| Safe fix coverage | `Partial` for 38 rules; diagnostic-only for 15 rules |
-| Unsafe fix coverage | `Partial` for 1 rule; explicit opt-in only |
+| Check coverage | `Implemented` for all 53 active rules |
+| Safe fix coverage | Safe fix available for 38 rules; diagnostic-only for 15 rules |
+| Unsafe fix coverage | Explicit opt-in unsafe subset for 1 rule; remaining rules are either not applicable or need triage |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
-Safe fixes are intentionally conservative. `Partial` means kml rewrites at least
-one fixture-locked, low-risk violation form for that rule. `Not implemented`
-means the rule is currently diagnostic-only. `Not planned` means unsafe rewriting
-is outside the default safe-fix contract. `Deleted` rows are historical
-markdownlint IDs that are not part of the active upstream rule catalog.
+Safe fixes are intentionally conservative. `Implemented subset` means kml
+rewrites fixture-locked, low-risk violation forms for that rule. `Diagnostic
+only` means checks are implemented, but safe fixes are not provided.
+`Needs triage` means an unsafe fix candidate has not been evaluated yet.
+`Not applicable` means no separate unsafe candidate is currently identified
+beyond the safe-fix policy. `Deleted` rows are historical markdownlint IDs that
+are not part of the active upstream rule catalog.
 
 <details>
 <summary>Full fixture-backed rule matrix</summary>
 
 | Rule | Check | Fix (safe) | Fix (unsafe) |
 | --- | --- | --- | --- |
-| `MD001` | Supported | Not implemented | Not planned |
+| `MD001` | Implemented | Diagnostic only | Needs triage |
 | `MD002` | Deleted | - | - |
-| `MD003` | Supported | Not implemented | Not planned |
-| `MD004` | Supported | Partial | Not planned |
-| `MD005` | Supported | Partial | Not planned |
+| `MD003` | Implemented | Diagnostic only | Needs triage |
+| `MD004` | Implemented | Implemented subset | Not applicable |
+| `MD005` | Implemented | Implemented subset | Not applicable |
 | `MD006` | Deleted | - | - |
-| `MD007` | Supported | Partial | Not planned |
+| `MD007` | Implemented | Implemented subset | Not applicable |
 | `MD008` | Deleted | - | - |
-| `MD009` | Supported | Partial | Not planned |
-| `MD010` | Supported | Partial | Not planned |
-| `MD011` | Supported | Partial | Not planned |
-| `MD012` | Supported | Partial | Not planned |
-| `MD013` | Supported | Not implemented | Not planned |
-| `MD014` | Supported | Partial | Not planned |
+| `MD009` | Implemented | Implemented subset | Not applicable |
+| `MD010` | Implemented | Implemented subset | Not applicable |
+| `MD011` | Implemented | Implemented subset | Not applicable |
+| `MD012` | Implemented | Implemented subset | Not applicable |
+| `MD013` | Implemented | Diagnostic only | Needs triage |
+| `MD014` | Implemented | Implemented subset | Not applicable |
 | `MD015` | Deleted | - | - |
 | `MD016` | Deleted | - | - |
 | `MD017` | Deleted | - | - |
-| `MD018` | Supported | Partial | Not planned |
-| `MD019` | Supported | Partial | Not planned |
-| `MD020` | Supported | Partial | Not planned |
-| `MD021` | Supported | Partial | Not planned |
-| `MD022` | Supported | Partial | Not planned |
-| `MD023` | Supported | Partial | Not planned |
-| `MD024` | Supported | Not implemented | Not planned |
-| `MD025` | Supported | Partial | Not planned |
-| `MD026` | Supported | Partial | Not planned |
-| `MD027` | Supported | Partial | Not planned |
-| `MD028` | Supported | Not implemented | Not planned |
-| `MD029` | Supported | Partial | Not planned |
-| `MD030` | Supported | Partial | Not planned |
-| `MD031` | Supported | Partial | Not planned |
-| `MD032` | Supported | Partial | Not planned |
-| `MD033` | Supported | Not implemented | Not planned |
-| `MD034` | Supported | Partial | Not planned |
-| `MD035` | Supported | Partial | Not planned |
-| `MD036` | Supported | Not implemented | Partial |
-| `MD037` | Supported | Partial | Not planned |
-| `MD038` | Supported | Partial | Not planned |
-| `MD039` | Supported | Partial | Not planned |
-| `MD040` | Supported | Partial | Not planned |
-| `MD041` | Supported | Not implemented | Not planned |
-| `MD042` | Supported | Not implemented | Not planned |
-| `MD043` | Supported | Not implemented | Not planned |
-| `MD044` | Supported | Partial | Not planned |
-| `MD045` | Supported | Not implemented | Not planned |
-| `MD046` | Supported | Not implemented | Not planned |
-| `MD047` | Supported | Partial | Not planned |
-| `MD048` | Supported | Partial | Not planned |
-| `MD049` | Supported | Partial | Not planned |
-| `MD050` | Supported | Partial | Not planned |
-| `MD051` | Supported | Partial | Not planned |
-| `MD052` | Supported | Not implemented | Not planned |
-| `MD053` | Supported | Partial | Not planned |
-| `MD054` | Supported | Partial | Not planned |
-| `MD055` | Supported | Partial | Not planned |
-| `MD056` | Supported | Not implemented | Not planned |
+| `MD018` | Implemented | Implemented subset | Not applicable |
+| `MD019` | Implemented | Implemented subset | Not applicable |
+| `MD020` | Implemented | Implemented subset | Not applicable |
+| `MD021` | Implemented | Implemented subset | Not applicable |
+| `MD022` | Implemented | Implemented subset | Not applicable |
+| `MD023` | Implemented | Implemented subset | Not applicable |
+| `MD024` | Implemented | Diagnostic only | Needs triage |
+| `MD025` | Implemented | Implemented subset | Not applicable |
+| `MD026` | Implemented | Implemented subset | Not applicable |
+| `MD027` | Implemented | Implemented subset | Not applicable |
+| `MD028` | Implemented | Diagnostic only | Needs triage |
+| `MD029` | Implemented | Implemented subset | Not applicable |
+| `MD030` | Implemented | Implemented subset | Not applicable |
+| `MD031` | Implemented | Implemented subset | Not applicable |
+| `MD032` | Implemented | Implemented subset | Not applicable |
+| `MD033` | Implemented | Diagnostic only | Needs triage |
+| `MD034` | Implemented | Implemented subset | Not applicable |
+| `MD035` | Implemented | Implemented subset | Not applicable |
+| `MD036` | Implemented | Diagnostic only | Implemented subset |
+| `MD037` | Implemented | Implemented subset | Not applicable |
+| `MD038` | Implemented | Implemented subset | Not applicable |
+| `MD039` | Implemented | Implemented subset | Not applicable |
+| `MD040` | Implemented | Implemented subset | Not applicable |
+| `MD041` | Implemented | Diagnostic only | Needs triage |
+| `MD042` | Implemented | Diagnostic only | Needs triage |
+| `MD043` | Implemented | Diagnostic only | Needs triage |
+| `MD044` | Implemented | Implemented subset | Not applicable |
+| `MD045` | Implemented | Diagnostic only | Needs triage |
+| `MD046` | Implemented | Diagnostic only | Needs triage |
+| `MD047` | Implemented | Implemented subset | Not applicable |
+| `MD048` | Implemented | Implemented subset | Not applicable |
+| `MD049` | Implemented | Implemented subset | Not applicable |
+| `MD050` | Implemented | Implemented subset | Not applicable |
+| `MD051` | Implemented | Implemented subset | Not applicable |
+| `MD052` | Implemented | Diagnostic only | Needs triage |
+| `MD053` | Implemented | Implemented subset | Not applicable |
+| `MD054` | Implemented | Implemented subset | Not applicable |
+| `MD055` | Implemented | Implemented subset | Not applicable |
+| `MD056` | Implemented | Diagnostic only | Needs triage |
 | `MD057` | Deleted | - | - |
-| `MD058` | Supported | Partial | Not planned |
-| `MD059` | Supported | Not implemented | Not planned |
-| `MD060` | Supported | Partial | Not implemented |
+| `MD058` | Implemented | Implemented subset | Not applicable |
+| `MD059` | Implemented | Diagnostic only | Needs triage |
+| `MD060` | Implemented | Implemented subset | Not applicable |
 
 </details>
 
