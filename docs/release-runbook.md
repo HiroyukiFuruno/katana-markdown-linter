@@ -131,7 +131,7 @@ If workflow job names are changed, update branch protection in the same change. 
 - If it was not published, fix the token or package issue and re-run with the same version.
 - If it was partially published, do not reuse the same version for changed content; bump `Cargo.toml` version.
 - `make release` fails fast when the requested version already exists on crates.io.
-- Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release target, and crates.io version after retry.
+- Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, and crates.io version after retry.
 
 ### Release notes generation fails
 

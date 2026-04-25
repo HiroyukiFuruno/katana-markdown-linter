@@ -245,6 +245,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "run: make examples"),
         (".github/workflows/release.yml", &workflow, "run: make mcp-build"),
         (".github/workflows/release.yml", &workflow, "scripts/release/assert-crate-not-published.sh"),
+        (".github/workflows/release.yml", &workflow, "--title \"$TAG\""),
         (".github/workflows/release-preflight.yml", &preflight, "run: make lint"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make examples"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-build"),
@@ -254,6 +255,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("docs/quality-gates.md", &quality, "already exists on crates.io"),
         ("scripts/release/release-notes.sh", &release_notes, "CHANGELOG.md is missing a non-empty section"),
         ("scripts/release/assert-crate-not-published.sh", &crate_guard, "Bump Cargo.toml before dispatching"),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release title mismatch"),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_title="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "crates_io_version="),
     ];

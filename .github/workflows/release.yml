@@ -113,14 +113,14 @@ jobs:
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" \
-              --title "katana-markdown-linter ${TAG}" \
+              --title "$TAG" \
               --notes-file RELEASE_NOTES.md
             gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" --clobber
           else
             gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" \
               --verify-tag \
               --target "$GITHUB_SHA" \
-              --title "katana-markdown-linter ${TAG}" \
+              --title "$TAG" \
               --notes-file RELEASE_NOTES.md
           fi
 

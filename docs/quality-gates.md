@@ -98,8 +98,8 @@ After publication, run:
 make release-verify VERSION=vX.Y.Z
 ```
 
-That command compares the local tag target, GitHub Release target, GitHub tag
-verification state, and crates.io version.
+That command compares the local tag target, GitHub Release title and target,
+GitHub tag verification state, and crates.io version.
 
 Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 
