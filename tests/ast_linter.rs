@@ -4,6 +4,9 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 
+#[path = "ast_linter/documentation_language_guard.rs"]
+mod documentation_language_guard;
+
 #[test]
 fn ast_linter_parses_rule_doc_fixture() {
     let document = katana_markdown_linter::upstream::parse_rule_document(
@@ -277,6 +280,9 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
     if !readme.contains("## Rule Map") {
         violations.push("README.md: missing `## Rule Map`".to_string());
     }
+    if !readme.contains("| Rule | Check | Fix (safe) | Fix (unsafe) |") {
+        violations.push("README.md: missing rule map state columns".to_string());
+    }
 
     let fixture_matrix: serde_json::Value =
         serde_json::from_str(include_str!("fixtures/rule-fixture-matrix.json"))
@@ -286,19 +292,40 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         .expect("fixture matrix rules should be an array");
 
     for rule in katana_markdown_linter::available_rules() {
-        let safe_fix = rules
-            .iter()
-            .find(|entry| entry["rule_id"].as_str() == Some(rule.id.as_str()))
-            .and_then(|entry| entry["fix"].as_array())
-            .is_some_and(|fixes| !fixes.is_empty());
-        let safe_fix = if safe_fix { "yes" } else { "no" };
-        let row = format!("| `{}` | {} |", rule.id, safe_fix);
+        let safe_fix = rule_map_safe_fix_status(rules, rule.id.as_str());
+        let unsafe_fix = rule_map_unsafe_fix_status(rule.id.as_str());
+        let row = format!(
+            "| `{}` | Supported | {} | {} |",
+            rule.id, safe_fix, unsafe_fix
+        );
         if !readme.contains(&row) {
             violations.push(format!("README.md: missing rule map row `{row}`"));
         }
     }
 
     assert_no_violations("readme-rule-map", violations);
+}
+
+fn rule_map_safe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
+    let has_safe_fix = rules
+        .iter()
+        .find(|entry| entry["rule_id"].as_str() == Some(rule_id))
+        .and_then(|entry| entry["fix"].as_array())
+        .is_some_and(|fixes| !fixes.is_empty());
+
+    if has_safe_fix {
+        "Partial"
+    } else {
+        "Not implemented"
+    }
+}
+
+fn rule_map_unsafe_fix_status(rule_id: &str) -> &'static str {
+    if rule_id == "MD060" {
+        "Not implemented"
+    } else {
+        "Not planned"
+    }
 }
 
 #[test]

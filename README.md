@@ -98,69 +98,72 @@ rule descriptions, and JSON output includes both `description` (localized) and
 
 ## Rule Map
 
-kml ships lint checks for the active markdownlint rule catalog. The table below
-matches the public catalog returned by `available_rules()` and
-`kml rule --output json`. Run `kml rule MD013` to inspect one rule with its
-upstream documentation URL.
+kml ships lint checks for the active markdownlint rule catalog. The rule IDs
+below match the public catalog returned by `available_rules()` and
+`kml rule --output json`; state columns describe fixture-backed implementation
+status. Run `kml rule MD013` to inspect one rule with its upstream documentation
+URL.
 
-All rows are lint-supported. `Safe fix` only means kml can rewrite at least one
-violation form automatically; rules marked `no` still report diagnostics.
+State values are `Supported`, `Partial`, `Not implemented`, `Not planned`, and
+`Not feasible`. Safe fixes are often `Partial` because kml only rewrites
+fixture-locked, low-risk violation forms. Unsafe fixes are unavailable until a
+future explicit opt-in mode exists.
 
-| Rule | Safe fix |
-| --- | --- |
-| `MD001` | no |
-| `MD003` | no |
-| `MD004` | yes |
-| `MD005` | yes |
-| `MD007` | yes |
-| `MD009` | yes |
-| `MD010` | yes |
-| `MD011` | yes |
-| `MD012` | yes |
-| `MD013` | no |
-| `MD014` | yes |
-| `MD018` | yes |
-| `MD019` | yes |
-| `MD020` | yes |
-| `MD021` | yes |
-| `MD022` | yes |
-| `MD023` | yes |
-| `MD024` | no |
-| `MD025` | yes |
-| `MD026` | yes |
-| `MD027` | yes |
-| `MD028` | no |
-| `MD029` | yes |
-| `MD030` | yes |
-| `MD031` | yes |
-| `MD032` | yes |
-| `MD033` | no |
-| `MD034` | yes |
-| `MD035` | no |
-| `MD036` | no |
-| `MD037` | yes |
-| `MD038` | yes |
-| `MD039` | yes |
-| `MD040` | yes |
-| `MD041` | no |
-| `MD042` | no |
-| `MD043` | no |
-| `MD044` | yes |
-| `MD045` | no |
-| `MD046` | no |
-| `MD047` | yes |
-| `MD048` | no |
-| `MD049` | yes |
-| `MD050` | yes |
-| `MD051` | yes |
-| `MD052` | no |
-| `MD053` | yes |
-| `MD054` | yes |
-| `MD055` | no |
-| `MD056` | no |
-| `MD058` | yes |
-| `MD059` | no |
-| `MD060` | yes |
+| Rule | Check | Fix (safe) | Fix (unsafe) |
+| --- | --- | --- | --- |
+| `MD001` | Supported | Not implemented | Not planned |
+| `MD003` | Supported | Not implemented | Not planned |
+| `MD004` | Supported | Partial | Not planned |
+| `MD005` | Supported | Partial | Not planned |
+| `MD007` | Supported | Partial | Not planned |
+| `MD009` | Supported | Partial | Not planned |
+| `MD010` | Supported | Partial | Not planned |
+| `MD011` | Supported | Partial | Not planned |
+| `MD012` | Supported | Partial | Not planned |
+| `MD013` | Supported | Not implemented | Not planned |
+| `MD014` | Supported | Partial | Not planned |
+| `MD018` | Supported | Partial | Not planned |
+| `MD019` | Supported | Partial | Not planned |
+| `MD020` | Supported | Partial | Not planned |
+| `MD021` | Supported | Partial | Not planned |
+| `MD022` | Supported | Partial | Not planned |
+| `MD023` | Supported | Partial | Not planned |
+| `MD024` | Supported | Not implemented | Not planned |
+| `MD025` | Supported | Partial | Not planned |
+| `MD026` | Supported | Partial | Not planned |
+| `MD027` | Supported | Partial | Not planned |
+| `MD028` | Supported | Not implemented | Not planned |
+| `MD029` | Supported | Partial | Not planned |
+| `MD030` | Supported | Partial | Not planned |
+| `MD031` | Supported | Partial | Not planned |
+| `MD032` | Supported | Partial | Not planned |
+| `MD033` | Supported | Not implemented | Not planned |
+| `MD034` | Supported | Partial | Not planned |
+| `MD035` | Supported | Not implemented | Not planned |
+| `MD036` | Supported | Not implemented | Not planned |
+| `MD037` | Supported | Partial | Not planned |
+| `MD038` | Supported | Partial | Not planned |
+| `MD039` | Supported | Partial | Not planned |
+| `MD040` | Supported | Partial | Not planned |
+| `MD041` | Supported | Not implemented | Not planned |
+| `MD042` | Supported | Not implemented | Not planned |
+| `MD043` | Supported | Not implemented | Not planned |
+| `MD044` | Supported | Partial | Not planned |
+| `MD045` | Supported | Not implemented | Not planned |
+| `MD046` | Supported | Not implemented | Not planned |
+| `MD047` | Supported | Partial | Not planned |
+| `MD048` | Supported | Not implemented | Not planned |
+| `MD049` | Supported | Partial | Not planned |
+| `MD050` | Supported | Partial | Not planned |
+| `MD051` | Supported | Partial | Not planned |
+| `MD052` | Supported | Not implemented | Not planned |
+| `MD053` | Supported | Partial | Not planned |
+| `MD054` | Supported | Partial | Not planned |
+| `MD055` | Supported | Not implemented | Not planned |
+| `MD056` | Supported | Not implemented | Not planned |
+| `MD058` | Supported | Partial | Not planned |
+| `MD059` | Supported | Not implemented | Not planned |
+| `MD060` | Supported | Partial | Not implemented |
 
 ## Configuration
 

@@ -32,6 +32,7 @@
 - release workflow must require an existing annotated signed tag that GitHub reports as Verified
 - release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
+- public Markdown docs must stay English-only
 - public library API and rule catalog entrypoints must remain explicit
 - localization catalog tests must keep supported locales on the same message id set and preserve English fallback behavior
 
