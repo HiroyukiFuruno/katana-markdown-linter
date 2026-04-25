@@ -36,7 +36,7 @@
 | MD032 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD033 | 1 | 1 | 0 | 3 | 3 | 0 |  |
 | MD034 | 1 | 1 | 1 | 1 | 1 | 0 |  |
-| MD035 | 1 | 1 | 0 | 2 | 2 | 0 |  |
+| MD035 | 1 | 1 | 1 | 2 | 2 | 1 |  |
 | MD036 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD037 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD038 | 1 | 1 | 1 | 1 | 1 | 0 |  |
@@ -56,7 +56,7 @@
 | MD052 | 1 | 1 | 0 | 3 | 3 | 0 |  |
 | MD053 | 1 | 1 | 1 | 2 | 2 | 0 |  |
 | MD054 | 2 | 1 | 1 | 7 | 7 | 0 | check requires a disabled link style such as MD054.collapsed=false; fix requires: disabled style and an inline-safe reference definition |
-| MD055 | 1 | 1 | 0 | 2 | 2 | 0 |  |
+| MD055 | 1 | 1 | 1 | 2 | 2 | 1 |  |
 | MD056 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD058 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD059 | 1 | 1 | 0 | 2 | 2 | 0 |  |

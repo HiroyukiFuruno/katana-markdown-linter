@@ -32,7 +32,7 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | MD032 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
 | MD033 | 2 | 0 | 6 | 0 | pending: not locked | no | - |
 | MD034 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
-| MD035 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
+| MD035 | 2 | 1 | 4 | 1 | baseline | no | - |
 | MD036 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
 | MD037 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
 | MD038 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
@@ -52,7 +52,7 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | MD052 | 2 | 0 | 6 | 0 | pending: not locked | no | - |
 | MD053 | 2 | 1 | 4 | 0 | pending: not locked | no | - |
 | MD054 | 3 | 1 | 14 | 0 | pending: not locked | no | check requires a disabled MD054 style such as MD054.collapsed=false<br>fix requires: disabled style and an inline-safe reference definition |
-| MD055 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
+| MD055 | 2 | 1 | 4 | 1 | baseline | no | - |
 | MD056 | 2 | 0 | 2 | 0 | pending: not locked | no | - |
 | MD058 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
 | MD059 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
@@ -63,5 +63,9 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 - Line-local safe fixes remain the default for whitespace, heading spacing, list marker, emphasis, and similar rules.
 
 - Structural safe fixes currently include `MD060`, which uses one whole-table source range from `DocumentContext`.
+
+- `MD035` now has a safe style-normalization fix and skips front matter delimiters when selecting the consistent horizontal rule style.
+
+- `MD055` now uses parsed table blocks for check/fix, so pipe-like text inside fenced code is ignored.
 
 - Unsafe rewrites remain out of default fix mode.

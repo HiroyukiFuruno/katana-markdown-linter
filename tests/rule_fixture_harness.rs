@@ -151,6 +151,14 @@ fn fix_fixtures_compare_before_and_after() {
                 rule_id(rule),
                 case_name(case)
             );
+            let fixed_again = fix(&fixed.content, &options).expect("second fix should run");
+            assert_eq!(
+                fixed_again.content,
+                fixed.content,
+                "{} / {} fix output was not idempotent",
+                rule_id(rule),
+                case_name(case)
+            );
         }
     }
 }

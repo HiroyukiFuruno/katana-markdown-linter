@@ -89,6 +89,38 @@
         }
       ],
       "expected_fixed_output": "- item\n1. item\n"
+    },
+    {
+      "rule_id": "MD035",
+      "fixture": "inconsistent_hr_style",
+      "source": "---\n\n***\n",
+      "expected": [
+        {
+          "rule_id": "MD035",
+          "line": 3,
+          "column": 1,
+          "end_line": 3,
+          "end_column": 3,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "---\n\n---\n"
+    },
+    {
+      "rule_id": "MD055",
+      "fixture": "table_missing_boundary_pipe",
+      "source": "| a | b |\n|---|---\n  c | d\n",
+      "expected": [
+        {
+          "rule_id": "MD055",
+          "line": 1,
+          "column": 1,
+          "end_line": 4,
+          "end_column": 1,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "| a | b |\n| --- | --- |\n| c | d |\n"
     }
   ]
 }
