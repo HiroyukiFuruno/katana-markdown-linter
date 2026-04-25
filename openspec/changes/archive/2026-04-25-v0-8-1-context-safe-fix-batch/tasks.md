@@ -51,5 +51,5 @@
 - [x] `MD048` safe fix applies only when block-local marker conversion is collision-free.
 - [x] Collision or unclosed-block cases remain diagnostic-only rather than silently rewriting.
 - [x] README, dashboard, fixture matrix, changelog, and version metadata match the implementation.
-- [ ] `v0.8.1` is released and verified.
-- [ ] This change is archived after release.
+- [x] `v0.8.1` is released and verified.
+- [x] This change is archived after release.
