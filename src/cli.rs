@@ -1,7 +1,7 @@
 use crate::i18n::{Locale, LocalizedDiagnostic, MessageParams};
 use crate::{
-    fix_with_results, fix_with_results_including_unsafe, lint, FixSafety, LintOptions,
-    MarkdownLintConfig,
+    fix_with_results, fix_with_results_including_unsafe, format_markdown, lint, FixSafety,
+    FormatOptions, LintOptions, MarkdownLintConfig,
 };
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
@@ -104,10 +104,11 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             let exit = run_check_like(cli.check_fix, &cli, locale)?;
             Ok(exit)
         }
-        Command::Fix | Command::Fmt => {
+        Command::Fix => {
             let exit = run_check_like(true, &cli, locale)?;
             Ok(exit)
         }
+        Command::Fmt => run_fmt(&cli, locale),
         Command::Rule(rule_id) => run_rule(rule_id.as_deref(), cli.format, locale),
         Command::Config(ref command) => run_config(command.clone(), &cli),
         Command::Version => {
@@ -115,6 +116,79 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(0)
         }
     }
+}
+
+fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
+    let mut report = CliReport {
+        command: "fmt",
+        files: Vec::new(),
+        errors: Vec::new(),
+        summary: CliSummary::default(),
+    };
+    if cli.stdin {
+        return run_stdin_fmt(cli, locale);
+    }
+
+    let files = match expand_inputs(cli) {
+        Ok(files) => files,
+        Err(err) => {
+            report.errors.push(CliError::from_input_expand_error(err));
+            report.recompute_summary();
+            output_report(&report, true, cli, locale)?;
+            return Ok(2);
+        }
+    };
+
+    for path in files {
+        let content = match fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(err) => {
+                report.errors.push(CliError::filesystem(&path, err));
+                continue;
+            }
+        };
+
+        match validate_effective_config(&path, cli.config.as_deref()) {
+            Ok(errors) if errors.is_empty() => {}
+            Ok(errors) => {
+                for error in errors {
+                    report
+                        .errors
+                        .push(CliError::config_validation(&path, error));
+                }
+                continue;
+            }
+            Err(err) => {
+                report.errors.push(CliError::config(&path, err));
+                continue;
+            }
+        }
+
+        let formatted =
+            format_markdown(&content, &FormatOptions::default()).map_err(|err| err.to_string())?;
+        let changed = formatted.content != content;
+        if changed {
+            if cli.diff {
+                print_diff(&path, &content, &formatted.content);
+            }
+            if let Err(err) = fs::write(&path, &formatted.content) {
+                report.errors.push(CliError::filesystem(&path, err));
+                continue;
+            }
+        }
+
+        report.files.push(FileReport {
+            path: path.display().to_string(),
+            diagnostics: Vec::new(),
+            applied_fixes: formatted.applied_operations,
+            changed,
+        });
+    }
+
+    report.recompute_summary();
+    let exit_code = if report.errors.is_empty() { 0 } else { 2 };
+    output_report(&report, true, cli, locale)?;
+    Ok(exit_code)
 }
 
 fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
@@ -235,6 +309,55 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
     output_report(&report, fix_mode, cli, locale)?;
 
     Ok(exit_code)
+}
+
+fn run_stdin_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
+    let mut content = String::new();
+    io::stdin()
+        .read_to_string(&mut content)
+        .map_err(|err| err.to_string())?;
+    match validate_effective_config(Path::new("<stdin>"), cli.config.as_deref()) {
+        Ok(errors) if errors.is_empty() => {}
+        Ok(errors) => {
+            let mut report = CliReport {
+                command: "fmt",
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: errors
+                    .into_iter()
+                    .map(|error| CliError::config_validation(Path::new("<stdin>"), error))
+                    .collect(),
+            };
+            report.recompute_summary();
+            output_report(&report, true, cli, locale)?;
+            return Ok(2);
+        }
+        Err(err) => {
+            let mut report = CliReport {
+                command: "fmt",
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: vec![CliError::config(Path::new("<stdin>"), err)],
+            };
+            report.recompute_summary();
+            output_report(&report, true, cli, locale)?;
+            return Ok(2);
+        }
+    }
+
+    let formatted = format_stdin_content(&content)?;
+    if cli.diff {
+        print_diff(Path::new("<stdin>"), &content, &formatted);
+    } else {
+        print!("{formatted}");
+    }
+    Ok(0)
+}
+
+fn format_stdin_content(content: &str) -> Result<String, String> {
+    Ok(format_markdown(content, &FormatOptions::default())
+        .map_err(|err| err.to_string())?
+        .content)
 }
 
 fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
@@ -664,17 +787,29 @@ fn render_text_report(report: &CliReport, fix_mode: bool, cli: &Cli, locale: Loc
             let mut params = MessageParams::new();
             params.insert("path".to_string(), file.path.clone());
             params.insert("count".to_string(), file.applied_fixes.to_string());
-            let fallback = format!(
-                "{}: fixed {} issue{}",
-                file.path,
-                file.applied_fixes,
-                plural(file.applied_fixes)
-            );
+            let (message_id, fallback) = if report.command == "fmt" {
+                (
+                    "format.formatted_count",
+                    format!(
+                        "{}: formatted {} operation{}",
+                        file.path,
+                        file.applied_fixes,
+                        plural(file.applied_fixes)
+                    ),
+                )
+            } else {
+                (
+                    "fix.fixed_count",
+                    format!(
+                        "{}: fixed {} issue{}",
+                        file.path,
+                        file.applied_fixes,
+                        plural(file.applied_fixes)
+                    ),
+                )
+            };
             output.push_str(&crate::i18n::render_message(
-                locale,
-                "fix.fixed_count",
-                &params,
-                &fallback,
+                locale, message_id, &params, &fallback,
             ));
             output.push('\n');
         }
@@ -1037,6 +1172,13 @@ fn load_effective_config(
     }
 
     Ok(MarkdownLintConfig::default())
+}
+
+fn validate_effective_config(
+    path: &Path,
+    explicit: Option<&Path>,
+) -> Result<Vec<crate::ConfigError>, String> {
+    Ok(load_effective_config(path, explicit)?.validate_cached_rules())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1998,18 +2140,14 @@ mod tests {
     }
 
     #[test]
-    fn fmt_applies_fixes_like_fix() {
-        let dir = test_dir("fmt");
+    fn fmt_applies_layout_formatting_and_is_idempotent() {
+        let dir = test_dir("fmt-layout");
         fs::create_dir_all(&dir).expect("test dir should be created");
         let file = dir.join("bad.md");
-        let config = dir.join(".markdownlint.json");
-        fs::write(&file, "#Title\n").expect("test file should be written");
-        fs::write(&config, "{ \"default\": false, \"MD018\": true }\n")
-            .expect("config should be written");
+        fs::write(&file, "# Title\r\nText\n\n\n-  item").expect("test file should be written");
 
         let exit = run(Cli {
             command: Command::Fmt,
-            config: Some(config),
             inputs: vec![file.display().to_string()],
             ..Cli::default()
         })
@@ -2018,9 +2156,52 @@ mod tests {
         assert_eq!(exit, 0);
         assert_eq!(
             fs::read_to_string(&file).expect("fixed file should be readable"),
-            "# Title\n"
+            "# Title\n\nText\n\n- item\n"
+        );
+
+        let second_exit = run(Cli {
+            command: Command::Fmt,
+            inputs: vec![file.display().to_string()],
+            ..Cli::default()
+        })
+        .expect("fmt should run again");
+
+        assert_eq!(second_exit, 0);
+        assert_eq!(
+            fs::read_to_string(&file).expect("fixed file should be readable"),
+            "# Title\n\nText\n\n- item\n"
         );
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn fmt_does_not_apply_non_layout_safe_fixes_or_return_one_for_lint_issues() {
+        let dir = test_dir("fmt-non-layout");
+        fs::create_dir_all(&dir).expect("test dir should be created");
+        let file = dir.join("bad.md");
+        fs::write(&file, "#Title\n").expect("test file should be written");
+
+        let exit = run(Cli {
+            command: Command::Fmt,
+            inputs: vec![file.display().to_string()],
+            ..Cli::default()
+        })
+        .expect("fmt should run");
+
+        assert_eq!(exit, 0);
+        assert_eq!(
+            fs::read_to_string(&file).expect("fixed file should be readable"),
+            "#Title\n"
+        );
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn fmt_stdin_contract_formats_markdown_only() {
+        let formatted =
+            format_stdin_content("# Title\r\nText\n\n\n").expect("stdin format should run");
+
+        assert_eq!(formatted, "# Title\n\nText\n");
     }
 
     #[test]

@@ -78,14 +78,25 @@ kml init-config
 
 When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
 
-`check` exits with `1` when lint violations are found. `check --fix`, `fix`, and `fmt` apply safe fixes and exit with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
+`check` reports diagnostics and exits with `1` when lint violations are found.
+`fix` and `check --fix` apply safe lint-driven fixes and exit with `1` if
+violations remain after rewriting. `fmt` is a layout formatter for indentation
+and newline normalization; it exits with `0` after successful formatting even
+when unrelated lint diagnostics would still be reported by `check`. Filesystem
+or configuration errors exit with `2`.
+
+`fmt` currently normalizes CRLF/CR line endings to LF, final newlines, repeated
+blank lines, blank lines around headings/fences/lists/tables, and safe list
+indentation/list-marker spacing. It does not reflow paragraphs, change heading
+or emphasis style, change URL/table style, remove trailing spaces, or apply
+unsafe fixes by default.
 
 Unsafe fixes require explicit opt-in. Interactive use prompts with `[Y/n]`;
 non-interactive use must pass `--unsafe --yes`.
 
 `--output json` is the preferred JSON output flag. `--format json` remains a compatibility alias.
 
-`--stdin` reads Markdown from standard input. `check --stdin` reports diagnostics against `<stdin>`; `fix --stdin` and `fmt --stdin` write fixed Markdown to stdout.
+`--stdin` reads Markdown from standard input. `check --stdin` reports diagnostics against `<stdin>`; `fix --stdin` writes fixed Markdown to stdout; `fmt --stdin` writes formatted Markdown only to stdout.
 
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 

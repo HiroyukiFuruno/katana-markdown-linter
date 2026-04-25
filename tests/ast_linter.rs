@@ -383,6 +383,7 @@ fn ast_linter_public_api_surface_is_explicit() {
     let required = [
         "pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error>",
         "pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error>",
+        "pub use formatter::{format_markdown, layout_lint_options, FormatOptions, FormatResult};",
         "pub fn available_rules() -> Vec<RuleMeta>",
         "pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta>",
         "pub fn implemented_rules() -> Vec<RuleMeta>",

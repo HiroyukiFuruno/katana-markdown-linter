@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.0
+
+- Adds a dedicated layout formatter API with `format_markdown()`, `FormatOptions`, and `FormatResult`.
+- Changes `kml fmt` from a `fix` alias into an indentation/newline formatter with editor-friendly exit code `0` on successful formatting.
+- Normalizes CRLF/CR line endings, final newlines, repeated blank lines, structural blank lines, and safe list indentation/list-marker spacing.
+- Keeps semantic/style rewrites out of formatter scope, including paragraph reflow, heading/emphasis/link/table style conversion, trailing-space removal, and unsafe fixes.
+- Adds formatter idempotence, stdin contract, and CLI exit-code coverage.
+
 ## v0.9.0
 
 - Adds fix safety metadata to public diagnostics so consumers can distinguish `safe` and `unsafe` candidates.
