@@ -69,4 +69,10 @@ impl RuleMeta {
     pub fn localized_description(&self, language_code: &str) -> String {
         crate::i18n::localized_rule_description(&self.id, &self.description, language_code)
     }
+
+    pub fn localized(&self, language_code: &str) -> Self {
+        let mut rule = self.clone();
+        rule.description = self.localized_description(language_code);
+        rule
+    }
 }

@@ -361,6 +361,92 @@ impl ConfigError {
             message: message.into(),
         }
     }
+
+    pub fn kind_code(&self) -> &'static str {
+        self.kind.code()
+    }
+
+    pub fn message_id(&self) -> &'static str {
+        self.kind.message_id()
+    }
+
+    pub fn message_params(&self) -> crate::i18n::MessageParams {
+        let mut params = crate::i18n::MessageParams::new();
+        if let Some(rule_id) = &self.rule_id {
+            params.insert("rule_id".to_string(), rule_id.clone());
+        }
+        if let Some(property) = &self.property {
+            params.insert("property".to_string(), property.clone());
+        }
+        match &self.kind {
+            ConfigErrorKind::InvalidType { expected, actual } => {
+                params.insert("expected".to_string(), (*expected).to_string());
+                params.insert("actual".to_string(), (*actual).to_string());
+            }
+            ConfigErrorKind::InvalidEnumValue { allowed, actual } => {
+                params.insert("allowed".to_string(), allowed.join(", "));
+                params.insert("actual".to_string(), actual.clone());
+            }
+            ConfigErrorKind::InvalidRoot
+            | ConfigErrorKind::UnknownRule
+            | ConfigErrorKind::UnknownProperty => {}
+        }
+        params.insert("message".to_string(), self.message.clone());
+        params
+    }
+
+    pub fn localized_message(&self, locale: crate::i18n::Locale) -> String {
+        crate::i18n::render_message(
+            locale,
+            self.message_id(),
+            &self.message_params(),
+            &self.to_string(),
+        )
+    }
+
+    pub fn expected(&self) -> Option<&'static str> {
+        match &self.kind {
+            ConfigErrorKind::InvalidType { expected, .. } => Some(expected),
+            _ => None,
+        }
+    }
+
+    pub fn actual(&self) -> Option<&str> {
+        match &self.kind {
+            ConfigErrorKind::InvalidType { actual, .. } => Some(actual),
+            ConfigErrorKind::InvalidEnumValue { actual, .. } => Some(actual),
+            _ => None,
+        }
+    }
+
+    pub fn allowed(&self) -> Vec<&'static str> {
+        match &self.kind {
+            ConfigErrorKind::InvalidEnumValue { allowed, .. } => allowed.clone(),
+            _ => Vec::new(),
+        }
+    }
+}
+
+impl ConfigErrorKind {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::InvalidRoot => "invalid_root",
+            Self::UnknownRule => "unknown_rule",
+            Self::UnknownProperty => "unknown_property",
+            Self::InvalidType { .. } => "invalid_type",
+            Self::InvalidEnumValue { .. } => "invalid_enum_value",
+        }
+    }
+
+    pub fn message_id(&self) -> &'static str {
+        match self {
+            Self::InvalidRoot => "config.invalid_root",
+            Self::UnknownRule => "config.unknown_rule",
+            Self::UnknownProperty => "config.unknown_property",
+            Self::InvalidType { .. } => "config.invalid_type",
+            Self::InvalidEnumValue { .. } => "config.invalid_enum_value",
+        }
+    }
 }
 
 impl fmt::Display for ConfigError {
@@ -550,6 +636,16 @@ mod tests {
             error.rule_id.as_deref() == Some("MD999")
                 && matches!(error.kind, ConfigErrorKind::UnknownRule)
         }));
+        let unknown = errors
+            .iter()
+            .find(|error| matches!(error.kind, ConfigErrorKind::UnknownRule))
+            .expect("unknown rule error should exist");
+        assert_eq!(unknown.kind_code(), "unknown_rule");
+        assert_eq!(unknown.message_id(), "config.unknown_rule");
+        assert_eq!(
+            unknown.localized_message(crate::i18n::Locale::Ja),
+            "未知の markdownlint rule です: MD999"
+        );
         assert!(errors.iter().any(|error| {
             error.rule_id.as_deref() == Some("MD001")
                 && error.property.as_deref() == Some("front_matter_title")

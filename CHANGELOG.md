@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6.0
+
+- Promotes i18n to a library, CLI, and MCP product surface while keeping English and Japanese as the supported locale set.
+- Adds localized rule catalog APIs with canonical English metadata preserved.
+- Makes `Locale` non-exhaustive so future locale additions can be handled without repeating exhaustive-match breakage.
+- Localizes `kml rule` text/JSON output and config validation errors with stable message IDs and parameters.
+- Adds optional MCP `locale` request support for diagnostics, config validation errors, and rule metadata.
+- Adds translation coverage gates for supported message IDs and active rule descriptions.
+
 ## v0.5.0
 
 - Adds source-preserving `DocumentContext` for shared line, heading, code block, reference, table, and lazy AST structure.

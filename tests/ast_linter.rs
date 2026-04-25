@@ -326,14 +326,18 @@ fn ast_linter_public_api_surface_is_explicit() {
         "pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error>",
         "pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error>",
         "pub fn available_rules() -> Vec<RuleMeta>",
+        "pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta>",
         "pub fn implemented_rules() -> Vec<RuleMeta>",
         "pub fn missing_rules() -> Vec<RuleMeta>",
         "pub fn rule_catalog() -> catalog::RuleCatalog",
+        "pub fn localized_rule_catalog(language_code: &str) -> catalog::RuleCatalog",
         "pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};",
         "pub use i18n::{",
+        "has_rule_description_translation",
         "localized_rule_description",
         "resolve_locale_code",
         "resolve_locale_code_or",
+        "supported_locales",
         "Locale, LocaleError",
         "LocalizedDiagnostic",
         "pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};",
@@ -357,6 +361,35 @@ fn ast_linter_public_api_surface_is_explicit() {
     }
 
     assert_no_violations("public-api-surface", violations);
+}
+
+#[test]
+fn ast_linter_i18n_translation_coverage_is_complete_for_supported_locales() {
+    let mut violations = Vec::new();
+    for locale in katana_markdown_linter::supported_locales() {
+        if katana_markdown_linter::i18n::catalog_keys(katana_markdown_linter::Locale::En)
+            != katana_markdown_linter::i18n::catalog_keys(*locale)
+        {
+            violations.push(format!(
+                "i18n: catalog key set differs for {}",
+                locale.code()
+            ));
+        }
+    }
+
+    for rule in katana_markdown_linter::available_rules() {
+        if !katana_markdown_linter::has_rule_description_translation(
+            &rule.id,
+            katana_markdown_linter::Locale::Ja,
+        ) {
+            violations.push(format!(
+                "i18n: missing Japanese rule description for {}",
+                rule.id
+            ));
+        }
+    }
+
+    assert_no_violations("i18n-translation-coverage", violations);
 }
 
 fn workspace_root() -> PathBuf {

@@ -101,7 +101,7 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             let exit = run_check_like(true, &cli, locale)?;
             Ok(exit)
         }
-        Command::Rule(rule_id) => run_rule(rule_id.as_deref(), cli.format),
+        Command::Rule(rule_id) => run_rule(rule_id.as_deref(), cli.format, locale),
         Command::Config(ref command) => run_config(command.clone(), &cli),
         Command::Version => {
             println!("{}", env!("CARGO_PKG_VERSION"));
@@ -153,7 +153,7 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
             for error in config_errors {
                 report
                     .errors
-                    .push(CliError::config(&path, error.to_string()));
+                    .push(CliError::config_validation(&path, error));
             }
             continue;
         }
@@ -321,25 +321,30 @@ fn apply_fixes_until_stable(
     })
 }
 
-fn run_rule(rule_id: Option<&str>, format: OutputFormat) -> Result<i32, String> {
-    print!("{}", render_rule(rule_id, format)?);
+fn run_rule(rule_id: Option<&str>, format: OutputFormat, locale: Locale) -> Result<i32, String> {
+    print!("{}", render_rule(rule_id, format, locale)?);
     Ok(0)
 }
 
-fn render_rule(rule_id: Option<&str>, format: OutputFormat) -> Result<String, String> {
+fn render_rule(
+    rule_id: Option<&str>,
+    format: OutputFormat,
+    locale: Locale,
+) -> Result<String, String> {
     let rules = crate::available_rules();
     if let Some(rule_id) = rule_id {
         let Some(rule) = rules.iter().find(|rule| rule.id == rule_id) else {
             return Err(format!("unknown rule: {rule_id}"));
         };
+        let output = LocalizedRuleMeta::from_rule(rule, locale);
         return match format {
             OutputFormat::Text => Ok(format!(
                 "{} {}\n{}\n{}\n",
-                rule.id, rule.name, rule.description, rule.docs_url
+                output.id, output.name, output.description, output.docs_url
             )),
             OutputFormat::Json => Ok(format!(
                 "{}\n",
-                serde_json::to_string_pretty(rule).map_err(|err| err.to_string())?
+                serde_json::to_string_pretty(&output).map_err(|err| err.to_string())?
             )),
         };
     }
@@ -348,14 +353,49 @@ fn render_rule(rule_id: Option<&str>, format: OutputFormat) -> Result<String, St
         OutputFormat::Text => {
             let mut output = String::new();
             for rule in rules {
-                output.push_str(&format!("{} {}\n", rule.id, rule.name));
+                let rule = LocalizedRuleMeta::from_rule(&rule, locale);
+                output.push_str(&format!(
+                    "{} {} - {}\n",
+                    rule.id, rule.name, rule.description
+                ));
             }
             Ok(output)
         }
-        OutputFormat::Json => Ok(format!(
-            "{}\n",
-            serde_json::to_string_pretty(&rules).map_err(|err| err.to_string())?
-        )),
+        OutputFormat::Json => {
+            let rules = rules
+                .iter()
+                .map(|rule| LocalizedRuleMeta::from_rule(rule, locale))
+                .collect::<Vec<_>>();
+            Ok(format!(
+                "{}\n",
+                serde_json::to_string_pretty(&rules).map_err(|err| err.to_string())?
+            ))
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalizedRuleMeta {
+    id: String,
+    name: String,
+    description: String,
+    english_description: String,
+    docs_url: String,
+    fixable: bool,
+    locale: &'static str,
+}
+
+impl LocalizedRuleMeta {
+    fn from_rule(rule: &crate::RuleMeta, locale: Locale) -> Self {
+        Self {
+            id: rule.id.clone(),
+            name: rule.name.clone(),
+            description: rule.localized_description(locale.code()),
+            english_description: rule.description.clone(),
+            docs_url: rule.docs_url.clone(),
+            fixable: rule.fixable,
+            locale: locale.code(),
+        }
     }
 }
 
@@ -675,6 +715,16 @@ impl CliError {
             message_params: message_params(&message),
             message,
             message_id: "config.error".to_string(),
+        }
+    }
+
+    fn config_validation(path: &Path, error: crate::ConfigError) -> Self {
+        Self {
+            kind: "config",
+            path: Some(path.display().to_string()),
+            message_params: error.message_params(),
+            message: error.to_string(),
+            message_id: error.message_id().to_string(),
         }
     }
 
@@ -1163,20 +1213,39 @@ mod tests {
 
     #[test]
     fn renders_rule_list_and_detail_contract() {
-        let list = render_rule(None, OutputFormat::Text).expect("rule list should render");
+        let list =
+            render_rule(None, OutputFormat::Text, Locale::En).expect("rule list should render");
         assert!(list.contains("MD013 line-length"));
+        assert!(list.contains("Line length"));
 
-        let detail =
-            render_rule(Some("MD013"), OutputFormat::Text).expect("rule detail should render");
+        let detail = render_rule(Some("MD013"), OutputFormat::Text, Locale::En)
+            .expect("rule detail should render");
         assert!(detail.contains("MD013 line-length"));
         assert!(detail.contains("Line length"));
         assert!(detail.contains("markdownlint"));
 
-        let json =
-            render_rule(Some("MD013"), OutputFormat::Json).expect("rule detail json should render");
+        let json = render_rule(Some("MD013"), OutputFormat::Json, Locale::En)
+            .expect("rule detail json should render");
         let value: serde_json::Value =
             serde_json::from_str(&json).expect("rule detail should be json");
         assert_eq!(value["id"], "MD013");
+        assert_eq!(value["locale"], "en");
+        assert_eq!(value["description"], value["english_description"]);
+    }
+
+    #[test]
+    fn rule_output_uses_selected_japanese_locale() {
+        let list =
+            render_rule(None, OutputFormat::Text, Locale::Ja).expect("rule list should render");
+        assert!(list.contains("MD003 heading-style - 見出しのスタイルを統一してください"));
+
+        let json = render_rule(Some("MD003"), OutputFormat::Json, Locale::Ja)
+            .expect("rule detail json should render");
+        let value: serde_json::Value =
+            serde_json::from_str(&json).expect("rule detail should be json");
+        assert_eq!(value["locale"], "ja");
+        assert_eq!(value["description"], "見出しのスタイルを統一してください");
+        assert_eq!(value["english_description"], "Heading style");
     }
 
     #[test]
@@ -1402,6 +1471,34 @@ mod tests {
             .as_str()
             .expect("message should be string")
             .contains("設定エラー"));
+    }
+
+    #[test]
+    fn json_report_localizes_structured_config_validation_errors() {
+        let config = MarkdownLintConfig {
+            raw: serde_json::json!({ "MD999": true }),
+        };
+        let error = config
+            .validate_cached_rules()
+            .into_iter()
+            .next()
+            .expect("config should be invalid");
+        let report = CliReport {
+            command: "check",
+            summary: CliSummary::default(),
+            files: Vec::new(),
+            errors: vec![CliError::config_validation(Path::new("README.md"), error)],
+        };
+
+        let json = serde_json::to_value(LocalizedCliReport::from_report(&report, Locale::Ja))
+            .expect("localized report should serialize");
+
+        assert_eq!(json["errors"][0]["message_id"], "config.unknown_rule");
+        assert_eq!(json["errors"][0]["message_params"]["rule_id"], "MD999");
+        assert_eq!(
+            json["errors"][0]["message"],
+            "未知の markdownlint rule です: MD999"
+        );
     }
 
     #[test]

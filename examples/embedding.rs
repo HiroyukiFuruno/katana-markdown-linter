@@ -1,6 +1,6 @@
 use katana_markdown_linter::{
-    available_rules, fix, lint, localized_rule_description, resolve_locale_code_or, LintOptions,
-    Locale, MarkdownLintConfig,
+    available_rules, fix, lint, localized_rule_catalog, localized_rule_description,
+    resolve_locale_code_or, LintOptions, Locale, MarkdownLintConfig,
 };
 use std::fs;
 use std::path::Path;
@@ -29,6 +29,11 @@ fn main() -> Result<(), DynError> {
     println!("available rules: {}", rules.len());
     let locale = resolve_locale_code_or("ja-JP", Locale::En);
     println!("resolved locale: {locale:?}");
+    let localized_catalog = localized_rule_catalog(locale.code());
+    println!(
+        "localized active rules: {}",
+        localized_catalog.active_rules().count()
+    );
     if let Some(rule) = rules.iter().find(|rule| rule.id == "MD003") {
         println!(
             "localized MD003 description: {}",

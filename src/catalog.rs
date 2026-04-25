@@ -20,6 +20,18 @@ pub struct RuleCatalogEntry {
     pub lifecycle: RuleLifecycleState,
 }
 
+impl RuleCatalogEntry {
+    pub fn localized_description(&self, language_code: &str) -> String {
+        crate::i18n::localized_rule_description(&self.id, &self.description, language_code)
+    }
+
+    pub fn localized(&self, language_code: &str) -> Self {
+        let mut entry = self.clone();
+        entry.description = self.localized_description(language_code);
+        entry
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
 pub struct RuleCatalog {
     pub active: Vec<RuleCatalogEntry>,
@@ -85,5 +97,25 @@ impl RuleCatalog {
                 fixable: entry.fixable,
             })
             .collect()
+    }
+
+    pub fn localized(&self, language_code: &str) -> Self {
+        Self {
+            active: self
+                .active
+                .iter()
+                .map(|entry| entry.localized(language_code))
+                .collect(),
+            deprecated: self
+                .deprecated
+                .iter()
+                .map(|entry| entry.localized(language_code))
+                .collect(),
+            removed: self
+                .removed
+                .iter()
+                .map(|entry| entry.localized(language_code))
+                .collect(),
+        }
     }
 }
