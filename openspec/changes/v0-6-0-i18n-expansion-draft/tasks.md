@@ -65,4 +65,4 @@
 - [x] CLI rule/config output respects selected locale and keeps machine-readable metadata stable.
 - [x] MCP read-only tools accept explicit locale and preserve structured fields.
 - [x] Translation coverage gates fail on missing supported-locale message IDs or rule descriptions.
-- [ ] v0.6.0 release readiness gates pass locally and in CI.
+- [x] v0.6.0 release readiness gates pass locally and in CI.
