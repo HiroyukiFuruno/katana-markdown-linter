@@ -6,33 +6,33 @@ This document records how this repository uses `kml` against its own Markdown fi
 
 Check-only:
 
-```bash
+~~~bash
 make dogfood
-```
+~~~
 
 Apply safe fixes:
 
-```bash
+~~~bash
 make dogfood-fix
-```
+~~~
 
 Machine-readable report:
 
-```bash
+~~~bash
 make dogfood-json
-```
+~~~
 
 Refresh the committed baseline after intentional cleanup:
 
-```bash
+~~~bash
 make dogfood-refresh-baseline
-```
+~~~
 
 Archived OpenSpec documents are checked only when explicitly requested:
 
-```bash
+~~~bash
 make dogfood-archive
-```
+~~~
 
 ## Gate Model
 
@@ -74,9 +74,9 @@ Status: completed with known findings, then converted into a baseline gate.
 
 First command:
 
-```bash
+~~~bash
 make dogfood
-```
+~~~
 
 Result:
 

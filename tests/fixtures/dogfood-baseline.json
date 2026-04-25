@@ -1,90 +1,13 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 15,
+  "total_diagnostics": 4,
   "diagnostics": [
     {
       "path": "docs/dogfooding.md",
       "rule_id": "MD059",
       "message": "Link text should be descriptive",
       "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD022",
-      "message": "Headings should be surrounded by blank lines",
-      "line_text": "### Phase 1: 基盤構築",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD022",
-      "message": "Headings should be surrounded by blank lines",
-      "line_text": "### Phase 2: Rule Parity",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD022",
-      "message": "Headings should be surrounded by blank lines",
-      "line_text": "### Phase 3: Public Release 準備",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD022",
-      "message": "Headings should be surrounded by blank lines",
-      "line_text": "### Phase 4: CLI",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD022",
-      "message": "Headings should be surrounded by blank lines",
-      "line_text": "### Phase 5: Upstream Update Tracking",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- `kml check`",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- crates.io 向け metadata",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- upstream default branch 追従",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- クレートの初期化（Cargo.toml, CI, docs.rs 設定）",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- 公式 markdownlint の全 active rule の check 実装",
-      "count": 1
-    },
-    {
-      "path": "openspec/design.md",
-      "rule_id": "MD040",
-      "message": "Fenced code blocks should have a language specified.",
-      "line_text": "```",
       "count": 1
     },
     {

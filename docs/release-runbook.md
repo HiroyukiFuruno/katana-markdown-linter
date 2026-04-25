@@ -17,21 +17,21 @@ Confirm package contents are limited to source, manifest, README, license, and o
 
 Run local validation:
 
-```bash
+~~~bash
 make release-check VERSION=vX.Y.Z
-```
+~~~
 
 If validating upstream drift locally, clone upstream docs and run:
 
-```bash
+~~~bash
 KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc make upstream-drift
-```
+~~~
 
 Confirm the installed binary path:
 
-```bash
+~~~bash
 cargo install --path . --bin kml
-```
+~~~
 
 ## CI/CD Release Flow
 

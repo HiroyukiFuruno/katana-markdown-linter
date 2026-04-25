@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.8.1
+
+- Improves `MD048` code fence style checks by evaluating parsed fenced code blocks and honoring `style = consistent`, `backtick`, and `tilde`.
+- Adds conservative `MD048` safe fixes that rewrite fence markers only when block-local collision guards pass.
+- Adds fixture and golden coverage for `MD048` fix output and collision-safe diagnostic-only behavior.
+
 ## v0.8.0
 
 - Adds safe fixes for `MD035` horizontal rule style and `MD055` table pipe style.

@@ -29,7 +29,7 @@ diagnostic-only at the start of the change.
 | `MD043` | `manual-required` | Required headings require author-provided sections and order. |
 | `MD045` | `manual-required` | Alt text requires image-specific author knowledge. |
 | `MD046` | `safe-after-context` | Indented/fenced conversion needs block ranges and code-content guards. |
-| `MD048` | `safe-after-context` | Fence marker conversion needs block ranges and fence-collision guards. |
+| `MD048` | `safe-now` | Fence marker conversion uses block ranges and skips collision-prone code blocks. Implemented in `v0.8.1`. |
 | `MD052` | `manual-required` | Missing reference definitions require destinations or labels. |
 | `MD055` | `safe-now` | Table pipe style can be fixed when `DocumentContext` marks the table safe. Implemented in `v0.8.0` first batch. |
 | `MD056` | `manual-required` | Column count fixes require deciding missing cell content. |

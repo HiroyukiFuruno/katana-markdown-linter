@@ -29,7 +29,7 @@ Markdown linter を利用するアプリケーション側と、markdownlint-com
 
 ### 公開 API の設計方針
 
-```rust
+~~~rust
 use katana_markdown_linter::{lint, fix, LintOptions, LintResult, FixResult};
 
 // Lint: テキストを受け取り、診断結果を返す
@@ -37,7 +37,7 @@ let results: Vec<LintResult> = lint(content, &options)?;
 
 // Fix: テキストを受け取り、修正済みテキストを返す
 let fixed: FixResult = fix(content, &options)?;
-```
+~~~
 
 ### ルールカバレッジ
 

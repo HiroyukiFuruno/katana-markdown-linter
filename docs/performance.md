@@ -8,21 +8,21 @@ wall-clock gate.
 
 Run the benchmark runner and write `target/perf-report.json`:
 
-```sh
+~~~sh
 make bench
-```
+~~~
 
 Compare the current report with the committed baseline:
 
-```sh
+~~~sh
 make perf-check
-```
+~~~
 
 Refresh the baseline after an intentional optimization:
 
-```sh
+~~~sh
 make perf-refresh-baseline
-```
+~~~
 
 ## Report Schema
 
@@ -39,9 +39,9 @@ samples and summary statistics:
 The default command runs one warmup round and five measured samples. Override
 the local run shape when needed:
 
-```sh
+~~~sh
 make bench PERF_ITERATIONS=30 PERF_SAMPLES=7 PERF_WARMUP=2
-```
+~~~
 
 ## Benchmark Cases
 
@@ -71,9 +71,9 @@ spikes than a single sample.
 
 When changing benchmark shape, update the baseline in the same change:
 
-```sh
+~~~sh
 make perf-refresh-baseline
-```
+~~~
 
 ## Cross-Tool CLI Benchmark
 
@@ -83,26 +83,26 @@ timing are not stable enough for required CI.
 
 Run all available cross-tool cases:
 
-```sh
+~~~sh
 make bench-cross-tools
-```
+~~~
 
 Run a narrower comparison:
 
-```sh
+~~~sh
 make bench-cross-tools-default
 make bench-cross-tools-common
 make bench-cross-tools-fix
-```
+~~~
 
 The harness always builds `target/release/kml` first. `mado` and `rumdl` are
 discovered from `PATH` unless explicit paths are supplied through
 `CROSS_TOOL_ARGS`. Missing optional tools are reported as skipped cases rather
 than failures:
 
-```sh
+~~~sh
 make bench-cross-tools CROSS_TOOL_ARGS="--mado /path/to/mado --rumdl /path/to/rumdl"
-```
+~~~
 
 Reports are written to:
 
