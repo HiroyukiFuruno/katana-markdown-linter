@@ -14,24 +14,24 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Safe check/fix expansion for `v0.4.0` | `safe-fix-strategy-expansion` | Completed for `v0.4.0`; `MD005` and `MD030` safe subsets are locked, while `MD060` remains diagnostic/manual-required because official metadata marks it non-fixable. |
 | Done | Table strategy for `v0.5.0` | `v0-5-0-table-strategy-md060` | Completed for `v0.5.0`; `MD060` now has table-block parsing, official style checks, and safe fix subsets. |
 | Done | Source-preserving document context for `v0.5.0` | `source-preserving-document-context` | Completed for `v0.5.0`; `DocumentContext` now shares source-preserving structure across migrated rule families. |
-| P1 | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Active; hardens en/ja localization across Rust API, CLI rule/config output, MCP metadata, and translation coverage gates. |
+| Done | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Completed for `v0.6.0`; Rust API, CLI rule/config output, MCP metadata, and translation coverage gates now share stable localized metadata. |
 | P2 | Unsafe fix mode for `v0.5.0` | `unsafe-fix-mode-and-confirmation` | Unsafe fix requires explicit user opt-in, CLI confirmation, and automation guardrails. |
 | P2 | MCP productization | `mcp-workspace-tools-productization` | Current MCP server is experimental and text-first only. |
 | Done | Performance hot path work | `performance-hotpath-competition` | Completed; docs now include baseline, profile summary, before/after, and local regression guidance. |
 
-Archived `v0.4.0` changes:
+Archived completed changes:
 
 - `golden-edge-coverage-expansion` -> `openspec/changes/archive/2026-04-25-golden-edge-coverage-expansion`
 - `safe-fix-strategy-expansion` -> `openspec/changes/archive/2026-04-25-safe-fix-strategy-expansion`
 - `v0-5-0-table-strategy-md060` -> `openspec/changes/archive/2026-04-25-v0-5-0-table-strategy-md060`
 - `performance-hotpath-competition` -> `openspec/changes/archive/2026-04-25-performance-hotpath-competition`
+- `v0-6-0-i18n-expansion-draft` -> `openspec/changes/archive/2026-04-25-v0-6-0-i18n-expansion-draft`
 
 ## Suggested Order
 
-1. Complete `v0-6-0-i18n-expansion-draft` before adding new locales.
-2. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-3. Apply `unsafe-fix-mode-and-confirmation` after default safe context-based behavior is stable.
-4. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
+2. Apply `unsafe-fix-mode-and-confirmation` after default safe context-based behavior is stable.
+3. Use `source-preserving-document-context` as the baseline for later structural fix work.
 
 ## Repository Guardrails
 
