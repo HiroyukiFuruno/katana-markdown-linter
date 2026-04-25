@@ -278,8 +278,20 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         violations.push("README.md: missing `## Rule Map`".to_string());
     }
 
+    let fixture_matrix: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/rule-fixture-matrix.json"))
+            .expect("fixture matrix should parse");
+    let rules = fixture_matrix["rules"]
+        .as_array()
+        .expect("fixture matrix rules should be an array");
+
     for rule in katana_markdown_linter::available_rules() {
-        let safe_fix = if rule.fixable { "yes" } else { "no" };
+        let safe_fix = rules
+            .iter()
+            .find(|entry| entry["rule_id"].as_str() == Some(rule.id.as_str()))
+            .and_then(|entry| entry["fix"].as_array())
+            .is_some_and(|fixes| !fixes.is_empty());
+        let safe_fix = if safe_fix { "yes" } else { "no" };
         let row = format!("| `{}` | {} |", rule.id, safe_fix);
         if !readme.contains(&row) {
             violations.push(format!("README.md: missing rule map row `{row}`"));

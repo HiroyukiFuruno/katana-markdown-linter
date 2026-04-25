@@ -5,7 +5,7 @@
     "rules_with_examples": 53,
     "rules_with_fix_metadata": 33,
     "rules_with_parameters": 34,
-    "manual_required": 3,
+    "manual_required": 2,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -138,7 +138,18 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "horizontal_rule_after_blank_line",
+          "source": "# Heading\n\n---\n\nText\n",
+          "expected": null
+        },
+        {
+          "name": "front_matter_delimiters",
+          "source": "---\ntitle: Doc\n---\n\n# Doc\n",
+          "expected": null
+        }
+      ],
       "manual_required": []
     },
     {
@@ -3737,19 +3748,60 @@
       "fixable": null,
       "check_pass": [
         {
+          "name": "aligned_table",
+          "source": "| A | B |\n|---|---|\n| C | D |\n",
+          "expected": null
+        },
+        {
           "name": "compact_table",
-          "source": "|A|B|\n|-|-|\n|C|D|\n",
+          "source": "| A | B |\n| --- | --- |\n| C | D |\n",
+          "expected": null
+        },
+        {
+          "name": "tight_table",
+          "source": "|A|B|\n|---|---|\n|C|D|\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
-          "name": "inconsistent_table_style",
-          "source": "| A | B |\n| --- | - |\n| C | D |\n",
+          "name": "mixed_table_style",
+          "source": "|A| B |\n|---|---|\n| C | D |\n",
           "expected": "MD060"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "tight_to_compact",
+          "source": "|A|B|\n|---|---|\n|C|D|\n",
+          "expected": "| A | B |\n| --- | --- |\n| C | D |\n",
+          "config": {
+            "MD060": {
+              "style": "compact"
+            }
+          }
+        },
+        {
+          "name": "compact_to_tight",
+          "source": "| A | B |\n| --- | --- |\n| C | D |\n",
+          "expected": "|A|B|\n|---|---|\n|C|D|\n",
+          "config": {
+            "MD060": {
+              "style": "tight"
+            }
+          }
+        },
+        {
+          "name": "compact_to_aligned",
+          "source": "| A | B |\n| --- | --- |\n| C | D |\n",
+          "expected": "| A   | B   |\n| --- | --- |\n| C   | D   |\n",
+          "config": {
+            "MD060": {
+              "style": "aligned"
+            }
+          }
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -3797,18 +3849,21 @@
       "edge": [
         {
           "name": "compact_table_is_accepted",
-          "source": "|A|B|\n|-|-|\n|C|D|\n",
+          "source": "| A | B |\n| --- | --- |\n| C | D |\n",
           "expected": null
         },
         {
-          "name": "spaced_table_is_diagnostic_only",
-          "source": "| A | B |\n| --- | - |\n| C | D |\n",
+          "name": "mixed_table_style_has_safe_fix",
+          "source": "|A| B |\n|---|---|\n| C | D |\n",
           "expected": "MD060"
+        },
+        {
+          "name": "escaped_pipe_is_not_a_table",
+          "source": "| A \\| B | C |\n|---|---|\n",
+          "expected": null
         }
       ],
-      "manual_required": [
-        "fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked"
-      ]
+      "manual_required": []
     }
   ]
 }
