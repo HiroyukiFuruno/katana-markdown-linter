@@ -176,4 +176,21 @@ mod tests {
 
         assert!(results.iter().all(|result| result.rule_id != "MD055"));
     }
+
+    #[test]
+    fn ignores_html_links_and_mermaid_pipes_that_are_not_tables() {
+        let content = concat!(
+            "<p align=\"center\">\n",
+            "  <a href=\"sample_diagrams.md\">English</a> | 日本語\n",
+            "</p>\n\n",
+            "```mermaid\n",
+            "graph TD\n",
+            "    B -->|Yes| C[処理A]\n",
+            "    B -->|No| D[処理B]\n",
+            "```\n"
+        );
+        let results = lint(content, &LintOptions::default()).expect("lint runs");
+
+        assert!(results.iter().all(|result| result.rule_id != "MD055"));
+    }
 }

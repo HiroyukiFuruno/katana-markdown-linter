@@ -2,7 +2,7 @@
 
 ## ADDED Requirements
 
-### Requirement: Registry Publication Is Explicitly Deferred
+### Requirement: Registry publication SHALL be explicitly deferred
 
 The project SHALL NOT publish `kml-mcp` to MCP Registry or third-party MCP hubs
 until a dedicated public-readiness gate has passed.
@@ -14,7 +14,7 @@ until a dedicated public-readiness gate has passed.
 - **THEN** no registry publish command SHALL have been run as part of the change
 - **AND** the required future publication conditions SHALL be documented
 
-### Requirement: Registry Package Type Must Match Distribution Reality
+### Requirement: registry package type SHALL match distribution reality
 
 The project SHALL choose an MCP Registry package type only after confirming that
 the selected artifact can install and run `kml-mcp` without misleading users.
@@ -26,7 +26,19 @@ the selected artifact can install and run `kml-mcp` without misleading users.
 - **THEN** the plan SHALL record that crates.io is not currently a direct official MCP Registry package type
 - **AND** the plan SHALL evaluate MCPB or OCI before adding npm or PyPI wrappers
 
-### Requirement: API-Hosted LLM Use Requires A Compatible Transport
+### Requirement: server metadata SHALL expose workspace safety limits
+
+The project SHALL describe workspace path and write behavior in MCP distribution metadata or workspace safety documentation.
+
+#### Scenario: User reviews the MCP server listing
+
+- **GIVEN** a user discovers `kml-mcp` through Registry or Hub metadata
+- **WHEN** the metadata points to installation and usage documentation
+- **THEN** the documentation SHALL state that workspace paths are rooted under `--workspace-root`
+- **AND** the documentation SHALL state that file writes require explicit apply
+- **AND** the documentation SHALL NOT imply directory-wide automatic mutation support
+
+### Requirement: API-hosted LLM use SHALL require a compatible transport
 
 The project SHALL distinguish local stdio MCP use from provider API remote MCP use.
 

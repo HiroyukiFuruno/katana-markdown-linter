@@ -2,49 +2,61 @@
 
 ## Current Position
 
-`kml-mcp` は Rust binary として配布され、local MCP client から stdio で利用する。
-この形は Codex / Claude Code / Antigravity などの desktop / CLI client に向いている。
+`kml-mcp` は Rust binary として配布され、ローカル MCP client から標準入出力
+（stdio）で利用する。この形は Codex、Claude Code、Antigravity のような
+デスクトップまたは CLI の client に向いている。
 
-LLM provider API から直接 MCP として使う場合は、provider が接続できる remote MCP
-server が必要になる。local stdio server は hosted API から直接参照できない。
+一方で、LLM provider API から直接呼ぶ場合は、provider が接続できる遠隔 MCP
+サーバー（remote MCP server）が必要になる。local stdio server は hosted API
+から直接参照できない。
 
-## Registry Reality
+## Package Type Evaluation
 
-Official MCP Registry は server artifact を hosting しない。
-`server.json` は実体 package への参照を持つ metadata である。
+この change では、実装前に package type を評価して第一候補を決める。
 
-現時点で検討対象になる package type:
-
-| Package type | Fit for kml | Notes |
+| Package type | 初期評価 | 判断軸 |
 | --- | --- | --- |
-| npm | Low | Rust binary wrapper が必要で、primary distribution から外れる。 |
-| PyPI | Low | Python wrapper が必要で、ownership / install path が不自然。 |
-| NuGet | Low | .NET distribution ではない。 |
-| Docker/OCI | Medium | GHCR で配布しやすいが、local file access と workspace mount の設計が必要。 |
-| MCPB | Medium | Desktop client distribution と相性があるが、artifact format と install UX の調査が必要。 |
+| MCPB | 有力 | local stdio binary を desktop client に配る形と合うか |
+| OCI image | 有力 | GHCR で配れるが workspace mount と write policy の説明が必要 |
+| npm wrapper | 低 | Rust binary への wrapper が必要で primary distribution とずれる |
+| PyPI wrapper | 低 | Python distribution ではなく ownership が不自然 |
+| NuGet | 低 | .NET distribution ではない |
 
-## Preferred Direction
+判断結果は `docs/mcp-server.md` か配布文書に残す。
+「調査したが選ばなかった理由」も future maintainer が追えるように記録する。
 
-Phase 1 は MCPB と GHCR の比較検証に留める。
+## Registry Metadata Shape
 
-推奨順:
+`server.json` は Registry metadata として扱う。server artifact の実体は、選定した
+package registry または release artifact を参照する。
 
-1. MCPB が `kml-mcp` の local stdio binary 配布に自然か確認する。
-2. GHCR image は remote / isolated execution 向けとして検討する。
-3. npm / PyPI wrapper は最後の手段とする。
+草案で決める項目:
+
+- server name と display name
+- package type と install command
+- binary name `kml-mcp`
+- required feature `mcp`
+- workspace root の指定方法
+- destructive write が default off であること
+- documentation URL
+- security / workspace policy への導線
 
 ## Public Readiness Gate
 
-Registry / Hub 公開は以下を満たすまで deferred とする。
+Registry / Hub 公開は、少なくとも以下を満たすまで deferred とする。
 
-- `mcp-stdio-smoke` が release gate に含まれている。
-- workspace write path が preview / explicit apply に限定されている。
-- README / docs が install, safety, client config を説明している。
-- rule check / fix coverage の現在地が誤解なく表示されている。
-- `server.json` の install path がユーザーに不要な wrapper を強制しない。
-- 公開前に security review を実施し、workspace access policy を再確認する。
+- `make mcp-stdio-smoke` が release gate に含まれている
+- file write は preview と explicit apply に分かれている
+- README / docs が install、safety、client config を説明している
+- rule check / fix coverage の現在地が誤解なく表示されている
+- `server.json` の install path が不要な wrapper を強制しない
+- 公開前 security review で workspace access policy を再確認している
 
-## Future Remote MCP Option
+## Follow-Up Split
 
-Provider API から直接使う用途が明確になった場合、remote HTTP MCP transport を別 change
-で設計する。local stdio と remote HTTP は安全境界が違うため、同じ change に混ぜない。
+この change の結果、後続 change を次のように分ける。
+
+- `v0-14-0-mcp-package-and-registry-publication`: 選定済み配布物と Registry 公開
+- `v0-15-0-remote-mcp-transport`: 遠隔 MCP 接続が必要になった場合の transport
+
+local stdio と remote transport は安全境界が違うため、同じ実装 change に混ぜない。

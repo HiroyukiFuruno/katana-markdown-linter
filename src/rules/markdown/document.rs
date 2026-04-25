@@ -284,13 +284,13 @@ fn extract_front_matter(lines: &[LineInfo<'_>]) -> Option<SourceRange> {
 
 fn extract_code_blocks(lines: &[LineInfo<'_>]) -> Vec<BlockRange> {
     let mut blocks = Vec::new();
-    let mut open: Option<(usize, FenceKind)> = None;
+    let mut open: Option<(usize, FenceKind, usize)> = None;
     for (idx, line) in lines.iter().enumerate() {
-        let Some(kind) = fence_kind(line.text.trim_start()) else {
+        let Some((kind, length)) = fence_marker(line.text.trim_start()) else {
             continue;
         };
-        if let Some((start, start_kind)) = open {
-            if start_kind == kind {
+        if let Some((start, start_kind, start_length)) = open {
+            if start_kind == kind && length >= start_length {
                 blocks.push(BlockRange {
                     start_line: start,
                     end_line: idx,
@@ -303,10 +303,10 @@ fn extract_code_blocks(lines: &[LineInfo<'_>]) -> Vec<BlockRange> {
                 open = None;
             }
         } else {
-            open = Some((idx, kind));
+            open = Some((idx, kind, length));
         }
     }
-    if let Some((start, kind)) = open {
+    if let Some((start, kind, _)) = open {
         if let Some(last) = lines.last() {
             blocks.push(BlockRange {
                 start_line: start,
@@ -322,11 +322,20 @@ fn extract_code_blocks(lines: &[LineInfo<'_>]) -> Vec<BlockRange> {
     blocks
 }
 
-fn fence_kind(trimmed: &str) -> Option<FenceKind> {
+fn fence_marker(trimmed: &str) -> Option<(FenceKind, usize)> {
+    let mut chars = trimmed.chars();
+    let marker = chars.next()?;
+    if marker != '`' && marker != '~' {
+        return None;
+    }
+    let length = trimmed.chars().take_while(|ch| *ch == marker).count();
+    if length < 3 {
+        return None;
+    }
     if trimmed.starts_with("```") {
-        Some(FenceKind::Backtick)
+        Some((FenceKind::Backtick, length))
     } else if trimmed.starts_with("~~~") {
-        Some(FenceKind::Tilde)
+        Some((FenceKind::Tilde, length))
     } else {
         None
     }
@@ -451,9 +460,6 @@ fn extract_tables<'a>(lines: &[LineInfo<'a>], code_blocks: &[BlockRange]) -> Vec
             let Some(next) = parse_table_row(end + 1, &lines[end + 1]) else {
                 break;
             };
-            if next.cells.len() != rows[0].cells.len() {
-                break;
-            }
             rows.push(next);
             end += 1;
         }
@@ -577,6 +583,29 @@ mod tests {
         assert_eq!(ctx.code_blocks().len(), 1);
         assert!(ctx.is_code_line(12));
         assert_eq!(ctx.markdown_ast().blocks.len(), 3);
+    }
+
+    #[test]
+    fn context_keeps_irregular_table_rows_for_column_rules() {
+        let content = "| A | B |\n|---|---|\n| C |\n| D | E | F |\n";
+        let ctx = DocumentContext::new(Path::new("doc.md"), content);
+
+        assert_eq!(ctx.tables().len(), 1);
+        assert_eq!(ctx.tables()[0].rows.len(), 4);
+        assert_eq!(ctx.tables()[0].rows[2].cells.len(), 1);
+        assert_eq!(ctx.tables()[0].rows[3].cells.len(), 3);
+    }
+
+    #[test]
+    fn context_respects_nested_shorter_fences_inside_longer_fences() {
+        let content = "````markdown\n```rust\ncode\n```\n````\n";
+        let ctx = DocumentContext::new(Path::new("doc.md"), content);
+
+        assert_eq!(ctx.code_blocks().len(), 1);
+        assert_eq!(ctx.code_blocks()[0].start_line, 0);
+        assert_eq!(ctx.code_blocks()[0].end_line, 4);
+        assert!(ctx.is_code_line(1));
+        assert!(ctx.is_code_line(3));
     }
 
     #[test]

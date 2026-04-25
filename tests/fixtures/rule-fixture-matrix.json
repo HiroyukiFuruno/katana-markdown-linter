@@ -496,7 +496,7 @@
       "edge": [
         {
           "name": "crlf_trailing_spaces",
-          "source": "text  \r\n",
+          "source": "text   \r\n",
           "expected": "MD009"
         }
       ],
@@ -783,7 +783,7 @@
       "check_fail": [
         {
           "name": "line_over_limit",
-          "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh\n",
+          "source": "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefgh\n",
           "expected": "MD013"
         }
       ],
@@ -885,7 +885,7 @@
       "edge": [
         {
           "name": "unicode_line_over_limit",
-          "source": "あああああああああああああああああああああああああああああああああああああああああ\n",
+          "source": "あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ あ\n",
           "expected": "MD013"
         }
       ],
@@ -903,23 +903,28 @@
       "fixable": true,
       "check_pass": [
         {
-          "name": "dollar_prompt_with_space",
-          "source": "$ echo hello\n",
+          "name": "code_block_with_command_output",
+          "source": "```\n$ ls\nfoo\n$ cat bar\n```\n",
+          "expected": null
+        },
+        {
+          "name": "latex_display_math",
+          "source": "$$ \\sum {k=1}^{n} k = \\frac{n(n+1)}{2} $$\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
-          "name": "dollar_prompt_without_space",
-          "source": "$echo hello\n",
+          "name": "code_block_all_commands_with_dollar_prompts",
+          "source": "```sh\n$ ls\n$ cat foo\n```\n",
           "expected": "MD014"
         }
       ],
       "fix": [
         {
-          "name": "remove_dollar_prompt_without_space",
-          "source": "$echo hi\n",
-          "expected": "echo hi\n"
+          "name": "remove_dollar_prompts_from_command_block",
+          "source": "```sh\n$ ls\n$ cat foo\n```\n",
+          "expected": "```sh\nls\ncat foo\n```\n"
         }
       ],
       "config_valid": [
@@ -3631,14 +3636,14 @@
       "check_pass": [
         {
           "name": "consistent_table_column_count",
-          "source": "| a | b |\n| 1 | 2 |\n",
+          "source": "| a | b |\n|---|---|\n| 1 | 2 |\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
           "name": "inconsistent_table_column_count",
-          "source": "| a | b |\n| 1 | 2 | 3 |\n",
+          "source": "| a | b |\n|---|---|\n| 1 | 2 | 3 |\n",
           "expected": "MD056"
         }
       ],
@@ -3728,14 +3733,14 @@
       "check_pass": [
         {
           "name": "descriptive_link_text",
-          "source": "Read the documentation.\n",
+          "source": "[Normal link](https://example.com)\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
           "name": "prohibited_link_text",
-          "source": "click here\n",
+          "source": "[click here](https://example.com)\n",
           "expected": "MD059"
         }
       ],

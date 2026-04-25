@@ -317,7 +317,7 @@ fn edge_cases_cover_empty_no_newline_long_code_fence_and_html() {
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD047"));
 
-    let long_line = format!("{}\n", "a".repeat(81));
+    let long_line = format!("{} b c\n", "a".repeat(78));
     let long_line_diagnostics = lint(&long_line, &options).expect("lint should run");
     assert!(long_line_diagnostics
         .iter()
@@ -345,7 +345,7 @@ fn edge_cases_cover_list_heading_and_table_boundaries() {
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD001"));
 
-    let table = lint("| a | b |\n| 1 | 2 | 3 |\n", &options).expect("lint should run");
+    let table = lint("| a | b |\n|---|---|\n| 1 | 2 | 3 |\n", &options).expect("lint should run");
     assert!(table.iter().any(|diagnostic| diagnostic.rule_id == "MD056"));
 }
 

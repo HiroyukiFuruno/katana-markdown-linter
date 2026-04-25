@@ -1,8 +1,9 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
     RuleParityStatus,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /* WHY: Section: Heading-related markdownlint rules (part 2)
@@ -22,31 +23,33 @@ impl MarkdownRule for SingleH1Rule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD025");
         let mut diagnostics = Vec::new();
         let mut h1_count = 0;
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        for heading in ctx.headings() {
+            if heading.level != 1 {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
-            if trimmed.starts_with("# ") && !trimmed.starts_with("## ") {
-                h1_count += 1;
-                if h1_count > 1 {
-                    RuleHelpers::push_diag(
-                        &mut diagnostics,
-                        file_path,
-                        i,
-                        line,
-                        &meta,
-                        DiagnosticSeverity::Warning,
-                    );
-                }
+            h1_count += 1;
+            if h1_count > 1 {
+                let line = &ctx.lines()[heading.line];
+                RuleHelpers::push_diag(
+                    &mut diagnostics,
+                    ctx.file_path(),
+                    heading.line,
+                    line.text,
+                    &meta,
+                    DiagnosticSeverity::Warning,
+                );
             }
         }
         diagnostics
@@ -79,19 +82,19 @@ impl MarkdownRule for NoTrailingPunctuationRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD026");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block || !RuleHelpers::is_atx_heading(trimmed) {
-                continue;
-            }
-            let heading_text = trimmed.trim_start_matches('#').trim();
+        for heading in ctx.headings() {
+            let heading_text = heading.text.trim();
             let Some(punctuation) = heading_text.chars().last() else {
                 continue;
             };
@@ -99,25 +102,23 @@ impl MarkdownRule for NoTrailingPunctuationRule {
                 continue;
             }
 
-            let trimmed_end = line.trim_end();
-            let start = trimmed_end.len() - punctuation.len_utf8();
+            let start = heading.text_range.end - punctuation.len_utf8();
+            let range = ctx.diagnostic_range(crate::rules::markdown::SourceRange {
+                start,
+                end: heading.text_range.end,
+            });
             diagnostics.push(MarkdownDiagnostic {
-                file: file_path.to_path_buf(),
+                file: ctx.file_path().to_path_buf(),
                 severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: i + 1,
-                    start_column: start + 1,
-                    end_line: i + 1,
-                    end_column: trimmed_end.len() + 1,
-                },
+                range: range.clone(),
                 message: meta.description.to_string(),
                 rule_id: meta.code.to_string(),
                 official_meta: Some(meta.clone()),
                 fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                    start_line: i + 1,
-                    start_column: start + 1,
-                    end_line: i + 1,
-                    end_column: trimmed_end.len() + 1,
+                    start_line: range.start_line,
+                    start_column: range.start_column,
+                    end_line: range.end_line,
+                    end_column: range.end_column,
                     replacement: String::new(),
                 }),
             });

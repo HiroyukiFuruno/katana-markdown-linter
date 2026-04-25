@@ -1,5 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta,
 };
 use crate::types::RuleConfig;
 use std::collections::HashMap;
@@ -27,29 +28,39 @@ impl MarkdownRule for LinkStyleRule {
         content: &str,
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         if collapsed_references_allowed(config) {
             return Vec::new();
         }
 
         let meta = self.official_meta().expect("always Some for MD054");
-        let has_inline = content.contains("](");
-        let has_reference = content.contains("][") || content.contains("]:");
+        let has_inline = active_lines(ctx).any(|(_, line)| line.text.contains("]("));
+        let definitions = link_definitions(ctx);
+        let has_reference =
+            !definitions.is_empty() || active_lines(ctx).any(|(_, line)| line.text.contains("]["));
         if !has_inline || !has_reference {
             return Vec::new();
         }
 
-        let definitions = link_definitions(content);
         let mut diagnostics = Vec::new();
-        for (i, line) in content.lines().enumerate() {
-            for reference in collapsed_references(line) {
+        for (_, line) in active_lines(ctx) {
+            for reference in collapsed_references(line.text) {
                 let destination = definitions.get(&reference.label.to_lowercase());
                 diagnostics.push(MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: reference.start + 1,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: reference.end + 1,
                     },
                     message: meta.description.to_string(),
@@ -57,9 +68,9 @@ impl MarkdownRule for LinkStyleRule {
                     official_meta: Some(meta.clone()),
                     fix_info: destination.map(|destination| {
                         crate::rules::markdown::types::DiagnosticFix {
-                            start_line: i + 1,
+                            start_line: line.number,
                             start_column: reference.start + 1,
-                            end_line: i + 1,
+                            end_line: line.number,
                             end_column: reference.end + 1,
                             replacement: format!("[{}]({destination})", reference.label),
                         }
@@ -70,6 +81,15 @@ impl MarkdownRule for LinkStyleRule {
 
         diagnostics
     }
+}
+
+fn active_lines<'ctx, 'src>(
+    ctx: &'ctx DocumentContext<'src>,
+) -> impl Iterator<Item = (usize, &'ctx crate::rules::markdown::LineInfo<'src>)> + 'ctx {
+    ctx.lines()
+        .iter()
+        .enumerate()
+        .filter(|(idx, _)| !ctx.is_code_line(*idx))
 }
 
 fn collapsed_references_allowed(config: Option<&RuleConfig>) -> bool {
@@ -125,10 +145,10 @@ fn collapsed_references(line: &str) -> Vec<CollapsedReference<'_>> {
     references
 }
 
-fn link_definitions(content: &str) -> HashMap<String, String> {
+fn link_definitions(ctx: &DocumentContext<'_>) -> HashMap<String, String> {
     let mut definitions = HashMap::new();
-    for line in content.lines() {
-        let trimmed = line.trim_start();
+    for (_, line) in active_lines(ctx) {
+        let trimmed = line.text.trim_start();
         let Some((label, rest)) = trimmed
             .strip_prefix('[')
             .and_then(|rest| rest.split_once("]:"))

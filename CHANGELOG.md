@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.12.1
+
+- Fixes a false positive where `MD029` shared ordered-list numbering across
+  nested indentation levels.
+- Fixes a false positive where `MD034` treated URLs inside HTML attributes as
+  bare URLs.
+- Fixes a false positive where `MD014` treated LaTeX display math delimiters
+  (`$$`) as command prompts.
+- Fixes a false positive where `MD046` treated indented Mermaid diagram lines
+  inside fenced code blocks as indented code blocks.
+- Adds a regression guard so `MD055` does not treat HTML link separators or
+  Mermaid edge labels inside fenced code blocks as Markdown tables.
+- Fixes `MD056` and `MD058` to evaluate parsed Markdown table blocks instead of
+  pipe-like text in HTML, prose, or fenced code blocks.
+- Consolidates fenced code block context across heading, list, whitespace, link,
+  image, HTML, and fence rules so nested shorter fences are not misclassified.
+- Fixes false positives where `MD059` inspected HTML anchor text or treated
+  descriptive Markdown link text containing `link` as non-descriptive.
+- Adds file-level false-positive regression coverage for mixed Markdown
+  documents with HTML, tables, math, nested lists, reference links, and fenced
+  Mermaid/code examples.
+- Aligns `MD009`, `MD010`, `MD013`, `MD014`, and `MD044` context handling with
+  upstream configuration defaults for code blocks, code spans, headings, tables,
+  hard-break spaces, and long unbreakable tokens.
+- Updates GitHub Action examples and distribution docs to the current release line.
+- Archives the completed MCP workspace tools OpenSpec change.
+
 ## v0.12.0
 
 - Promotes `kml-mcp` from a text-only prototype to a workspace-scoped MCP adapter.

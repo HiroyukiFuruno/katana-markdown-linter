@@ -1,5 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -17,7 +18,19 @@ impl MarkdownRule for StrongStyleRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        self.evaluate_with_style(file_path, content, None)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let style = config
+            .and_then(|config| config.properties.get("style"))
+            .map(String::as_str);
+        self.evaluate_context_with_style(ctx, style)
     }
 
     fn evaluate_configured(
@@ -26,18 +39,15 @@ impl MarkdownRule for StrongStyleRule {
         content: &str,
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
-        let style = config
-            .and_then(|config| config.properties.get("style"))
-            .map(String::as_str);
-        self.evaluate_with_style(file_path, content, style)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
     }
 }
 
 impl StrongStyleRule {
-    fn evaluate_with_style(
+    fn evaluate_context_with_style(
         &self,
-        file_path: &Path,
-        content: &str,
+        ctx: &DocumentContext<'_>,
         style: Option<&str>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD050");
@@ -48,29 +58,32 @@ impl StrongStyleRule {
             _ => None,
         };
 
-        for (i, line) in content.lines().enumerate() {
-            for span in strong_spans(line) {
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
+            for span in strong_spans(line.text) {
                 let expected_marker = *expected.get_or_insert(span.marker);
                 if span.marker == expected_marker {
                     continue;
                 }
 
                 diagnostics.push(MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: span.start + 1,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: span.end + 1,
                     },
                     message: meta.description.to_string(),
                     rule_id: meta.code.to_string(),
                     official_meta: Some(meta.clone()),
                     fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: span.start + 1,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: span.end + 1,
                         replacement: format!("{expected_marker}{}{expected_marker}", span.inner),
                     }),
@@ -191,5 +204,13 @@ mod tests {
             diagnostics[0].fix_info.as_ref().unwrap().replacement,
             "__Text__"
         );
+    }
+
+    #[test]
+    fn ignores_strong_inside_fenced_code() {
+        let rule = StrongStyleRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```\n**one** and __two__\n```\n");
+
+        assert!(diagnostics.is_empty());
     }
 }

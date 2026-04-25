@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::collections::HashSet;
 use std::path::Path;
@@ -21,16 +21,11 @@ impl MarkdownRule for NoDuplicateHeadingRule {
         let meta = self.official_meta().expect("always Some for MD024");
         let mut diagnostics = Vec::new();
         let mut seen = HashSet::new();
-        let mut in_code_block = false;
-        let lines: Vec<&str> = content.lines().collect();
+        let ctx = DocumentContext::new(file_path, content);
+        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
 
         for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block {
+            if ctx.is_code_line(i) {
                 continue;
             }
 

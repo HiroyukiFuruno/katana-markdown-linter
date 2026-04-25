@@ -1,6 +1,8 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /// MD058 / blanks-around-tables — Tables should be surrounded by blank lines.
@@ -16,43 +18,37 @@ impl MarkdownRule for TableSpacingRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD058");
         let mut diagnostics = Vec::new();
-        let lines = content.lines().collect::<Vec<_>>();
-        let mut i = 0;
 
-        while i + 1 < lines.len() {
-            if !is_table_start(&lines, i) {
-                i += 1;
-                continue;
-            }
-
-            let start = i;
-            let mut end = i + 1;
-            while end + 1 < lines.len() && is_table_row(lines[end + 1]) {
-                end += 1;
-            }
-
-            if start > 0 && !lines[start - 1].trim().is_empty() {
+        for table in ctx.tables() {
+            if table.start_line > 0 && !ctx.lines()[table.start_line - 1].text.trim().is_empty() {
                 diagnostics.push(table_blank_fix(
-                    file_path,
-                    start,
-                    lines[start],
+                    ctx,
+                    table.start_line,
                     &meta,
                     TableBlankFix::Before,
                 ));
             }
-            if end + 1 < lines.len() && !lines[end + 1].trim().is_empty() {
+            if table.end_line + 1 < ctx.lines().len()
+                && !ctx.lines()[table.end_line + 1].text.trim().is_empty()
+            {
                 diagnostics.push(table_blank_fix(
-                    file_path,
-                    end,
-                    lines[end],
+                    ctx,
+                    table.end_line,
                     &meta,
                     TableBlankFix::After,
                 ));
             }
-
-            i = end + 1;
         }
 
         diagnostics
@@ -65,18 +61,18 @@ enum TableBlankFix {
 }
 
 fn table_blank_fix(
-    file_path: &Path,
+    ctx: &DocumentContext<'_>,
     line_idx: usize,
-    line: &str,
     meta: &OfficialRuleMeta,
     kind: TableBlankFix,
 ) -> MarkdownDiagnostic {
+    let line = &ctx.lines()[line_idx];
     let (start_column, replacement) = match kind {
         TableBlankFix::Before => (1, "\n".to_string()),
-        TableBlankFix::After => (line.len() + 1, "\n".to_string()),
+        TableBlankFix::After => (line.text.len() + 1, "\n".to_string()),
     };
     MarkdownDiagnostic {
-        file: file_path.to_path_buf(),
+        file: ctx.file_path().to_path_buf(),
         severity: DiagnosticSeverity::Warning,
         range: DiagnosticRange {
             start_line: line_idx + 1,
@@ -95,27 +91,6 @@ fn table_blank_fix(
             replacement,
         }),
     }
-}
-
-fn is_table_start(lines: &[&str], index: usize) -> bool {
-    is_table_row(lines[index]) && is_table_delimiter(lines[index + 1])
-}
-
-fn is_table_row(line: &str) -> bool {
-    line.contains('|') && !line.trim().is_empty()
-}
-
-fn is_table_delimiter(line: &str) -> bool {
-    let trimmed = line.trim().trim_matches('|');
-    if trimmed.is_empty() {
-        return false;
-    }
-
-    trimmed.split('|').all(|cell| {
-        let cell = cell.trim();
-        let hyphen_count = cell.chars().filter(|ch| *ch == '-').count();
-        hyphen_count >= 3 && cell.chars().all(|ch| ch == '-' || ch == ':')
-    })
 }
 
 #[cfg(test)]
@@ -140,6 +115,17 @@ mod tests {
     fn accepts_table_at_document_boundaries() {
         let rule = TableSpacingRule;
         let diagnostics = rule.evaluate(Path::new("doc.md"), "| A |\n|---|\n| 1 |");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_pipe_text_outside_tables_and_code_blocks() {
+        let rule = TableSpacingRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "<p align=\"center\">\n  <a href=\"sample.md\">English</a> | 日本語\n</p>\n\n```mermaid\ngraph TD\nB -->|Yes| C\nB -->|No| D\n```\n\nText | not a table\n",
+        );
 
         assert!(diagnostics.is_empty());
     }

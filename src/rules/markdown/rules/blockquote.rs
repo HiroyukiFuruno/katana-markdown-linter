@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -23,26 +23,22 @@ impl MarkdownRule for NoBlanksBlockquoteRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD028");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let mut in_code_block = false;
-        for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block || !trimmed.is_empty() {
+        let ctx = DocumentContext::new(file_path, content);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            let trimmed = line.text.trim();
+            if ctx.is_code_line(i) || !trimmed.is_empty() {
                 continue;
             }
             /* WHY: A blank between two blockquote lines creates separated blockquotes */
-            let has_bq_before = i > 0 && lines[i - 1].trim_start().starts_with('>');
-            let has_bq_after = i + 1 < lines.len() && lines[i + 1].trim_start().starts_with('>');
+            let has_bq_before = i > 0 && ctx.lines()[i - 1].text.trim_start().starts_with('>');
+            let has_bq_after =
+                i + 1 < ctx.lines().len() && ctx.lines()[i + 1].text.trim_start().starts_with('>');
             if has_bq_before && has_bq_after {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
-                    line,
+                    line.text,
                     &meta,
                     DiagnosticSeverity::Warning,
                 );

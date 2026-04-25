@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -29,23 +29,18 @@ impl MarkdownRule for ListMarkerSpaceRule {
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD030");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        let lines = content.lines().collect::<Vec<_>>();
+        let ctx = DocumentContext::new(file_path, content);
 
-        for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
+            let line = line.text;
 
             if let Some(marker) = list_marker(line) {
                 let mut after = line[marker.spaces_start..].chars();
                 let spaces = after.by_ref().take_while(|c| c.is_whitespace()).count();
-                let target = configured_target_spaces(config, marker.kind, is_multiline(&lines, i));
+                let target = configured_target_spaces(config, marker.kind, is_multiline(&ctx, i));
                 if spaces != target {
                     let fix = crate::rules::markdown::types::DiagnosticFix {
                         start_line: i + 1,
@@ -131,19 +126,19 @@ fn configured_target_spaces(
         .unwrap_or(1)
 }
 
-fn is_multiline(lines: &[&str], index: usize) -> bool {
-    let Some(current) = lines.get(index) else {
+fn is_multiline(ctx: &DocumentContext<'_>, index: usize) -> bool {
+    let Some(current) = ctx.lines().get(index) else {
         return false;
     };
-    let current_indent = current.len() - current.trim_start().len();
-    let Some(next) = lines.get(index + 1) else {
+    let current_indent = current.text.len() - current.text.trim_start().len();
+    let Some(next) = ctx.lines().get(index + 1) else {
         return false;
     };
-    let next_trimmed = next.trim_start();
+    let next_trimmed = next.text.trim_start();
     if next_trimmed.is_empty() || RuleHelpers::is_list_item(next_trimmed) {
         return false;
     }
-    next.len() - next_trimmed.len() > current_indent
+    next.text.len() - next_trimmed.len() > current_indent
 }
 
 #[cfg(test)]

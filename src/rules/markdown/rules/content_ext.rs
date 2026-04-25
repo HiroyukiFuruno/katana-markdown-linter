@@ -1,7 +1,8 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /* WHY: Section: Content-level markdownlint rule implementations (Extended)
@@ -20,29 +21,45 @@ impl MarkdownRule for NoEmptyLinksRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD042");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
-            if line.contains("]()") || line.contains("](#)") {
+            if line.text.contains("]()") || line.text.contains("](#)") {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
-                    line,
+                    line.text,
                     &meta,
                     DiagnosticSeverity::Warning,
                 );
             }
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ignores_empty_links_inside_fenced_code_blocks() {
+        let rule = NoEmptyLinksRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```md\n[example]()\n```\n");
+
+        assert!(diagnostics.is_empty());
     }
 }

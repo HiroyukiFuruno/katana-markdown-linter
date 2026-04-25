@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -19,19 +19,10 @@ impl MarkdownRule for HeadingStyleRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD003");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let front_matter = detect_front_matter(&lines);
-        let mut in_code_block = false;
+        let ctx = DocumentContext::new(file_path, content);
+        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
         for (i, line) in lines.iter().enumerate() {
-            if front_matter.is_some_and(|(start, end)| (start..=end).contains(&i)) {
-                continue;
-            }
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block {
+            if ctx.is_code_line(i) || is_front_matter_line(&ctx, i) {
                 continue;
             }
             /* WHY: Setext heading markers only count when attached to paragraph text. */
@@ -50,16 +41,13 @@ impl MarkdownRule for HeadingStyleRule {
     }
 }
 
-fn detect_front_matter(lines: &[&str]) -> Option<(usize, usize)> {
-    if lines.first().map(|line| line.trim()) != Some("---") {
-        return None;
-    }
-    lines
-        .iter()
-        .enumerate()
-        .skip(1)
-        .find(|(_, line)| matches!(line.trim(), "---" | "..."))
-        .map(|(end, _)| (0, end))
+fn is_front_matter_line(ctx: &DocumentContext<'_>, line_index: usize) -> bool {
+    let Some(front_matter) = ctx.front_matter() else {
+        return false;
+    };
+    ctx.lines().get(line_index).is_some_and(|line| {
+        front_matter.start <= line.content_range.start && line.full_range.end <= front_matter.end
+    })
 }
 
 fn is_setext_heading_marker(lines: &[&str], idx: usize) -> bool {

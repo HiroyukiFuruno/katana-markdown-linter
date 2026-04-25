@@ -1,7 +1,9 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleParityStatus,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /* WHY: Section: Heading-related markdownlint rule implementations
@@ -20,27 +22,29 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD022");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let mut in_code_block = false;
-        for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block || !RuleHelpers::is_atx_heading(trimmed) {
-                continue;
-            }
-            let needs_blank_before = i > 0 && !lines[i - 1].trim().is_empty();
-            let needs_blank_after = i + 1 < lines.len() && !lines[i + 1].trim().is_empty();
+        for heading in ctx.headings() {
+            let i = heading.line;
+            let line = &ctx.lines()[i];
+            let needs_blank_before = i > 0 && !ctx.lines()[i - 1].text.trim().is_empty();
+            let needs_blank_after =
+                i + 1 < ctx.lines().len() && !ctx.lines()[i + 1].text.trim().is_empty();
             if needs_blank_before || needs_blank_after {
                 let mut replacement = String::new();
                 if needs_blank_before {
                     replacement.push('\n');
                 }
-                replacement.push_str(line);
+                replacement.push_str(line.text);
                 if needs_blank_after {
                     replacement.push('\n');
                 }
@@ -48,14 +52,14 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
                     start_line: i + 1,
                     start_column: 1,
                     end_line: i + 1,
-                    end_column: line.len().max(1) + if line.is_empty() { 0 } else { 1 },
+                    end_column: line.text.len().max(1) + if line.text.is_empty() { 0 } else { 1 },
                     replacement,
                 };
                 RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
-                    line,
+                    line.text,
                     &meta,
                     DiagnosticSeverity::Warning,
                     Some(fix),
@@ -87,37 +91,39 @@ impl MarkdownRule for HeadingStartLeftRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD023");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        for heading in ctx.headings() {
+            let line = &ctx.lines()[heading.line];
+            let indent = heading.marker_range.start - line.content_range.start;
+            if indent == 0 {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
-            /* WHY: A heading with leading whitespace violates this rule */
-            if RuleHelpers::is_atx_heading(trimmed) && line != trimmed {
-                let fix = crate::rules::markdown::types::DiagnosticFix {
-                    start_line: i + 1,
-                    start_column: 1,
-                    end_line: i + 1,
-                    end_column: line.len() - trimmed.len() + 1,
-                    replacement: String::new(),
-                };
-                RuleHelpers::push_diag_with_fix(
-                    &mut diagnostics,
-                    file_path,
-                    i,
-                    line,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                    Some(fix),
-                );
-            }
+            let fix = crate::rules::markdown::types::DiagnosticFix {
+                start_line: heading.line + 1,
+                start_column: 1,
+                end_line: heading.line + 1,
+                end_column: indent + 1,
+                replacement: String::new(),
+            };
+            RuleHelpers::push_diag_with_fix(
+                &mut diagnostics,
+                ctx.file_path(),
+                heading.line,
+                line.text,
+                &meta,
+                DiagnosticSeverity::Warning,
+                Some(fix),
+            );
         }
         diagnostics
     }

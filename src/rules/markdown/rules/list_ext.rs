@@ -1,7 +1,8 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /* WHY: Section: List-related markdownlint rule implementations (Extended)
@@ -20,22 +21,25 @@ impl MarkdownRule for BlanksAroundListsRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD032");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let mut in_code_block = false;
-        for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block || !RuleHelpers::is_list_item(trimmed) {
+        for (i, line) in ctx.lines().iter().enumerate() {
+            let trimmed = line.text.trim_start();
+            if ctx.is_code_line(i) || !RuleHelpers::is_list_item(trimmed) {
                 continue;
             }
             let prev_is_problem = i > 0
-                && !lines[i - 1].trim().is_empty()
-                && !RuleHelpers::is_list_item(lines[i - 1].trim_start());
+                && !ctx.lines()[i - 1].text.trim().is_empty()
+                && !RuleHelpers::is_list_item(ctx.lines()[i - 1].text.trim_start());
             if prev_is_problem {
                 let fix = crate::rules::markdown::types::DiagnosticFix {
                     start_line: i + 1,
@@ -46,9 +50,9 @@ impl MarkdownRule for BlanksAroundListsRule {
                 };
                 RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
-                    line,
+                    line.text,
                     &meta,
                     DiagnosticSeverity::Warning,
                     Some(fix),
@@ -56,5 +60,18 @@ impl MarkdownRule for BlanksAroundListsRule {
             }
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ignores_list_markers_inside_fenced_code_blocks() {
+        let rule = BlanksAroundListsRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```md\ntext\n- code\n```\n");
+
+        assert!(diagnostics.is_empty());
     }
 }

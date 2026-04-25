@@ -1,7 +1,8 @@
-use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /// MD031 / blanks-around-fences - Fenced code blocks should be surrounded by blank lines.
@@ -17,39 +18,36 @@ impl MarkdownRule for BlanksAroundFencesRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD031");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
 
-        let mut in_code_block = false;
-        for (i, line) in lines.iter().enumerate() {
-            let trimmed = line.trim_start();
-            if !RuleHelpers::is_fence(trimmed) {
-                continue;
+        for block in ctx.code_blocks() {
+            if block.start_line > 0 && !ctx.lines()[block.start_line - 1].text.trim().is_empty() {
+                diagnostics.push(fence_blank_fix(
+                    ctx,
+                    block.start_line,
+                    &meta,
+                    FenceBlankFix::Before,
+                ));
             }
-
-            if !in_code_block {
-                if i > 0 && !lines[i - 1].trim().is_empty() {
-                    diagnostics.push(fence_blank_fix(
-                        file_path,
-                        i,
-                        line,
-                        &meta,
-                        FenceBlankFix::Before,
-                    ));
-                }
-                in_code_block = true;
-            } else {
-                if i + 1 < lines.len() && !lines[i + 1].trim().is_empty() {
-                    diagnostics.push(fence_blank_fix(
-                        file_path,
-                        i,
-                        line,
-                        &meta,
-                        FenceBlankFix::After,
-                    ));
-                }
-                in_code_block = false;
+            if block.end_line + 1 < ctx.lines().len()
+                && !ctx.lines()[block.end_line + 1].text.trim().is_empty()
+            {
+                diagnostics.push(fence_blank_fix(
+                    ctx,
+                    block.end_line,
+                    &meta,
+                    FenceBlankFix::After,
+                ));
             }
         }
 
@@ -63,18 +61,18 @@ enum FenceBlankFix {
 }
 
 fn fence_blank_fix(
-    file_path: &Path,
+    ctx: &DocumentContext<'_>,
     line_idx: usize,
-    line: &str,
     meta: &OfficialRuleMeta,
     kind: FenceBlankFix,
 ) -> MarkdownDiagnostic {
+    let line = &ctx.lines()[line_idx];
     let (start_column, replacement) = match kind {
         FenceBlankFix::Before => (1, "\n".to_string()),
-        FenceBlankFix::After => (line.len() + 1, "\n".to_string()),
+        FenceBlankFix::After => (line.text.len() + 1, "\n".to_string()),
     };
     MarkdownDiagnostic {
-        file: file_path.to_path_buf(),
+        file: ctx.file_path().to_path_buf(),
         severity: DiagnosticSeverity::Warning,
         range: DiagnosticRange {
             start_line: line_idx + 1,
@@ -108,5 +106,14 @@ mod tests {
         assert!(diagnostics
             .iter()
             .all(|diagnostic| diagnostic.fix_info.is_some()));
+    }
+
+    #[test]
+    fn ignores_fence_like_text_inside_fenced_code_blocks() {
+        let rule = BlanksAroundFencesRule;
+        let content = "\n````markdown\n```rust\ncode\n```\n````\n";
+        let diagnostics = rule.evaluate(Path::new("doc.md"), content);
+
+        assert!(diagnostics.is_empty());
     }
 }

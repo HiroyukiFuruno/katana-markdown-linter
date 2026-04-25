@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -19,16 +19,12 @@ impl MarkdownRule for NoMissingSpaceClosedAtxRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD020");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        let ctx = DocumentContext::new(file_path, content);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
+            let line = line.text;
             let Some(heading) = ClosedAtxHeading::parse(line) else {
                 continue;
             };

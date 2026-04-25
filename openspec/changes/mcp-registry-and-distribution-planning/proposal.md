@@ -1,39 +1,41 @@
 # MCP Registry And Distribution Planning
 
-## Summary
+## Target Version
 
-`kml-mcp` は 0.12.0 で native Rust stdio server として成立する。
-一方で、MCP Registry / Hub への登録は discovery を広げる効果があるが、
-現在の check / fix 精度と機能セットでは公開を急がない。
+`v0.13.0`
 
-この change では公開作業そのものは行わず、公式 MCP Registry と周辺 Hub へ
-登録できる状態にするための配布方式、検証条件、公開判断基準を定義する。
+## Why
 
-## Motivation
+`kml-mcp` は `v0.12.0` で、ローカル標準入出力サーバー（stdio server）
+として実用できる状態になった。
 
-- MCP Registry は metadata registry であり、server artifact 自体は別 package
-  registry に置く必要がある。
+次の課題は、MCP Registry と周辺の一覧サービス（Hub / aggregator）に載せる前に、
+どの配布物を正とするか、どこまでを公開前の合格条件にするかを決めることだ。
 
-- 公式 MCP Registry は preview で、下流 aggregator が定期的に参照する前提である。
+急いで登録だけを行うと、利用者には「すぐ導入できる公式配布」のように見える。
+しかし Registry は実体を置く場所ではなく、配布物への案内情報を持つ場所である。
+そのため `server.json`、配布方式、検証手順、公開判断を先に固定する。
 
-- crates.io package は現時点の公式 MCP Registry package type では直接扱えない。
+## What Changes
 
-- `kml-mcp` は local stdio server なので、LLM provider API の remote MCP connector
-  から直接利用するには remote transport か wrapper distribution が必要になる。
+- MCP Registry / Hub へ公開する前の判断基準を定義する
+- `server.json` の草案と ownership 確認方法を決める
+- MCPB、OCI image、npm/PyPI wrapper の適合性を比較する
+- crates.io の `kml-mcp` binary と Registry package type の関係を明文化する
+- API から直接呼ぶ遠隔 MCP 接続（remote MCP transport）は別 change に分離する
 
-## Scope
+## Impact
 
-- 公式 MCP Registry 登録に必要な `server.json` 方針を決める。
-- package type 候補を比較し、`kml-mcp` に合う配布方式を選ぶ。
-- 公開前に必要な品質基準を定義する。
-- Registry / Hub 公開を future work として明確に deferred にする。
+- `kml-mcp` の公開判断が、個人判断ではなく OpenSpec 上の gate で追える
+- 次の実装 change は、配布物と `server.json` の両方を同じ前提で扱える
+- local stdio MCP と遠隔 MCP 接続を混同しなくなる
 
 ## Non-Goals
 
-- この change では MCP Registry へ publish しない。
-- この change では Docker image / MCPB artifact / npm wrapper を実装しない。
-- この change では remote HTTP MCP transport を実装しない。
-- この change では KatanA 固有の adapter を追加しない。
+- この change では MCP Registry / Hub へ公開しない
+- この change では MCPB / OCI image / npm wrapper / PyPI wrapper を実装しない
+- この change では遠隔 MCP 接続（remote MCP transport）を実装しない
+- この change では KatanA 固有の adapter を追加しない
 
 ## References
 
