@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.12.0
+
+- Promotes `kml-mcp` from a text-only prototype to a workspace-scoped MCP adapter.
+- Adds `check_file`, `check_directory`, `fix_file_preview`, and explicit `fix_file_apply` tools.
+- Enforces workspace-root path boundaries, relative paths, symlink rejection, gitignore-aware directory scans, and non-UTF-8 file errors.
+- Documents Codex, Claude Code, and Antigravity stdio configuration examples.
+
 ## v0.11.1
 
 - Clarifies the README rule map states so implemented checks and conservative safe-fix subsets are not presented as unfinished work.
