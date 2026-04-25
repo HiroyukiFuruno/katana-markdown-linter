@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.0
+
+- Adds safe fixes for `MD035` horizontal rule style and `MD055` table pipe style.
+- Improves `MD035` precision by ignoring YAML front matter delimiters when selecting the consistent horizontal rule style.
+- Improves `MD055` precision by evaluating parsed table blocks instead of pipe-like text inside fenced code.
+- Adds fix idempotence coverage to the rule fixture harness.
+- Documents diagnostic-only rule fix feasibility so later unsafe and formatter work remains separate.
+
 ## v0.7.0
 
 - Optimizes safe fix application by replacing repeated full-document range scans with a per-apply line offset index.

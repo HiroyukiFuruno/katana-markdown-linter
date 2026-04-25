@@ -3,7 +3,7 @@
   "summary": {
     "total_rules": 53,
     "rules_with_examples": 53,
-    "rules_with_fix_metadata": 33,
+    "rules_with_fix_metadata": 35,
     "rules_with_parameters": 34,
     "manual_required": 2,
     "missing_fixtures": 0,
@@ -221,7 +221,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "front_matter_delimiter_does_not_seed_style",
+          "source": "---\ntitle: Doc\n---\n\n***\n\n***\n",
+          "expected": null
+        }
+      ],
       "manual_required": []
     },
     {
@@ -2040,7 +2046,7 @@
           "values": []
         }
       ],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "consistent_hr_style",
@@ -2055,7 +2061,13 @@
           "expected": "MD035"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "normalize_horizontal_rule_style",
+          "source": "---\n\n***\n",
+          "expected": "---\n\n---\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -2080,7 +2092,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "front_matter_delimiter_does_not_seed_style",
+          "source": "---\ntitle: Doc\n---\n\n***\n\n***\n",
+          "expected": null
+        }
+      ],
       "manual_required": []
     },
     {
@@ -3526,22 +3544,28 @@
           ]
         }
       ],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "table_with_leading_and_trailing_pipes",
-          "source": "| a | b |\n",
+          "source": "| a | b |\n|---|---|\n",
           "expected": null
         }
       ],
       "check_fail": [
         {
           "name": "table_missing_boundary_pipe",
-          "source": "| a | b \n",
+          "source": "| a | b |\n|---|---\n  c | d\n",
           "expected": "MD055"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "normalize_table_boundary_pipes",
+          "source": "| a | b |\n|---|---\n  c | d\n",
+          "expected": "| a | b |\n| --- | --- |\n| c | d |\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -3566,7 +3590,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "code_fence_pipe_text_is_ignored",
+          "source": "```md\nA | B\n---|---\n```\n",
+          "expected": null
+        }
+      ],
       "manual_required": []
     },
     {

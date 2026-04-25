@@ -271,6 +271,7 @@ fn is_safe_fix_rule(rule_id: &str) -> bool {
             | "MD031"
             | "MD032"
             | "MD034"
+            | "MD035"
             | "MD037"
             | "MD038"
             | "MD039"
@@ -282,6 +283,7 @@ fn is_safe_fix_rule(rule_id: &str) -> bool {
             | "MD051"
             | "MD053"
             | "MD054"
+            | "MD055"
             | "MD058"
             | "MD060"
     )
@@ -537,7 +539,7 @@ mod tests {
 
     #[test]
     fn lint_reports_style_and_link_variants() {
-        let content = "No heading here.\n\n```rust\ncode\n```\n~~~\ncode\n~~~\n    indented\n*em* and _em_\n**strong** and __strong__\nmarkdownlint and github\nlink [fragment](#frag)\n[ref][]\n[dup]: https://example.com\n[dup]: https://example.com/2\ninline [link](https://example.com)\n| a | b \n";
+        let content = "No heading here.\n\n```rust\ncode\n```\n~~~\ncode\n~~~\n    indented\n*em* and _em_\n**strong** and __strong__\nmarkdownlint and github\nlink [fragment](#frag)\n[ref][]\n[dup]: https://example.com\n[dup]: https://example.com/2\ninline [link](https://example.com)\n| a | b |\n|---|---\n  c | d\n";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD043"));

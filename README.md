@@ -109,7 +109,7 @@ The short version:
 | Capability | Status |
 | --- | --- |
 | Check coverage | `Supported` for all 53 active rules |
-| Safe fix coverage | `Partial` for 35 rules; diagnostic-only for 18 rules |
+| Safe fix coverage | `Partial` for 37 rules; diagnostic-only for 16 rules |
 | Unsafe fix coverage | Not available yet; reserved for a future explicit opt-in mode |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
@@ -158,7 +158,7 @@ markdownlint IDs that are not part of the active upstream rule catalog.
 | `MD032` | Supported | Partial | Not planned |
 | `MD033` | Supported | Not implemented | Not planned |
 | `MD034` | Supported | Partial | Not planned |
-| `MD035` | Supported | Not implemented | Not planned |
+| `MD035` | Supported | Partial | Not planned |
 | `MD036` | Supported | Not implemented | Not planned |
 | `MD037` | Supported | Partial | Not planned |
 | `MD038` | Supported | Partial | Not planned |
@@ -178,7 +178,7 @@ markdownlint IDs that are not part of the active upstream rule catalog.
 | `MD052` | Supported | Not implemented | Not planned |
 | `MD053` | Supported | Partial | Not planned |
 | `MD054` | Supported | Partial | Not planned |
-| `MD055` | Supported | Not implemented | Not planned |
+| `MD055` | Supported | Partial | Not planned |
 | `MD056` | Supported | Not implemented | Not planned |
 | `MD057` | Deleted | - | - |
 | `MD058` | Supported | Partial | Not planned |
