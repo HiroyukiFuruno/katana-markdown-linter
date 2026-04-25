@@ -8,6 +8,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Makefile'
+      - 'action.yml'
       - '.markdownlint-dogfood.json'
       - '.github/workflows/**'
       - 'README.md'
@@ -22,6 +23,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Makefile'
+      - 'action.yml'
       - '.markdownlint-dogfood.json'
       - '.github/workflows/**'
       - 'README.md'
@@ -89,6 +91,10 @@ jobs:
 
       - name: Run dogfood
         run: make dogfood
+
+      - name: Run action smoke
+        if: matrix.os == 'ubuntu-latest'
+        run: make action-smoke
 
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'

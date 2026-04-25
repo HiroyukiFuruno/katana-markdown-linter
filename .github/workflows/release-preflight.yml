@@ -32,6 +32,9 @@ jobs:
       - name: MCP build
         run: make mcp-build
 
+      - name: Action smoke
+        run: make action-smoke
+
       - name: Dogfood
         run: make dogfood
 

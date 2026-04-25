@@ -1,0 +1,65 @@
+name: kml
+description: Run katana-markdown-linter in GitHub Actions.
+
+inputs:
+  install-source:
+    description: Install source. Use crates-io for released usage or path for repository smoke tests.
+    required: false
+    default: crates-io
+  version:
+    description: katana-markdown-linter crate version to install when install-source is crates-io.
+    required: false
+    default: ""
+  path:
+    description: Local crate path used when install-source is path.
+    required: false
+    default: "."
+  command:
+    description: kml command to run.
+    required: false
+    default: check
+  paths:
+    description: Newline-separated paths passed to check, fix, or fmt.
+    required: false
+    default: "."
+  config:
+    description: Optional markdownlint config path.
+    required: false
+    default: ""
+  locale:
+    description: CLI message locale.
+    required: false
+    default: en
+  output:
+    description: Output format. Use text or json.
+    required: false
+    default: text
+  extra-args:
+    description: Additional kml arguments, one argument per line.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install kml
+      shell: bash
+      env:
+        KML_ACTION_INSTALL_SOURCE: ${{ inputs.install-source }}
+        KML_ACTION_VERSION: ${{ inputs.version }}
+        KML_ACTION_PATH: ${{ inputs.path }}
+      run: bash "${GITHUB_ACTION_PATH}/scripts/action/install-kml.sh"
+
+    - name: Run kml
+      shell: bash
+      env:
+        KML_ACTION_COMMAND: ${{ inputs.command }}
+        KML_ACTION_PATHS: ${{ inputs.paths }}
+        KML_ACTION_CONFIG: ${{ inputs.config }}
+        KML_ACTION_LOCALE: ${{ inputs.locale }}
+        KML_ACTION_OUTPUT: ${{ inputs.output }}
+        KML_ACTION_EXTRA_ARGS: ${{ inputs.extra-args }}
+      run: bash "${GITHUB_ACTION_PATH}/scripts/action/run-kml.sh"

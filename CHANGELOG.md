@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.0
+
+- Adds an official root GitHub Action for running `kml` in CI from release tags.
+- Adds shared action install/run scripts with crates.io and local-path install modes.
+- Adds `make action-smoke` plus CI and release workflow smoke coverage for the action channel.
+- Documents distribution channel status, official support policy, and deferred wrapper channels.
+
 ## v0.10.0
 
 - Adds a dedicated layout formatter API with `format_markdown()`, `FormatOptions`, and `FormatResult`.

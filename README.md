@@ -45,6 +45,23 @@ cargo install katana-markdown-linter
 
 The binary target is `kml`.
 
+## GitHub Actions
+
+Use the repository action to run `kml` in CI without writing install steps:
+
+~~~yaml
+- uses: actions/checkout@v5
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.11.0
+  with: { version: "0.11.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+~~~
+
+Pin the action tag and `version` together for reproducible runs. The action
+installs `kml` from crates.io by default. Repository-local smoke tests can set
+`install-source: path` and `path: .`.
+
+`extra-args` accepts one argument per line, so flags that take values must use
+separate lines.
+
 ## CLI Usage
 
 ~~~bash
@@ -220,6 +237,9 @@ Use `make dogfood` to run `kml` against this repository's Markdown documentation
 Use `make examples` to compile the public Rust embedding examples.
 
 Quality gate details, CI required checks, coverage modes, and release readiness are documented in [`docs/quality-gates.md`](docs/quality-gates.md).
+
+Distribution channel status and deferral notes are documented in
+[`docs/distribution.md`](docs/distribution.md).
 
 MCP integration has been evaluated separately in
 [`docs/mcp-integration-evaluation.md`](docs/mcp-integration-evaluation.md).

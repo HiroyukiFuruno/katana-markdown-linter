@@ -238,7 +238,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build"),
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build action-smoke"),
         ("Makefile", &makefile, "release-test:"),
         ("Makefile", &makefile, "cargo test --all-features --locked"),
         ("Makefile", &makefile, "scripts/release/assert-crate-not-published.sh"),
@@ -270,6 +270,63 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         .collect();
 
     assert_no_violations("release-local-ci-parity-and-retry-safety", violations);
+}
+
+#[test]
+fn ast_linter_github_action_channel_is_wired() {
+    let action = read_workspace_file("action.yml");
+    let makefile = read_workspace_file("Makefile");
+    let workflow = read_workspace_file(".github/workflows/test-and-build.yml");
+    let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
+    let release = read_workspace_file(".github/workflows/release.yml");
+    let install = read_workspace_file("scripts/action/install-kml.sh");
+    let runner = read_workspace_file("scripts/action/run-kml.sh");
+    let required = [
+        ("action.yml", &action, "using: composite"),
+        ("action.yml", &action, "KML_ACTION_INSTALL_SOURCE"),
+        ("action.yml", &action, "scripts/action/install-kml.sh"),
+        ("action.yml", &action, "scripts/action/run-kml.sh"),
+        (
+            "scripts/action/install-kml.sh",
+            &install,
+            "cargo install katana-markdown-linter",
+        ),
+        (
+            "scripts/action/install-kml.sh",
+            &install,
+            "cargo install --path",
+        ),
+        (
+            "scripts/action/run-kml.sh",
+            &runner,
+            "append_multiline_args",
+        ),
+        ("Makefile", &makefile, "action-smoke:"),
+        ("Makefile", &makefile, "KML_ACTION_INSTALL_SOURCE=path"),
+        (
+            ".github/workflows/test-and-build.yml",
+            &workflow,
+            "Run action smoke",
+        ),
+        (
+            ".github/workflows/test-and-build.yml",
+            &workflow,
+            "'action.yml'",
+        ),
+        (
+            ".github/workflows/release-preflight.yml",
+            &preflight,
+            "Action smoke",
+        ),
+        (".github/workflows/release.yml", &release, "Action smoke"),
+    ];
+    let violations = required
+        .iter()
+        .filter(|(_, content, required)| !content.contains(*required))
+        .map(|(path, _, required)| format!("{path}: missing `{required}`"))
+        .collect();
+
+    assert_no_violations("github-action-channel", violations);
 }
 
 #[test]
