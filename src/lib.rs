@@ -12,8 +12,8 @@ pub mod upstream;
 
 pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
 pub use i18n::{
-    localized_rule_description, resolve_locale_code, resolve_locale_code_or, Locale, LocaleError,
-    LocalizedDiagnostic,
+    has_rule_description_translation, localized_rule_description, resolve_locale_code,
+    resolve_locale_code_or, supported_locales, Locale, LocaleError, LocalizedDiagnostic,
 };
 pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};
 
@@ -82,6 +82,14 @@ pub fn available_rules() -> Vec<RuleMeta> {
     catalog::RuleCatalog::build().to_rule_meta()
 }
 
+/// Returns the set of available rules with descriptions localized by language code.
+pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta> {
+    available_rules()
+        .into_iter()
+        .map(|rule| rule.localized(language_code))
+        .collect()
+}
+
 /// Returns the set of rules that are currently executed by the linter.
 pub fn implemented_rules() -> Vec<RuleMeta> {
     rules::markdown::MarkdownLinterOps::official_rules()
@@ -109,6 +117,11 @@ pub fn missing_rules() -> Vec<RuleMeta> {
 /// Returns a structured catalog of active, deprecated, and removed rules.
 pub fn rule_catalog() -> catalog::RuleCatalog {
     catalog::RuleCatalog::build()
+}
+
+/// Returns a structured catalog with descriptions localized by language code.
+pub fn localized_rule_catalog(language_code: &str) -> catalog::RuleCatalog {
+    catalog::RuleCatalog::build().localized(language_code)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -304,6 +317,32 @@ mod tests {
             "見出しのスタイルを統一してください"
         );
         assert_eq!(resolve_locale_code_or("fr", Locale::Ja), Locale::Ja);
+    }
+
+    #[test]
+    fn localized_catalog_api_preserves_metadata_and_localizes_descriptions() {
+        let english = rule_catalog();
+        let japanese = localized_rule_catalog("ja-JP");
+        let en_md003 = english
+            .active
+            .iter()
+            .find(|rule| rule.id == "MD003")
+            .expect("MD003 should exist");
+        let ja_md003 = japanese
+            .active
+            .iter()
+            .find(|rule| rule.id == "MD003")
+            .expect("MD003 should exist");
+
+        assert_eq!(en_md003.id, ja_md003.id);
+        assert_eq!(en_md003.docs_url, ja_md003.docs_url);
+        assert_eq!(ja_md003.description, "見出しのスタイルを統一してください");
+
+        let rules = localized_available_rules("ja");
+        assert!(rules
+            .iter()
+            .any(|rule| rule.id == "MD003"
+                && rule.description == "見出しのスタイルを統一してください"));
     }
 
     #[test]

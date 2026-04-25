@@ -1,6 +1,6 @@
 use katana_markdown_linter::{
-    fix, lint, rule_catalog, ConfigError, ConfigErrorKind, LintOptions, LintResult,
-    MarkdownLintConfig,
+    catalog::RuleCatalogEntry, fix, lint, rule_catalog, ConfigError, LintOptions, LintResult,
+    Locale, MarkdownLintConfig,
 };
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
@@ -41,7 +41,10 @@ impl KmlMcpServer {
     ) -> Result<Json<CheckTextResponse>, String> {
         let options = LintOptions::default();
         let diagnostics = lint(&request.content, &options).map_err(|err| err.to_string())?;
-        Ok(Json(CheckTextResponse::from_results(diagnostics)))
+        Ok(Json(CheckTextResponse::from_results(
+            diagnostics,
+            request_locale(request.locale.as_deref()),
+        )))
     }
 
     #[tool(
@@ -53,13 +56,17 @@ impl KmlMcpServer {
         Parameters(request): Parameters<FixTextRequest>,
     ) -> Result<Json<FixTextResponse>, String> {
         let options = LintOptions::default();
+        let locale = request_locale(request.locale.as_deref());
         let fix_result = fix(&request.content, &options).map_err(|err| err.to_string())?;
         let remaining = lint(&fix_result.content, &options).map_err(|err| err.to_string())?;
         Ok(Json(FixTextResponse {
             content: fix_result.content,
             applied_fixes: fix_result.applied_fixes,
             remaining_issue_count: remaining.len(),
-            remaining_diagnostics: remaining.into_iter().map(Diagnostic::from).collect(),
+            remaining_diagnostics: remaining
+                .into_iter()
+                .map(|diagnostic| Diagnostic::from_result(diagnostic, locale))
+                .collect(),
         }))
     }
 
@@ -71,7 +78,8 @@ impl KmlMcpServer {
         &self,
         Parameters(request): Parameters<ConfigValidateRequest>,
     ) -> Json<ConfigValidateResponse> {
-        let errors = validate_config(request.config);
+        let locale = request_locale(request.locale.as_deref());
+        let errors = validate_config(request.config, locale);
         Json(ConfigValidateResponse {
             valid: errors.is_empty(),
             error_count: errors.len(),
@@ -83,9 +91,14 @@ impl KmlMcpServer {
         name = "rule_list",
         description = "List markdownlint-compatible rule metadata known to kml."
     )]
-    async fn rule_list(&self) -> Json<RuleListResponse> {
-        let rules = catalog_rules();
+    async fn rule_list(
+        &self,
+        Parameters(request): Parameters<RuleListRequest>,
+    ) -> Json<RuleListResponse> {
+        let locale = request_locale(request.locale.as_deref());
+        let rules = catalog_rules(locale);
         Json(RuleListResponse {
+            locale: locale.code().to_string(),
             count: rules.len(),
             rules,
         })
@@ -100,7 +113,8 @@ impl KmlMcpServer {
         Parameters(request): Parameters<RuleGetRequest>,
     ) -> Result<Json<RuleMetadata>, String> {
         let rule_id = request.rule_id.to_ascii_uppercase();
-        catalog_rules()
+        let locale = request_locale(request.locale.as_deref());
+        catalog_rules(locale)
             .into_iter()
             .find(|rule| rule.id == rule_id)
             .map(Json)
@@ -124,21 +138,30 @@ impl ServerHandler for KmlMcpServer {
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct CheckTextRequest {
     content: String,
+    locale: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct FixTextRequest {
     content: String,
+    locale: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct ConfigValidateRequest {
     config: Value,
+    locale: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct RuleListRequest {
+    locale: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct RuleGetRequest {
     rule_id: String,
+    locale: Option<String>,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -148,10 +171,13 @@ struct CheckTextResponse {
 }
 
 impl CheckTextResponse {
-    fn from_results(results: Vec<LintResult>) -> Self {
+    fn from_results(results: Vec<LintResult>, locale: Locale) -> Self {
         Self {
             issue_count: results.len(),
-            diagnostics: results.into_iter().map(Diagnostic::from).collect(),
+            diagnostics: results
+                .into_iter()
+                .map(|result| Diagnostic::from_result(result, locale))
+                .collect(),
         }
     }
 }
@@ -169,6 +195,8 @@ struct Diagnostic {
     rule_id: String,
     rule_name: String,
     message: String,
+    message_id: String,
+    message_params: std::collections::BTreeMap<String, String>,
     severity: String,
     line: usize,
     column: usize,
@@ -178,13 +206,21 @@ struct Diagnostic {
     fix: Option<TextFix>,
 }
 
-impl From<LintResult> for Diagnostic {
-    fn from(result: LintResult) -> Self {
+impl Diagnostic {
+    fn from_result(result: LintResult, locale: Locale) -> Self {
         let fixable = result.fix.is_some();
+        let message = katana_markdown_linter::i18n::render_message(
+            locale,
+            result.message_id.as_str(),
+            &result.message_params,
+            result.message.as_str(),
+        );
         Self {
             rule_id: result.rule_id,
             rule_name: result.rule_name,
-            message: result.message,
+            message,
+            message_id: result.message_id,
+            message_params: result.message_params,
             severity: match result.severity {
                 katana_markdown_linter::Severity::Error => "error",
                 katana_markdown_linter::Severity::Warning => "warning",
@@ -229,45 +265,32 @@ struct ConfigValidationError {
     property: Option<String>,
     kind: String,
     message: String,
+    message_id: String,
+    message_params: std::collections::BTreeMap<String, String>,
     expected: Option<String>,
     actual: Option<String>,
     allowed: Vec<String>,
 }
 
-impl From<ConfigError> for ConfigValidationError {
-    fn from(error: ConfigError) -> Self {
-        let (kind, expected, actual, allowed) = match error.kind {
-            ConfigErrorKind::InvalidRoot => ("invalid_root", None, None, Vec::new()),
-            ConfigErrorKind::UnknownRule => ("unknown_rule", None, None, Vec::new()),
-            ConfigErrorKind::UnknownProperty => ("unknown_property", None, None, Vec::new()),
-            ConfigErrorKind::InvalidType { expected, actual } => (
-                "invalid_type",
-                Some(expected.to_string()),
-                Some(actual.to_string()),
-                Vec::new(),
-            ),
-            ConfigErrorKind::InvalidEnumValue { allowed, actual } => (
-                "invalid_enum_value",
-                None,
-                Some(actual),
-                allowed.into_iter().map(str::to_string).collect(),
-            ),
-        };
-
+impl ConfigValidationError {
+    fn from_error(error: ConfigError, locale: Locale) -> Self {
         Self {
-            rule_id: error.rule_id,
-            property: error.property,
-            kind: kind.to_string(),
-            message: error.message,
-            expected,
-            actual,
-            allowed,
+            rule_id: error.rule_id.clone(),
+            property: error.property.clone(),
+            kind: error.kind_code().to_string(),
+            message: error.localized_message(locale),
+            message_id: error.message_id().to_string(),
+            message_params: error.message_params(),
+            expected: error.expected().map(str::to_string),
+            actual: error.actual().map(str::to_string),
+            allowed: error.allowed().into_iter().map(str::to_string).collect(),
         }
     }
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 struct RuleListResponse {
+    locale: String,
     count: usize,
     rules: Vec<RuleMetadata>,
 }
@@ -277,53 +300,65 @@ struct RuleMetadata {
     id: String,
     name: String,
     description: String,
+    english_description: String,
     docs_url: String,
     fixable: bool,
     implemented_check: bool,
     lifecycle: String,
+    locale: String,
 }
 
-fn catalog_rules() -> Vec<RuleMetadata> {
+impl RuleMetadata {
+    fn from_entry(rule: RuleCatalogEntry, lifecycle: &str, locale: Locale) -> Self {
+        let locale_code = locale.code();
+        let description = rule.localized_description(locale_code);
+        Self {
+            id: rule.id,
+            name: rule.name,
+            description,
+            english_description: rule.description,
+            docs_url: rule.docs_url,
+            fixable: rule.fixable,
+            implemented_check: rule.implemented_check,
+            lifecycle: lifecycle.to_string(),
+            locale: locale_code.to_string(),
+        }
+    }
+}
+
+fn catalog_rules(locale: Locale) -> Vec<RuleMetadata> {
     let catalog = rule_catalog();
     catalog
         .active
         .into_iter()
-        .map(|rule| RuleMetadata {
-            id: rule.id,
-            name: rule.name,
-            description: rule.description,
-            docs_url: rule.docs_url,
-            fixable: rule.fixable,
-            implemented_check: rule.implemented_check,
-            lifecycle: "active".to_string(),
-        })
-        .chain(catalog.deprecated.into_iter().map(|rule| RuleMetadata {
-            id: rule.id,
-            name: rule.name,
-            description: rule.description,
-            docs_url: rule.docs_url,
-            fixable: rule.fixable,
-            implemented_check: rule.implemented_check,
-            lifecycle: "deprecated".to_string(),
-        }))
-        .chain(catalog.removed.into_iter().map(|rule| RuleMetadata {
-            id: rule.id,
-            name: rule.name,
-            description: rule.description,
-            docs_url: rule.docs_url,
-            fixable: rule.fixable,
-            implemented_check: rule.implemented_check,
-            lifecycle: "removed".to_string(),
-        }))
+        .map(|rule| RuleMetadata::from_entry(rule, "active", locale))
+        .chain(
+            catalog
+                .deprecated
+                .into_iter()
+                .map(|rule| RuleMetadata::from_entry(rule, "deprecated", locale)),
+        )
+        .chain(
+            catalog
+                .removed
+                .into_iter()
+                .map(|rule| RuleMetadata::from_entry(rule, "removed", locale)),
+        )
         .collect()
 }
 
-fn validate_config(raw: Value) -> Vec<ConfigValidationError> {
+fn validate_config(raw: Value, locale: Locale) -> Vec<ConfigValidationError> {
     MarkdownLintConfig { raw }
         .validate_cached_rules()
         .into_iter()
-        .map(Into::into)
+        .map(|error| ConfigValidationError::from_error(error, locale))
         .collect()
+}
+
+fn request_locale(locale: Option<&str>) -> Locale {
+    locale
+        .map(katana_markdown_linter::resolve_locale_code)
+        .unwrap_or(Locale::En)
 }
 
 #[tokio::main]
@@ -345,15 +380,19 @@ mod tests {
         let Json(response) = server
             .check_text(Parameters(CheckTextRequest {
                 content: "# title\n\n### skipped\n".to_string(),
+                locale: Some("ja-JP".to_string()),
             }))
             .await
             .expect("check_text should succeed");
 
         assert!(response.issue_count > 0);
-        assert!(response
+        let diagnostic = response
             .diagnostics
             .iter()
-            .any(|diagnostic| diagnostic.rule_id == "MD001"));
+            .find(|diagnostic| diagnostic.rule_id == "MD001")
+            .expect("MD001 should be reported");
+        assert_eq!(diagnostic.message_id, "rule.MD001.heading_increment");
+        assert!(diagnostic.message.contains("見出しレベル"));
     }
 
     #[tokio::test]
@@ -362,6 +401,7 @@ mod tests {
         let Json(response) = server
             .fix_text(Parameters(FixTextRequest {
                 content: "#Title\n".to_string(),
+                locale: Some("ja".to_string()),
             }))
             .await
             .expect("fix_text should succeed");
@@ -376,6 +416,7 @@ mod tests {
         let Json(response) = server
             .config_validate(Parameters(ConfigValidateRequest {
                 config: json!({ "MD999": true }),
+                locale: Some("ja".to_string()),
             }))
             .await;
 
@@ -383,21 +424,37 @@ mod tests {
         assert_eq!(response.error_count, 1);
         assert_eq!(response.errors[0].kind, "unknown_rule");
         assert_eq!(response.errors[0].rule_id.as_deref(), Some("MD999"));
+        assert_eq!(response.errors[0].message_id, "config.unknown_rule");
+        assert_eq!(
+            response.errors[0].message,
+            "未知の markdownlint rule です: MD999"
+        );
     }
 
     #[tokio::test]
     async fn rule_tools_expose_catalog_metadata() {
         let server = KmlMcpServer::new();
-        let Json(list) = server.rule_list().await;
+        let Json(list) = server
+            .rule_list(Parameters(RuleListRequest {
+                locale: Some("ja".to_string()),
+            }))
+            .await;
+        assert_eq!(list.locale, "ja");
         assert!(list.rules.iter().any(|rule| rule.id == "MD001"));
+        assert!(list.rules.iter().any(|rule| {
+            rule.id == "MD003" && rule.description == "見出しのスタイルを統一してください"
+        }));
 
         let Json(rule) = server
             .rule_get(Parameters(RuleGetRequest {
                 rule_id: "md001".to_string(),
+                locale: Some("ja-JP".to_string()),
             }))
             .await
             .expect("MD001 should exist");
         assert_eq!(rule.id, "MD001");
+        assert_eq!(rule.locale, "ja");
+        assert_ne!(rule.description, rule.english_description);
     }
 
     #[test]

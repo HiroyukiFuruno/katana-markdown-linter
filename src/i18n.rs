@@ -4,12 +4,20 @@ use std::collections::BTreeMap;
 pub type MessageParams = BTreeMap<String, String>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Locale {
     En,
     Ja,
 }
 
 impl Locale {
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::En => "en",
+            Self::Ja => "ja",
+        }
+    }
+
     pub fn resolve(explicit: Option<&str>) -> Result<Self, LocaleError> {
         Self::resolve_with(explicit, |key| std::env::var(key).ok())
     }
@@ -57,6 +65,10 @@ impl Locale {
     pub fn resolve_code_or(value: &str, fallback: Self) -> Self {
         Self::parse(value).unwrap_or(fallback)
     }
+}
+
+pub fn supported_locales() -> &'static [Locale] {
+    &[Locale::En, Locale::Ja]
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -135,6 +147,13 @@ pub fn localized_rule_description(
     )
 }
 
+pub fn has_rule_description_translation(rule_id: &str, locale: Locale) -> bool {
+    match locale {
+        Locale::En => true,
+        Locale::Ja => japanese_rule_description(rule_id).is_some(),
+    }
+}
+
 pub fn diagnostic_message_id(rule_id: &str, message: &str) -> String {
     if rule_id == "MD001" && message.contains("[Expected: h") {
         "rule.MD001.heading_increment".to_string()
@@ -183,6 +202,30 @@ pub fn render_message(
             }
             "glob.error" => format!("glob エラー: {}", param(params, "message", fallback)),
             "rule.error" => format!("ルール実行エラー: {}", param(params, "message", fallback)),
+            "config.invalid_root" => "設定ルートは JSON object である必要があります".to_string(),
+            "config.unknown_rule" => format!(
+                "未知の markdownlint rule です: {}",
+                param(params, "rule_id", "")
+            ),
+            "config.unknown_property" => format!(
+                "{}.{} は未知の rule property です",
+                param(params, "rule_id", ""),
+                param(params, "property", "")
+            ),
+            "config.invalid_type" => format!(
+                "{}{} の型が不正です。期待値: {}、実際: {}",
+                param(params, "rule_id", ""),
+                config_property_suffix(params),
+                param(params, "expected", ""),
+                param(params, "actual", "")
+            ),
+            "config.invalid_enum_value" => format!(
+                "{}{} の値が不正です。許可値: {}、実際: {}",
+                param(params, "rule_id", ""),
+                config_property_suffix(params),
+                param(params, "allowed", ""),
+                param(params, "actual", "")
+            ),
             "summary.no_files" => "Markdown ファイルが見つかりません".to_string(),
             "summary.statistics" => format!(
                 "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
@@ -212,6 +255,14 @@ fn param<'a>(params: &'a MessageParams, key: &str, fallback: &'a str) -> &'a str
     params.get(key).map(String::as_str).unwrap_or(fallback)
 }
 
+fn config_property_suffix(params: &MessageParams) -> String {
+    params
+        .get("property")
+        .filter(|property| !property.is_empty())
+        .map(|property| format!(".{property}"))
+        .unwrap_or_default()
+}
+
 fn parse_heading_levels(message: &str) -> Option<(String, String)> {
     let expected = message.split("[Expected: ").nth(1)?.split(',').next()?;
     let actual = message.split("Actual: ").nth(1)?.trim_end_matches(']');
@@ -219,69 +270,81 @@ fn parse_heading_levels(message: &str) -> Option<(String, String)> {
 }
 
 fn japanese_rule_message(rule_id: &str, fallback: &str) -> String {
-    match rule_id {
-        "MD001" => "見出しレベルは一度に1段階だけ増やしてください".to_string(),
-        "MD003" => "見出しのスタイルを統一してください".to_string(),
-        "MD004" => "箇条書きリストの記号スタイルを統一してください".to_string(),
-        "MD005" => "同じレベルのリスト項目のインデントを揃えてください".to_string(),
-        "MD007" => "箇条書きリストのインデントを設定に合わせてください".to_string(),
-        "MD009" => "行末の余分なスペースを削除してください".to_string(),
-        "MD010" => "ハードタブを使用しないでください".to_string(),
-        "MD011" => "逆向きのリンク構文を修正してください".to_string(),
-        "MD012" => "複数の連続した空行を削減してください".to_string(),
-        "MD013" => "行の長さが上限を超えています".to_string(),
-        "MD014" => "コマンド例の前に不要なドル記号があります".to_string(),
-        "MD018" => "ATX 見出しの # の後にスペースが必要です".to_string(),
-        "MD019" => "ATX 見出しの # の後のスペースは1つにしてください".to_string(),
-        "MD020" => "閉じた ATX 見出しの内側にスペースが必要です".to_string(),
-        "MD021" => "閉じた ATX 見出しの内側のスペースは1つにしてください".to_string(),
-        "MD022" => "見出しは空行で囲んでください".to_string(),
-        "MD023" => "見出しは行頭から始めてください".to_string(),
-        "MD024" => "同じ内容の見出しが複数あります".to_string(),
-        "MD025" => "同一文書内のトップレベル見出しは1つにしてください".to_string(),
-        "MD026" => "見出し末尾の句読点を削除してください".to_string(),
-        "MD027" => "引用記号の後の余分なスペースを削除してください".to_string(),
-        "MD028" => "引用ブロック内に不要な空行があります".to_string(),
-        "MD029" => "番号付きリストの番号を正しく並べてください".to_string(),
-        "MD030" => "リスト記号後のスペース数を揃えてください".to_string(),
-        "MD031" => "コードブロックは空行で囲んでください".to_string(),
-        "MD032" => "リストは空行で囲んでください".to_string(),
-        "MD033" => "インライン HTML を使用しないでください".to_string(),
-        "MD034" => "裸の URL は山括弧またはリンクとして記述してください".to_string(),
-        "MD035" => "水平線のスタイルを統一してください".to_string(),
-        "MD036" => "強調だけの行を見出しとして使用しないでください".to_string(),
-        "MD037" => "強調記号の内側にスペースを入れないでください".to_string(),
-        "MD038" => "コード記号の内側にスペースを入れないでください".to_string(),
-        "MD039" => "リンクテキストの内側に余分なスペースを入れないでください".to_string(),
-        "MD040" => "フェンス付きコードブロックには言語を指定してください".to_string(),
-        "MD041" => "ファイルの最初の行はトップレベル見出しにしてください".to_string(),
-        "MD042" => "空のリンクを使用しないでください".to_string(),
-        "MD043" => "必要な見出し構造に合わせてください".to_string(),
-        "MD044" => "固有名詞の表記を設定に合わせてください".to_string(),
-        "MD045" => "画像には代替テキストを設定してください".to_string(),
-        "MD046" => "コードブロックのスタイルを統一してください".to_string(),
-        "MD047" => "ファイル末尾には改行を入れてください".to_string(),
-        "MD048" => "フェンス付きコードブロックの記号スタイルを統一してください".to_string(),
-        "MD049" => "強調のスタイルを統一してください".to_string(),
-        "MD050" => "強い強調のスタイルを統一してください".to_string(),
-        "MD051" => "リンク先の見出しフラグメントが存在しません".to_string(),
-        "MD052" => "参照リンクまたは画像の定義がありません".to_string(),
-        "MD053" => "未使用のリンク定義があります".to_string(),
-        "MD054" => "リンクと画像のスタイルを設定に合わせてください".to_string(),
-        "MD055" => "表の区切り行のスタイルを統一してください".to_string(),
-        "MD056" => "表の列数を揃えてください".to_string(),
-        "MD058" => "表は空行で囲んでください".to_string(),
-        "MD059" => "リンクテキストは説明的にしてください".to_string(),
-        "MD060" => "表セルのスペースを揃えてください".to_string(),
-        "md-broken-link" => format!("ローカルリンクが壊れています: {fallback}"),
-        _ => format!("ルール {rule_id}: {fallback}"),
+    match japanese_rule_description(rule_id) {
+        Some(message) => message.to_string(),
+        None if rule_id == "md-broken-link" => format!("ローカルリンクが壊れています: {fallback}"),
+        None => format!("ルール {rule_id}: {fallback}"),
     }
 }
 
-const CATALOG_KEYS: [&str; 9] = [
+fn japanese_rule_description(rule_id: &str) -> Option<&'static str> {
+    match rule_id {
+        "MD001" => Some("見出しレベルは一度に1段階だけ増やしてください"),
+        "MD003" => Some("見出しのスタイルを統一してください"),
+        "MD004" => Some("箇条書きリストの記号スタイルを統一してください"),
+        "MD005" => Some("同じレベルのリスト項目のインデントを揃えてください"),
+        "MD007" => Some("箇条書きリストのインデントを設定に合わせてください"),
+        "MD009" => Some("行末の余分なスペースを削除してください"),
+        "MD010" => Some("ハードタブを使用しないでください"),
+        "MD011" => Some("逆向きのリンク構文を修正してください"),
+        "MD012" => Some("複数の連続した空行を削減してください"),
+        "MD013" => Some("行の長さが上限を超えています"),
+        "MD014" => Some("コマンド例の前に不要なドル記号があります"),
+        "MD018" => Some("ATX 見出しの # の後にスペースが必要です"),
+        "MD019" => Some("ATX 見出しの # の後のスペースは1つにしてください"),
+        "MD020" => Some("閉じた ATX 見出しの内側にスペースが必要です"),
+        "MD021" => Some("閉じた ATX 見出しの内側のスペースは1つにしてください"),
+        "MD022" => Some("見出しは空行で囲んでください"),
+        "MD023" => Some("見出しは行頭から始めてください"),
+        "MD024" => Some("同じ内容の見出しが複数あります"),
+        "MD025" => Some("同一文書内のトップレベル見出しは1つにしてください"),
+        "MD026" => Some("見出し末尾の句読点を削除してください"),
+        "MD027" => Some("引用記号の後の余分なスペースを削除してください"),
+        "MD028" => Some("引用ブロック内に不要な空行があります"),
+        "MD029" => Some("番号付きリストの番号を正しく並べてください"),
+        "MD030" => Some("リスト記号後のスペース数を揃えてください"),
+        "MD031" => Some("コードブロックは空行で囲んでください"),
+        "MD032" => Some("リストは空行で囲んでください"),
+        "MD033" => Some("インライン HTML を使用しないでください"),
+        "MD034" => Some("裸の URL は山括弧またはリンクとして記述してください"),
+        "MD035" => Some("水平線のスタイルを統一してください"),
+        "MD036" => Some("強調だけの行を見出しとして使用しないでください"),
+        "MD037" => Some("強調記号の内側にスペースを入れないでください"),
+        "MD038" => Some("コード記号の内側にスペースを入れないでください"),
+        "MD039" => Some("リンクテキストの内側に余分なスペースを入れないでください"),
+        "MD040" => Some("フェンス付きコードブロックには言語を指定してください"),
+        "MD041" => Some("ファイルの最初の行はトップレベル見出しにしてください"),
+        "MD042" => Some("空のリンクを使用しないでください"),
+        "MD043" => Some("必要な見出し構造に合わせてください"),
+        "MD044" => Some("固有名詞の表記を設定に合わせてください"),
+        "MD045" => Some("画像には代替テキストを設定してください"),
+        "MD046" => Some("コードブロックのスタイルを統一してください"),
+        "MD047" => Some("ファイル末尾には改行を入れてください"),
+        "MD048" => Some("フェンス付きコードブロックの記号スタイルを統一してください"),
+        "MD049" => Some("強調のスタイルを統一してください"),
+        "MD050" => Some("強い強調のスタイルを統一してください"),
+        "MD051" => Some("リンク先の見出しフラグメントが存在しません"),
+        "MD052" => Some("参照リンクまたは画像の定義がありません"),
+        "MD053" => Some("未使用のリンク定義があります"),
+        "MD054" => Some("リンクと画像のスタイルを設定に合わせてください"),
+        "MD055" => Some("表の区切り行のスタイルを統一してください"),
+        "MD056" => Some("表の列数を揃えてください"),
+        "MD058" => Some("表は空行で囲んでください"),
+        "MD059" => Some("リンクテキストは説明的にしてください"),
+        "MD060" => Some("表セルのスペースを揃えてください"),
+        _ => None,
+    }
+}
+
+const CATALOG_KEYS: [&str; 14] = [
     "rule.generic",
     "rule.MD001.heading_increment",
     "config.error",
+    "config.invalid_root",
+    "config.unknown_rule",
+    "config.unknown_property",
+    "config.invalid_type",
+    "config.invalid_enum_value",
     "filesystem.error",
     "glob.error",
     "rule.error",
@@ -328,7 +391,9 @@ mod tests {
 
     #[test]
     fn catalog_keys_match_between_supported_locales() {
-        assert_eq!(catalog_keys(Locale::En), catalog_keys(Locale::Ja));
+        for locale in supported_locales() {
+            assert_eq!(catalog_keys(Locale::En), catalog_keys(*locale));
+        }
     }
 
     #[test]
@@ -367,5 +432,30 @@ mod tests {
         );
         assert!(localized_rule_description("MD999", "Custom fallback", "ja")
             .contains("Custom fallback"));
+    }
+
+    #[test]
+    fn config_error_messages_render_with_structured_params() {
+        let mut params = MessageParams::new();
+        params.insert("rule_id".to_string(), "MD013".to_string());
+        params.insert("property".to_string(), "line_length".to_string());
+        params.insert("expected".to_string(), "number".to_string());
+        params.insert("actual".to_string(), "string".to_string());
+
+        assert_eq!(
+            render_message(
+                Locale::Ja,
+                "config.invalid_type",
+                &params,
+                "invalid rule property value"
+            ),
+            "MD013.line_length の型が不正です。期待値: number、実際: string"
+        );
+    }
+
+    #[test]
+    fn active_rule_description_translation_status_is_explicit() {
+        assert!(has_rule_description_translation("MD003", Locale::Ja));
+        assert!(!has_rule_description_translation("MD999", Locale::Ja));
     }
 }

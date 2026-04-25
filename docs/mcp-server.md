@@ -28,6 +28,24 @@ The server uses MCP stdio transport.
 | `rule_list` | none | Lists known rule metadata. |
 | `rule_get` | none | Returns metadata for one rule ID. |
 
+All tools default to English. Pass an optional `locale` string to request
+localized messages or rule descriptions. Supported values currently resolve to
+English (`en`, `en-US`) or Japanese (`ja`, `ja-JP`); unsupported MCP locale
+values fall back to English instead of failing the tool call.
+
+Examples:
+
+```json
+{ "content": "# title\n\n### skipped\n", "locale": "ja-JP" }
+```
+
+```json
+{ "rule_id": "MD003", "locale": "ja" }
+```
+
+Localized responses keep stable fields such as `message_id`, `message_params`,
+`kind`, `expected`, `actual`, `allowed`, rule IDs, and documentation URLs.
+
 ## Safety Boundary
 
 The prototype does not expose file read or file write tools.

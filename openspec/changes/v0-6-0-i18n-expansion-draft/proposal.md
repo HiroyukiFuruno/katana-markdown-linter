@@ -9,70 +9,77 @@ v0.4.3 should close the immediate API gap with additive locale resolver and
 localized rule metadata helpers. v0.6.0 should then treat i18n as a product
 surface and define the next durable contract.
 
-## Draft Scope
+## Scope
 
-v0.6.0 should investigate and plan:
+v0.6.0 promotes i18n from diagnostic rendering to a repository-wide product
+surface while keeping the crate generic and application-independent.
 
-- locale support policy beyond English and Japanese
+- Keep English and Japanese as the only supported locales in this release.
 
-- whether `Locale` should become non-exhaustive in a semver-minor release
+- Make `Locale` non-exhaustive in the v0.6.0 semver-minor line so future
+  locale additions do not repeatedly break consumers.
 
-- localized rule catalog output for CLI and MCP
+- Provide localized rule catalog output for Rust API, CLI `kml rule`, and MCP
+  `rule_list` / `rule_get`.
 
-- localized config validation errors with stable error ids and parameters
+- Localize config validation errors with stable message IDs and structured
+  parameters.
 
-- translation coverage tooling for rule descriptions, config errors, CLI text,
-  MCP metadata, and docs snippets
+- Add translation coverage gates for supported message IDs and active rule
+  descriptions.
 
-- fallback policy for explicit user locale vs OS locale vs API-provided locale
+- Preserve the existing fallback split: CLI explicit unsupported locale remains
+  a hard error, OS locale fallback is English, and library/MCP language-code
+  helpers are lenient.
 
-- whether message catalogs should stay Rust-native or move to data files
+- Keep catalogs Rust-native for v0.6.0; moving to data files remains a later
+  implementation detail once additional locales create enough pressure.
 
-- public API stability rules for adding future locales
+- Document the public API stability rule for future locale additions.
 
-## Candidate Deliverables
+## Deliverables
 
-- A detailed design for kml-wide i18n boundaries across library, CLI, and MCP
+- A detailed design for kml-wide i18n boundaries across library, CLI, and MCP.
 
-- A locale support matrix and fallback policy
+- A locale support matrix and fallback policy.
 
-- A translation catalog coverage gate
+- A translation catalog coverage gate.
 
-- Localized `kml rule` / MCP `rule_list` output if product value is confirmed
+- Localized Rust API, `kml rule`, and MCP `rule_list` / `rule_get` output.
 
-- A migration note for consumers currently matching `Locale` exhaustively
+- Localized config validation errors in CLI JSON/text and MCP responses.
 
-## Out of Scope For The Draft
+- A migration note for consumers currently matching `Locale` exhaustively.
 
-- Implementing new locales immediately
+## Out of Scope
+
+- Implementing new locales immediately.
 
 - Rewriting the current message catalog before v0.4.3 is released
 
-- Coupling i18n behavior to any specific consuming application
+- Coupling i18n behavior to any specific consuming application.
 
-- Blocking v0.5.0 DocumentContext / AST work
+- Unsafe fix mode and workspace-writing MCP productization.
 
-## Open Questions For Kickoff
+## Resolved Kickoff Decisions
 
-- Which additional locales are worth supporting first?
+- Additional locales are deferred; v0.6.0 hardens en/ja first.
 
-- Should CLI explicit unsupported locale remain a hard error for all commands?
+- CLI explicit unsupported locale remains a hard error for all commands.
 
-- Should library resolver behavior stay lenient while CLI behavior stays strict?
+- Library resolver behavior stays lenient while CLI behavior stays strict.
 
-- Does MCP need localized metadata by default, or should clients request locale
-  explicitly?
+- MCP responses default to English and accept an explicit `locale` parameter.
 
-- Do rule descriptions need per-rule translation files, or is a single catalog
-  sufficient for the next minor release?
+- A single Rust-native catalog is sufficient for v0.6.0.
 
 ## Readiness Notes
 
-When the draft is promoted to implementation planning, create or expand:
+This change is ready for implementation when:
 
-- `design.md` with final API and catalog architecture
+- `design.md` defines final API and catalog architecture.
 
-- `tasks.md` with DoR, DoD, and rule-by-rule / surface-by-surface progress
+- `tasks.md` includes DoR, DoD, and surface-by-surface progress.
 
-- delta specs for library i18n API, CLI localized catalog output, and MCP
-  metadata localization if those surfaces are included
+- Delta specs cover library i18n API, CLI localized catalog output, MCP
+  metadata localization, and coverage gates.

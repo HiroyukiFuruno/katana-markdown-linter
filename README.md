@@ -9,20 +9,27 @@ Use the crate directly when embedding linting into another Rust application.
 - `lint(content, options)`
 - `fix(content, options)`
 - `available_rules()`
+- `localized_available_rules(language_code)`
 - `implemented_rules()`
 - `missing_rules()`
+- `rule_catalog()`
+- `localized_rule_catalog(language_code)`
 - `resolve_locale_code(language_code)`
 - `resolve_locale_code_or(language_code, fallback)`
 - `localized_rule_description(rule_id, fallback_description, language_code)`
+- `supported_locales()`
 - `MarkdownLintConfig`
 - `MarkdownLintConfig::to_lint_options()`
 
 `available_rules()` returns canonical English metadata. For user-facing rule
-catalogs, call `RuleMeta::localized_description(language_code)` or
-`localized_rule_description(...)` so applications can pass UI language codes
-without reimplementing kml's fallback policy. `Locale` remains source-compatible
-in v0.4.x; consumers should prefer resolver helpers instead of exhaustive
-fallback matches.
+catalogs, call `localized_available_rules(language_code)`,
+`localized_rule_catalog(language_code)`, `RuleMeta::localized_description(...)`,
+or `localized_rule_description(...)` so applications can pass UI language codes
+without reimplementing kml's fallback policy.
+
+`Locale` is `#[non_exhaustive]` from v0.6.0. Consumers that match on `Locale`
+should include a wildcard arm and prefer `resolve_locale_code(...)` or
+`resolve_locale_code_or(...)` for UI language strings.
 
 Minimal embedding examples are available under [`examples/`](examples/):
 
@@ -58,7 +65,9 @@ kml check --no-ignore --force-exclude --exclude "vendor/**" vendor/README.md
 kml check --statistics --quiet
 kml fix --diff README.md
 kml rule
+kml rule --locale ja
 kml rule MD013
+kml rule MD013 --locale ja --output json
 kml config file
 kml config get --output json
 kml version
@@ -82,6 +91,10 @@ Supported values currently resolve to English (`en`, `en-US`) or Japanese
 falls back to English if the locale is unavailable or unsupported. Explicit
 unsupported locales fail with a CLI error. `--local` is accepted as a
 backward-compatible alias for v0.4.0 users.
+
+`kml rule` and `kml rule <id>` also honor `--locale`. Text output uses localized
+rule descriptions, and JSON output includes both `description` (localized) and
+`english_description` (canonical English).
 
 ## Rule Map
 
