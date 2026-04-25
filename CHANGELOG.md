@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2
+
+- Adds `MarkdownLintConfig::to_lint_options()` so embedding applications can load `.markdownlint.json` and run `lint` without duplicating CLI conversion logic.
+- Routes CLI config handling through the same public conversion API to keep embedded and CLI behavior aligned.
+- Updates the embedding example and README to show config-to-options conversion.
+
 ## v0.4.1
 
 - Fixes the locale CLI option spelling by adding `--locale` as the canonical long flag.

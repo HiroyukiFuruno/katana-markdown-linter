@@ -12,10 +12,11 @@ Use the crate directly when embedding linting into another Rust application.
 - `implemented_rules()`
 - `missing_rules()`
 - `MarkdownLintConfig`
+- `MarkdownLintConfig::to_lint_options()`
 
 Minimal embedding examples are available under [`examples/`](examples/):
 
-- `embedding.rs`: string checks, file tree checks, string fixes, config loading
+- `embedding.rs`: string checks, file tree checks, string fixes, config loading and config-to-options conversion
 
 ## CLI Install
 

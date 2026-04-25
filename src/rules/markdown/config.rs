@@ -1,5 +1,5 @@
 use crate::rules::markdown::{MarkdownRule, RulePropertyType};
-use crate::Error;
+use crate::{Error, LintOptions, RuleConfig};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::fmt;
@@ -55,6 +55,63 @@ impl MarkdownLintConfig {
 
     pub fn create_default() -> Self {
         Self::default()
+    }
+
+    pub fn to_lint_options(&self) -> LintOptions {
+        let mut options = LintOptions::default();
+        let default_enabled = self
+            .raw
+            .as_object()
+            .and_then(|root| root.get("default"))
+            .and_then(Value::as_bool)
+            .unwrap_or(true);
+
+        for rule in crate::rules::markdown::MarkdownLinterOps::user_configurable_rules() {
+            if let Some(meta) = rule.official_meta() {
+                options.rules.insert(
+                    meta.code.to_string(),
+                    RuleConfig {
+                        enabled: default_enabled,
+                        properties: HashMap::new(),
+                    },
+                );
+            }
+        }
+
+        let Some(root) = self.raw.as_object() else {
+            return options;
+        };
+
+        for (key, value) in root {
+            if key == "default" {
+                continue;
+            }
+            let enabled = match value {
+                Value::Bool(enabled) => *enabled,
+                Value::Object(properties) => properties
+                    .get("enabled")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(default_enabled),
+                _ => default_enabled,
+            };
+            let entry = options.rules.entry(key.clone()).or_default();
+            entry.enabled = enabled;
+            if let Value::Object(properties) = value {
+                entry.properties = properties
+                    .iter()
+                    .filter(|(property, _)| property.as_str() != "enabled")
+                    .map(|(property, value)| {
+                        let value = value
+                            .as_str()
+                            .map(ToOwned::to_owned)
+                            .unwrap_or_else(|| value.to_string());
+                        (property.clone(), value)
+                    })
+                    .collect();
+            }
+        }
+
+        options
     }
 
     pub fn set_rule_enabled(&mut self, rule_id: &str, enabled: bool) {
@@ -612,6 +669,59 @@ mod tests {
                     }
                 )
         }));
+    }
+
+    #[test]
+    fn to_lint_options_matches_markdownlint_config_semantics() {
+        let config = MarkdownLintConfig {
+            raw: json!({
+                "default": false,
+                "MD003": {
+                    "enabled": false,
+                    "style": "atx"
+                },
+                "MD007": {
+                    "enabled": true,
+                    "indent": 4,
+                    "start_indented": false
+                },
+                "MD013": true,
+                "MD033": {
+                    "enabled": true,
+                    "allowed_elements": ["br"]
+                }
+            }),
+        };
+
+        let options = config.to_lint_options();
+
+        assert_eq!(
+            options.rules.get("MD001").map(|rule| rule.enabled),
+            Some(false)
+        );
+        assert_eq!(
+            options.rules.get("MD013").map(|rule| rule.enabled),
+            Some(true)
+        );
+
+        let md003 = options.rules.get("MD003").expect("MD003 should exist");
+        assert!(!md003.enabled);
+        assert_eq!(md003.properties.get("style"), Some(&"atx".to_string()));
+
+        let md007 = options.rules.get("MD007").expect("MD007 should exist");
+        assert!(md007.enabled);
+        assert_eq!(md007.properties.get("indent"), Some(&"4".to_string()));
+        assert_eq!(
+            md007.properties.get("start_indented"),
+            Some(&"false".to_string())
+        );
+        assert!(!md007.properties.contains_key("enabled"));
+
+        let md033 = options.rules.get("MD033").expect("MD033 should exist");
+        assert_eq!(
+            md033.properties.get("allowed_elements"),
+            Some(&"[\"br\"]".to_string())
+        );
     }
 
     #[test]

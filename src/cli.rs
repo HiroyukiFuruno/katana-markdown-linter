@@ -1,5 +1,5 @@
 use crate::i18n::{Locale, LocalizedDiagnostic, MessageParams};
-use crate::{fix_with_results, lint, LintOptions, MarkdownLintConfig, RuleConfig};
+use crate::{fix_with_results, lint, LintOptions, MarkdownLintConfig};
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
 use serde::Serialize;
@@ -158,7 +158,7 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
             continue;
         }
 
-        let options = options_from_config(&config);
+        let options = config.to_lint_options();
         let results = match lint(&content, &options) {
             Ok(results) => results,
             Err(err) => {
@@ -233,7 +233,7 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
             return Ok(2);
         }
     };
-    let options = options_from_config(&config);
+    let options = config.to_lint_options();
     if fix_mode {
         let results = lint(&content, &options).map_err(|err| err.to_string())?;
         let fixed = apply_fixes_until_stable(&content, results, &options)?;
@@ -532,63 +532,6 @@ fn plural(count: usize) -> &'static str {
     } else {
         "s"
     }
-}
-
-fn options_from_config(config: &MarkdownLintConfig) -> LintOptions {
-    let mut options = LintOptions::default();
-    let default_enabled = config
-        .raw
-        .as_object()
-        .and_then(|root| root.get("default"))
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(true);
-
-    for rule in crate::rules::markdown::MarkdownLinterOps::user_configurable_rules() {
-        if let Some(meta) = rule.official_meta() {
-            options.rules.insert(
-                meta.code.to_string(),
-                RuleConfig {
-                    enabled: default_enabled,
-                    properties: std::collections::HashMap::new(),
-                },
-            );
-        }
-    }
-
-    let Some(root) = config.raw.as_object() else {
-        return options;
-    };
-
-    for (key, value) in root {
-        if key == "default" {
-            continue;
-        }
-        let enabled = match value {
-            serde_json::Value::Bool(enabled) => *enabled,
-            serde_json::Value::Object(properties) => properties
-                .get("enabled")
-                .and_then(serde_json::Value::as_bool)
-                .unwrap_or(default_enabled),
-            _ => default_enabled,
-        };
-        let entry = options.rules.entry(key.clone()).or_default();
-        entry.enabled = enabled;
-        if let serde_json::Value::Object(properties) = value {
-            entry.properties = properties
-                .iter()
-                .filter(|(property, _)| property.as_str() != "enabled")
-                .map(|(property, value)| {
-                    let value = value
-                        .as_str()
-                        .map(ToOwned::to_owned)
-                        .unwrap_or_else(|| value.to_string());
-                    (property.clone(), value)
-                })
-                .collect();
-        }
-    }
-
-    options
 }
 
 #[derive(Debug, Clone, Serialize)]
