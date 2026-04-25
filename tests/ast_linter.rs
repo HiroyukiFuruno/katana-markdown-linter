@@ -299,7 +299,7 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
 
     for rule in &active_rules {
         let safe_fix = rule_map_safe_fix_status(rules, rule.id.as_str());
-        let unsafe_fix = rule_map_unsafe_fix_status(rule.id.as_str());
+        let unsafe_fix = rule_map_unsafe_fix_status(rules, rule.id.as_str());
         let row = format!(
             "| `{}` | Supported | {} | {} |",
             rule.id, safe_fix, unsafe_fix
@@ -342,8 +342,17 @@ fn rule_map_safe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
     }
 }
 
-fn rule_map_unsafe_fix_status(rule_id: &str) -> &'static str {
-    if rule_id == "MD060" {
+fn rule_map_unsafe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
+    let has_unsafe_fix = rules
+        .iter()
+        .find(|entry| entry["rule_id"].as_str() == Some(rule_id))
+        .and_then(|entry| entry.get("unsafe_fix"))
+        .and_then(Value::as_array)
+        .is_some_and(|fixes| !fixes.is_empty());
+
+    if has_unsafe_fix {
+        "Partial"
+    } else if rule_id == "MD060" {
         "Not implemented"
     } else {
         "Not planned"
@@ -389,7 +398,7 @@ fn ast_linter_public_api_surface_is_explicit() {
         "supported_locales",
         "Locale, LocaleError",
         "LocalizedDiagnostic",
-        "pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};",
+        "Fix, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity,",
     ];
     let mut violations = required
         .iter()

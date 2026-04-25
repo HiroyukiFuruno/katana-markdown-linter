@@ -1,6 +1,7 @@
 use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
 use katana_markdown_linter::{
-    fix, lint, ConfigErrorKind, LintOptions, LintResult, MarkdownLintConfig, Range, RuleConfig,
+    fix, fix_with_results_including_unsafe, lint, ConfigErrorKind, LintOptions, LintResult,
+    MarkdownLintConfig, Range, RuleConfig,
 };
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -28,6 +29,13 @@ fn cases<'a>(rule: &'a Value, field: &str) -> impl Iterator<Item = &'a Value> {
         .as_array()
         .expect("fixture field should be an array")
         .iter()
+}
+
+fn optional_cases<'a>(rule: &'a Value, field: &str) -> impl Iterator<Item = &'a Value> {
+    rule.get(field)
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
 }
 
 fn case_name(case: &Value) -> &str {
@@ -156,6 +164,37 @@ fn fix_fixtures_compare_before_and_after() {
                 fixed_again.content,
                 fixed.content,
                 "{} / {} fix output was not idempotent",
+                rule_id(rule),
+                case_name(case)
+            );
+        }
+    }
+}
+
+#[test]
+fn unsafe_fix_fixtures_compare_before_and_after() {
+    let matrix = matrix();
+
+    for rule in rules(&matrix) {
+        for case in optional_cases(rule, "unsafe_fix") {
+            let options = options_for_case(case);
+            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            assert!(
+                diagnostics.iter().any(|diagnostic| {
+                    diagnostic.rule_id == rule_id(rule)
+                        && diagnostic.fix.as_ref().is_some_and(|fix| {
+                            fix.safety == katana_markdown_linter::FixSafety::Unsafe
+                        })
+                }),
+                "{} / {} did not expose expected unsafe fix",
+                rule_id(rule),
+                case_name(case)
+            );
+            let fixed = fix_with_results_including_unsafe(case_source(case), &diagnostics);
+            assert_eq!(
+                fixed.content,
+                case["expected"].as_str().unwrap_or_default(),
+                "{} / {} unsafe fix output differed",
                 rule_id(rule),
                 case_name(case)
             );
@@ -515,6 +554,7 @@ fn overlapping_fix_ranges_are_detectable_before_application() {
                 end_column: 3,
             },
             replacement: "A".to_string(),
+            safety: katana_markdown_linter::FixSafety::Safe,
         }),
     };
     let mut second = first.clone();

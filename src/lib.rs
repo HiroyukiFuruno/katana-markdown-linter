@@ -15,7 +15,9 @@ pub use i18n::{
     has_rule_description_translation, localized_rule_description, resolve_locale_code,
     resolve_locale_code_or, supported_locales, Locale, LocaleError, LocalizedDiagnostic,
 };
-pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};
+pub use types::{
+    Fix, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity,
+};
 
 use std::path::Path;
 
@@ -74,7 +76,15 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
 
 /// Applies available fixes from already computed lint results.
 pub fn fix_with_results(content: &str, results: &[LintResult]) -> FixResult {
-    fix::apply(results, content)
+    fix::apply(results, content, false)
+}
+
+/// Applies available fixes from already computed lint results, including unsafe fixes.
+///
+/// Callers are responsible for presenting an explicit confirmation flow before using this helper
+/// with user-authored content.
+pub fn fix_with_results_including_unsafe(content: &str, results: &[LintResult]) -> FixResult {
+    fix::apply(results, content, true)
 }
 
 /// Returns the set of available rules.
@@ -155,6 +165,7 @@ impl From<rules::markdown::MarkdownDiagnostic> for LintResult {
                 end_column: fix_info.end_column,
             },
             replacement: fix_info.replacement,
+            safety: fix_safety_for_rule(&value.rule_id),
         });
         Self {
             message_id: crate::i18n::diagnostic_message_id(&value.rule_id, &value.message),
@@ -186,6 +197,18 @@ impl From<rules::markdown::MarkdownDiagnostic> for LintResult {
             fix,
         }
     }
+}
+
+fn fix_safety_for_rule(rule_id: &str) -> FixSafety {
+    if is_unsafe_fix_rule(rule_id) {
+        FixSafety::Unsafe
+    } else {
+        FixSafety::Safe
+    }
+}
+
+fn is_unsafe_fix_rule(rule_id: &str) -> bool {
+    matches!(rule_id, "MD036")
 }
 
 impl From<rules::markdown::OfficialRuleMeta> for RuleMeta {

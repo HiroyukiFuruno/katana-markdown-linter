@@ -54,6 +54,7 @@ kml check -l ja
 kml fix
 kml fmt
 kml check --fix
+kml fix --unsafe --yes README.md
 kml check README.md
 kml check --file README.md
 kml check --output json "docs/**/*.md"
@@ -78,6 +79,9 @@ kml init-config
 When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
 
 `check` exits with `1` when lint violations are found. `check --fix`, `fix`, and `fmt` apply safe fixes and exit with `1` if violations remain after rewriting. Filesystem or configuration errors exit with `2`.
+
+Unsafe fixes require explicit opt-in. Interactive use prompts with `[Y/n]`;
+non-interactive use must pass `--unsafe --yes`.
 
 `--output json` is the preferred JSON output flag. `--format json` remains a compatibility alias.
 
@@ -110,7 +114,7 @@ The short version:
 | --- | --- |
 | Check coverage | `Supported` for all 53 active rules |
 | Safe fix coverage | `Partial` for 38 rules; diagnostic-only for 15 rules |
-| Unsafe fix coverage | Not available yet; reserved for a future explicit opt-in mode |
+| Unsafe fix coverage | `Partial` for 1 rule; explicit opt-in only |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
 Safe fixes are intentionally conservative. `Partial` means kml rewrites at least
@@ -159,7 +163,7 @@ markdownlint IDs that are not part of the active upstream rule catalog.
 | `MD033` | Supported | Not implemented | Not planned |
 | `MD034` | Supported | Partial | Not planned |
 | `MD035` | Supported | Partial | Not planned |
-| `MD036` | Supported | Not implemented | Not planned |
+| `MD036` | Supported | Not implemented | Partial |
 | `MD037` | Supported | Partial | Not planned |
 | `MD038` | Supported | Partial | Not planned |
 | `MD039` | Supported | Partial | Not planned |

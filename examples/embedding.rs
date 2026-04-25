@@ -14,6 +14,12 @@ fn main() -> Result<(), DynError> {
 
     let diagnostics = lint("# Title\n\n### Skipped level\n", &options)?;
     println!("string diagnostics: {}", diagnostics.len());
+    let unsafe_candidates = lint("**Section**\n\nText\n", &options)?
+        .into_iter()
+        .filter_map(|diagnostic| diagnostic.fix)
+        .filter(|fix| fix.safety == katana_markdown_linter::FixSafety::Unsafe)
+        .count();
+    println!("unsafe fix candidates: {unsafe_candidates}");
 
     let fixed = fix("text with trailing spaces  \n", &options)?;
     println!("applied fixes: {}", fixed.applied_fixes);

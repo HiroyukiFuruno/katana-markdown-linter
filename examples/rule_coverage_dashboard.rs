@@ -46,14 +46,15 @@ fn render_dashboard(
     out.push_str("# Rule Coverage Dashboard\n\n");
     out.push_str("Generated from `tests/fixtures/rule-fixture-matrix.json`.\n\n");
     out.push_str(
-        "| Rule | Check | Safe Fix | Config | Edge | Golden | Known Delta | Manual Required |\n",
+        "| Rule | Check | Safe Fix | Unsafe Fix | Config | Edge | Golden | Known Delta | Manual Required |\n",
     );
-    out.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- | --- |\n");
+    out.push_str("| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |\n");
 
     for rule in rules {
         let rule_id = rule["rule_id"].as_str().unwrap_or("<unknown>");
         let check = count(rule, "check_pass") + count(rule, "check_fail");
         let fix = count(rule, "fix");
+        let unsafe_fix = count(rule, "unsafe_fix");
         let config = count(rule, "config_valid") + count(rule, "config_invalid");
         let edge = count(rule, "edge");
         let golden = if golden_rules.contains(rule_id) {
@@ -68,7 +69,7 @@ fn render_dashboard(
         };
         let manual_required = manual_required(rule);
         out.push_str(&format!(
-            "| {rule_id} | {check} | {fix} | {config} | {edge} | {golden} | {known_delta} | {manual_required} |\n"
+            "| {rule_id} | {check} | {fix} | {unsafe_fix} | {config} | {edge} | {golden} | {known_delta} | {manual_required} |\n"
         ));
     }
 

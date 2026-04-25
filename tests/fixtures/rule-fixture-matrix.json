@@ -2134,6 +2134,13 @@
         }
       ],
       "fix": [],
+      "unsafe_fix": [
+        {
+          "name": "emphasis_as_heading_to_atx_h1",
+          "source": "**Important**\n\nText\n",
+          "expected": "# Important\n\nText\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
