@@ -17,19 +17,29 @@ pub fn apply(results: &[LintResult], content: &str) -> FixResult {
 
     edits.sort_by(|left, right| right.0.cmp(&left.0).then_with(|| right.1.cmp(&left.1)));
 
-    let mut content = content.to_string();
+    let mut accepted = Vec::new();
     let mut previous_start = content.len();
     for (start, end, replacement) in edits {
         if end > previous_start {
             continue;
         }
-        content.replace_range(start..end, replacement);
         previous_start = start;
+        accepted.push((start, end, replacement));
         applied_fixes += 1;
     }
+    accepted.reverse();
+
+    let mut fixed = String::with_capacity(content.len());
+    let mut cursor = 0;
+    for (start, end, replacement) in accepted {
+        fixed.push_str(&content[cursor..start]);
+        fixed.push_str(replacement);
+        cursor = end;
+    }
+    fixed.push_str(&content[cursor..]);
 
     FixResult {
-        content,
+        content: fixed,
         applied_fixes,
     }
 }

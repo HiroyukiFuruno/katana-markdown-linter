@@ -1,6 +1,8 @@
 mod types;
 pub use types::*;
 pub mod catalog;
+pub mod document;
+pub use document::*;
 
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::types::RuleConfig;
@@ -12,6 +14,14 @@ pub trait MarkdownRule: Send + Sync {
     /// `None` means the rule is hidden (internal-only).
     fn official_meta(&self) -> Option<OfficialRuleMeta>;
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic>;
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        self.evaluate_configured(ctx.file_path(), ctx.content(), config)
+    }
 
     fn evaluate_configured(
         &self,
@@ -39,46 +49,46 @@ impl MarkdownRule for HeadingIncrementRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self
             .official_meta()
             .expect("official_meta is always Some for MD001");
         let mut diagnostics = Vec::new();
         let mut last_level = 0;
-        let mut in_code_block = false;
-        for (line_idx, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
-                in_code_block = !in_code_block;
-                continue;
+
+        for heading in ctx.headings() {
+            let current_level = heading.level;
+            if last_level > 0 && current_level > last_level + 1 {
+                let line = &ctx.lines()[heading.line];
+                diagnostics.push(MarkdownDiagnostic {
+                    file: ctx.file_path().to_path_buf(),
+                    severity: DiagnosticSeverity::Warning,
+                    range: DiagnosticRange {
+                        start_line: line.number,
+                        start_column: 1,
+                        end_line: line.number,
+                        end_column: line.text.len(),
+                    },
+                    message: format!(
+                        "{} [Expected: h{}, Actual: h{}]",
+                        meta.description,
+                        last_level + 1,
+                        current_level
+                    ),
+                    rule_id: meta.code.to_string(),
+                    official_meta: Some(meta.clone()),
+                    fix_info: None,
+                });
             }
-            if in_code_block {
-                continue;
-            }
-            if let Some(level) = RuleHelpers::get_heading_level(line) {
-                let current_level = level;
-                if last_level > 0 && current_level > last_level + 1 {
-                    diagnostics.push(MarkdownDiagnostic {
-                        file: file_path.to_path_buf(),
-                        severity: DiagnosticSeverity::Warning,
-                        range: DiagnosticRange {
-                            start_line: line_idx + 1,
-                            start_column: 1,
-                            end_line: line_idx + 1,
-                            end_column: line.len(),
-                        },
-                        message: format!(
-                            "{} [Expected: h{}, Actual: h{}]",
-                            meta.description,
-                            last_level + 1,
-                            current_level
-                        ),
-                        rule_id: meta.code.to_string(),
-                        official_meta: Some(meta.clone()),
-                        fix_info: None,
-                    });
-                }
-                last_level = current_level;
-            }
+            last_level = current_level;
         }
         diagnostics
     }

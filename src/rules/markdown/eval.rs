@@ -45,7 +45,7 @@ use crate::rules::markdown::rules::spaces_in_code::NoSpaceInCodeRule;
 use crate::rules::markdown::rules::spaces_in_emphasis::SpacesInEmphasisRule;
 use crate::rules::markdown::rules::style::*;
 use crate::rules::markdown::rules::whitespace::*;
-use crate::rules::markdown::{MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta};
+use crate::rules::markdown::{DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
@@ -272,16 +272,15 @@ impl MarkdownLinterOps {
             return diagnostics;
         }
 
-        let rules = Self::get_official_rules();
-        for rule in rules {
+        let ctx = DocumentContext::new(file_path, content);
+        for rule in Self::get_official_rules() {
             let rule_id = rule.id();
             let sev_opt = severity_map
                 .get(rule_id)
                 .copied()
                 .unwrap_or(Some(crate::rules::markdown::DiagnosticSeverity::Warning));
             if let Some(severity) = sev_opt {
-                let mut diags =
-                    rule.evaluate_configured(file_path, content, rule_configs.get(rule_id));
+                let mut diags = rule.evaluate_context(&ctx, rule_configs.get(rule_id));
                 for d in &mut diags {
                     d.severity = severity;
                 }

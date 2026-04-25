@@ -1,4 +1,5 @@
 use katana_markdown_linter::cli::{run, Cli, Command, OutputFormat};
+use katana_markdown_linter::rules::markdown::DocumentContext;
 use katana_markdown_linter::{available_rules, fix, lint, LintOptions, MarkdownLintConfig};
 use serde::Serialize;
 use std::fs;
@@ -56,6 +57,36 @@ fn main() -> BenchResult<()> {
                 diagnostics += lint(black_box(document), black_box(&options))?.len();
             }
             Ok(diagnostics)
+        },
+    )?);
+    cases.push(measure(
+        "context_build_large_document",
+        &args,
+        large_document.lines().count(),
+        "lines",
+        || {
+            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&large_document));
+            Ok(ctx.lines().len())
+        },
+    )?);
+    cases.push(measure(
+        "context_heading_index_large_document",
+        &args,
+        large_document.lines().count(),
+        "lines",
+        || {
+            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&large_document));
+            Ok(ctx.headings().len())
+        },
+    )?);
+    cases.push(measure(
+        "context_table_index_large_document",
+        &args,
+        large_document.lines().count(),
+        "lines",
+        || {
+            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&large_document));
+            Ok(ctx.tables().len())
         },
     )?);
     cases.push(measure(

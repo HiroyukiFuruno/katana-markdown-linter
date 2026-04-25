@@ -2,7 +2,7 @@
 
 - upstream source: DavidAnson/markdownlint default branch
 - total rules: 53
-- manual required: 3
+- manual required: 2
 - missing fixtures: 0
 - stale fixtures: 0
 
@@ -60,4 +60,4 @@
 | MD056 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD058 | 1 | 1 | 1 | 1 | 1 | 0 |  |
 | MD059 | 1 | 1 | 0 | 2 | 2 | 0 |  |
-| MD060 | 1 | 1 | 0 | 3 | 5 | 2 | fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked |
+| MD060 | 3 | 1 | 3 | 3 | 5 | 3 |  |

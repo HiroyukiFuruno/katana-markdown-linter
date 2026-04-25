@@ -103,7 +103,7 @@ violation form automatically; rules marked `no` still report diagnostics.
 | `MD022` | yes |
 | `MD023` | yes |
 | `MD024` | no |
-| `MD025` | no |
+| `MD025` | yes |
 | `MD026` | yes |
 | `MD027` | yes |
 | `MD028` | no |
@@ -137,7 +137,7 @@ violation form automatically; rules marked `no` still report diagnostics.
 | `MD056` | no |
 | `MD058` | yes |
 | `MD059` | no |
-| `MD060` | no |
+| `MD060` | yes |
 
 ## Configuration
 

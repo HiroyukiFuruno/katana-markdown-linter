@@ -35,9 +35,20 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
 
     let mut content = content.to_string();
     let mut applied_fixes = 0;
+    let severity_map = build_fix_severity_map(options);
 
     for _ in 0..MAX_FIX_PASSES {
-        let results = lint(&content, options)?;
+        let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
+            Path::new("<memory>"),
+            &content,
+            true,
+            &severity_map,
+            &options.rules,
+        );
+        let results = diags
+            .into_iter()
+            .map(Into::into)
+            .collect::<Vec<LintResult>>();
         if !results.iter().any(|result| result.fix.is_some()) {
             break;
         }
@@ -191,6 +202,72 @@ fn build_severity_map(
             (rule_id.clone(), severity)
         })
         .collect()
+}
+
+fn build_fix_severity_map(
+    options: &LintOptions,
+) -> std::collections::HashMap<String, Option<rules::markdown::DiagnosticSeverity>> {
+    rules::markdown::MarkdownLinterOps::official_rules()
+        .iter()
+        .map(|rule| {
+            let severity = if is_safe_fix_rule(rule.id()) {
+                options
+                    .rules
+                    .get(rule.id())
+                    .map(|rule_config| rule_config.enabled)
+                    .unwrap_or(true)
+                    .then_some(match options.default_severity {
+                        Severity::Error => rules::markdown::DiagnosticSeverity::Error,
+                        Severity::Warning => rules::markdown::DiagnosticSeverity::Warning,
+                        Severity::Info => rules::markdown::DiagnosticSeverity::Info,
+                    })
+            } else {
+                None
+            };
+            (rule.id().to_string(), severity)
+        })
+        .collect()
+}
+
+fn is_safe_fix_rule(rule_id: &str) -> bool {
+    matches!(
+        rule_id,
+        "MD004"
+            | "MD005"
+            | "MD007"
+            | "MD009"
+            | "MD010"
+            | "MD011"
+            | "MD012"
+            | "MD014"
+            | "MD018"
+            | "MD019"
+            | "MD020"
+            | "MD021"
+            | "MD022"
+            | "MD023"
+            | "MD025"
+            | "MD026"
+            | "MD027"
+            | "MD029"
+            | "MD030"
+            | "MD031"
+            | "MD032"
+            | "MD034"
+            | "MD037"
+            | "MD038"
+            | "MD039"
+            | "MD040"
+            | "MD044"
+            | "MD047"
+            | "MD049"
+            | "MD050"
+            | "MD051"
+            | "MD053"
+            | "MD054"
+            | "MD058"
+            | "MD060"
+    )
 }
 
 #[cfg(test)]
@@ -392,7 +469,7 @@ mod tests {
 
     #[test]
     fn lint_reports_table_rules() {
-        let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\nclick here";
+        let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\n\n|x| y |\n|---|---|\n| z | q |\nclick here";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD056"));

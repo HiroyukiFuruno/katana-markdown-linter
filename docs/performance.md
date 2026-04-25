@@ -51,6 +51,9 @@ make bench PERF_ITERATIONS=30 PERF_SAMPLES=7 PERF_WARMUP=2
 | `api_lint_clean_large_document` | Measures full-rule lint cost on a clean generated document. |
 | `api_fix_large_document` | Measures fix orchestration cost on the diagnostics-heavy document. |
 | `api_lint_many_small_documents` | Measures repeated API calls for many small documents. |
+| `context_build_large_document` | Measures source-preserving line and fence context construction. |
+| `context_heading_index_large_document` | Measures lazy heading index construction. |
+| `context_table_index_large_document` | Measures lazy table index construction. |
 | `cli_check_many_small_files` | Measures CLI directory check cost for a synthetic workspace. |
 | `config_validate_representative` | Measures config load and validation cost. |
 | `api_rule_catalog` | Measures rule catalog construction cost. |
@@ -133,3 +136,30 @@ The optimization is intentionally narrow:
 - CLI fix mode still lints the fixed content before deciding the exit code.
 - The helper exists only to avoid duplicate original-content lint evaluation
   when diagnostics are already available.
+
+## v0.5.0 DocumentContext Snapshot
+
+`source-preserving-document-context` adds a shared document context and migrates
+`MD001` and `MD060` to context-based evaluation. The context indexes are lazy so
+line-only paths do not pay for heading or table extraction unless a migrated rule
+needs them.
+
+Local `make perf-check` snapshot after the migration:
+
+| Case | Median |
+| --- | ---: |
+| `api_lint_large_document` | 9.884 ms |
+| `api_lint_clean_large_document` | 6.585 ms |
+| `api_fix_large_document` | 206.701 ms |
+| `api_lint_many_small_documents` | 2.360 ms |
+| `context_build_large_document` | 0.077 ms |
+| `context_heading_index_large_document` | 1.087 ms |
+| `context_table_index_large_document` | 1.133 ms |
+| `cli_check_many_small_files` | 9.714 ms |
+
+The context-specific costs are small relative to full lint execution. The
+remaining `api_fix_large_document` regression is explained by multi-pass safe
+fix convergence over a diagnostics-heavy synthetic corpus that now applies 4200
+fixes per measured operation. `fix::apply` now builds the edited output in one
+linear pass after overlap resolution, but reducing multi-pass convergence cost
+requires a separate fix-planning change.

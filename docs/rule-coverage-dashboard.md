@@ -56,4 +56,12 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | MD056 | 2 | 0 | 2 | 0 | pending: not locked | no | - |
 | MD058 | 2 | 1 | 2 | 0 | pending: not locked | no | - |
 | MD059 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
-| MD060 | 2 | 0 | 8 | 2 | pending: not locked | no | fix unsupported: table column style requires strategy-aware table formatting before safe fix can be locked |
+| MD060 | 4 | 3 | 8 | 3 | pending: not locked | no | - |
+
+## Fix Safety Notes
+
+- Line-local safe fixes remain the default for whitespace, heading spacing, list marker, emphasis, and similar rules.
+
+- Structural safe fixes currently include `MD060`, which uses one whole-table source range from `DocumentContext`.
+
+- Unsafe rewrites remain out of default fix mode.
