@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.3
+
+- Adds locale resolver helpers for embedding consumers: `resolve_locale_code()` and `resolve_locale_code_or()`.
+- Adds localized rule metadata helpers via `localized_rule_description()` and `RuleMeta::localized_description()`.
+- Documents that consumers should use resolver helpers for UI language codes instead of duplicating kml fallback policy.
+- Keeps `Locale` source-compatible in the v0.4 patch line while recording broader i18n expansion for v0.6.0.
+- Closes issue #4.
+
 ## v0.4.2
 
 - Adds `MarkdownLintConfig::to_lint_options()` so embedding applications can load `.markdownlint.json` and run `lint` without duplicating CLI conversion logic.

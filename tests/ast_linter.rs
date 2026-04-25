@@ -330,6 +330,12 @@ fn ast_linter_public_api_surface_is_explicit() {
         "pub fn missing_rules() -> Vec<RuleMeta>",
         "pub fn rule_catalog() -> catalog::RuleCatalog",
         "pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};",
+        "pub use i18n::{",
+        "localized_rule_description",
+        "resolve_locale_code",
+        "resolve_locale_code_or",
+        "Locale, LocaleError",
+        "LocalizedDiagnostic",
         "pub use types::{Fix, FixResult, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity};",
     ];
     let mut violations = required

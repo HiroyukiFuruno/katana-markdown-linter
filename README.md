@@ -11,8 +11,18 @@ Use the crate directly when embedding linting into another Rust application.
 - `available_rules()`
 - `implemented_rules()`
 - `missing_rules()`
+- `resolve_locale_code(language_code)`
+- `resolve_locale_code_or(language_code, fallback)`
+- `localized_rule_description(rule_id, fallback_description, language_code)`
 - `MarkdownLintConfig`
 - `MarkdownLintConfig::to_lint_options()`
+
+`available_rules()` returns canonical English metadata. For user-facing rule
+catalogs, call `RuleMeta::localized_description(language_code)` or
+`localized_rule_description(...)` so applications can pass UI language codes
+without reimplementing kml's fallback policy. `Locale` remains source-compatible
+in v0.4.x; consumers should prefer resolver helpers instead of exhaustive
+fallback matches.
 
 Minimal embedding examples are available under [`examples/`](examples/):
 
