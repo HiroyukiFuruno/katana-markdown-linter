@@ -121,6 +121,22 @@
         }
       ],
       "expected_fixed_output": "| a | b |\n| --- | --- |\n| c | d |\n"
+    },
+    {
+      "rule_id": "MD048",
+      "fixture": "mixed_fence_style",
+      "source": "```rust\ncode\n```\n\n~~~text\ncode\n~~~\n",
+      "expected": [
+        {
+          "rule_id": "MD048",
+          "line": 5,
+          "column": 1,
+          "end_line": 8,
+          "end_column": 1,
+          "fixable": true
+        }
+      ],
+      "expected_fixed_output": "```rust\ncode\n```\n\n```text\ncode\n```\n"
     }
   ]
 }

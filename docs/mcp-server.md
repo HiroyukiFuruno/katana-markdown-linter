@@ -6,15 +6,15 @@ metadata without using the CLI as a subprocess.
 
 ## Build
 
-```bash
+~~~bash
 cargo build --bin kml-mcp --features mcp --locked
-```
+~~~
 
 ## Run
 
-```bash
+~~~bash
 cargo run --bin kml-mcp --features mcp --locked
-```
+~~~
 
 The server uses MCP stdio transport.
 
@@ -35,13 +35,13 @@ values fall back to English instead of failing the tool call.
 
 Examples:
 
-```json
+~~~json
 { "content": "# title\n\n### skipped\n", "locale": "ja-JP" }
-```
+~~~
 
-```json
+~~~json
 { "rule_id": "MD003", "locale": "ja" }
-```
+~~~
 
 Localized responses keep stable fields such as `message_id`, `message_params`,
 `kind`, `expected`, `actual`, `allowed`, rule IDs, and documentation URLs.

@@ -2901,7 +2901,7 @@
           ]
         }
       ],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "consistent_fence_style",
@@ -2912,11 +2912,17 @@
       "check_fail": [
         {
           "name": "mixed_fence_style",
-          "source": "```rust\ncode\n```\n\n~~~\ncode\n~~~\n",
+          "source": "```rust\ncode\n```\n\n~~~text\ncode\n~~~\n",
           "expected": "MD048"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "mixed_fence_style_to_first_style",
+          "source": "```rust\ncode\n```\n\n~~~text\ncode\n~~~\n",
+          "expected": "```rust\ncode\n```\n\n```text\ncode\n```\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -2941,7 +2947,13 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "target_fence_marker_inside_code_block_remains_diagnostic_only",
+          "source": "```rust\ncode\n```\n\n~~~~text\n```inner\ncode\n```\n~~~~\n",
+          "expected": "MD048"
+        }
+      ],
       "manual_required": []
     },
     {

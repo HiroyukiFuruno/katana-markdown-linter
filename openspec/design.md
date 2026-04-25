@@ -6,7 +6,7 @@ markdownlint 互換の Rust 製 Markdown リンターライブラリ。利用側
 
 ## 1. クレート構成
 
-```
+~~~text
 katana-markdown-linter/
 ├── Cargo.toml
 ├── src/
@@ -34,13 +34,13 @@ katana-markdown-linter/
 │   ├── rules/              # ルールごとのユニットテスト
 │   └── integration/        # 統合テスト
 └── benches/                # パフォーマンスベンチマーク
-```
+~~~
 
 ## 2. 公開 API 設計
 
 ### Core Types
 
-```rust
+~~~rust
 /// リント結果
 pub struct LintResult {
     pub rule_id: String,         // e.g. "MD009"
@@ -71,11 +71,11 @@ pub struct LintOptions {
     pub rules: HashMap<String, RuleConfig>,  // ルールID → 設定
     pub default_severity: Severity,
 }
-```
+~~~
 
 ### Core Functions
 
-```rust
+~~~rust
 /// Markdown テキストをリントし、診断結果を返す
 pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>>;
 
@@ -84,11 +84,11 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult>;
 
 /// 利用可能なルール一覧を返す
 pub fn available_rules() -> Vec<RuleMeta>;
-```
+~~~
 
 ## 3. Rule trait
 
-```rust
+~~~rust
 pub trait Rule: Send + Sync {
     /// ルール ID (e.g. "MD009")
     fn id(&self) -> &str;
@@ -111,16 +111,16 @@ pub trait Rule: Send + Sync {
     /// 違反を自動修正する（is_fixable() が true の場合のみ）
     fn fix(&self, content: &str, ast: &MarkdownAst) -> Option<String>;
 }
-```
+~~~
 
 ## 4. Feature Flags
 
-```toml
+~~~toml
 [features]
 default = []
 cli = []                            # `kml` CLI binary
 jsonc = []                          # reserved for `.markdownlint.jsonc` support
-```
+~~~
 
 ## 5. Library Boundary
 
@@ -135,21 +135,25 @@ Non-goals:
 ## 6. 移行計画
 
 ### Phase 1: 基盤構築
+
 - クレートの初期化（Cargo.toml, CI, docs.rs 設定）
 - `Rule` trait と `lint()` / `fix()` API の定義
 - `pulldown-cmark` ベースのパーサ基盤
 
 ### Phase 2: Rule Parity
+
 - 公式 markdownlint の全 active rule の check 実装
 - fixability metadata と安全な fix 実装
 - 各ルールのユニットテスト作成
 
 ### Phase 3: Public Release 準備
+
 - crates.io 向け metadata
 - MIT license
 - `cargo install` 可能な package 準備
 
 ### Phase 4: CLI
+
 - `kml check`
 - `kml fix`
 - `kml init-config`
@@ -157,6 +161,7 @@ Non-goals:
 - `--format json`
 
 ### Phase 5: Upstream Update Tracking
+
 - upstream default branch 追従
 - rule document drift check
 - config schema drift check

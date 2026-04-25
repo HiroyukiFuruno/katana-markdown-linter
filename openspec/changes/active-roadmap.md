@@ -9,6 +9,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.6.0`: i18n を library / CLI / MCP の product surface として拡充し、将来 locale 追加のための coverage gate と API 安定化を優先する。
 - `v0.7.0`: performance hot path を優先する。まず fix range application の繰り返し走査を削減し、cache/watch は別 change に分離する。
 - `v0.8.0`: linter と safe fix の精度を優先する。未対応で安全に対応できる rule/fix を継続拡張する。
+- `v0.8.1`: `DocumentContext` を使って小さな safe-fix 拡張を継続する。`MD048` の fence style check/fix を unsafe mode より先に閉じる。
 - `v0.9.0`: unsafe fix mode を追加する。default safe fix contract は維持し、interactive / automation opt-in を必須にする。
 - `v0.10.0`: formatter productization を検討する。lint-driven fix とは別の deterministic / idempotent policy として設計する。
 - `v0.11.0`: `rumdl` を参考に、distribution / editor / automation integration を拡張する。
@@ -22,6 +23,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Completed for `v0.6.0`; Rust API, CLI rule/config output, MCP metadata, and translation coverage gates now share stable localized metadata. |
 | Done | Performance hot path for `v0.7.0` | `v0-7-0-performance-hotpath` | Completed for `v0.7.0`; fix range application now uses a per-apply line offset index and the release is published. |
 | Done | Linter precision and safe fix expansion for `v0.8.0` | `safe-fix-coverage-continuous-expansion` | Completed for `v0.8.0`; `MD035` and `MD055` safe fixes are fixture/golden locked and the release is published. |
+| P1 | Context-safe fix batch for `v0.8.1` | `v0-8-1-context-safe-fix-batch` | Close the `MD048` safe subset while the required block ranges and collision guards are already available. |
 | P2 | Unsafe fix mode for `v0.9.0` | `unsafe-fix-mode-and-confirmation` | Unsafe fix requires explicit user opt-in, CLI confirmation, and automation guardrails. |
 | P2 | Formatter productization for `v0.10.0` | `formatter-productization` | Separate formatter semantics from lint-driven safe fixes after linter precision is stronger. |
 | P3 | Tool distribution and editor expansion for `v0.11.0` | `tool-distribution-and-editor-expansion` | Use rumdl as a reference for distribution, pre-commit, GitHub Action, schema, and editor workflows without copying implementation. |
@@ -40,11 +42,12 @@ Archived completed changes:
 
 ## Suggested Order
 
-1. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
-2. Apply `formatter-productization` for `v0.10.0`.
-3. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
-4. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-5. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `v0-8-1-context-safe-fix-batch` for `v0.8.1`.
+2. Apply `unsafe-fix-mode-and-confirmation` for `v0.9.0`.
+3. Apply `formatter-productization` for `v0.10.0`.
+4. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
+5. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
+6. Use `source-preserving-document-context` as the baseline for later structural fix work.
 
 ## Repository Guardrails
 

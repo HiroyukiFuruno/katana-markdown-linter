@@ -19,7 +19,7 @@ The official SDK list identifies Rust support through
 
 ## Responsibility Boundary
 
-```text
+~~~text
 core crate
   owns lint, fix, config, rule catalog, and normalized diagnostics
 
@@ -29,15 +29,15 @@ kml CLI
 kml-mcp server
   owns MCP tools/resources, request validation, workspace access policy,
   and serialization of core API results
-```
+~~~
 
 The dependency direction must be:
 
-```text
+~~~text
 kml CLI    -> core crate
 kml-mcp    -> core crate
 core crate -> no MCP dependency
-```
+~~~
 
 ## Use Cases
 

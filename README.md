@@ -39,15 +39,15 @@ Minimal embedding examples are available under [`examples/`](examples/):
 
 Install the bundled CLI with Cargo:
 
-```bash
+~~~bash
 cargo install katana-markdown-linter
-```
+~~~
 
 The binary target is `kml`.
 
 ## CLI Usage
 
-```bash
+~~~bash
 kml check
 kml check --locale en
 kml check -l ja
@@ -73,7 +73,7 @@ kml config get --output json
 kml version
 kml fix --config .markdownlint.json README.md
 kml init-config
-```
+~~~
 
 When no files are provided, `kml check`, `kml fix`, and `kml fmt` recursively process Markdown files under the current directory. Use `--file` to make single-file intent explicit.
 
@@ -109,7 +109,7 @@ The short version:
 | Capability | Status |
 | --- | --- |
 | Check coverage | `Supported` for all 53 active rules |
-| Safe fix coverage | `Partial` for 37 rules; diagnostic-only for 16 rules |
+| Safe fix coverage | `Partial` for 38 rules; diagnostic-only for 15 rules |
 | Unsafe fix coverage | Not available yet; reserved for a future explicit opt-in mode |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
@@ -171,7 +171,7 @@ markdownlint IDs that are not part of the active upstream rule catalog.
 | `MD045` | Supported | Not implemented | Not planned |
 | `MD046` | Supported | Not implemented | Not planned |
 | `MD047` | Supported | Partial | Not planned |
-| `MD048` | Supported | Not implemented | Not planned |
+| `MD048` | Supported | Partial | Not planned |
 | `MD049` | Supported | Partial | Not planned |
 | `MD050` | Supported | Partial | Not planned |
 | `MD051` | Supported | Partial | Not planned |
@@ -218,10 +218,10 @@ want to call the library without shelling out to `kml`.
 
 Build or run it with the `mcp` feature:
 
-```bash
+~~~bash
 cargo build --bin kml-mcp --features mcp --locked
 cargo run --bin kml-mcp --features mcp --locked
-```
+~~~
 
 The prototype exposes read-only, text-first tools:
 

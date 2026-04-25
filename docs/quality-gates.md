@@ -75,9 +75,9 @@ Normal development should merge through pull requests so required checks run bef
 
 Before dispatching a release workflow, run:
 
-```bash
+~~~bash
 make release-check VERSION=vX.Y.Z
-```
+~~~
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 coverage regression, example builds, optional MCP build, version verification,
@@ -95,9 +95,9 @@ Use `make release VERSION=vX.Y.Z` only when crates.io publication is intended.
 
 After publication, run:
 
-```bash
+~~~bash
 make release-verify VERSION=vX.Y.Z
-```
+~~~
 
 That command compares the local tag target, GitHub Release title and target,
 GitHub tag verification state, and crates.io version.
