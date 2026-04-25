@@ -104,24 +104,43 @@ below match the public catalog returned by `available_rules()` and
 status. Run `kml rule MD013` to inspect one rule with its upstream documentation
 URL.
 
-State values are `Supported`, `Partial`, `Not implemented`, `Not planned`, and
-`Not feasible`. Safe fixes are often `Partial` because kml only rewrites
-fixture-locked, low-risk violation forms. Unsafe fixes are unavailable until a
-future explicit opt-in mode exists.
+The short version:
+
+| Capability | Status |
+| --- | --- |
+| Check coverage | `Supported` for all 53 active rules |
+| Safe fix coverage | `Partial` for 35 rules; diagnostic-only for 18 rules |
+| Unsafe fix coverage | Not available yet; reserved for a future explicit opt-in mode |
+| Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
+
+Safe fixes are intentionally conservative. `Partial` means kml rewrites at least
+one fixture-locked, low-risk violation form for that rule. `Not implemented`
+means the rule is currently diagnostic-only. `Not planned` means unsafe rewriting
+is outside the default safe-fix contract. `Deleted` rows are historical
+markdownlint IDs that are not part of the active upstream rule catalog.
+
+<details>
+<summary>Full fixture-backed rule matrix</summary>
 
 | Rule | Check | Fix (safe) | Fix (unsafe) |
 | --- | --- | --- | --- |
 | `MD001` | Supported | Not implemented | Not planned |
+| `MD002` | Deleted | - | - |
 | `MD003` | Supported | Not implemented | Not planned |
 | `MD004` | Supported | Partial | Not planned |
 | `MD005` | Supported | Partial | Not planned |
+| `MD006` | Deleted | - | - |
 | `MD007` | Supported | Partial | Not planned |
+| `MD008` | Deleted | - | - |
 | `MD009` | Supported | Partial | Not planned |
 | `MD010` | Supported | Partial | Not planned |
 | `MD011` | Supported | Partial | Not planned |
 | `MD012` | Supported | Partial | Not planned |
 | `MD013` | Supported | Not implemented | Not planned |
 | `MD014` | Supported | Partial | Not planned |
+| `MD015` | Deleted | - | - |
+| `MD016` | Deleted | - | - |
+| `MD017` | Deleted | - | - |
 | `MD018` | Supported | Partial | Not planned |
 | `MD019` | Supported | Partial | Not planned |
 | `MD020` | Supported | Partial | Not planned |
@@ -161,9 +180,12 @@ future explicit opt-in mode exists.
 | `MD054` | Supported | Partial | Not planned |
 | `MD055` | Supported | Not implemented | Not planned |
 | `MD056` | Supported | Not implemented | Not planned |
+| `MD057` | Deleted | - | - |
 | `MD058` | Supported | Partial | Not planned |
 | `MD059` | Supported | Not implemented | Not planned |
 | `MD060` | Supported | Partial | Not implemented |
+
+</details>
 
 ## Configuration
 

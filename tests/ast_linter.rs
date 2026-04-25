@@ -291,7 +291,13 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         .as_array()
         .expect("fixture matrix rules should be an array");
 
-    for rule in katana_markdown_linter::available_rules() {
+    let active_rules = katana_markdown_linter::available_rules();
+    let active_rule_ids = active_rules
+        .iter()
+        .map(|rule| rule.id.as_str())
+        .collect::<BTreeSet<_>>();
+
+    for rule in &active_rules {
         let safe_fix = rule_map_safe_fix_status(rules, rule.id.as_str());
         let unsafe_fix = rule_map_unsafe_fix_status(rule.id.as_str());
         let row = format!(
@@ -300,6 +306,22 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         );
         if !readme.contains(&row) {
             violations.push(format!("README.md: missing rule map row `{row}`"));
+        }
+    }
+
+    let max_rule_number = active_rule_ids
+        .iter()
+        .filter_map(|rule_id| rule_id.strip_prefix("MD")?.parse::<u16>().ok())
+        .max()
+        .expect("active rules should contain MD-prefixed rule IDs");
+    for number in 1..=max_rule_number {
+        let rule_id = format!("MD{number:03}");
+        if active_rule_ids.contains(rule_id.as_str()) {
+            continue;
+        }
+        let row = format!("| `{rule_id}` | Deleted | - | - |");
+        if !readme.contains(&row) {
+            violations.push(format!("README.md: missing deleted rule gap row `{row}`"));
         }
     }
 
