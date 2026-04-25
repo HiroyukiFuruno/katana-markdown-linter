@@ -1,6 +1,7 @@
 use katana_markdown_linter::{
-    available_rules, fix, lint, localized_rule_catalog, localized_rule_description,
-    resolve_locale_code_or, LintOptions, Locale, MarkdownLintConfig,
+    available_rules, fix, format_markdown, lint, localized_rule_catalog,
+    localized_rule_description, resolve_locale_code_or, FormatOptions, LintOptions, Locale,
+    MarkdownLintConfig,
 };
 use std::fs;
 use std::path::Path;
@@ -23,6 +24,8 @@ fn main() -> Result<(), DynError> {
 
     let fixed = fix("text with trailing spaces  \n", &options)?;
     println!("applied fixes: {}", fixed.applied_fixes);
+    let formatted = format_markdown("# Title\r\nText\n\n\n", &FormatOptions::default())?;
+    println!("format operations: {}", formatted.applied_operations);
 
     let config = MarkdownLintConfig::load(Path::new(".markdownlint.json"))?;
     let configured_options = config.to_lint_options();

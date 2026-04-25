@@ -240,6 +240,11 @@ pub fn render_message(
                 param(params, "path", ""),
                 param(params, "count", "0")
             ),
+            "format.formatted_count" => format!(
+                "{}: {} 件の整形操作を適用しました",
+                param(params, "path", ""),
+                param(params, "count", "0")
+            ),
             _ => fallback.to_string(),
         },
     }
@@ -336,7 +341,7 @@ fn japanese_rule_description(rule_id: &str) -> Option<&'static str> {
     }
 }
 
-const CATALOG_KEYS: [&str; 14] = [
+const CATALOG_KEYS: [&str; 15] = [
     "rule.generic",
     "rule.MD001.heading_increment",
     "config.error",
@@ -351,6 +356,7 @@ const CATALOG_KEYS: [&str; 14] = [
     "summary.no_files",
     "summary.statistics",
     "fix.fixed_count",
+    "format.formatted_count",
 ];
 
 #[cfg(test)]

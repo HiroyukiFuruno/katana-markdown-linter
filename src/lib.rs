@@ -4,6 +4,7 @@ pub mod catalog;
 pub mod cli;
 pub mod config;
 pub mod fix;
+pub mod formatter;
 pub mod i18n;
 pub mod parser;
 pub mod rules;
@@ -11,6 +12,7 @@ pub mod types;
 pub mod upstream;
 
 pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
+pub use formatter::{format_markdown, layout_lint_options, FormatOptions, FormatResult};
 pub use i18n::{
     has_rule_description_translation, localized_rule_description, resolve_locale_code,
     resolve_locale_code_or, supported_locales, Locale, LocaleError, LocalizedDiagnostic,
