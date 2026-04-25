@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.0
+
+- Adds source-preserving `DocumentContext` for shared line, heading, code block, reference, table, and lazy AST structure.
+- Adds context-based rule evaluation while keeping existing `lint` and `fix` API compatibility.
+- Migrates `MD001` and `MD060` to context-backed evaluation and safe source-range fixes.
+- Expands `MD060` table column style check/fix coverage, including aligned, compact, and tight table styles.
+- Improves fix application by selecting non-overlapping edits before constructing the output.
+- Adds v0.5.0 performance snapshots for context construction and migrated rule paths.
+- Fixes an `MD003` false positive where standalone horizontal rules or front matter delimiters were treated as setext headings.
+
 ## v0.4.3
 
 - Adds locale resolver helpers for embedding consumers: `resolve_locale_code()` and `resolve_locale_code_or()`.

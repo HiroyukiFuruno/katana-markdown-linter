@@ -5,7 +5,7 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | Rule | Check | Safe Fix | Config | Edge | Golden | Known Delta | Manual Required |
 | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
 | MD001 | 2 | 0 | 4 | 1 | baseline | no | - |
-| MD003 | 2 | 0 | 4 | 0 | pending: not locked | no | - |
+| MD003 | 2 | 0 | 4 | 2 | pending: not locked | no | - |
 | MD004 | 2 | 1 | 4 | 0 | pending: not locked | no | - |
 | MD005 | 2 | 1 | 2 | 1 | baseline | no | - |
 | MD007 | 2 | 1 | 8 | 0 | pending: not locked | no | - |

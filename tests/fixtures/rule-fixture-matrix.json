@@ -138,7 +138,18 @@
           "expected": "invalid type"
         }
       ],
-      "edge": [],
+      "edge": [
+        {
+          "name": "horizontal_rule_after_blank_line",
+          "source": "# Heading\n\n---\n\nText\n",
+          "expected": null
+        },
+        {
+          "name": "front_matter_delimiters",
+          "source": "---\ntitle: Doc\n---\n\n# Doc\n",
+          "expected": null
+        }
+      ],
       "manual_required": []
     },
     {

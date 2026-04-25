@@ -9,7 +9,7 @@
 | Rule | Check Pass | Check Fail | Fix | Config Valid | Config Invalid | Edge | Manual Required |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | MD001 | 1 | 1 | 0 | 2 | 2 | 1 |  |
-| MD003 | 1 | 1 | 0 | 2 | 2 | 0 |  |
+| MD003 | 1 | 1 | 0 | 2 | 2 | 2 |  |
 | MD004 | 1 | 1 | 1 | 2 | 2 | 0 |  |
 | MD005 | 1 | 1 | 1 | 1 | 1 | 1 |  |
 | MD007 | 1 | 1 | 1 | 4 | 4 | 0 |  |
