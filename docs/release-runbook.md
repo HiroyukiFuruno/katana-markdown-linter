@@ -58,6 +58,7 @@ The workflow validates:
 - `cargo test --all-features --locked`
 - `make examples`
 - `make mcp-build`
+- `make action-smoke`
 - upstream markdownlint drift gate
 - `make lint`
 - `cargo publish --dry-run --locked --allow-dirty`
@@ -68,6 +69,9 @@ The workflow creates or updates:
 - GitHub Release
 - `.crate` package artifact
 - `.sha256` checksum
+
+The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
+Release preflight must keep `make action-smoke` passing before publishing a tag.
 
 Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and creates or updates the GitHub Release, but it does not publish to crates.io. Use manual dispatch with `publish_crate: true` when crates.io publication is intended.
 
@@ -142,6 +146,12 @@ If workflow job names are changed, update branch protection in the same change. 
 
 - Verify `[[bin]] name = "kml"` remains unchanged.
 - Re-run the install check with `cargo install --path . --bin kml`.
+
+### GitHub Action smoke fails
+
+- Re-run `make action-smoke`.
+- Inspect `action.yml`, `scripts/action/install-kml.sh`, and `scripts/action/run-kml.sh`.
+- Keep the action scripts generic; do not add repository-specific lint policy outside action inputs.
 
 ### Incorrect files were packaged
 

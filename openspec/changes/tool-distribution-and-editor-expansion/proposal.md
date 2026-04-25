@@ -11,6 +11,10 @@ outside Cargo once the lint/fix/format contracts are stable.
 
 - Define which channels are official and which are documented as examples.
 
+- Promote a root GitHub Action as the first non-Cargo official channel.
+
+- Add smoke verification for the GitHub Action path in local release checks and CI.
+
 - Add schema/config/editor integration plan when it benefits users.
 
 - Keep core crate independent from distribution wrappers.

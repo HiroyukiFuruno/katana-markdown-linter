@@ -17,6 +17,7 @@
 | `make upstream-golden-live` | Run the live upstream markdownlint oracle against the golden corpus | No, manual update check |
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
+| `make action-smoke` | Install through the shared GitHub Action scripts and run a CLI smoke check | Yes for release gates |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
 | `make release-verify` | Verify published tag, GitHub Release, and crates.io state | Yes after publication |
 
@@ -32,6 +33,7 @@
 - release workflow must require an existing annotated signed tag that GitHub reports as Verified
 - release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
+- the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
 - public Markdown docs must stay English-only
 - public library API and rule catalog entrypoints must remain explicit
 - localization catalog tests must keep supported locales on the same message id set and preserve English fallback behavior
@@ -52,12 +54,22 @@ Use these targets when comparing CLI behavior or speed against peer tools:
 - `make bench-cross-tools-common`
 - `make bench-cross-tools-fix`
 
+## Distribution Smoke
+
+`make action-smoke` verifies the official GitHub Action channel without needing a
+published crate. It installs the current checkout through the shared action
+install script, then runs `kml check` through the shared action runner script.
+
+The release workflows run the same smoke target so `action.yml`,
+`scripts/action/install-kml.sh`, and `scripts/action/run-kml.sh` are tested
+before publication.
+
 ## CI Required Checks
 
 Branch protection for `main` currently requires:
 
 - `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace`, `make dogfood`
-- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus non-blocking `make coverage`
+- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke` and non-blocking `make coverage`
 
 If required check names or workflow job names change, update branch protection in the same change. Otherwise the repository can either block valid merges or allow merges without the intended gate.
 
@@ -81,9 +93,9 @@ make release-check VERSION=vX.Y.Z
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 coverage regression, example builds, optional MCP build, version verification,
-dry-run publish, and install smoke checks. The GitHub release workflows
-additionally clone upstream markdownlint and run `make upstream-drift` against
-the default branch docs.
+dry-run publish, action smoke, and install smoke checks. The GitHub release
+workflows additionally clone upstream markdownlint and run `make upstream-drift`
+against the default branch docs.
 
 Use `make release-tag VERSION=vX.Y.Z` before dispatching a release. It creates
 or verifies a signed annotated tag and then requires GitHub to report the tag as

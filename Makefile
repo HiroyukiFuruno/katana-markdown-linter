@@ -24,6 +24,7 @@ CROSS_TOOL_SUMMARY ?= target/cross-tool-benchmark.md
 CROSS_TOOL_RUNS ?= 5
 CROSS_TOOL_WARMUP ?= 1
 CROSS_TOOL_ARGS ?=
+ACTION_SMOKE_DIR ?= target/action-smoke
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -155,6 +156,14 @@ bench-cross-tools-fix: ## Benchmark fix behavior across available CLIs
 examples: ## Compile public Rust embedding examples
 	cargo build --examples --locked
 
+.PHONY: action-smoke
+action-smoke: ## Smoke test the repository GitHub Action through shared action scripts
+	mkdir -p "$(ACTION_SMOKE_DIR)"
+	printf '# Action Smoke\n\nText\n' > "$(ACTION_SMOKE_DIR)/README.md"
+	printf '{\n  "default": true,\n  "MD013": false\n}\n' > "$(ACTION_SMOKE_DIR)/.markdownlint.json"
+	KML_ACTION_INSTALL_SOURCE=path KML_ACTION_PATH=. KML_ACTION_INSTALL_ROOT="$(ACTION_SMOKE_DIR)/install" bash scripts/action/install-kml.sh
+	PATH="$(CURDIR)/$(ACTION_SMOKE_DIR)/install/bin:$$PATH" KML_ACTION_COMMAND=check KML_ACTION_PATHS="$(ACTION_SMOKE_DIR)/README.md" KML_ACTION_CONFIG="$(ACTION_SMOKE_DIR)/.markdownlint.json" KML_ACTION_LOCALE=en KML_ACTION_OUTPUT=text bash scripts/action/run-kml.sh
+
 .PHONY: mcp-build
 mcp-build: ## Build optional experimental MCP server
 	cargo build --bin kml-mcp --features mcp --locked
@@ -168,7 +177,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
