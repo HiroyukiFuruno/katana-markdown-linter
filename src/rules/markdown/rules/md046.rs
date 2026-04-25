@@ -1,6 +1,5 @@
-use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -18,12 +17,13 @@ impl MarkdownRule for CodeBlockStyleRule {
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD046");
-        let has_fenced = content
+        let ctx = DocumentContext::new(file_path, content);
+        let has_fenced = !ctx.code_blocks().is_empty();
+        let has_indented = ctx
             .lines()
-            .any(|line| RuleHelpers::is_fence(line.trim_start()));
-        let has_indented = content
-            .lines()
-            .any(|line| line.starts_with("    ") && !line.trim().is_empty());
+            .iter()
+            .enumerate()
+            .any(|(idx, line)| is_indented_code_line(&ctx, idx, line.text));
         if has_fenced && has_indented {
             vec![MarkdownDiagnostic {
                 file: file_path.to_path_buf(),
@@ -42,5 +42,22 @@ impl MarkdownRule for CodeBlockStyleRule {
         } else {
             Vec::new()
         }
+    }
+}
+
+fn is_indented_code_line(ctx: &DocumentContext<'_>, line_index: usize, line: &str) -> bool {
+    !ctx.is_code_line(line_index) && line.starts_with("    ") && !line.trim().is_empty()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{lint, LintOptions};
+
+    #[test]
+    fn ignores_indented_lines_inside_fenced_diagrams() {
+        let content = "# Title\n\n```mermaid\ngraph TD\n    A --> B\n```\n";
+        let results = lint(content, &LintOptions::default()).expect("lint runs");
+
+        assert!(results.iter().all(|result| result.rule_id != "MD046"));
     }
 }

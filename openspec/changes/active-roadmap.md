@@ -13,6 +13,10 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.9.0`: unsafe fix mode を追加する。default safe fix contract は維持し、interactive / automation opt-in を必須にする。
 - `v0.10.0`: formatter productization を検討する。lint-driven fix とは別の deterministic / idempotent policy として設計する。
 - `v0.11.0`: `rumdl` を参考に、distribution / editor / automation integration を拡張する。
+- `v0.12.0`: MCP workspace tools を productize する。local stdio server として file/directory check と explicit apply を固定する。
+- `v0.13.0`: MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
+- `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
+- `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
@@ -27,8 +31,11 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Unsafe fix mode for `v0.9.0` | `unsafe-fix-mode-and-confirmation` | Completed for `v0.9.0`; unsafe fix candidates now require explicit opt-in, interactive confirmation or `--yes`, and publish safety metadata to API/CLI/MCP/reporting surfaces. |
 | Done | Formatter productization for `v0.10.0` | `formatter-productization` | Completed for `v0.10.0`; `kml fmt` now uses a dedicated layout formatter API for indentation and newline normalization with editor-friendly exit behavior. |
 | Done | Tool distribution and editor expansion for `v0.11.0` | `tool-distribution-and-editor-expansion` | Completed for `v0.11.0`; root GitHub Action is now official and verified through action smoke checks. |
-| P2 | MCP productization | `mcp-workspace-tools-productization` | Current MCP server is experimental and text-first only. |
+| Done | MCP workspace tools for `v0.12.0` | `mcp-workspace-tools-productization` | Completed for `v0.12.0`; `kml-mcp` now exposes workspace-safe file/directory tools with preview and explicit apply. |
 | Done | Performance hot path work | `performance-hotpath-competition` | Completed; docs now include baseline, profile summary, before/after, and local regression guidance. |
+| P1 | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
+| P2 | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
+| P3 | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
 
 Archived completed changes:
 
@@ -43,11 +50,13 @@ Archived completed changes:
 - `unsafe-fix-mode-and-confirmation` -> `openspec/changes/archive/2026-04-25-unsafe-fix-mode-and-confirmation`
 - `formatter-productization` -> `openspec/changes/archive/2026-04-25-formatter-productization`
 - `tool-distribution-and-editor-expansion` -> `openspec/changes/archive/2026-04-25-tool-distribution-and-editor-expansion`
+- `mcp-workspace-tools-productization` -> `openspec/changes/archive/2026-04-26-mcp-workspace-tools-productization`
 
 ## Suggested Order
 
-1. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-2. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `mcp-registry-and-distribution-planning` first; it decides whether MCPB, OCI, or another package type is the primary path.
+2. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+3. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
 ## Repository Guardrails
 
@@ -56,3 +65,5 @@ Archived completed changes:
 - Keep one implementation change active at a time unless the write sets are disjoint and the roadmap is updated to show the parallelism.
 - `formatter-productization` must not be mixed into `v0.8.0`; linter precision and safe fix coverage come first.
 - `unsafe-fix-mode-and-confirmation` must not be mixed into `v0.7.0` or `v0.8.0`; it changes CLI safety semantics and belongs to `v0.9.0`.
+- Registry publication must not be mixed into `mcp-registry-and-distribution-planning`; `v0.13.0` decides the gate and `v0.14.0` executes it.
+- Remote MCP transport must not be used as a replacement for local stdio distribution; it has a different auth and workspace safety boundary.

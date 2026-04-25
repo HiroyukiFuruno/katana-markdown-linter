@@ -1,7 +1,9 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta, RuleParityStatus,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleParityStatus,
 };
+use std::collections::BTreeMap;
 use std::path::Path;
 
 /* WHY: Section: List-related markdownlint rule implementations
@@ -23,16 +25,13 @@ impl MarkdownRule for UlStyleRule {
         let meta = self.official_meta().expect("always Some for MD004");
         let mut diagnostics = Vec::new();
         let mut first_bullet: Option<char> = None;
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
+        let ctx = DocumentContext::new(file_path, content);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
+            let line = line.text;
             let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block {
-                continue;
-            }
             if let Some(bullet) = RuleHelpers::get_bullet_char(trimmed) {
                 match first_bullet {
                     None => first_bullet = Some(bullet),
@@ -91,24 +90,20 @@ impl MarkdownRule for OlPrefixRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD029");
         let mut diagnostics = Vec::new();
-        let mut expected_number: u32 = 1;
-        let mut in_code_block = false;
-        let mut in_list = false;
-        for (i, line) in content.lines().enumerate() {
+        let mut expected_numbers = BTreeMap::<usize, u32>::new();
+        let ctx = DocumentContext::new(file_path, content);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                expected_numbers.clear();
+                continue;
+            }
+            let line = line.text;
             let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block {
-                continue;
-            }
             if let Some(num) = RuleHelpers::get_ordered_number(trimmed) {
-                if !in_list {
-                    in_list = true;
-                    expected_number = 1;
-                }
-                if num != expected_number {
+                let indent = line.len() - trimmed.len();
+                expected_numbers.retain(|level, _| *level <= indent);
+                let expected_number = expected_numbers.entry(indent).or_insert(1);
+                if num != *expected_number {
                     let dot_pos = line.find(". ").unwrap();
                     let start_col = line.find(|c: char| c.is_ascii_digit()).unwrap();
                     let fix = crate::rules::markdown::types::DiagnosticFix {
@@ -128,11 +123,49 @@ impl MarkdownRule for OlPrefixRule {
                         Some(fix),
                     );
                 }
-                expected_number += 1;
+                *expected_number += 1;
             } else if !trimmed.is_empty() {
-                in_list = false;
+                expected_numbers.clear();
             }
         }
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::OlPrefixRule;
+    use crate::rules::markdown::MarkdownRule;
+    use std::path::Path;
+
+    #[test]
+    fn md029_accepts_nested_ordered_lists_with_independent_numbering() {
+        let content = "\
+1. First item
+2. Second item
+   1. Nested 2-1
+   2. Nested 2-2
+3. Third item
+";
+
+        let diagnostics = OlPrefixRule.evaluate(Path::new("doc.md"), content);
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn md029_rejects_broken_nested_numbering_at_the_same_level() {
+        let content = "\
+1. First item
+2. Second item
+   1. Nested 2-1
+   3. Nested 2-2
+3. Third item
+";
+
+        let diagnostics = OlPrefixRule.evaluate(Path::new("doc.md"), content);
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].range.start_line, 4);
     }
 }

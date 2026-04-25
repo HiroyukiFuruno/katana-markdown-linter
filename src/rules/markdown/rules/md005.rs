@@ -1,6 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use std::path::Path;
 
@@ -19,19 +19,16 @@ impl MarkdownRule for ListIndentRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD005");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
         let mut previous_list_indent: Option<usize> = None;
 
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        let ctx = DocumentContext::new(file_path, content);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
                 previous_list_indent = None;
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
+            let line = line.text;
+            let trimmed = line.trim_start();
             if RuleHelpers::is_list_item(trimmed) {
                 let leading = line.len() - trimmed.len();
                 if let Some(previous) = previous_list_indent {

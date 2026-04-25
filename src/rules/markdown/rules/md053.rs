@@ -1,6 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::path::Path;
 
@@ -17,28 +18,40 @@ impl MarkdownRule for LinkDefinitionsRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD053");
         let mut diagnostics = Vec::new();
         let mut seen = std::collections::HashSet::new();
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
+            let trimmed = line.text.trim_start();
             if let Some(label) = trimmed
                 .strip_prefix('[')
                 .and_then(|rest| rest.split_once("]:"))
             {
                 if !seen.insert(label.0.to_lowercase()) {
                     let fix = crate::rules::markdown::types::DiagnosticFix {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: 1,
-                        end_line: i + 2,
+                        end_line: line.number + 1,
                         end_column: 1,
                         replacement: String::new(),
                     };
                     RuleHelpers::push_diag_with_fix(
                         &mut diagnostics,
-                        file_path,
+                        ctx.file_path(),
                         i,
-                        line,
+                        line.text,
                         &meta,
                         DiagnosticSeverity::Warning,
                         Some(fix),

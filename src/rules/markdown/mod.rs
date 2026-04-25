@@ -115,11 +115,23 @@ impl MarkdownRule for BrokenLinkRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let mut diagnostics = Vec::new();
         /* WHY: Running in workspace context lets us resolve local paths relative to the file. */
-        let base_dir = file_path.parent().unwrap_or(Path::new(""));
-        for (line_idx, line) in content.lines().enumerate() {
-            let mut rest = line;
+        let base_dir = ctx.file_path().parent().unwrap_or(Path::new(""));
+        for (line_idx, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(line_idx) {
+                continue;
+            }
+            let mut rest = line.text;
             let mut offset = 0;
             while let Some(start_idx) = rest.find("](") {
                 let actual_start = offset + start_idx;
@@ -130,7 +142,7 @@ impl MarkdownRule for BrokenLinkRule {
                     let absolute_end = offset + end_idx;
                     RuleHelpers::push_broken_link_violation(
                         &mut diagnostics,
-                        file_path,
+                        ctx.file_path(),
                         line_idx,
                         actual_start,
                         absolute_end,

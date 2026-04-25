@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    RuleConfig,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta, RuleConfig,
 };
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
@@ -18,13 +18,13 @@ impl MarkdownRule for LinkFragmentsRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        self.evaluate_with_options(file_path, content, false, None)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
     }
 
-    fn evaluate_configured(
+    fn evaluate_context(
         &self,
-        file_path: &Path,
-        content: &str,
+        ctx: &DocumentContext<'_>,
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let ignore_case = config
@@ -34,23 +34,35 @@ impl MarkdownRule for LinkFragmentsRule {
         let ignored_pattern = config
             .and_then(|config| config.properties.get("ignored_pattern"))
             .and_then(|pattern| regex::Regex::new(pattern).ok());
-        self.evaluate_with_options(file_path, content, ignore_case, ignored_pattern.as_ref())
+        self.evaluate_context_with_options(ctx, ignore_case, ignored_pattern.as_ref())
+    }
+
+    fn evaluate_configured(
+        &self,
+        file_path: &Path,
+        content: &str,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
     }
 }
 
 impl LinkFragmentsRule {
-    fn evaluate_with_options(
+    fn evaluate_context_with_options(
         &self,
-        file_path: &Path,
-        content: &str,
+        ctx: &DocumentContext<'_>,
         ignore_case: bool,
         ignored_pattern: Option<&regex::Regex>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD051");
         let mut diagnostics = Vec::new();
-        let headings = heading_fragments(content);
-        for (i, line) in content.lines().enumerate() {
-            for fragment in link_fragments(line) {
+        let headings = heading_fragments(ctx);
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
+            for fragment in link_fragments(line.text) {
                 if is_allowed_special_fragment(fragment.value)
                     || ignored_pattern.is_some_and(|pattern| pattern.is_match(fragment.value))
                     || fragment_exists(&headings, fragment.value, ignore_case)
@@ -67,12 +79,12 @@ impl LinkFragmentsRule {
                         .map(|heading| format!("#{heading}"))
                 };
                 diagnostics.push(MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: fragment.start + 1,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: fragment.end + 1,
                     },
                     message: meta.description.to_string(),
@@ -80,9 +92,9 @@ impl LinkFragmentsRule {
                     official_meta: Some(meta.clone()),
                     fix_info: replacement.map(|replacement| {
                         crate::rules::markdown::types::DiagnosticFix {
-                            start_line: i + 1,
+                            start_line: line.number,
                             start_column: fragment.start + 1,
-                            end_line: i + 1,
+                            end_line: line.number,
                             end_column: fragment.end + 1,
                             replacement,
                         }
@@ -136,26 +148,22 @@ fn link_fragments(line: &str) -> Vec<LinkFragment<'_>> {
     fragments
 }
 
-fn heading_fragments(content: &str) -> HashSet<String> {
+fn heading_fragments(ctx: &DocumentContext<'_>) -> HashSet<String> {
     let mut counts = HashMap::<String, usize>::new();
     let mut fragments = HashSet::new();
 
-    for line in content.lines() {
-        fragments.extend(html_defined_fragments(line));
+    for (idx, line) in ctx.lines().iter().enumerate() {
+        if ctx.is_code_line(idx) {
+            continue;
+        }
+        fragments.extend(html_defined_fragments(line.text));
+    }
 
-        let trimmed = line.trim_start();
-        if !trimmed.starts_with('#') {
-            continue;
-        }
-        let level = trimmed.chars().take_while(|ch| *ch == '#').count();
-        if level == 0 || level > 6 || !trimmed[level..].starts_with(' ') {
-            continue;
-        }
-        let heading = trimmed[level..].trim();
-        if let Some(anchor) = custom_heading_anchor(heading) {
+    for heading in ctx.headings() {
+        if let Some(anchor) = custom_heading_anchor(heading.text) {
             fragments.insert(anchor.to_string());
         }
-        let base = github_heading_slug(heading);
+        let base = github_heading_slug(heading.text);
         if base.is_empty() {
             continue;
         }

@@ -514,7 +514,8 @@ mod tests {
 
     #[test]
     fn lint_reports_line_length_violation() {
-        let content = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh";
+        let content =
+            "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefgh";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD013"));
@@ -554,7 +555,7 @@ mod tests {
 
     #[test]
     fn lint_reports_table_rules() {
-        let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\n\n|x| y |\n|---|---|\n| z | q |\nclick here";
+        let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\n\n|x| y |\n|---|---|\n| z | q |\n[click here](#target)";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD056"));

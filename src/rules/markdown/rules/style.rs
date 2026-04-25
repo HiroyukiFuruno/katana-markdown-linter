@@ -1,4 +1,3 @@
-use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticFix, DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic,
     MarkdownRule, OfficialRuleMeta, RuleParityStatus,
@@ -27,17 +26,13 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD036");
         let mut diagnostics = Vec::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let mut in_code_block = false;
+        let ctx = DocumentContext::new(file_path, content);
+        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
         for (i, line) in lines.iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
             let trimmed = line.trim();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
-                continue;
-            }
-            if in_code_block {
-                continue;
-            }
             if let Some(heading_text) = emphasis_heading_text(trimmed, &lines, i) {
                 diagnostics.push(MarkdownDiagnostic {
                     file: file_path.to_path_buf(),

@@ -1,8 +1,9 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    RuleParityStatus,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta, RuleParityStatus,
 };
+use crate::types::RuleConfig;
 use std::path::Path;
 
 /* WHY: Section: Content-level markdownlint rule implementations
@@ -21,24 +22,27 @@ impl MarkdownRule for NoInlineHtmlRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD033");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_fence(trimmed) {
-                in_code_block = !in_code_block;
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
                 continue;
             }
-            if in_code_block {
-                continue;
-            }
-            if RuleHelpers::contains_html_tag(line) {
+            if RuleHelpers::contains_html_tag(line.text) {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
-                    line,
+                    line.text,
                     &meta,
                     DiagnosticSeverity::Warning,
                 );
@@ -72,47 +76,50 @@ impl MarkdownRule for FencedCodeLanguageRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD040");
         let mut diagnostics = Vec::new();
-        let mut in_code_block = false;
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim_start();
-            if !RuleHelpers::is_fence(trimmed) {
+        for block in ctx.code_blocks() {
+            let line = &ctx.lines()[block.start_line];
+            let trimmed = line.text.trim_start();
+            let after_fence = trimmed.trim_start_matches('`').trim_start_matches('~');
+            if !after_fence.trim().is_empty() {
                 continue;
             }
-            /* WHY: Opening fence only — check if language is specified */
-            if !in_code_block {
-                let after_fence = trimmed.trim_start_matches('`').trim_start_matches('~');
-                if after_fence.trim().is_empty() {
-                    let indent = line.len() - trimmed.len();
-                    let fence_len = trimmed
-                        .chars()
-                        .take_while(|ch| *ch == '`' || *ch == '~')
-                        .count();
-                    let column = indent + fence_len + 1;
-                    diagnostics.push(MarkdownDiagnostic {
-                        file: file_path.to_path_buf(),
-                        severity: DiagnosticSeverity::Warning,
-                        range: DiagnosticRange {
-                            start_line: i + 1,
-                            start_column: column,
-                            end_line: i + 1,
-                            end_column: column,
-                        },
-                        message: meta.description.to_string(),
-                        rule_id: meta.code.to_string(),
-                        official_meta: Some(meta.clone()),
-                        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                            start_line: i + 1,
-                            start_column: column,
-                            end_line: i + 1,
-                            end_column: column,
-                            replacement: "text".to_string(),
-                        }),
-                    });
-                }
-            }
-            in_code_block = !in_code_block;
+            let indent = line.text.len() - trimmed.len();
+            let fence_len = trimmed
+                .chars()
+                .take_while(|ch| *ch == '`' || *ch == '~')
+                .count();
+            let column = indent + fence_len + 1;
+            diagnostics.push(MarkdownDiagnostic {
+                file: ctx.file_path().to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: block.start_line + 1,
+                    start_column: column,
+                    end_line: block.start_line + 1,
+                    end_column: column,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+                    start_line: block.start_line + 1,
+                    start_column: column,
+                    end_line: block.start_line + 1,
+                    end_column: column,
+                    replacement: "text".to_string(),
+                }),
+            });
         }
         diagnostics
     }
@@ -193,5 +200,13 @@ mod content_tests {
             .expect("missing language should be fixable");
         assert_eq!(fix.start_column, 4);
         assert_eq!(fix.replacement, "text");
+    }
+
+    #[test]
+    fn inline_html_ignores_fenced_code_blocks() {
+        let rule = NoInlineHtmlRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "```html\n<span>code</span>\n```\n");
+
+        assert!(diagnostics.is_empty());
     }
 }

@@ -1,5 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta, RuleConfig,
 };
 use std::path::Path;
 
@@ -16,26 +17,38 @@ impl MarkdownRule for NoSpacesInLinksRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD039");
         let mut diagnostics = Vec::new();
-        for (i, line) in content.lines().enumerate() {
-            for (open, close, replacement) in link_text_space_fixes(line) {
+        for (i, line) in ctx.lines().iter().enumerate() {
+            if ctx.is_code_line(i) {
+                continue;
+            }
+            for (open, close, replacement) in link_text_space_fixes(line.text) {
                 diagnostics.push(MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: open + 1,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: close + 2,
                     },
                     message: meta.description.to_string(),
                     rule_id: meta.code.to_string(),
                     official_meta: Some(meta.clone()),
                     fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: i + 1,
+                        start_line: line.number,
                         start_column: open + 2,
-                        end_line: i + 1,
+                        end_line: line.number,
                         end_column: close + 1,
                         replacement,
                     }),
@@ -114,7 +127,7 @@ mod tests {
         let rule = NoSpacesInLinksRule;
         let diagnostics = rule.evaluate(
             Path::new("doc.md"),
-            "- [ ] task\n- [x] done\n![ alt ](image.png)",
+            "- [ ] task\n- [x] done\n![ alt ](image.png)\n```\n[ link ](target)\n```",
         );
 
         assert!(diagnostics.is_empty());
