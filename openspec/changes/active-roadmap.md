@@ -26,7 +26,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Context-safe fix batch for `v0.8.1` | `v0-8-1-context-safe-fix-batch` | Completed for `v0.8.1`; `MD048` now uses block ranges, style config, and collision-guarded safe fixes. |
 | Done | Unsafe fix mode for `v0.9.0` | `unsafe-fix-mode-and-confirmation` | Completed for `v0.9.0`; unsafe fix candidates now require explicit opt-in, interactive confirmation or `--yes`, and publish safety metadata to API/CLI/MCP/reporting surfaces. |
 | Done | Formatter productization for `v0.10.0` | `formatter-productization` | Completed for `v0.10.0`; `kml fmt` now uses a dedicated layout formatter API for indentation and newline normalization with editor-friendly exit behavior. |
-| P3 | Tool distribution and editor expansion for `v0.11.0` | `tool-distribution-and-editor-expansion` | Use rumdl as a reference for distribution, pre-commit, GitHub Action, schema, and editor workflows without copying implementation. |
+| Done | Tool distribution and editor expansion for `v0.11.0` | `tool-distribution-and-editor-expansion` | Completed for `v0.11.0`; root GitHub Action is now official and verified through action smoke checks. |
 | P2 | MCP productization | `mcp-workspace-tools-productization` | Current MCP server is experimental and text-first only. |
 | Done | Performance hot path work | `performance-hotpath-competition` | Completed; docs now include baseline, profile summary, before/after, and local regression guidance. |
 
@@ -42,12 +42,12 @@ Archived completed changes:
 - `v0-8-1-context-safe-fix-batch` -> `openspec/changes/archive/2026-04-25-v0-8-1-context-safe-fix-batch`
 - `unsafe-fix-mode-and-confirmation` -> `openspec/changes/archive/2026-04-25-unsafe-fix-mode-and-confirmation`
 - `formatter-productization` -> `openspec/changes/archive/2026-04-25-formatter-productization`
+- `tool-distribution-and-editor-expansion` -> `openspec/changes/archive/2026-04-25-tool-distribution-and-editor-expansion`
 
 ## Suggested Order
 
-1. Apply `tool-distribution-and-editor-expansion` for `v0.11.0`.
-2. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
-3. Use `source-preserving-document-context` as the baseline for later structural fix work.
+1. Apply `mcp-workspace-tools-productization` when workspace MCP usage is prioritized.
+2. Use `source-preserving-document-context` as the baseline for later structural fix work.
 
 ## Repository Guardrails
 
