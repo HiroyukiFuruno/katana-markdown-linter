@@ -16,9 +16,10 @@ fn main() -> Result<(), DynError> {
     println!("applied fixes: {}", fixed.applied_fixes);
 
     let config = MarkdownLintConfig::load(Path::new(".markdownlint.json"))?;
+    let configured_options = config.to_lint_options();
     println!("loaded config: {}", config.raw);
 
-    let markdown_files = lint_markdown_tree(Path::new("."), &options)?;
+    let markdown_files = lint_markdown_tree(Path::new("."), &configured_options)?;
     println!("checked markdown files: {markdown_files}");
 
     let rules = available_rules();
