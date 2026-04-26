@@ -80,7 +80,6 @@ dogfood workflow は、release 前に `check`、`fix`、`fmt` の責務分離を
 - **THEN** system は sibling KatanA checkout を必須にしない
 - **THEN** system は public repository に置ける curated fixture または synthetic equivalent で再現性を確保する
 - **THEN** system は external dogfood が未実行の場合、その理由を release evidence に記録する
-
 ### Requirement: public confidence corpus SHALL be expanded to mixed-structure representative coverage
 
 public confidence は、外部文書に近い構造を含む最小代表 corpus で継続評価されなければならない（SHALL）。

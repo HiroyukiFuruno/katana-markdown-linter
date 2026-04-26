@@ -104,7 +104,6 @@ thresholds.
 - **THEN** report は default mode が各 tool 固有の enabled rule set であることを limitation として記録する
 
 #### Scenario: common-subset comparison を実行する
-
 ### Requirement: system SHALL classify and track performance regressions with per-case context
 
 性能は改善/退行を `case` 単位で記録し、速度差の背景を追えるように固定しなければならない（SHALL）。
