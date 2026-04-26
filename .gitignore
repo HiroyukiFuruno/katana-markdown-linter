@@ -5,6 +5,11 @@ CLAUDE.md
 AGENTS.md
 *.skill.md
 
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
 # openspec workfiles
 openspec*
 !openspec/

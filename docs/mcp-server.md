@@ -129,3 +129,46 @@ configuration. Add:
         }
       }
     }
+
+## MCP Registry Metadata (Draft)
+
+This is a draft of `server.json` for registration in the [MCP Registry](https://modelcontextprotocol.io/registry/about).
+
+```json
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.HiroyukiFuruno/kml",
+  "title": "KatanA Markdown Linter",
+  "description": "Enterprise-grade Markdown linter and formatter with workspace safety.",
+  "repository": {
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter",
+    "source": "github"
+  },
+  "version": "0.13.0",
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.13.0/kml-mcp.mcpb",
+      "fileSha256": "TODO_SHA256_DURING_RELEASE",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/hiroyukifuruno/kml-mcp:0.13.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
+```
+
+### Security Review Checklist for Registry
+
+- [ ] Workspace root enforcement is active and tested.
+- [ ] Symlink traversal is disabled by default.
+- [ ] `fix_file_apply` requires explicit `apply: true`.
+- [ ] Remote transport (SSE) is NOT included in this metadata.
+- [ ] Documentation URL points to the Safety Boundary section of this document.
