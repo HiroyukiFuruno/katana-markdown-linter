@@ -15,9 +15,9 @@ This document describes how to deploy and configure the `kml-mcp-remote` server 
 
 ### Building
 
-```bash
+~~~bash
 cargo build --release --features remote --bin kml-mcp-remote
-```
+~~~
 
 ### Running
 
@@ -31,12 +31,12 @@ The server is configured via environment variables:
 
 Example:
 
-```bash
+~~~bash
 export PORT=8080
 export KML_AUTH_TOKEN=your-secure-token
 export KML_WORKSPACE_ROOT=/path/to/your/workspace
 ./target/release/kml-mcp-remote
-```
+~~~
 
 ## Security Policy
 

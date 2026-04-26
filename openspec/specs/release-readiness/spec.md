@@ -147,6 +147,7 @@ repositoryは、release と rule 互換性に関わる不変条件を AST lint �
 - **THEN** system は external corpus confidence、precision regression、command convergence、performance stability、release reproducibility を採点する
 - **THEN** system は hard blocker の有無を記録する
 - **THEN** system は known limitation と non-blocking follow-up を記録する
+
 ### Requirement: システムは `v0.12.11` で品質スコアを算出する
 
 `v0.12.11` の品質判定は、`v0.12.9` と同一方針で 100 点満点基準の数値として残さなければならない（SHALL）。

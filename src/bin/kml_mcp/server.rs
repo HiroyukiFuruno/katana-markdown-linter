@@ -21,6 +21,7 @@ use rmcp::{
     model::{Implementation, ServerCapabilities, ServerInfo},
     tool, tool_handler, tool_router, Json, ServerHandler,
 };
+#[allow(unused_imports)]
 pub(crate) use runtime::run_from_env;
 
 #[derive(Debug, Clone)]
@@ -50,6 +51,7 @@ impl KmlMcpServer {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn with_mode(mut self, mode: ServerMode) -> Self {
         self.mode = mode;
         self

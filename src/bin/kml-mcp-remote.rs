@@ -33,7 +33,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let auth_token = std::env::var("KML_AUTH_TOKEN").ok();
 
     if auth_token.is_none() {
-        eprintln!("Warning: KML_AUTH_TOKEN is not set. The server will not enforce authentication.");
+        eprintln!(
+            "Warning: KML_AUTH_TOKEN is not set. The server will not enforce authentication."
+        );
     }
 
     let workspace = Workspace::new(workspace_root)?;
@@ -77,7 +79,7 @@ async fn auth_middleware(
             .and_then(|h| h.to_str().ok());
 
         let authenticated = match auth_header {
-            Some(h) if h.starts_with("Bearer ") => &h[7..] == token,
+            Some(h) if h.starts_with("Bearer ") => h[7..] == *token,
             _ => false,
         };
 

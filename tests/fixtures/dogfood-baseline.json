@@ -1,35 +1,6 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 4,
-  "diagnostics": [
-    {
-      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Goals:**",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Non-Goals:**",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Goals:**",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Non-Goals:**",
-      "count": 1
-    }
-  ]
+  "total_diagnostics": 0,
+  "diagnostics": []
 }
