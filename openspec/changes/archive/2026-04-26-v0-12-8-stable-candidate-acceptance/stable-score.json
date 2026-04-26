@@ -1,0 +1,99 @@
+{
+  "version": "v0.12.8",
+  "status": "accepted_for_v0.12.8_release",
+  "score": {
+    "total": 100,
+    "threshold": 90,
+    "categories": [
+      {
+        "name": "Precision correctness",
+        "score": 40,
+        "max": 40,
+        "evidence": [
+          "cargo test --locked --test document_context_regressions passed",
+          "cargo test --locked --test md034_regressions passed",
+          "cargo test --locked --test md051_regressions passed",
+          "cargo test --locked --test document_false_positive_regressions passed",
+          "cargo test --locked --test rule_fixture_harness passed",
+          "cargo test --locked --test upstream_golden_comparison passed",
+          "cargo test --workspace --locked passed",
+          "cargo test --workspace --all-features --locked passed",
+          "inline HTML attribute context is shared by DocumentContext"
+        ]
+      },
+      {
+        "name": "Safe command behavior",
+        "score": 20,
+        "max": 20,
+        "evidence": [
+          "parser-heavy check, check --fix, fix, fmt, check, repeated fmt workflow converges",
+          "default-safe fix remains separate from unsafe fix"
+        ]
+      },
+      {
+        "name": "Performance stability",
+        "score": 20,
+        "max": 20,
+        "evidence": [
+          "make perf-check passed",
+          "required performance cases and schema passed",
+          "parser-heavy, syntax-heavy, and CLI cases stayed within 0.90x-1.08x of baseline",
+          "Markdown autolinks do not enter deep inline HTML parsing",
+          "the largest observed ratio is outside the inline HTML context path"
+        ]
+      },
+      {
+        "name": "Release reproducibility",
+        "score": 10,
+        "max": 10,
+        "evidence": [
+          "make release-check VERSION=v0.12.8 passed",
+          "cargo publish dry-run passed",
+          "install smoke passed",
+          "PR required CI passed"
+        ]
+      },
+      {
+        "name": "Evidence quality",
+        "score": 10,
+        "max": 10,
+        "evidence": [
+          "score report recorded",
+          "make dogfood passed with 0 current diagnostics",
+          "stable-score deductions resolved",
+          "user acceptance is recorded after score completion"
+        ]
+      }
+    ]
+  },
+  "technical_hard_blockers": [],
+  "pending_final_gates": [],
+  "known_limitations": [],
+  "non_blocking_follow_ups": [
+    "Broader external parser or AST integration remains future roadmap work, but it no longer reduces the v0.12.8 stable score."
+  ],
+  "verification": {
+    "make fmt-check": "passed",
+    "make lint": "passed",
+    "make ast-lint": "passed",
+    "cargo test --workspace --locked": "passed",
+    "cargo test --workspace --all-features --locked": "passed",
+    "cargo test --locked --test document_context_regressions": "passed",
+    "cargo test --locked --test md034_regressions": "passed",
+    "cargo test --locked --test md051_regressions": "passed",
+    "cargo test --locked --test document_false_positive_regressions": "passed",
+    "cargo test --locked --test rule_fixture_harness": "passed",
+    "cargo test --locked --test upstream_golden_comparison": "passed",
+    "make dogfood": "passed",
+    "make perf-check": "passed",
+    "make release-check VERSION=v0.12.8": "passed",
+    "git diff --check": "passed",
+    "GitHub Actions required CI": "passed",
+    "user acceptance": "accepted"
+  },
+  "user_acceptance": {
+    "accepted_at": "2026-04-26",
+    "decision": "Release v0.12.8 now. Discuss whether to continue as v0.12.9 after the release.",
+    "next_direction": "Post-release discussion remains separate from the v0.12.8 release gate."
+  }
+}

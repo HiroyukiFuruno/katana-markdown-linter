@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.12.8
+
+- Defines a 100-point stable candidate score across precision correctness, safe
+  command behavior, performance stability, release reproducibility, and
+  evidence quality.
+- Records hard blockers that prevent stable acceptance even when the numeric
+  score is high.
+- Captures the final stable-candidate score report and known limitations before
+  allowing v0.13.0 distribution planning to begin.
+- Promotes the stable-candidate score to 100/100 by sharing inline HTML
+  attribute context across MD033, MD034, and MD051 and validating nested quoted
+  attributes.
+- Refreshes performance evidence after the shared inline HTML context work, with
+  measured cases staying within 0.90x-1.08x of the committed baseline.
+- Keeps MCP Registry, Hub, package artifact, and remote transport work frozen
+  until the stable score passes and user acceptance is recorded.
+
 ## v0.12.7
 
 - Improves post-migration performance by making shared inline-code range lookup
