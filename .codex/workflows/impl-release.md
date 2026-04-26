@@ -15,6 +15,15 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 - publish 後 verification は `make release-verify VERSION=vX.Y.Z` を正とする
 - `make release` が失敗した場合、手動 tag 作成や `cargo publish` 直叩きで迂回しない
 
+## 停止ルール
+
+この workflow は release 完了まで自律的に進める。次の条件に当たる場合だけ作業を中断し、ユーザーの判断を仰ぐ。
+
+- OpenSpec tasks に記載がない不足や想定外が進行中に露見した
+- その不足を Codex の判断だけで補うと、公開物、API、互換性、release 成果物、または既存作業を壊すリスクが高い
+
+それ以外では「進めてもよいか」の確認で止めない。commit、push、PR 作成、CI 失敗の修正、merge、release、release verification、branch hygiene は、既存の安全ルールと検証結果に従って継続する。
+
 ## Branch Naming
 
 `impl-release` では branch 名を次に統一する。
