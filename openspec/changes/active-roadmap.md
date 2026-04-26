@@ -31,7 +31,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Golden and edge coverage for `v0.4.0` | `golden-edge-coverage-expansion` | Completed for `v0.4.0`; dashboard now derives golden status from the locked baseline and records edge coverage. |
 | Done | Safe check/fix expansion for `v0.4.0` | `safe-fix-strategy-expansion` | Completed for `v0.4.0`; `MD005` and `MD030` safe subsets are locked, while `MD060` remains diagnostic/manual-required because official metadata marks it non-fixable. |
 | Done | Table strategy for `v0.5.0` | `v0-5-0-table-strategy-md060` | Completed for `v0.5.0`; `MD060` now has table-block parsing, official style checks, and safe fix subsets. |
-| Done | Source-preserving document context for `v0.5.0` | `source-preserving-document-context` | Completed for `v0.5.0`; `DocumentContext` now shares source-preserving structure across migrated rule families. |
+| Done | Source-preserving document context for `v0.5.0` | `archived/2026-04-27-source-preserving-document-context` | Completed for `v0.5.0`; `DocumentContext` now shares source-preserving structure across migrated rule families. |
 | Done | i18n product surface for `v0.6.0` | `v0-6-0-i18n-expansion-draft` | Completed for `v0.6.0`; Rust API, CLI rule/config output, MCP metadata, and translation coverage gates now share stable localized metadata. |
 | Done | Performance hot path for `v0.7.0` | `v0-7-0-performance-hotpath` | Completed for `v0.7.0`; fix range application now uses a per-apply line offset index and the release is published. |
 | Done | Linter precision and safe fix expansion for `v0.8.0` | `safe-fix-coverage-continuous-expansion` | Completed for `v0.8.0`; `MD035` and `MD055` safe fixes are fixture/golden locked and the release is published. |
@@ -49,7 +49,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Completed for `v0.12.7`; parser migration speed, safe fix behavior, check/fix/fmt idempotence, and stable-score dry run are archived. |
 | Done | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Completed for `v0.12.8`; stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。 |
 | Done | Public confidence hardening for `v0.12.9` | `v0-12-9-public-confidence-hardening` | Completed as public confidence and required evidence gate before distribution expansion. |
-| P1 | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
+| P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
 
@@ -75,11 +75,13 @@ Archived completed changes:
 - `v0-12-7-performance-convergence-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-7-performance-convergence-hardening`
 - `v0-12-8-stable-candidate-acceptance` -> `openspec/changes/archive/2026-04-26-v0-12-8-stable-candidate-acceptance`
 - `v0-12-9-public-confidence-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-9-public-confidence-hardening`
+- `v0-12-10-quality-and-performance-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-10-quality-and-performance-hardening`
+- `source-preserving-document-context` -> `openspec/changes/archive/2026-04-27-source-preserving-document-context`
 
 ## Suggested Order
 
 1. Apply `v0-12-9-public-confidence-hardening`; it proves external corpus confidence before distribution expansion.
-2. Apply `mcp-registry-and-distribution-planning` only after `v0.12.9` public confidence score is at least 90 and release-blocking issues are 0.
+2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.9` public confidence score is at least 90 and release-blocking issues are 0.
 3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
@@ -96,5 +98,5 @@ Archived completed changes:
 - Keep one implementation change active at a time unless the write sets are disjoint and the roadmap is updated to show the parallelism.
 - `formatter-productization` must not be mixed into `v0.8.0`; linter precision and safe fix coverage come first.
 - `unsafe-fix-mode-and-confirmation` must not be mixed into `v0.7.0` or `v0.8.0`; it changes CLI safety semantics and belongs to `v0.9.0`.
-- Registry publication must not be mixed into `mcp-registry-and-distribution-planning`; `v0.13.0` decides the gate and `v0.14.0` executes it.
+- Registry publication must not be mixed into `v0-13-0-mcp-registry-and-distribution-planning`; `v0.13.0` decides the gate and `v0.14.0` executes it.
 - Remote MCP transport must not be used as a replacement for local stdio distribution; it has a different auth and workspace safety boundary.

@@ -1,44 +1,85 @@
 {
   "version": "v0.12.11",
-  "status": "not_started",
+  "status": "release_check_passed",
   "score": {
-    "total": 0,
+    "total": 100,
     "threshold": 90,
     "categories": [
       {
         "name": "External corpus confidence",
-        "score": 0,
+        "score": 30,
         "max": 30,
-        "evidence": []
+        "evidence": [
+          "make public-confidence が成功し、check/fix/fmt 最終収束まで完了した",
+          "KATANA_CHECKOUT=/Users/hiroyuki_furuno/works/private/katana make external-katana-dogfood が成功した",
+          "curated corpus: 2 files / 995 bytes / 4 true-positive / 0 release-blocking",
+          "external corpus: 31 files / 196622 bytes / 4 true-positive / 0 release-blocking"
+        ]
       },
       {
         "name": "Precision regression",
-        "score": 0,
+        "score": 25,
         "max": 25,
-        "evidence": []
+        "evidence": [
+          "contracts は cli_convergence_contract / cli_path_context_contract / public_confidence_contract が pass",
+          "make release-check VERSION=v0.12.11 実行時に既存の主要回帰テストが pass",
+          "rules::markdown::rules::blockquote::tests::md028_allows_adjacent_gfm_alert_blocks が pass（alert block 連続改行扱いの精度を検証）",
+          "public-confidence の classification が 5 軸 (`true-positive` etc.) のみで unclassified_count=0"
+        ]
       },
       {
         "name": "Command convergence",
-        "score": 0,
+        "score": 20,
         "max": 20,
-        "evidence": []
+        "evidence": [
+          "public-confidence curated: check source_unchanged=true、fix did not require 2nd pass、fmt did not require 2nd pass",
+          "public-confidence curated: fix changed_files=1 then 0、final check exit_code=0、issues 0",
+          "external corpus: check/fix/fmt は収束、final check は既知の外部リンク不整合で exit_code=1"
+        ]
       },
       {
         "name": "Performance stability",
-        "score": 0,
+        "score": 15,
         "max": 15,
-        "evidence": []
+        "evidence": [
+          "make perf-check がベースライン比較を pass",
+          "make perf-check-strict --max-ratio 1.4 が pass、対象全ケースで ratio <= 1.40x",
+          "重点監視 case は api_lint_inline_code_heavy_document=1.05x、api_format_large_document=1.07x で収束範囲内",
+          "対象 snapshot を target/perf-report.json に保存"
+        ]
       },
       {
         "name": "Release reproducibility",
-        "score": 0,
+        "score": 10,
         "max": 10,
-        "evidence": []
+        "evidence": [
+          "make release-check VERSION=v0.12.11 が pass",
+          "make coverage-blocking が pass（uncovered 599 <= baseline 623）",
+          "scripts/ci/internal-quality.py と make internal-quality-check の再現証跡 target/internal-quality-report.json が生成",
+          "public-confidence / perf / 内部品質レポートの 3 系を再実行可能状態で保存"
+        ]
       }
     ]
   },
   "technical_hard_blockers": [],
-  "known_limitations": [],
-  "non_blocking_follow_ups": [],
-  "verification": {}
+  "known_limitations": [
+    "KatanA external corpus では md-broken-link が 4 件発見されるが、v0.12.11 の release-blocking は回避されている（既存リポジトリ品質由来）"
+  ],
+  "non_blocking_follow_ups": [
+    "src/cli.rs など 1.6 対象の分離候補は target/internal-quality-report.json の split_candidates に残して v0.12.12 以降に引き継ぐ",
+    "make perf-refresh-baseline は現時点では未実施。必要時は原因レビュー後にのみ実施する方針を維持"
+  ],
+  "verification": {
+    "python3 -m py_compile scripts/ci/public-confidence.py scripts/ci/public_confidence_corpus.py scripts/ci/public_confidence_runner.py scripts/ci/perf-check.py scripts/ci/internal-quality.py": "passed",
+    "make public-confidence": "passed",
+    "KATANA_CHECKOUT=/Users/hiroyuki_furuno/works/private/katana make external-katana-dogfood": "passed",
+    "make internal-quality-check": "passed",
+    "make perf-check": "passed",
+    "make perf-check-strict": "passed",
+    "make coverage-blocking": "passed",
+    "cargo test --test public_confidence_contract --locked": "passed",
+    "cargo test --test cli_convergence_contract --locked": "passed",
+    "cargo test --test cli_path_context_contract --locked": "passed",
+    "make release-check VERSION=v0.12.11": "passed"
+  }
 }
