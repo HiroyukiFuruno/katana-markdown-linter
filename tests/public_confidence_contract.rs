@@ -49,6 +49,31 @@ fn public_confidence_fixture_records_convergent_check_fix_and_fmt_evidence() {
             .len(),
         0
     );
+    let check = &evidence["check"];
+    assert!(
+        check
+            .get("unclassified_count")
+            .and_then(Value::as_u64)
+            .expect("unclassified_count should be numeric")
+            == 0,
+        "classification must not contain unclassified findings"
+    );
+    let summary = check
+        .get("classification_summary")
+        .expect("check should include classification_summary");
+    for key in [
+        "true-positive",
+        "false-positive",
+        "false-negative",
+        "unsafe-fix-risk",
+        "fmt-policy-gap",
+        "unclassified",
+    ] {
+        assert!(
+            summary.get(key).is_some(),
+            "missing classification bucket: {key}"
+        );
+    }
     assert_required_syntax(&evidence);
 }
 
