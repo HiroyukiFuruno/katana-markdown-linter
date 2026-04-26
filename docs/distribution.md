@@ -6,6 +6,7 @@
 | --- | --- | --- | --- |
 | Cargo crate | Official | `make release-check`, install smoke test, crates.io publish verification | Primary library and CLI package |
 | GitHub Action | Official from `v0.11.0` | `make action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
+| MCP Bundle (.mcpb) | Official from `v0.14.0` | `make mcp-stdio-smoke`, `make mcpb-package` | Single-click MCP server installation for desktop clients |
 
 The GitHub Action lives at the repository root as `action.yml`, so consumers can
 use the release tag directly:
@@ -25,6 +26,7 @@ waiting for crates.io publication.
 
 | Channel | Decision | Reason |
 | --- | --- | --- |
+| MCP Registry | Official from `v0.14.0` | Primary discovery channel for MCP servers via `server.json`. |
 | pre-commit hook repository | Deferred | A dedicated hook repository adds release ownership. Local hooks can call `kml` or the GitHub Action can protect CI first. |
 | Homebrew | Deferred | A tap needs stable binary archive naming or a crate-install formula policy. Current release artifacts are crate package and checksum only. |
 | standalone binary artifacts | Deferred | Binary archives need platform matrix ownership and checksum verification before becoming official. |

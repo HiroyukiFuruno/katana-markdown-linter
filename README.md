@@ -247,7 +247,7 @@ Distribution channel status and deferral notes are documented in
 
 `kml-mcp` is an optional MCP server for agents and editors that want structured
 library access over stdio while keeping the core crate independent from MCP
-dependencies.
+dependencies, with official MCP Registry and `.mcpb` bundle support.
 
 Build or install it with the `mcp` feature:
 

@@ -42,13 +42,14 @@ Required sequence:
 - Confirm `Cargo.toml` `package.version` is the intended version.
 - Confirm `CHANGELOG.md` has a `## vX.Y.Z` section.
 - Create and push a GitHub-verified signed annotated tag with `make release-tag VERSION=vX.Y.Z`.
+- Build and package the MCP bundle with `make mcpb-package VERSION=vX.Y.Z`.
 - Dispatch the intended release command.
 - Verify external state after publication with `make release-verify VERSION=vX.Y.Z`.
 
 Release command responsibilities:
 
-- `make release-github VERSION=vX.Y.Z` creates or updates the GitHub Release only.
-- `make release VERSION=vX.Y.Z` creates or updates the GitHub Release and publishes to crates.io.
+- `make release-github VERSION=vX.Y.Z` creates or updates the GitHub Release and includes the `.mcpb` bundle.
+- `make release VERSION=vX.Y.Z` creates or updates the GitHub Release (including `.mcpb`) and publishes to crates.io.
 
 The workflow validates:
 
@@ -77,7 +78,8 @@ The workflow creates or updates:
 
 - GitHub Release
 - `.crate` package artifact
-- `.sha256` checksum
+- `.mcpb` MCP bundle artifact
+- `.sha256` checksums
 
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
 Release preflight must keep `make action-smoke` passing before publishing a tag.

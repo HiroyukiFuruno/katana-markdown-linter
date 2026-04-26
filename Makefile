@@ -208,7 +208,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcpb-smoke action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
@@ -219,6 +219,14 @@ release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking ex
 release-package: ## Build .crate package and sha256 checksum for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
 	scripts/release/package-crate.sh "$(VERSION_BARE)"
+
+.PHONY: mcpb-package
+mcpb-package: mcp-build ## Build .mcpb bundle and sha256 checksum for VERSION
+	bash scripts/release/package-mcpb.sh "$(VERSION)"
+
+.PHONY: mcpb-smoke
+mcpb-smoke: mcpb-package ## Smoke test the .mcpb bundle
+	python3 scripts/ci/mcpb-smoke.py --mcpb "target/mcpb/katana-markdown-linter-$(VERSION_BARE).mcpb"
 
 .PHONY: release-github
 release-github: release-tag ## Dispatch GitHub Release workflow without crates.io publish

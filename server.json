@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.hiroyukifuruno/katana-markdown-linter",
+  "title": "KatanA Markdown Linter",
+  "description": "Markdownlint-compatible linter with workspace-safe fixes. Destructive writes require explicit apply. Supports local stdio transport only.",
+  "version": "0.14.0",
+  "license": "MIT",
+  "homepage": "https://github.com/HiroyukiFuruno/katana-markdown-linter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
+  },
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "katana-markdown-linter",
+      "version": "0.14.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

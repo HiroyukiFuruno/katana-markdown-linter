@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14.0
+
+- Promotes MCP support to official distribution channels.
+- Adds `server.json` for MCP Registry discovery.
+- Adds `.mcpb` (MCP Bundle) packaging for single-click desktop client installation.
+- Adds `make mcpb-package` to the release workflow.
+- Documents MCP Registry and MCPB bundle support in README and distribution docs.
+
 ## v0.12.11
 
 - No functional code changes. Release prep completed to advance patch version and

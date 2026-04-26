@@ -1,0 +1,12 @@
+{
+  "name": "@hiroyukifuruno/katana-markdown-linter",
+  "version": "0.14.0",
+  "description": "Markdownlint-compatible linter with workspace-safe fixes.",
+  "server": {
+    "type": "binary",
+    "mcp_config": {
+      "command": "kml-mcp",
+      "args": ["--workspace-root", "."]
+    }
+  }
+}
