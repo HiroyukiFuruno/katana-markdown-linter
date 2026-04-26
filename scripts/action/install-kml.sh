@@ -27,7 +27,13 @@ esac
 
 "${command[@]}"
 
-if [[ ! -x "${bin_dir}/kml" ]]; then
+kml_binary="${bin_dir}/kml"
+kml_windows_binary="${bin_dir}/kml.exe"
+if [[ ! -x "${kml_binary}" && -x "${kml_windows_binary}" ]]; then
+  kml_binary="${kml_windows_binary}"
+fi
+
+if [[ ! -x "${kml_binary}" ]]; then
   echo "kml binary was not installed under ${bin_dir}" >&2
   exit 2
 fi

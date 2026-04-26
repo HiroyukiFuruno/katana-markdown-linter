@@ -45,6 +45,8 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-ubuntu-stable-publish
 
       - name: Resolve version
         id: version

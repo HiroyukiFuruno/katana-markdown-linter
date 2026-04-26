@@ -34,6 +34,7 @@
 - release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
+- CI workflows must keep Windows workspace verification and Rust cache strategy explicit
 - public Markdown docs must stay English-only
 - public library API and rule catalog entrypoints must remain explicit
 - localization catalog tests must keep supported locales on the same message id set and preserve English fallback behavior
@@ -68,10 +69,16 @@ before publication.
 
 Branch protection for `main` currently requires:
 
-- `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace`, `make dogfood`
-- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke` and non-blocking `make coverage`
+- `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace --locked`, `make dogfood`
+- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke`, `make mcp-stdio-smoke`, and non-blocking `make coverage`
+- `Test and Build (windows-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `cargo fmt --all -- --check`, and `cargo test --workspace --locked`
 
 If required check names or workflow job names change, update branch protection in the same change. Otherwise the repository can either block valid merges or allow merges without the intended gate.
+
+Normal CI, release preflight, and release publication use `Swatinem/rust-cache`
+with workflow-specific `shared-key` values. The action keeps OS, toolchain, and
+lockfile boundaries visible in workflow logs while avoiding a separate
+hand-written `actions/cache` policy for the normal CI path.
 
 ## PR And Direct Push
 

@@ -48,7 +48,7 @@ jobs:
     name: Test and Build
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -59,37 +59,44 @@ jobs:
           toolchain: stable
           components: clippy, rustfmt, llvm-tools-preview
 
-      - name: Cache Cargo registry & target
-        uses: actions/cache@v5
+      - name: Cache Rust build outputs
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-            target
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-test-
+          shared-key: ci-${{ matrix.os }}-stable-default
 
       - name: Install cargo-llvm-cov
+        if: matrix.os == 'ubuntu-latest'
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Check types
-        run: cargo check --workspace
+        run: cargo check --workspace --locked
 
       - name: Check formatting
+        if: matrix.os != 'windows-latest'
         run: make fmt-check
 
+      - name: Run Windows format check
+        if: matrix.os == 'windows-latest'
+        run: cargo fmt --all -- --check
+
       - name: Run linter
+        if: matrix.os != 'windows-latest'
         run: make lint
 
       - name: Run AST linter
+        if: matrix.os != 'windows-latest'
         run: make ast-lint
 
       - name: Run tests
-        run: cargo test --workspace
+        if: matrix.os != 'windows-latest'
+        run: cargo test --workspace --locked
+
+      - name: Run Windows workspace test
+        if: matrix.os == 'windows-latest'
+        run: cargo test --workspace --locked
 
       - name: Run dogfood
+        if: matrix.os != 'windows-latest'
         run: make dogfood
 
       - name: Run action smoke

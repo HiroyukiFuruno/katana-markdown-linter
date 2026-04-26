@@ -61,6 +61,12 @@ Archived completed changes:
 3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
+## Deferred From v0.12.2
+
+- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分けてから別 change にする。
+- `design-debt`: `MD034` と `MD059` の inline code / HTML 周辺は現時点の回帰 fixture で固定する。より深い token parser 化は `v0.13.0` 以降の品質改善枠で扱う。
+- `test-gap`: CI duration と cache hit/miss の前後比較は、`v0.12.2` PR の初回 CI log を release 前レビューで確認する。
+
 ## Repository Guardrails
 
 - New OpenSpec change files are ignored by the current `.gitignore`; commit them with explicit `git add -f openspec/changes/<change>` when they should be tracked.

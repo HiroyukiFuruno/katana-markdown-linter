@@ -6,6 +6,8 @@ use std::sync::mpsc;
 
 #[path = "ast_linter/documentation_language_guard.rs"]
 mod documentation_language_guard;
+#[path = "ast_linter/workflow_portability_guard.rs"]
+mod workflow_portability_guard;
 
 #[test]
 fn ast_linter_parses_rule_doc_fixture() {
@@ -296,6 +298,7 @@ fn ast_linter_github_action_channel_is_wired() {
             &install,
             "cargo install --path",
         ),
+        ("scripts/action/install-kml.sh", &install, "kml.exe"),
         (
             "scripts/action/run-kml.sh",
             &runner,

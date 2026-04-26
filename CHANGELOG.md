@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.12.2
+
+- Adds Windows to the normal CI matrix with locked `cargo check`, `cargo fmt`,
+  and workspace test coverage before release.
+- Replaces the normal CI hand-written Cargo cache with `Swatinem/rust-cache`
+  so CI, release preflight, and release workflows use the same cache family.
+- Adds an AST lint guard that fails when Windows CI coverage or Rust cache
+  strategy drifts out of the intended release gates.
+- Keeps GitHub Release and crates.io publication on the single Ubuntu release
+  runner while treating Windows compatibility as pre-release CI responsibility.
+- Records the `v0.12.2` false-positive and CI hardening inventory so remaining
+  portability and parser-depth work is tracked outside the patch release.
+
 ## v0.12.1
 
 - Fixes a false positive where `MD029` shared ordered-list numbering across

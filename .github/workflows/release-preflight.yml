@@ -19,6 +19,8 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-preflight-ubuntu-stable-all-features
 
       - name: Format check
         run: make fmt-check
