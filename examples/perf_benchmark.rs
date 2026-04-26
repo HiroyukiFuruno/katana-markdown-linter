@@ -25,6 +25,8 @@ fn main() -> BenchResult<()> {
     let link_heavy_document = generate_link_heavy_document();
     let inline_code_heavy_document = generate_inline_code_heavy_document();
     let reference_heavy_document = generate_reference_heavy_document();
+    let table_heavy_document = generate_table_heavy_document();
+    let parser_heavy_document = generate_parser_heavy_document();
     let many_small_documents = generate_many_small_documents();
     let check_workspace = prepare_cli_workspace(
         "check",
@@ -100,6 +102,32 @@ fn main() -> BenchResult<()> {
         reference_heavy_document.lines().count(),
         "lines",
         || Ok(lint(black_box(&reference_heavy_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
+        "api_lint_table_heavy_document",
+        &args,
+        table_heavy_document.lines().count(),
+        "lines",
+        || Ok(lint(black_box(&table_heavy_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
+        "api_fix_parser_heavy_document",
+        &args,
+        parser_heavy_document.lines().count(),
+        "lines",
+        || Ok(fix(black_box(&parser_heavy_document), black_box(&options))?.applied_fixes),
+    )?);
+    cases.push(measure(
+        "api_format_parser_heavy_document",
+        &args,
+        parser_heavy_document.lines().count(),
+        "lines",
+        || {
+            Ok(
+                format_markdown(black_box(&parser_heavy_document), &FormatOptions::default())?
+                    .applied_operations,
+            )
+        },
     )?);
     cases.push(measure(
         "context_build_large_document",
@@ -336,6 +364,35 @@ fn generate_reference_heavy_document() -> String {
         content.push_str(&format!("[ref-{index}]: https://example.com/{index}\n"));
         content.push_str(&format!(
             "[image-{index}]: <https://example.org/image-{index}.png>\n"
+        ));
+    }
+    content
+}
+
+fn generate_table_heavy_document() -> String {
+    let mut content = String::from("# Tables\n\n");
+    for index in 0..300 {
+        content.push_str(&format!("| Key {index} | Value {index} |\n"));
+        content.push_str("|---|---|\n");
+        content.push_str(&format!(
+            "| link | [text {index}](https://example.com/{index}) |\n"
+        ));
+        content.push_str(&format!("| code | `https://example.invalid/{index}` |\n\n"));
+    }
+    content
+}
+
+fn generate_parser_heavy_document() -> String {
+    let mut content = String::from("# Parser Heavy\r\n\r\n");
+    for index in 0..300 {
+        content.push_str(&format!(
+            "##Section {index}\r\n[ link {index} ](https://example.com/{index}) and ` code {index} `.\r\n"
+        ));
+        content.push_str(&format!(
+            "``[literal {index}](https://example.invalid/{index})`` and <span>{index}</span>.\r\n"
+        ));
+        content.push_str(&format!(
+            "* spaced {index} * and __strong {index}__.\r\n\r\n"
         ));
     }
     content
