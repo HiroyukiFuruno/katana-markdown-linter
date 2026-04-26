@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12.11
+
+- No functional code changes. Release prep completed to advance patch version and
+  maintain release cadence for the current quality hardening planning iteration.
+
 ## v0.12.10
 
 - No functional code changes. Release prep completed to advance patch version and
