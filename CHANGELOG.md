@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12.10
+
+- No functional code changes. Release prep completed to advance patch version and
+  maintain release cadence for upcoming MCP distribution work.
+
 ## v0.12.9
 
 - Adds a public confidence corpus that exercises `check`, `fix`, and `fmt`
