@@ -1,6 +1,8 @@
 use katana_markdown_linter::cli::{run, Cli, Command, OutputFormat};
 use katana_markdown_linter::rules::markdown::DocumentContext;
-use katana_markdown_linter::{available_rules, fix, lint, LintOptions, MarkdownLintConfig};
+use katana_markdown_linter::{
+    available_rules, fix, format_markdown, lint, FormatOptions, LintOptions, MarkdownLintConfig,
+};
 use serde::Serialize;
 use std::fs;
 use std::hint::black_box;
@@ -21,7 +23,11 @@ fn main() -> BenchResult<()> {
     let large_document = generate_large_document();
     let clean_large_document = generate_clean_large_document();
     let many_small_documents = generate_many_small_documents();
-    let workspace = prepare_cli_workspace()?;
+    let check_workspace = prepare_cli_workspace(
+        "check",
+        "{ \"default\": true }\n",
+        "# Document\n\nParagraph text.\n\n",
+    )?;
     let config_path = prepare_config_fixture()?;
 
     let mut cases = Vec::new();
@@ -45,6 +51,18 @@ fn main() -> BenchResult<()> {
         large_document.lines().count(),
         "lines",
         || Ok(fix(black_box(&large_document), black_box(&options))?.applied_fixes),
+    )?);
+    cases.push(measure(
+        "api_format_large_document",
+        &args,
+        large_document.lines().count(),
+        "lines",
+        || {
+            Ok(
+                format_markdown(black_box(&large_document), &FormatOptions::default())?
+                    .applied_operations,
+            )
+        },
     )?);
     cases.push(measure(
         "api_lint_many_small_documents",
@@ -94,7 +112,35 @@ fn main() -> BenchResult<()> {
         &args,
         CLI_WORKSPACE_FILES,
         "files",
-        || run_cli_check(&workspace),
+        || run_cli_check(&check_workspace),
+    )?);
+    cases.push(measure(
+        "cli_fix_many_small_files",
+        &args,
+        CLI_WORKSPACE_FILES,
+        "files",
+        || {
+            run_cli_mutating_workflow(
+                "fix",
+                Command::Fix,
+                "{ \"default\": false, \"MD018\": true }\n",
+                "#Title\n",
+            )
+        },
+    )?);
+    cases.push(measure(
+        "cli_fmt_many_small_files",
+        &args,
+        CLI_WORKSPACE_FILES,
+        "files",
+        || {
+            run_cli_mutating_workflow(
+                "fmt",
+                Command::Fmt,
+                "{ \"default\": false }\n",
+                "# Title\r\nText\n\n\n",
+            )
+        },
     )?);
     cases.push(measure(
         "config_validate_representative",
@@ -224,20 +270,42 @@ fn generate_many_small_documents() -> Vec<String> {
         .collect()
 }
 
-fn prepare_cli_workspace() -> BenchResult<PathBuf> {
-    let dir = std::env::temp_dir().join(format!("kml-perf-workspace-{}", std::process::id()));
+fn prepare_cli_workspace(name: &str, config: &str, content: &str) -> BenchResult<PathBuf> {
+    let dir =
+        std::env::temp_dir().join(format!("kml-perf-workspace-{name}-{}", std::process::id()));
     if dir.exists() {
         fs::remove_dir_all(&dir)?;
     }
     fs::create_dir_all(&dir)?;
-    fs::write(dir.join(".markdownlint.json"), "{ \"default\": true }\n")?;
+    fs::write(dir.join(".markdownlint.json"), config)?;
     for index in 0..CLI_WORKSPACE_FILES {
-        fs::write(
-            dir.join(format!("doc-{index:03}.md")),
-            format!("# Document {index}\n\nParagraph text.\n\n"),
-        )?;
+        fs::write(dir.join(format!("doc-{index:03}.md")), content)?;
     }
     Ok(dir)
+}
+
+fn run_cli_mutating_workflow(
+    name: &str,
+    command: Command,
+    config: &str,
+    content: &str,
+) -> BenchResult<usize> {
+    let workspace = prepare_cli_workspace(name, config, content)?;
+    let exit = run(Cli {
+        command,
+        format: OutputFormat::Text,
+        inputs: vec![workspace.display().to_string()],
+        quiet: true,
+        ..Cli::default()
+    })
+    .map_err(std::io::Error::other)?;
+    fs::remove_dir_all(&workspace)?;
+    if exit != 0 {
+        return Err(
+            std::io::Error::other(format!("kml mutating workflow exited with {exit}")).into(),
+        );
+    }
+    Ok(CLI_WORKSPACE_FILES)
 }
 
 fn prepare_config_fixture() -> BenchResult<PathBuf> {

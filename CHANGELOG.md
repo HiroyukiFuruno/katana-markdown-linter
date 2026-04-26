@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.12.4
+
+- Keeps `kml check --fix --output json` identified as the `check` workflow while
+  still reporting applied fixes and remaining diagnostics.
+- Validates stdin config for `check`, `fix`, and `fmt` before producing output,
+  including stable JSON config error metadata for editor and automation use.
+- Makes `fix --stdin --output json` report applied fixes, remaining diagnostics,
+  changed state, and a non-zero exit code when safe fixes cannot resolve all
+  issues.
+- Adds integration coverage for the `check` no-write contract, safe-only `fix`
+  behavior, formatter-only `fmt` behavior, JSON command identity, and stdin
+  config validation.
+- Extends performance benchmarking and the committed baseline with API
+  formatting plus CLI `fix` and `fmt` representative paths.
+- Records the `v0.12.4` core command hardening OpenSpec work before returning
+  to MCP Registry and distribution planning.
+
 ## v0.12.3
 
 - Fixes `MD034` so every bare URL on the same line is reported and fixed, while
