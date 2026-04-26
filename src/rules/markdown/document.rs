@@ -189,9 +189,13 @@ impl<'a> DocumentContext<'a> {
     }
 
     pub fn is_inside_inline_code(&self, range: SourceRange) -> bool {
-        self.inline_code_spans()
-            .iter()
-            .any(|span| span.full_range.start <= range.start && range.end <= span.full_range.end)
+        let spans = self.inline_code_spans();
+        let candidate_index = spans
+            .partition_point(|span| span.full_range.start <= range.start)
+            .saturating_sub(1);
+        spans.get(candidate_index).is_some_and(|span| {
+            span.full_range.start <= range.start && range.end <= span.full_range.end
+        })
     }
 
     pub fn links(&self) -> &[Link<'a>] {

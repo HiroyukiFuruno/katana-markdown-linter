@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.7
+
+- Improves post-migration performance by making shared inline-code range lookup
+  use the nearest indexed span instead of scanning every inline-code token.
+- Adds parser-heavy convergence coverage for the `check` -> `check --fix` ->
+  `fix` -> `fmt` -> `check` -> repeated `fmt` workflow.
+- Expands performance coverage with table-heavy linting plus parser-heavy fix
+  and format cases, then refreshes the committed baseline after correctness
+  gates pass.
+- Records a stable-score dry run so v0.12.8 can make the final stable
+  acceptance judgment from measured evidence.
+
 ## v0.12.6
 
 - Migrates inline-context rules beyond the link family so MD033, MD037, MD038,

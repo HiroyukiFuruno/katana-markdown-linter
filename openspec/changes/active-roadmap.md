@@ -19,7 +19,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.4`: 展開より前の patch として、`linter` / `check` / `fix` / `fmt` の正しさ、収束性、冪等性、速度、release gate を固める。
 - `v0.12.5`: 安定版に向けた AST readiness と parser precision を優先する。link / inline code / reference の共有 parser と性能計測を作る。
 - `v0.12.6`: released patch として context-sensitive rule を parser / `DocumentContext` へ移譲し、単一行文字列だけに依存する rule を減らした。
-- `v0.12.7`: parser / context migration 後の performance、check / fix / fmt convergence、baseline evidence を固める。
+- `v0.12.7`: released patch として parser / context migration 後の performance、check / fix / fmt convergence、baseline evidence を固めた。
 - `v0.12.8`: stable candidate として 100 点満点の score、hard blocker、ユーザー受け入れ判断で安定版可否を決める。
 - `v0.13.0`: `v0.12.8` が stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了の場合だけ、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
@@ -45,8 +45,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Core linter/check/fix/fmt hardening for `v0.12.4` | `v0-12-4-linter-check-fix-fmt-hardening` | Completed for `v0.12.4`; CLI command contracts, stdin validation, core command integration tests, and check/fix/fmt performance cases are archived. |
 | Done | AST readiness and parser precision for `v0.12.5` | `v0-12-5-ast-readiness-and-parser-precision-hardening` | Completed for `v0.12.5`; link / inline-code / reference precision now uses shared parser evidence and measured parser-index cost. |
 | Done | Context-sensitive rule migration for `v0.12.6` | `v0-12-6-context-sensitive-rule-migration` | Completed for `v0.12.6`; MD033 / MD037 / MD038 / MD039 / MD044 / MD049 / MD050 now use shared parser or `DocumentContext` evidence, and the final performance baseline is refreshed. |
-| P1 | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Confirms parser migration does not weaken speed, safe fix behavior, or check/fix/fmt idempotence. |
-| P2 | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Defines stable score, hard blockers, and final user acceptance before `v0.13.0` can begin. |
+| Done | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Completed for `v0.12.7`; parser migration speed, safe fix behavior, check/fix/fmt idempotence, and stable-score dry run are archived. |
+| P1 | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Defines stable score, hard blockers, and final user acceptance before `v0.13.0` can begin. |
 | Frozen | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Waits until `v0.12.8` is accepted as stable; then defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -70,14 +70,14 @@ Archived completed changes:
 - `v0-12-4-linter-check-fix-fmt-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-4-linter-check-fix-fmt-hardening`
 - `v0-12-5-ast-readiness-and-parser-precision-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-5-ast-readiness-and-parser-precision-hardening`
 - `v0-12-6-context-sensitive-rule-migration` -> `openspec/changes/archive/2026-04-26-v0-12-6-context-sensitive-rule-migration`
+- `v0-12-7-performance-convergence-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-7-performance-convergence-hardening`
 
 ## Suggested Order
 
-1. Apply `v0-12-7-performance-convergence-hardening`; it verifies parser migration performance and check/fix/fmt convergence.
-2. Apply `v0-12-8-stable-candidate-acceptance`; it scores stable readiness and ends with user acceptance judgment.
-3. Apply `mcp-registry-and-distribution-planning` only after `v0.12.8` stable score is at least 90, hard blockers are 0, and user acceptance is recorded.
-4. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
-5. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
+1. Apply `v0-12-8-stable-candidate-acceptance`; it scores stable readiness and ends with user acceptance judgment.
+2. Apply `mcp-registry-and-distribution-planning` only after `v0.12.8` stable score is at least 90, hard blockers are 0, and user acceptance is recorded.
+3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 

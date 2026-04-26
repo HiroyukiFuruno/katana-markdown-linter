@@ -212,3 +212,14 @@ safe fix を持つ rule は、migration 後も source range の意図を維持�
 - **THEN** system は original source range に基づいて replacement を適用する
 - **THEN** system は overlapping fix と adjacent fix の競合を検出または安全に解決する
 - **THEN** system は unsafe fix を default-safe fix と混同しない
+
+### Requirement: migrated rule corpus SHALL prove convergence
+
+migrated rule corpus は、検出精度だけでなく fix / fmt の収束性を検証しなければならない（SHALL）。
+
+#### Scenario: migrated corpus を検証する
+
+- **WHEN** developer が migrated corpus tests を実行する
+- **THEN** system は check diagnostics、fixed content、formatted content を別々に検証する
+- **THEN** system は repeated fix で不要差分が増えないことを確認する
+- **THEN** system は repeated fmt で不要差分が増えないことを確認する
