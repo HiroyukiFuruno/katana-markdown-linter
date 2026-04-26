@@ -55,6 +55,8 @@ pub struct MarkdownLinterOps;
 pub struct RuleEntry {
     id: &'static str,
     official_meta: fn() -> Option<OfficialRuleMeta>,
+    evaluate_context:
+        fn(&DocumentContext<'_>, Option<&crate::RuleConfig>) -> Vec<MarkdownDiagnostic>,
 }
 
 impl RuleEntry {
@@ -64,6 +66,14 @@ impl RuleEntry {
 
     pub fn official_meta(&self) -> Option<OfficialRuleMeta> {
         (self.official_meta)()
+    }
+
+    pub fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&crate::RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        (self.evaluate_context)(ctx, config)
     }
 }
 
@@ -76,9 +86,17 @@ macro_rules! rule_entry {
                 $rule.official_meta()
             }
 
+            pub fn evaluate_context(
+                ctx: &DocumentContext<'_>,
+                config: Option<&crate::RuleConfig>,
+            ) -> Vec<MarkdownDiagnostic> {
+                $rule.evaluate_context(ctx, config)
+            }
+
             pub const ENTRY: RuleEntry = RuleEntry {
                 id: $id,
                 official_meta,
+                evaluate_context,
             };
         }
     };
@@ -273,7 +291,7 @@ impl MarkdownLinterOps {
         }
 
         let ctx = DocumentContext::new(file_path, content);
-        for rule in Self::get_official_rules() {
+        for rule in Self::official_rules() {
             let rule_id = rule.id();
             let sev_opt = severity_map
                 .get(rule_id)

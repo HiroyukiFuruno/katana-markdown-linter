@@ -94,6 +94,7 @@ pub struct DocumentContext<'a> {
     line_offsets: Vec<usize>,
     front_matter: Option<SourceRange>,
     code_blocks: Vec<BlockRange>,
+    code_line_flags: Vec<bool>,
     headings: OnceLock<Vec<Heading<'a>>>,
     links: OnceLock<Vec<Link<'a>>>,
     tables: OnceLock<Vec<TableBlock<'a>>>,
@@ -111,6 +112,7 @@ impl<'a> DocumentContext<'a> {
         };
         let front_matter = extract_front_matter(&lines);
         let code_blocks = extract_code_blocks(&lines);
+        let code_line_flags = build_code_line_flags(lines.len(), &code_blocks);
         Self {
             content,
             file_path,
@@ -118,6 +120,7 @@ impl<'a> DocumentContext<'a> {
             line_offsets,
             front_matter,
             code_blocks,
+            code_line_flags,
             headings: OnceLock::new(),
             links: OnceLock::new(),
             tables: OnceLock::new(),
@@ -218,10 +221,25 @@ impl<'a> DocumentContext<'a> {
     }
 
     pub fn is_code_line(&self, line_index: usize) -> bool {
-        self.code_blocks
-            .iter()
-            .any(|block| (block.start_line..=block.end_line).contains(&line_index))
+        self.code_line_flags
+            .get(line_index)
+            .copied()
+            .unwrap_or(false)
     }
+}
+
+fn build_code_line_flags(line_count: usize, code_blocks: &[BlockRange]) -> Vec<bool> {
+    let mut flags = vec![false; line_count];
+    for block in code_blocks {
+        if block.start_line >= line_count {
+            continue;
+        }
+        let end_line = block.end_line.min(line_count - 1);
+        for flag in &mut flags[block.start_line..=end_line] {
+            *flag = true;
+        }
+    }
+    flags
 }
 
 fn split_lines(content: &str) -> Vec<LineInfo<'_>> {
@@ -581,7 +599,9 @@ mod tests {
         assert_eq!(ctx.tables().len(), 1);
         assert_eq!(ctx.tables()[0].rows.len(), 3);
         assert_eq!(ctx.code_blocks().len(), 1);
+        assert!(!ctx.is_code_line(0));
         assert!(ctx.is_code_line(12));
+        assert!(!ctx.is_code_line(99));
         assert_eq!(ctx.markdown_ast().blocks.len(), 3);
     }
 

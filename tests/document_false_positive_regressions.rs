@@ -68,6 +68,7 @@ See [Normal link](https://github.com) and [Email link](mailto:test@example.com).
 
 `https://github.com` and `$echo hi` are inline code examples.
 `[ link ](https://github.com)` is also inline code.
+``[link](https://github.com)`` is a longer inline code span.
 `(Example)[https://github.com]` is inline code, not a reversed link.
 `*one* and _two_` plus `**one** and __two__` are inline code examples.
 
@@ -143,7 +144,10 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
         ("MD011", "(Example)[https://example.com]\n"),
         ("MD014", "```\n$ ls\n$ cat foo\n```\n"),
         ("MD009", "text   \n"),
-        ("MD034", "Visit https://example.com now.\n"),
+        (
+            "MD034",
+            "Visit https://example.com and https://example.org now.\n",
+        ),
         ("MD039", "[ text ](https://example.com)\n"),
         ("MD049", "*one* and _two_\n"),
         ("MD050", "**one** and __two__\n"),
