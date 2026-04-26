@@ -13,7 +13,8 @@ use crate::model::{
     CheckTextRequest, CheckTextResponse, ConfigValidateRequest, ConfigValidateResponse,
     DirectoryCheckResponse, DirectoryRequest, FileCheckResponse, FileFixApplyResponse,
     FileFixPreviewResponse, FileRequest, FixFileApplyRequest, FixTextRequest, FixTextResponse,
-    RuleGetRequest, RuleListRequest, RuleListResponse, RuleMetadata,
+    RuleDocRequest, RuleDocResponse, RuleGetRequest, RuleListRequest, RuleListResponse,
+    RuleMetadata,
 };
 use crate::workspace::Workspace;
 use rmcp::{
@@ -104,6 +105,17 @@ impl KmlMcpServer {
         Parameters(request): Parameters<RuleGetRequest>,
     ) -> Result<Json<RuleMetadata>, String> {
         self.handle_rule_get(request)
+    }
+
+    #[tool(
+        name = "rule_doc_get",
+        description = "Get full Markdown documentation for a rule, supporting multiple locales."
+    )]
+    async fn rule_doc_get(
+        &self,
+        Parameters(request): Parameters<RuleDocRequest>,
+    ) -> Result<Json<RuleDocResponse>, String> {
+        self.handle_rule_doc_get(request)
     }
 
     #[tool(

@@ -4,10 +4,10 @@ use crate::model::{
     validate_config, CheckTextRequest, CheckTextResponse, ConfigValidateRequest,
     ConfigValidateResponse, DirectoryCheckResponse, DirectoryRequest, FileCheckResponse,
     FileFixApplyResponse, FileFixPreviewResponse, FileRequest, FixFileApplyRequest, FixTextRequest,
-    FixTextResponse, RuleGetRequest, RuleListRequest, RuleListResponse, RuleMetadata,
-    WorkspaceToolError,
+    FixTextResponse, RuleDocRequest, RuleDocResponse, RuleGetRequest, RuleListRequest,
+    RuleListResponse, RuleMetadata, WorkspaceToolError,
 };
-use katana_markdown_linter::{fix, lint};
+use katana_markdown_linter::{fix, lint, upstream};
 use rmcp::Json;
 
 impl KmlMcpServer {
@@ -73,6 +73,19 @@ impl KmlMcpServer {
             .find(|rule| rule.id == rule_id)
             .map(Json)
             .ok_or_else(|| format!("unknown rule: {}", request.rule_id))
+    }
+
+    pub(super) fn handle_rule_doc_get(
+        &self,
+        request: RuleDocRequest,
+    ) -> Result<Json<RuleDocResponse>, String> {
+        let locale = request_locale(request.locale.as_deref());
+        let content = upstream::get_rule_documentation(&request.rule_id, locale)?;
+        Ok(Json(RuleDocResponse {
+            rule_id: request.rule_id,
+            locale: locale.code().to_string(),
+            content,
+        }))
     }
 
     pub(super) fn handle_check_file(
