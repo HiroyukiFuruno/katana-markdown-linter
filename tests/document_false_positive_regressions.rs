@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 const CONTEXT_SENSITIVE_RULES: &[&str] = &[
     "MD009", "MD011", "MD014", "MD029", "MD034", "MD039", "MD046", "MD049", "MD050", "MD051",
-    "MD052", "MD053", "MD054", "MD055", "MD056", "MD058", "MD059",
+    "MD052", "MD053", "MD054", "MD055", "MD056", "MD058", "MD059", "MD037", "MD038",
 ];
 
 fn only_rules(rule_ids: &[&str]) -> LintOptions {
@@ -73,6 +73,7 @@ The [reference text][normal] and ![image alt][image-target] are full reference f
 ``[link](https://github.com)`` is a longer inline code span.
 `(Example)[https://github.com]` is inline code, not a reversed link.
 `*one* and _two_` plus `**one** and __two__` are inline code examples.
+`* spaced *` and ``__ spaced __`` stay inline code examples.
 
 $$ \sum {k=1}^{n} k = \frac{n(n+1)}{2} $$
 
@@ -148,10 +149,13 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
         ("MD011", "(Example)[https://example.com]\n"),
         ("MD014", "```\n$ ls\n$ cat foo\n```\n"),
         ("MD009", "text   \n"),
+        ("MD033", "<span>html</span>\n"),
         (
             "MD034",
             "Visit https://example.com and https://example.org now.\n",
         ),
+        ("MD037", "* text *\n"),
+        ("MD038", "` code `\n"),
         ("MD039", "[ text ](https://example.com)\n"),
         ("MD049", "*one* and _two_\n"),
         ("MD050", "**one** and __two__\n"),
@@ -189,6 +193,14 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
     assert!(diagnostics
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD054"));
+}
+
+#[test]
+fn md033_ignores_inline_html_inside_code_spans() {
+    let diagnostics =
+        lint("``<span>html</span>``\n`<img>\n", &only_rule("MD033")).expect("lint should run");
+
+    assert!(diagnostics.is_empty(), "MD033 diagnostics: {diagnostics:?}");
 }
 
 #[test]

@@ -1,4 +1,3 @@
-use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
@@ -21,72 +20,64 @@ impl MarkdownRule for NoSpaceInCodeRule {
         let mut diagnostics = Vec::new();
 
         let ctx = DocumentContext::new(file_path, content);
-        for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+        for span in ctx.inline_code_spans() {
+            if !span.closed {
                 continue;
             }
-            let line = line.text;
-
-            let mut chars = line.char_indices().peekable();
-            let mut current_span_start: Option<usize> = None;
-            let mut backtick_count = 0;
-
-            while let Some((idx, c)) = chars.next() {
-                if c == '`' {
-                    let mut count = 1;
-                    while let Some(&(_, next_c)) = chars.peek() {
-                        if next_c == '`' {
-                            count += 1;
-                            chars.next();
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if let Some(start_idx) = current_span_start {
-                        if count == backtick_count {
-                            let inner_start = start_idx + count;
-                            let inner_end = idx;
-                            if inner_start < inner_end {
-                                let inner_text = &line[inner_start..inner_end];
-                                if inner_text.starts_with(' ') || inner_text.ends_with(' ') {
-                                    let trimmed_inner = inner_text.trim();
-                                    let replacement = format!(
-                                        "{}{}{}",
-                                        "`".repeat(count),
-                                        trimmed_inner,
-                                        "`".repeat(count)
-                                    );
-                                    let fix = Some(crate::rules::markdown::types::DiagnosticFix {
-                                        start_line: i + 1,
-                                        start_column: start_idx + 1,
-                                        end_line: i + 1,
-                                        end_column: inner_end + count + 1,
-                                        replacement,
-                                    });
-
-                                    RuleHelpers::push_diag_with_fix(
-                                        &mut diagnostics,
-                                        file_path,
-                                        i,
-                                        line,
-                                        &meta,
-                                        DiagnosticSeverity::Warning,
-                                        fix,
-                                    );
-                                }
-                            }
-                            current_span_start = None;
-                            backtick_count = 0;
-                        }
-                    } else {
-                        current_span_start = Some(idx);
-                        backtick_count = count;
-                    }
-                }
+            let line = &ctx.lines()[span.line];
+            let inner_start = span.content_range.start - line.content_range.start;
+            let inner_end = span.content_range.end - line.content_range.start;
+            let inner_text = &line.text[inner_start..inner_end];
+            if !(inner_text.starts_with(' ') || inner_text.ends_with(' ')) {
+                continue;
             }
+            let marker = "`".repeat(span.marker_len);
+            let replacement = format!("{marker}{}{marker}", inner_text.trim());
+            let range = ctx.diagnostic_range(span.full_range);
+            let fix = crate::rules::markdown::types::DiagnosticFix {
+                start_line: range.start_line,
+                start_column: range.start_column,
+                end_line: range.end_line,
+                end_column: range.end_column,
+                replacement,
+            };
+            diagnostics.push(MarkdownDiagnostic {
+                file: file_path.to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range,
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: Some(fix),
+            });
         }
 
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fixes_spaces_inside_long_code_span() {
+        let rule = NoSpaceInCodeRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "`` spaced ``");
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("code span should be fixable");
+        assert_eq!(fix.replacement, "``spaced``");
+    }
+
+    #[test]
+    fn ignores_unclosed_code_span() {
+        let rule = NoSpaceInCodeRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "` spaced\n");
+
+        assert!(diagnostics.is_empty());
     }
 }

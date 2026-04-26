@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta, RuleConfig,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::path::Path;
 
@@ -28,79 +28,40 @@ impl MarkdownRule for NoSpacesInLinksRule {
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD039");
         let mut diagnostics = Vec::new();
-        for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+        for link in ctx.inline_links() {
+            if link.kind.is_image() {
                 continue;
             }
-            for (open, close, replacement) in link_text_space_fixes(line.text) {
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: open + 1,
-                        end_line: line.number,
-                        end_column: close + 2,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: open + 2,
-                        end_line: line.number,
-                        end_column: close + 1,
-                        replacement,
-                    }),
-                });
+            let Some(text) = link.text else {
+                continue;
+            };
+            let trimmed = text.trim();
+            if trimmed.is_empty() || trimmed == text {
+                continue;
             }
+            let Some(text_range) = link.text_range else {
+                continue;
+            };
+            let full_range = ctx.diagnostic_range(link.full_range);
+            let fix_range = ctx.diagnostic_range(text_range);
+            diagnostics.push(MarkdownDiagnostic {
+                file: ctx.file_path().to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: full_range,
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+                    start_line: fix_range.start_line,
+                    start_column: fix_range.start_column,
+                    end_line: fix_range.end_line,
+                    end_column: fix_range.end_column,
+                    replacement: trimmed.to_string(),
+                }),
+            });
         }
         diagnostics
     }
-}
-
-fn link_text_space_fixes(line: &str) -> Vec<(usize, usize, String)> {
-    let bytes = line.as_bytes();
-    let mut fixes = Vec::new();
-    let mut cursor = 0;
-    let mut in_code = false;
-
-    while cursor < bytes.len() {
-        match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            b'[' if !in_code && !is_image_marker(bytes, cursor) => {
-                let Some(close) = line[cursor + 1..]
-                    .find(']')
-                    .map(|offset| cursor + 1 + offset)
-                else {
-                    break;
-                };
-
-                if is_link_text_candidate(bytes, close) {
-                    let inner = &line[cursor + 1..close];
-                    let trimmed = inner.trim();
-                    if !trimmed.is_empty() && trimmed != inner {
-                        fixes.push((cursor, close, trimmed.to_string()));
-                    }
-                }
-                cursor = close + 1;
-            }
-            _ => cursor += 1,
-        }
-    }
-
-    fixes
-}
-
-fn is_image_marker(bytes: &[u8], open_bracket: usize) -> bool {
-    open_bracket > 0 && bytes[open_bracket - 1] == b'!'
-}
-
-fn is_link_text_candidate(bytes: &[u8], close_bracket: usize) -> bool {
-    matches!(bytes.get(close_bracket + 1), Some(b'(' | b'['))
 }
 
 #[cfg(test)]
@@ -129,6 +90,27 @@ mod tests {
             Path::new("doc.md"),
             "- [ ] task\n- [x] done\n![ alt ](image.png)\n```\n[ link ](target)\n```",
         );
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn fixes_nested_link_text_using_shared_link_range() {
+        let rule = NoSpacesInLinksRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "[ text [inner] ](target)");
+
+        assert_eq!(diagnostics.len(), 1);
+        let fix = diagnostics[0]
+            .fix_info
+            .as_ref()
+            .expect("nested link text should be fixable");
+        assert_eq!(fix.replacement, "text [inner]");
+    }
+
+    #[test]
+    fn ignores_links_inside_long_and_unclosed_code_spans() {
+        let rule = NoSpacesInLinksRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "``[ text ](target)``\n`[ text ][]");
 
         assert!(diagnostics.is_empty());
     }

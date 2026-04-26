@@ -86,34 +86,6 @@ impl RuleHelpers {
         });
     }
 
-    /// Detect inline HTML tags outside code spans.
-    pub fn contains_html_tag(line: &str) -> bool {
-        let mut rest = line;
-        let mut in_code = false;
-        while let Some(idx) = rest.find(['`', '<']) {
-            let ch = rest.as_bytes()[idx];
-            if ch == b'`' {
-                in_code = !in_code;
-                rest = &rest[idx + 1..];
-                continue;
-            }
-            if in_code {
-                rest = &rest[idx + 1..];
-                continue;
-            }
-            let after = &rest[idx + 1..];
-            let Some(end) = after.find('>') else {
-                rest = &rest[idx + 1..];
-                continue;
-            };
-            if Self::is_likely_html_tag(&after[..end]) {
-                return true;
-            }
-            rest = &after[end + 1..];
-        }
-        false
-    }
-
     /// Returns ATX heading level (1-6) for a line, or None if not a heading.
     pub fn get_heading_level(line: &str) -> Option<usize> {
         if !line.starts_with('#') {
@@ -159,55 +131,11 @@ impl RuleHelpers {
             fix_info: None,
         });
     }
-
-    fn is_likely_html_tag(content: &str) -> bool {
-        let trimmed = content.trim();
-        if trimmed.is_empty() {
-            return false;
-        }
-        let tag_name = trimmed
-            .trim_start_matches('/')
-            .split(|c: char| c.is_whitespace() || c == '/')
-            .next()
-            .unwrap_or("");
-        matches!(
-            tag_name.to_lowercase().as_str(),
-            "br" | "hr"
-                | "div"
-                | "span"
-                | "p"
-                | "b"
-                | "i"
-                | "em"
-                | "strong"
-                | "a"
-                | "img"
-                | "table"
-                | "tr"
-                | "td"
-                | "th"
-                | "ul"
-                | "ol"
-                | "li"
-                | "pre"
-                | "code"
-                | "blockquote"
-                | "details"
-                | "summary"
-        )
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn contains_html_tag_ignores_code_and_detects_likely_tags() {
-        assert!(RuleHelpers::contains_html_tag("<span>text</span>"));
-        assert!(RuleHelpers::contains_html_tag("<foo><img src=\"x\">"));
-        assert!(!RuleHelpers::contains_html_tag("`<span>` <> <unknown> <"));
-    }
 
     #[test]
     fn ordered_numbers_and_broken_link_diagnostics_are_reported() {

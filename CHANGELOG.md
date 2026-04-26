@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.12.6
+
+- Migrates inline-context rules beyond the link family so MD033, MD037, MD038,
+  MD039, MD044, MD049, and MD050 rely on shared `DocumentContext` inline-code
+  or link token evidence instead of isolated backtick or bracket scans.
+- Expands document-level regression coverage to include MD037 and MD038, plus
+  long and unclosed code-span boundaries for link, proper-name, emphasis, and
+  strong-style rules.
+- Records the context-sensitive rule migration inventory for v0.12.6 and keeps
+  remaining broader AST work assigned to the stable-line follow-up releases.
+- Refreshes the performance baseline after measuring the parser/context cost of
+  the migration, with v0.12.7 reserved for convergence and performance cleanup.
+
 ## v0.12.5
 
 - Adds a source-preserving inline token layer for inline code spans, inline

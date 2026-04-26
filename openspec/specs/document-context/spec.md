@@ -128,3 +128,23 @@ inline token parser は、Markdown の境界値を rule ごとの手書き判定
 - **THEN** system は通常本文として評価する範囲と除外する範囲を区別する
 - **THEN** system は unclosed marker を通常 link と誤認しない
 - **THEN** system は CRLF と Unicode を含む source range を保持する
+
+### Requirement: context-sensitive rules SHALL declare their context source
+
+context-sensitive rule は、自身がどの context source を根拠に評価するかを分類しなければならない（SHALL）。
+
+#### Scenario: rule migration を棚卸しする
+
+- **WHEN** developer が context-sensitive rule を確認する
+- **THEN** system は rule を `parser-backed`、`document-context-backed`、`line-local-by-spec`、`future-work` のいずれかに分類する
+- **THEN** system は `future-work` の理由と次の解消条件を tasks に記録する
+
+### Requirement: migrated rules SHALL reuse shared structural indexes
+
+migrated rule は、構文除外判定を rule-local の重複 scan だけに依存してはならない（SHALL NOT）。
+
+#### Scenario: migrated rule を実行する
+
+- **WHEN** migrated rule が Markdown 風テキストを評価する
+- **THEN** system は `DocumentContext` または shared parser token から context を取得する
+- **THEN** system は fenced code block、inline code、HTML、table、reference definition を通常本文と混同しない

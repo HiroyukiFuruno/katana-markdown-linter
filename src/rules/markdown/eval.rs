@@ -24,6 +24,7 @@ use crate::rules::markdown::rules::md018::*;
 use crate::rules::markdown::rules::md019::*;
 use crate::rules::markdown::rules::md020::*;
 use crate::rules::markdown::rules::md021::*;
+use crate::rules::markdown::rules::md033::*;
 use crate::rules::markdown::rules::md034::*;
 use crate::rules::markdown::rules::md039::*;
 use crate::rules::markdown::rules::md043::*;
