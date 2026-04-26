@@ -5,8 +5,9 @@ CLAUDE.md
 AGENTS.md
 *.skill.md
 
-# openspec skills
-
+# openspec workfiles
 openspec*
+!openspec/
+!openspec/**
 opsx*
 !/scripts/openspec

@@ -142,6 +142,10 @@ bench: ## Run repeatable performance benchmarks and write target/perf-report.jso
 perf-check: bench ## Compare performance report with the committed baseline
 	python3 scripts/ci/perf-check.py --baseline $(PERF_BASELINE) --report $(PERF_REPORT)
 
+.PHONY: perf-check-strict
+perf-check-strict: bench ## Compare performance report and fail when strict ratio thresholds are exceeded
+	python3 scripts/ci/perf-check.py --baseline $(PERF_BASELINE) --report $(PERF_REPORT) --strict --max-ratio 1.4
+
 .PHONY: perf-refresh-baseline
 perf-refresh-baseline: bench ## Refresh performance baseline after intentional optimization
 	python3 scripts/ci/perf-check.py --update --baseline $(PERF_BASELINE) --report $(PERF_REPORT)
@@ -194,6 +198,10 @@ mcp-install-smoke: ## Install optional MCP server binary into a local smoke-test
 .PHONY: mcp-stdio-smoke
 mcp-stdio-smoke: mcp-install-smoke ## Exercise kml-mcp through MCP stdio JSON-RPC
 	python3 scripts/ci/mcp-stdio-smoke.py --bin "$(MCP_INSTALL_SMOKE_DIR)/bin/kml-mcp"
+
+.PHONY: internal-quality-check
+internal-quality-check: ## Capture internal code quality evidence for src and CLI hot paths
+	python3 scripts/ci/internal-quality.py --report target/internal-quality-report.json --src src
 
 .PHONY: release-test
 release-test: ## Run release-equivalent tests with all optional features

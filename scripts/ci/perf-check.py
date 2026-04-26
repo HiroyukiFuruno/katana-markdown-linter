@@ -59,6 +59,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--report", required=True)
     parser.add_argument("--update", action="store_true")
+    parser.add_argument("--strict", action="store_true", help="Fail when ratio exceeds threshold")
+    parser.add_argument(
+        "--max-ratio",
+        type=float,
+        default=1.4,
+        help="Maximum tolerated regression ratio in strict mode",
+    )
     return parser.parse_args()
 
 
@@ -126,6 +133,8 @@ def main() -> int:
     if missing:
         fail_list("Performance report is missing baseline cases", missing)
 
+    regressions = []
+
     print("Performance comparison:")
     for name in sorted(baseline_cases):
         baseline_median = float(baseline_cases[name]["median_ms"])
@@ -135,6 +144,25 @@ def main() -> int:
             f"- {name}: current_median={current_median:.3f}ms "
             f"baseline_median={baseline_median:.3f}ms ratio={ratio:.2f}x"
         )
+        if args.strict and ratio > args.max_ratio:
+            regressions.append((name, ratio, baseline_median, current_median))
+
+    if args.strict:
+        if regressions:
+            print(
+                f"Performance strict check failed: {len(regressions)} cases exceed max ratio {args.max_ratio:.2f}x",
+                file=sys.stderr,
+            )
+            for name, ratio, baseline_median, current_median in regressions:
+                print(
+                    f"- {name}: baseline={baseline_median:.3f}ms "
+                    f"current={current_median:.3f}ms ratio={ratio:.2f}x",
+                    file=sys.stderr,
+                )
+            return 1
+
+        print(f"Performance strict check passed: all ratios <= {args.max_ratio:.2f}x")
+
     print(
         "Performance check is report-first; missing cases or schema errors fail, "
         "timing regressions are informational."

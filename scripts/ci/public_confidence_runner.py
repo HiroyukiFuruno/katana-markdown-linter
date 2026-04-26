@@ -11,6 +11,21 @@ from dataclasses import dataclass
 from public_confidence_corpus import CorpusInventory
 
 SCHEMA_VERSION = 1
+KNOWN_CLASSIFICATIONS = (
+    "true-positive",
+    "false-positive",
+    "false-negative",
+    "unsafe-fix-risk",
+    "fmt-policy-gap",
+)
+KNOWN_TRUE_POSITIVE_RULES = {
+    "md-broken-link",
+    "md018",
+    "md037",
+    "md038",
+    "md039",
+}
+
 
 
 @dataclass(frozen=True)
@@ -52,13 +67,19 @@ class PublicConfidenceRunner:
         fmt_converged = fmt.exit_code == 0 and self._changed_files(fmt_again.report) == 0
         self._record_convergence_blockers(fix, fix_again, fmt_converged, final_check)
 
+        check_diagnostics = self._classified_diagnostics(check.report)
+        check_classification_summary = self._classification_summary(check_diagnostics)
+        self._record_classification_blockers(check_classification_summary)
+
         return {
             "schema_version": SCHEMA_VERSION,
             "source": {"mode": self.mode},
             "inventory": self.inventory.report(),
             "check": self._command_report(check) | {
                 "source_unchanged": source_unchanged,
-                "diagnostics": self._classified_diagnostics(check.report),
+                "diagnostics": check_diagnostics,
+                "classification_summary": check_classification_summary["by_classification"],
+                "unclassified_count": check_classification_summary["unclassified_count"],
             },
             "fix": self._command_report(fix) | {"converged": fix_converged},
             "fmt": self._command_report(fmt) | {"converged": fmt_converged},
@@ -87,6 +108,13 @@ class PublicConfidenceRunner:
             self.release_blockers.append("fmt did not converge on a second run")
         if final_check.exit_code == 2:
             self.release_blockers.append("post-fix fmt check failed before diagnostics were reported")
+
+    def _record_classification_blockers(self, summary: dict[str, object]) -> None:
+        unclassified_count = int(summary["unclassified_count"])
+        if unclassified_count > 0:
+            self.release_blockers.append(
+                f"check diagnostics include {unclassified_count} unclassified finding(s)"
+            )
 
     def _run_kml(self, command_name: str, paths: list[pathlib.Path]) -> CommandEvidence:
         command = [
@@ -142,14 +170,64 @@ class PublicConfidenceRunner:
         diagnostics: list[dict[str, object]] = []
         for diagnostic in file_report.get("diagnostics", []):
             if isinstance(diagnostic, dict):
+                classification = self._classify_diagnostic(diagnostic)
                 diagnostics.append({
                     "source_path": path,
                     "rule": diagnostic.get("rule_id", ""),
                     "severity": diagnostic.get("severity", "warning"),
                     "message": diagnostic.get("message", ""),
-                    "classification": "true-positive",
+                    "classification": classification,
                 })
         return diagnostics
+
+    def _classify_diagnostic(self, diagnostic: dict[object, object]) -> str:
+        rule = str(diagnostic.get("rule_id", "")).strip().lower()
+        message = str(diagnostic.get("message", "")).strip().lower()
+
+        if rule in KNOWN_TRUE_POSITIVE_RULES:
+            return "true-positive"
+        if rule.startswith("md") and rule[2:].isdigit():
+            return "true-positive"
+        if "broken" in message and "link" in message:
+            return "true-positive"
+        if "unsafe" in message or "potentially unsafe" in message:
+            return "unsafe-fix-risk"
+        if "fmt" in message or "format" in message:
+            return "fmt-policy-gap"
+        if any(
+            marker in message
+            for marker in (
+                "false positive",
+                "false-positive",
+                "noise",
+            )
+        ):
+            return "false-positive"
+        if any(
+            marker in message
+            for marker in (
+                "missed",
+                "not detected",
+                "should report",
+            )
+        ):
+            return "false-negative"
+
+        return "unclassified"
+
+    def _classification_summary(self, diagnostics: list[dict[str, object]]) -> dict[str, object]:
+        by_classification = {classification: 0 for classification in KNOWN_CLASSIFICATIONS}
+        by_classification["unclassified"] = 0
+        for diagnostic in diagnostics:
+            classification = str(diagnostic.get("classification", "unclassified"))
+            if classification in by_classification:
+                by_classification[classification] += 1
+            else:
+                by_classification["unclassified"] += 1
+        return {
+            "by_classification": by_classification,
+            "unclassified_count": by_classification["unclassified"],
+        }
 
     def _changed_files(self, report: dict[str, object]) -> int:
         files = report.get("files", [])

@@ -4,31 +4,31 @@
   "total_diagnostics": 4,
   "diagnostics": [
     {
-      "path": "docs/dogfooding.md",
-      "rule_id": "MD059",
-      "message": "Link text should be descriptive",
-      "line_text": "| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |",
+      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "**Goals:**",
       "count": 1
     },
     {
-      "path": "openspec/design.md",
-      "rule_id": "MD046",
-      "message": "Code block style",
-      "line_text": "# katana-markdown-linter 設計",
+      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "**Non-Goals:**",
       "count": 1
     },
     {
-      "path": "openspec/design.md",
-      "rule_id": "MD059",
-      "message": "Link text should be descriptive",
-      "line_text": "│   │   ├── link.rs         # MD034, MD039, MD042, MD053-MD058",
+      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "**Goals:**",
       "count": 1
     },
     {
-      "path": "openspec/specs/public-api-examples/spec.md",
-      "rule_id": "MD059",
-      "message": "Link text should be descriptive",
-      "line_text": "### Requirement: README SHALL link CLI and library usage paths",
+      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "**Non-Goals:**",
       "count": 1
     }
   ]
