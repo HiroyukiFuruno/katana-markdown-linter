@@ -6,12 +6,14 @@
 - [ ] `make internal-quality-check` および `make perf-check` を事前に実行し、リファクタリング前の現状値（ベースライン）が `target/` 配下に保存されていること
 
 ## 1. Quick Wins & Stabilization (Phase 1)
+
 *目的: リファクタリング中の検証を阻害するノイズを最初に取り除き、検証環境を完全にクリーンにする*
 
 - [ ] 1.1 `md-broken-link`（ローカルファイルパスのリンク切れをチェックするKML独自ルール）による誤検知を解消するため、ルールのコード自体は将来の機能拡張のために残しつつも、デフォルトの検証フローでは実行（評価）されないように仕様変更する
 - [ ] 1.2 `make public-confidence` および `make external-katana-dogfood` を実行し、未分類エラーがゼロの「完全にクリーンな状態」になったことを確認する
 
 ## 2. Quality Gate Overhaul (Phase 2)
+
 *目的: リファクタリング作業で新たな技術的負債が混入しないよう、防波堤（Quality Gate）を先に拡張・厳格化する*
 
 - [ ] 2.1 `tests/ast_linter.rs` 内の特定ファイルへの依存（例: `read_workspace_file("src/cli.rs")`）を排除し、`scan_rust_sources` などを活用して `src/`, `tests/`, `build.rs` を例外なく対象とするようルールを汎用化する
@@ -19,6 +21,7 @@
 - [ ] 2.3 `scripts/ci/internal-quality.py` 等の検証スクリプトの実行引数・対象パスを拡張し、`tests/` と `build.rs` の負債化も検出・監視できるようにする
 
 ## 3. Architecture Refactoring (Phase 3)
+
 *目的: 厳格化されたGateの元で、巨大なモノリスを安全に解体する*
 
 - [ ] 3.1 `src/cli.rs` の責務を明確に定義し、`cli` モジュール下でサブモジュール化する。変更は一度に行わず、機能ごと（`args`, `input`, `workflow` 等）に漸進的にコミットし、常に `cargo check` が通る状態を維持する
@@ -28,6 +31,7 @@
 - [ ] 3.5 **[退行検証]** アーキテクチャ変更によって性能が劣化していないことを証明するため、この時点で一度 `make perf-check-strict` を実行し通過させる
 
 ## 4. Performance Optimization (Phase 4)
+
 *目的: 整理されたアーキテクチャの上で、ミクロな性能最適化を施す*
 
 - [ ] 4.1 ホットパス（AST評価・ルールの適用時など）での不要な `String::clone`, `to_string()`, `to_owned()` を特定し、参照借用（`&str`）に置き換える
