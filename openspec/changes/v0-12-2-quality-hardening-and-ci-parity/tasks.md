@@ -22,7 +22,9 @@
 - `ci-gap`: release workflow は crates.io publish を含むため Ubuntu 単独のままにする。Windows compatibility は通常 CI / preflight の責務とし、publish job を OS matrix 化しない。
 - `ci-gap`: 通常 CI は手書き `actions/cache`、release-preflight / release は `Swatinem/rust-cache` だった。通常 CI も `Swatinem/rust-cache` に寄せ、workflow ごとの `shared-key` を明示する。
 - `ci-gap`: `make action-smoke` と `make mcp-stdio-smoke` は Bash、`bin/<name>` path、install root 前提を持つため Windows へ広げない。`.exe` suffix を含む smoke test 移植は後続 change に回す。
-- `ci-gap`: 変更前 baseline は GitHub Actions run `24942241092`（2026-04-25、main push）で、Ubuntu job は 115 秒、macOS job は 93 秒だった。`v0.12.2` PR の初回 CI で cache hit/miss と job duration を追記して 2.3 を閉じる。
+- `ci-gap`: 変更前 baseline は GitHub Actions run `24942241092`（2026-04-25、main push）で、Ubuntu job は 115 秒、macOS job は 93 秒だった。
+- `ci-gap`: `v0.12.2` PR では Windows CI run `24944611172` が CRLF による `cargo fmt --check` 失敗、run `24945009045` が Windows short path と `.cmd` 未対応の test portability gap で失敗した。`.gitattributes` と Windows 用 benchmark mock により run `24945063974` の Windows job は 2 分 11 秒で成功した。
+- `ci-cache`: 変更後 run `24945063974` は macOS 43 秒（full cache hit、約 106 MB）、Ubuntu 1 分 3 秒（full cache hit、約 253 MB）、Windows 2 分 11 秒（cache miss、約 54.5 MB save）だった。release-preflight run `24945063970` は 1 分 19 秒（full cache hit、約 342 MB）だった。
 - `bug`: `MD014`、`MD029`、`MD034`、`MD055`、`MD056`、`MD058`、`MD059` の既知誤検知は rule-local test と file-level regression で固定済み。
 - `test-gap`: mixed Markdown fixture は HTML badge、inline code、math、backtick / tilde fence、Mermaid pipe、reference link、nested ordered list を含む。
 - `design-debt`: `MD034` と `MD059` には line-local な inline code / HTML 判定が残る。現時点では回帰 fixture で固定し、より深い token parser 化は後続に回す。
@@ -33,13 +35,13 @@
 - [x] 1.2 Windows で実行する command を `cargo check` / `cargo test --workspace --locked` 中心に固定する
 - [x] 1.3 Windows で `make` target を実行する場合は shell と prerequisite を明示する
 - [x] 1.4 `kml` binary の `.exe` suffix を install / smoke test で扱えるようにする
-- [ ] 1.5 Windows job が失敗した場合、原因を workflow log から分類し、test-gap か portability bug として tasks に反映する
+- [x] 1.5 Windows job が失敗した場合、原因を workflow log から分類し、test-gap か portability bug として tasks に反映する
 
 ## 2. CI/CD Cache
 
 - [x] 2.1 通常 CI の手書き `actions/cache` と release/preflight の `Swatinem/rust-cache` を比較する
 - [x] 2.2 cache key が OS、lockfile、feature set、toolchain に対して安全か確認する
-- [ ] 2.3 cache hit/miss と job duration を変更前後で記録する
+- [x] 2.3 cache hit/miss と job duration を変更前後で記録する
 - [x] 2.4 採用する cache strategy を workflow 全体で統一する
 - [x] 2.5 AST lint または workflow test で、CI / preflight / release の cache 方針が意図せず乖離しないようにする
 
@@ -67,13 +69,13 @@
 - [x] `cargo test --workspace --locked`
 - [x] `cargo test --all-features --locked`
 - [x] `make dogfood`
-- [ ] Windows CI job が成功していること
+- [x] Windows CI job が成功していること
 - [x] `make release-check VERSION=v0.12.2`
 - [x] `git diff --check`
 
 ## Definition of Done
 
-- [ ] Windows が release 前の required CI で検証されていること
+- [x] Windows が release 前の required CI で検証されていること
 - [x] CI / preflight / release の cache strategy が説明可能であること
 - [x] 誤検知しやすい mixed Markdown fixture が file-level regression として固定されていること
 - [x] 単一行判定に起因する残課題が可視化されていること
