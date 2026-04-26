@@ -58,94 +58,61 @@ impl LinkFragmentsRule {
         let meta = self.official_meta().expect("always Some for MD051");
         let mut diagnostics = Vec::new();
         let headings = heading_fragments(ctx);
-        for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+        for link in ctx.inline_links() {
+            if !link.kind.is_inline() {
                 continue;
             }
-            for fragment in link_fragments(line.text) {
-                if is_allowed_special_fragment(fragment.value)
-                    || ignored_pattern.is_some_and(|pattern| pattern.is_match(fragment.value))
-                    || fragment_exists(&headings, fragment.value, ignore_case)
-                {
-                    continue;
-                }
-
-                let replacement = if ignore_case {
-                    None
-                } else {
-                    headings
-                        .iter()
-                        .find(|heading| heading.eq_ignore_ascii_case(fragment.value))
-                        .map(|heading| format!("#{heading}"))
-                };
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: fragment.start + 1,
-                        end_line: line.number,
-                        end_column: fragment.end + 1,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: replacement.map(|replacement| {
-                        crate::rules::markdown::types::DiagnosticFix {
-                            start_line: line.number,
-                            start_column: fragment.start + 1,
-                            end_line: line.number,
-                            end_column: fragment.end + 1,
-                            replacement,
-                        }
-                    }),
-                });
+            let Some(destination) = link.destination else {
+                continue;
+            };
+            let Some(fragment) = destination.strip_prefix('#') else {
+                continue;
+            };
+            if fragment.is_empty()
+                || is_allowed_special_fragment(fragment)
+                || ignored_pattern.is_some_and(|pattern| pattern.is_match(fragment))
+                || fragment_exists(&headings, fragment, ignore_case)
+            {
+                continue;
             }
+
+            let replacement = if ignore_case {
+                None
+            } else {
+                headings
+                    .iter()
+                    .find(|heading| heading.eq_ignore_ascii_case(fragment))
+                    .map(|heading| format!("#{heading}"))
+            };
+            let range = ctx.diagnostic_range(
+                link.destination_range
+                    .expect("inline link destination should have a source range"),
+            );
+            diagnostics.push(MarkdownDiagnostic {
+                file: ctx.file_path().to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: range.start_line,
+                    start_column: range.start_column,
+                    end_line: range.end_line,
+                    end_column: range.end_column,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: replacement.map(|replacement| {
+                    crate::rules::markdown::types::DiagnosticFix {
+                        start_line: range.start_line,
+                        start_column: range.start_column,
+                        end_line: range.end_line,
+                        end_column: range.end_column,
+                        replacement,
+                    }
+                }),
+            });
         }
         diagnostics
     }
-}
-
-struct LinkFragment<'a> {
-    start: usize,
-    end: usize,
-    value: &'a str,
-}
-
-fn link_fragments(line: &str) -> Vec<LinkFragment<'_>> {
-    let bytes = line.as_bytes();
-    let mut fragments = Vec::new();
-    let mut cursor = 0;
-    let mut in_code = false;
-
-    while cursor < bytes.len() {
-        match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            b'(' if !in_code && bytes.get(cursor + 1) == Some(&b'#') => {
-                let Some(close) = line[cursor + 2..]
-                    .find(')')
-                    .map(|offset| cursor + 2 + offset)
-                else {
-                    break;
-                };
-                let value = &line[cursor + 2..close];
-                if !value.is_empty() {
-                    fragments.push(LinkFragment {
-                        start: cursor + 1,
-                        end: close,
-                        value,
-                    });
-                }
-                cursor = close + 1;
-            }
-            _ => cursor += 1,
-        }
-    }
-
-    fragments
 }
 
 fn heading_fragments(ctx: &DocumentContext<'_>) -> HashSet<String> {

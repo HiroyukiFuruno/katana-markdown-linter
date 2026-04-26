@@ -29,29 +29,34 @@ impl MarkdownRule for ProhibitedLinkTextRule {
         let meta = self.official_meta().expect("always Some for MD059");
         let mut diagnostics = Vec::new();
         let prohibited = ["click here", "here", "link", "more"];
-        for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+        for link in ctx.inline_links() {
+            if link.kind.is_image() {
                 continue;
             }
-            for link_text in markdown_link_texts(line.text) {
-                if !contains_prohibited_text(link_text.text, &prohibited) {
-                    continue;
-                }
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: link_text.start + 1,
-                        end_line: line.number,
-                        end_column: link_text.end + 1,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: None,
-                });
+            let Some(text) = link.text else {
+                continue;
+            };
+            if !contains_prohibited_text(text, &prohibited) {
+                continue;
             }
+            let range = ctx.diagnostic_range(
+                link.text_range
+                    .expect("markdown link text should have a source range"),
+            );
+            diagnostics.push(MarkdownDiagnostic {
+                file: ctx.file_path().to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: range.start_line,
+                    start_column: range.start_column,
+                    end_line: range.end_line,
+                    end_column: range.end_column,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: None,
+            });
         }
         diagnostics
     }
@@ -68,84 +73,6 @@ fn normalize_link_text(link_text: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ")
         .to_lowercase()
-}
-
-fn markdown_link_texts(line: &str) -> impl Iterator<Item = MarkdownLinkText<'_>> {
-    MarkdownLinkTextIterator { line, cursor: 0 }
-}
-
-struct MarkdownLinkText<'a> {
-    text: &'a str,
-    start: usize,
-    end: usize,
-}
-
-struct MarkdownLinkTextIterator<'a> {
-    line: &'a str,
-    cursor: usize,
-}
-
-impl<'a> Iterator for MarkdownLinkTextIterator<'a> {
-    type Item = MarkdownLinkText<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let bytes = self.line.as_bytes();
-        while self.cursor < self.line.len() {
-            let start = find_next_link_text_start(self.line, self.cursor)?;
-            if bytes[start] == b'`' {
-                self.cursor = cursor_after_code_span(self.line, start);
-                continue;
-            }
-            self.cursor = start + 1;
-            if is_image_marker(self.line, start) {
-                continue;
-            }
-
-            let end = find_closing_bracket(self.line, self.cursor)?;
-            self.cursor = end + 1;
-            if is_markdown_link_destination(self.line, self.cursor) {
-                return Some(MarkdownLinkText {
-                    text: &self.line[start + 1..end],
-                    start: start + 1,
-                    end,
-                });
-            }
-        }
-
-        None
-    }
-}
-
-fn find_next_link_text_start(line: &str, cursor: usize) -> Option<usize> {
-    line[cursor..]
-        .find(['[', '`'])
-        .map(|offset| cursor + offset)
-}
-
-fn cursor_after_code_span(line: &str, start: usize) -> usize {
-    let bytes = line.as_bytes();
-    let marker_len = bytes[start..]
-        .iter()
-        .take_while(|byte| **byte == b'`')
-        .count();
-    let content_start = start + marker_len;
-    let marker = "`".repeat(marker_len);
-    line[content_start..]
-        .find(&marker)
-        .map(|offset| content_start + offset + marker_len)
-        .unwrap_or(line.len())
-}
-
-fn is_image_marker(line: &str, bracket_start: usize) -> bool {
-    bracket_start > 0 && line.as_bytes()[bracket_start - 1] == b'!'
-}
-
-fn find_closing_bracket(line: &str, cursor: usize) -> Option<usize> {
-    line[cursor..].find(']').map(|offset| cursor + offset)
-}
-
-fn is_markdown_link_destination(line: &str, cursor: usize) -> bool {
-    matches!(line.as_bytes().get(cursor), Some(b'(' | b'['))
 }
 
 #[cfg(test)]

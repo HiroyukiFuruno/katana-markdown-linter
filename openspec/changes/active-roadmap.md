@@ -17,7 +17,11 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.2`: released patch として CI/CD parity、Windows 検証、cache strategy、誤検知回帰 fixture を締め直した。
 - `v0.12.3`: released patch として lint 精度、速度（performance）、単体テスト（UT）/結合テスト（IT）拡充を完了した。
 - `v0.12.4`: 展開より前の patch として、`linter` / `check` / `fix` / `fmt` の正しさ、収束性、冪等性、速度、release gate を固める。
-- `v0.13.0`: MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
+- `v0.12.5`: 安定版に向けた AST readiness と parser precision を優先する。link / inline code / reference の共有 parser と性能計測を作る。
+- `v0.12.6`: context-sensitive rule を parser / `DocumentContext` へ移譲し、単一行文字列だけに依存する rule を減らす。
+- `v0.12.7`: parser / context migration 後の performance、check / fix / fmt convergence、baseline evidence を固める。
+- `v0.12.8`: stable candidate として 100 点満点の score、hard blocker、ユーザー受け入れ判断で安定版可否を決める。
+- `v0.13.0`: `v0.12.8` が stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了の場合だけ、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 
@@ -39,9 +43,13 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Quality hardening and CI parity for `v0.12.2` | `v0-12-2-quality-hardening-and-ci-parity` | Released in `v0.12.2`; Windows CI, cache strategy review, and file-level false-positive regression coverage are now in place. |
 | Done | Precision, performance, and test hardening for `v0.12.3` | `v0-12-3-precision-performance-test-hardening` | Completed for `v0.12.3`; `MD034` / `MD059` precision, code-line membership caching, static rule dispatch, and test evidence are archived. |
 | Done | Core linter/check/fix/fmt hardening for `v0.12.4` | `v0-12-4-linter-check-fix-fmt-hardening` | Completed for `v0.12.4`; CLI command contracts, stdin validation, core command integration tests, and check/fix/fmt performance cases are archived. |
-| P1 | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
-| P2 | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
-| P3 | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
+| Done | AST readiness and parser precision for `v0.12.5` | `v0-12-5-ast-readiness-and-parser-precision-hardening` | Completed for `v0.12.5`; link / inline-code / reference precision now uses shared parser evidence and measured parser-index cost. |
+| P1 | Context-sensitive rule migration for `v0.12.6` | `v0-12-6-context-sensitive-rule-migration` | Migrates broader context-sensitive rule families to parser / `DocumentContext` evidence before distribution expands. |
+| P2 | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Confirms parser migration does not weaken speed, safe fix behavior, or check/fix/fmt idempotence. |
+| P3 | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Defines stable score, hard blockers, and final user acceptance before `v0.13.0` can begin. |
+| Frozen | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Waits until `v0.12.8` is accepted as stable; then defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
+| Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
+| Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
 
 Archived completed changes:
 
@@ -60,18 +68,22 @@ Archived completed changes:
 - `v0-12-2-quality-hardening-and-ci-parity` -> `openspec/changes/archive/2026-04-26-v0-12-2-quality-hardening-and-ci-parity`
 - `v0-12-3-precision-performance-test-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-3-precision-performance-test-hardening`
 - `v0-12-4-linter-check-fix-fmt-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-4-linter-check-fix-fmt-hardening`
+- `v0-12-5-ast-readiness-and-parser-precision-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-5-ast-readiness-and-parser-precision-hardening`
 
 ## Suggested Order
 
-1. Apply `mcp-registry-and-distribution-planning` after `v0.12.4`; it decides whether MCPB, OCI, or another package type is the primary path.
-2. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
-3. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
+1. Apply `v0-12-6-context-sensitive-rule-migration`; it migrates the broader context-sensitive rule set away from isolated line text where needed.
+2. Apply `v0-12-7-performance-convergence-hardening`; it verifies parser migration performance and check/fix/fmt convergence.
+3. Apply `v0-12-8-stable-candidate-acceptance`; it scores stable readiness and ends with user acceptance judgment.
+4. Apply `mcp-registry-and-distribution-planning` only after `v0.12.8` stable score is at least 90, hard blockers are 0, and user acceptance is recorded.
+5. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+6. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
-## Deferred After v0.12.4
+## Deferred Until v0.12.8 Stable Acceptance
 
-- `distribution`: MCP Registry / Hub 公開、MCP package artifact、遠隔 MCP 接続（remote MCP transport）は `v0.12.4` 完了後に戻す。
-- `design-debt`: Markdown token parser の共有化、nested bracket/link title を含む link parser 化、inline code span parser の rule 間共通化は、parser 抽象化の後続 change で扱う。
-- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分けてから別 change にする。
+- `distribution`: MCP Registry / Hub 公開、MCP package artifact、遠隔 MCP 接続（remote MCP transport）は、`v0.12.8` の stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了まで凍結する。
+- `design-debt`: Markdown token parser の共有化、nested bracket/link title を含む link parser 化、inline code span parser の rule 間共通化は、`v0.12.5` から `v0.12.6` の安定版準備として扱う。
+- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分け、安定版 score の release reproducibility に影響する場合だけ `v0.12.x` に含める。
 
 ## Repository Guardrails
 

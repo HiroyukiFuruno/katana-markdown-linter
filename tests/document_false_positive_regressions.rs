@@ -65,6 +65,8 @@ This document mixes common authoring patterns that should be parsed by context.
 </p>
 
 See [Normal link](https://github.com) and [Email link](mailto:test@example.com).
+See [nested [text]](https://example.com/path?q=1 "title") and ![badge][badge-image].
+The [reference text][normal] and ![image alt][image-target] are full reference forms.
 
 `https://github.com` and `$echo hi` are inline code examples.
 `[ link ](https://github.com)` is also inline code.
@@ -115,6 +117,8 @@ graph TD
 ~~~
 
 [normal]: https://github.com
+[badge-image]: <https://img.shields.io/badge/example-passing-green.svg> "Badge"
+[image-target]: <https://example.com/image.png> "Image"
 "###,
         "```\n",
         "code keeps trailing spaces  \n",

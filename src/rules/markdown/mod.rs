@@ -3,6 +3,8 @@ pub use types::*;
 pub mod catalog;
 pub mod document;
 pub use document::*;
+pub mod inline;
+pub use inline::*;
 
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::types::RuleConfig;
