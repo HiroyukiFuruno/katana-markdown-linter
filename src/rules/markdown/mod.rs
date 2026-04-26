@@ -1,12 +1,13 @@
 mod types;
 pub use types::*;
+pub mod broken_link;
 pub mod catalog;
 pub mod document;
+pub use broken_link::*;
 pub use document::*;
 pub mod inline;
 pub use inline::*;
 
-use crate::rules::markdown::helpers::RuleHelpers;
 use crate::types::RuleConfig;
 use std::path::Path;
 
@@ -91,70 +92,6 @@ impl MarkdownRule for HeadingIncrementRule {
                 });
             }
             last_level = current_level;
-        }
-        diagnostics
-    }
-}
-
-/* WHY: Section: Hidden / internal rule implementations
-=======================================================
- These rules are not part of official markdownlint contract.
- They are kept for internal use but must NOT appear in user-facing
- Problems Panel output. official_meta() returns None to signal this. */
-
-/// Internal broken-link rule. Hidden from user-facing UI.
-pub struct BrokenLinkRule;
-
-impl MarkdownRule for BrokenLinkRule {
-    fn id(&self) -> &'static str {
-        "md-broken-link"
-    }
-
-    fn official_meta(&self) -> Option<OfficialRuleMeta> {
-        /* WHY: Broken link detection has no official markdownlint equivalent rule code.
-        This rule is hidden from user-facing diagnostics to avoid false official parity claims. */
-        None
-    }
-
-    fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        let ctx = DocumentContext::new(file_path, content);
-        self.evaluate_context(&ctx, None)
-    }
-
-    fn evaluate_context(
-        &self,
-        ctx: &DocumentContext<'_>,
-        _config: Option<&RuleConfig>,
-    ) -> Vec<MarkdownDiagnostic> {
-        let mut diagnostics = Vec::new();
-        /* WHY: Running in workspace context lets us resolve local paths relative to the file. */
-        let base_dir = ctx.file_path().parent().unwrap_or(Path::new(""));
-        for (line_idx, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(line_idx) {
-                continue;
-            }
-            let mut rest = line.text;
-            let mut offset = 0;
-            while let Some(start_idx) = rest.find("](") {
-                let actual_start = offset + start_idx;
-                rest = &rest[start_idx + 2..];
-                offset += start_idx + 2;
-                if let Some(end_idx) = rest.find(')') {
-                    let link = &rest[..end_idx];
-                    let absolute_end = offset + end_idx;
-                    RuleHelpers::push_broken_link_violation(
-                        &mut diagnostics,
-                        ctx.file_path(),
-                        line_idx,
-                        actual_start,
-                        absolute_end,
-                        base_dir,
-                        link,
-                    );
-                    rest = &rest[end_idx + 1..];
-                    offset += end_idx + 1;
-                }
-            }
         }
         diagnostics
     }

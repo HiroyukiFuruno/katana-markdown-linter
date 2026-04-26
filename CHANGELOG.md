@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.12.9
+
+- Adds a public confidence corpus that exercises `check`, `fix`, and `fmt`
+  convergence on committed Markdown with links, images, inline HTML, fenced
+  code, tables, reference definitions, and mixed Japanese/English text.
+- Adds an optional KatanA external dogfood runner for `docs/**/*.md` and
+  `assets/**/*.md`, with source no-write checks, classified diagnostics, and
+  command timing evidence.
+- Fixes CLI path-aware linting so internal local-link diagnostics resolve
+  relative links from the checked file path and ignore non-local schemes such as
+  `mailto:`.
+- Fixes an `MD028` false positive for adjacent GFM alert blocks such as
+  `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, and `[!CAUTION]`.
+- Wires public confidence evidence into CI, release preflight, and
+  `make release-check` without requiring a private sibling checkout.
+
 ## v0.12.8
 
 - Defines a 100-point stable candidate score across precision correctness, safe

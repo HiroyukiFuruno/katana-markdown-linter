@@ -9,6 +9,8 @@
 | `make ast-lint` | Verify repository-specific invariants | Yes |
 | `make test` | Run workspace unit and integration tests | Yes |
 | `make dogfood` | Run `kml` against maintained Markdown and fail on new diagnostics | Yes |
+| `make public-confidence` | Run check/fix/fmt convergence evidence on the curated public confidence corpus | Yes |
+| `make external-katana-dogfood` | Run optional KatanA docs/assets Markdown confidence dogfood with `KATANA_CHECKOUT` | No |
 | `make check` | Run `fmt-check`, `lint`, `ast-lint`, `test`, and `dogfood` | Yes |
 | `make coverage` | Report uncovered lines against the current test suite | No |
 | `make coverage-blocking` | Fail when uncovered lines exceed `scripts/ci/coverage-baseline.txt` | Yes |
@@ -33,6 +35,7 @@
 - release workflow must require an existing annotated signed tag that GitHub reports as Verified
 - release retry helpers must refuse remote tag overwrites and already-published crates.io versions
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
+- public confidence evidence must stay wired into release preflight and release workflows
 - the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
 - CI workflows must keep Windows workspace verification and Rust cache strategy explicit
 - public Markdown docs must stay English-only
@@ -69,7 +72,7 @@ before publication.
 
 Branch protection for `main` currently requires:
 
-- `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace --locked`, `make dogfood`
+- `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace --locked`, `make dogfood`, and `make public-confidence`
 - `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke`, `make mcp-stdio-smoke`, and non-blocking `make coverage`
 - `Test and Build (windows-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `cargo fmt --all -- --check`, and `cargo test --workspace --locked`
 
@@ -99,8 +102,8 @@ make release-check VERSION=vX.Y.Z
 ~~~
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
-coverage regression, example builds, optional MCP build, version verification,
-dry-run publish, action smoke, and install smoke checks. The GitHub release
+public confidence, coverage regression, example builds, optional MCP build,
+version verification, dry-run publish, action smoke, and install smoke checks. The GitHub release
 workflows additionally clone upstream markdownlint and run `make upstream-drift`
 against the default branch docs.
 

@@ -1,0 +1,83 @@
+{
+  "version": "v0.12.9",
+  "status": "release_check_passed",
+  "score": {
+    "total": 100,
+    "threshold": 90,
+    "categories": [
+      {
+        "name": "External corpus confidence",
+        "score": 30,
+        "max": 30,
+        "evidence": [
+          "make public-confidence KML=target/debug/kml passed on curated corpus",
+          "external KatanA dogfood passed with KATANA_CHECKOUT=/Users/hiroyuki_furuno/works/private/katana",
+          "curated corpus: 1 file, 445 bytes, 4 true-positive diagnostics, 0 release blockers",
+          "KatanA corpus: 31 files, 196606 bytes, 4 true-positive md-broken-link diagnostics, 0 release blockers"
+        ]
+      },
+      {
+        "name": "Precision regression",
+        "score": 25,
+        "max": 25,
+        "evidence": [
+          "CLI now evaluates lint diagnostics with the checked file path instead of <memory>",
+          "md-broken-link ignores mailto and other non-local URI schemes",
+          "MD028 allows adjacent GFM alert blocks separated by blank lines",
+          "cargo test --test cli_path_context_contract --locked passed",
+          "cargo test --test public_confidence_contract --locked passed",
+          "cargo test --test rule_fixture_harness check_pass_and_fail_fixtures_execute --locked passed"
+        ]
+      },
+      {
+        "name": "Command convergence",
+        "score": 20,
+        "max": 20,
+        "evidence": [
+          "curated check did not mutate source and final check reached 0 diagnostics",
+          "curated fix and repeated fix converged",
+          "curated fmt and repeated fmt converged",
+          "KatanA check did not mutate source; fix changed 0 files; fmt changed temporary copies only and converged"
+        ]
+      },
+      {
+        "name": "Performance stability",
+        "score": 15,
+        "max": 15,
+        "evidence": [
+          "make perf-check passed",
+          "second perf-check run had no schema or missing-case failures",
+          "real-document timing was recorded separately from synthetic benchmark timing"
+        ]
+      },
+      {
+        "name": "Release reproducibility",
+        "score": 10,
+        "max": 10,
+        "evidence": [
+          "Cargo.toml and Cargo.lock are set to 0.12.9",
+          "CI, release-preflight, and release workflows run make public-confidence",
+          "make release-check VERSION=v0.12.9 passed in this working tree"
+        ]
+      }
+    ]
+  },
+  "technical_hard_blockers": [],
+  "known_limitations": [
+    "KatanA docs currently expose four true-positive local-link diagnostics: ../../issues and LICENSE in EN/JA development guides. They are external content findings, not kml release blockers."
+  ],
+  "non_blocking_follow_ups": [
+    "KatanA documentation link cleanup can be handled in the KatanA repository if desired.",
+    "MCP Registry and distribution planning can proceed only after v0.12.9 release verification and user acceptance."
+  ],
+  "verification": {
+    "python3 -m py_compile scripts/ci/public-confidence.py scripts/ci/public_confidence_corpus.py scripts/ci/public_confidence_runner.py": "passed",
+    "cargo test --test cli_path_context_contract --locked": "passed",
+    "cargo test --test public_confidence_contract --locked": "passed",
+    "make public-confidence KML=target/debug/kml": "passed",
+    "KATANA_CHECKOUT=/Users/hiroyuki_furuno/works/private/katana make external-katana-dogfood KML=target/debug/kml": "passed",
+    "make perf-check": "passed",
+    "make release-check VERSION=v0.12.9": "passed",
+    "GitHub Actions required CI": "pending"
+  }
+}

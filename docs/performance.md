@@ -123,6 +123,17 @@ The benchmark has two comparison modes:
 The committed source corpus under `tests/fixtures/cross-tool-benchmark` is
 never mutated by benchmark execution.
 
+## Public Confidence Timing
+
+`make public-confidence` records check, fix, fmt, and final check elapsed time
+in `target/public-confidence-report.json`. This timing is evidence for
+real-document-like Markdown, not a wall-clock failure threshold.
+
+The optional `make external-katana-dogfood` target records the same timings for
+KatanA `docs/**/*.md` and `assets/**/*.md` when `KATANA_CHECKOUT` is set.
+Because that checkout is not part of this repository, required CI uses the
+curated public fixture instead.
+
 ## Current Hot Path
 
 CLI fix mode used to lint the original file before fix mode, call the public
