@@ -11,8 +11,7 @@
 
 - Implement a lightweight, stdio-based LSP server that wraps the existing library functions.
 - Support `textDocument/didOpen`, `textDocument/didChange`, `textDocument/didSave` for real-time diagnostics.
-- Support `textDocument/formatting` using the `fmt` logic.
-- Support `textDocument/codeAction` to apply safe fixes.
+- Support `textDocument/formatting`, `textDocument/codeAction`, and `textDocument/rangeFormatting`.
 - The LSP server should be part of the `kml` binary or a separate `kml-lsp` binary (to be decided).
 
 ## Editor Integration
