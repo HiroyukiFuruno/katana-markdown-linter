@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.8
+
+- Defines a 100-point stable candidate score across precision correctness, safe
+  command behavior, performance stability, release reproducibility, and
+  evidence quality.
+- Records hard blockers that prevent stable acceptance even when the numeric
+  score is high.
+- Captures the final stable-candidate score report and known limitations before
+  allowing v0.13.0 distribution planning to begin.
+- Keeps MCP Registry, Hub, package artifact, and remote transport work frozen
+  until the stable score passes and user acceptance is recorded.
+
 ## v0.12.7
 
 - Improves post-migration performance by making shared inline-code range lookup

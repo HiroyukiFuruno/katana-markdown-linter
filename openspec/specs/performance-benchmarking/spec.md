@@ -247,3 +247,15 @@ baseline refresh は正しさの gate 後にだけ行わなければならない
 - **WHEN** developer が performance baseline を更新する
 - **THEN** system は precision fixture、fix/fmt convergence、dogfood、release-check が成功していることを確認する
 - **THEN** system は refresh 対象 case、before / after、理由を tasks に記録する
+
+### Requirement: stable scoring SHALL include performance stability
+
+stable scoring は、performance stability を評価しなければならない（SHALL）。
+
+#### Scenario: performance stability を採点する
+
+- **WHEN** developer が stable score を算出する
+- **THEN** system は parser / context migration 後の benchmark を 20 点満点で採点する
+- **THEN** system は link-heavy、inline-code-heavy、reference-heavy、parser index construction の結果を含める
+- **THEN** system は説明不能な重大 regression を hard blocker として扱う
+- **THEN** system は benchmark 数値だけを目的に rule semantics を弱めない
