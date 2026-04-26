@@ -130,7 +130,7 @@
 - [x] `cargo test --all-features --locked`
 - [x] `make dogfood`
 - [x] `make perf-check`
-- [ ] GitHub Actions の Ubuntu / macOS / Windows CI が成功していること
+- [x] GitHub Actions の Ubuntu / macOS / Windows CI が成功していること
 - [x] `make release-check VERSION=v0.12.3`
 - [x] `git diff --check`
 
@@ -140,4 +140,4 @@
 - [x] 速度改善が基準値（baseline）と before / after で説明できること
 - [x] 単体テスト（UT）と結合テスト（IT）の追加範囲が tasks に残っていること
 - [x] `v0.12.3` に含めない課題が roadmap または後続 change に残っていること
-- [ ] 公開前ゲート（release gate）と CI が通っていること
+- [x] 公開前ゲート（release gate）と CI が通っていること
