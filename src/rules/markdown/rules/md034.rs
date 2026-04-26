@@ -32,7 +32,7 @@ impl MarkdownRule for NoBareUrlsRule {
             if ctx.is_code_line(i) {
                 continue;
             }
-            if let Some((start, end)) = bare_url_range(line.text) {
+            for (start, end) in bare_url_ranges(line.text) {
                 let url = &line.text[start..end];
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
@@ -60,18 +60,35 @@ impl MarkdownRule for NoBareUrlsRule {
     }
 }
 
-fn bare_url_range(line: &str) -> Option<(usize, usize)> {
-    let mut search_start = 0;
-    while let Some(start) = next_url_start(line, search_start) {
-        if is_ignored_url(line, start) {
-            search_start = start + 1;
-            continue;
+fn bare_url_ranges(line: &str) -> BareUrlRanges<'_> {
+    BareUrlRanges {
+        line,
+        search_start: 0,
+    }
+}
+
+struct BareUrlRanges<'a> {
+    line: &'a str,
+    search_start: usize,
+}
+
+impl Iterator for BareUrlRanges<'_> {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(start) = next_url_start(self.line, self.search_start) {
+            self.search_start = start + 1;
+            if is_ignored_url(self.line, start) {
+                continue;
+            }
+            if let Some((_, end)) = url_range(self.line, start) {
+                self.search_start = end;
+                return Some((start, end));
+            }
         }
 
-        return url_range(line, start);
+        None
     }
-
-    None
 }
 
 fn next_url_start(line: &str, search_start: usize) -> Option<usize> {
@@ -140,10 +157,28 @@ fn url_range(line: &str, start: usize) -> Option<(usize, usize)> {
             break;
         }
     }
-    while end > start && matches!(line.as_bytes()[end - 1], b'.' | b',' | b';' | b':') {
-        end -= 1;
+    loop {
+        if end <= start {
+            break;
+        }
+        match line.as_bytes()[end - 1] {
+            b'.' | b',' | b';' | b':' => end -= 1,
+            b')' if has_unmatched_closing_delimiter(&line[start..end], b'(', b')') => end -= 1,
+            b']' if has_unmatched_closing_delimiter(&line[start..end], b'[', b']') => end -= 1,
+            _ => break,
+        }
     }
     (end > start).then_some((start, end))
+}
+
+fn has_unmatched_closing_delimiter(text: &str, open: u8, close: u8) -> bool {
+    let open_count = text.as_bytes().iter().filter(|byte| **byte == open).count();
+    let close_count = text
+        .as_bytes()
+        .iter()
+        .filter(|byte| **byte == close)
+        .count();
+    close_count > open_count
 }
 
 fn is_inside_code_span(line: &str, offset: usize) -> bool {
@@ -184,6 +219,51 @@ mod tests {
             .as_ref()
             .expect("url should be fixable");
         assert_eq!(fix.replacement, "<http://example.com>");
+    }
+
+    #[test]
+    fn reports_each_bare_url_on_the_same_line() {
+        let rule = NoBareUrlsRule;
+        let diagnostics = rule.evaluate(
+            Path::new("doc.md"),
+            "See https://example.com and https://example.org.",
+        );
+
+        assert_eq!(diagnostics.len(), 2);
+        assert_eq!(
+            diagnostics[0]
+                .fix_info
+                .as_ref()
+                .expect("first URL should be fixable")
+                .replacement,
+            "<https://example.com>"
+        );
+        assert_eq!(
+            diagnostics[1]
+                .fix_info
+                .as_ref()
+                .expect("second URL should be fixable")
+                .replacement,
+            "<https://example.org>"
+        );
+    }
+
+    #[test]
+    fn excludes_closing_parenthesis_from_bare_url_fix() {
+        let rule = NoBareUrlsRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "See (https://example.com).");
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].range.start_column, 6);
+        assert_eq!(diagnostics[0].range.end_column, 25);
+        assert_eq!(
+            diagnostics[0]
+                .fix_info
+                .as_ref()
+                .expect("URL should be fixable")
+                .replacement,
+            "<https://example.com>"
+        );
     }
 
     #[test]

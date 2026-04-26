@@ -647,6 +647,23 @@ mod tests {
     }
 
     #[test]
+    fn fix_applies_multiple_bare_url_fixes_idempotently() {
+        let content = "# Title\n\nSee https://example.com and (https://example.org).\n";
+        let options = LintOptions::default();
+        let result = fix(content, &options).expect("fix should succeed");
+
+        assert_eq!(result.applied_fixes, 2);
+        assert_eq!(
+            result.content,
+            "# Title\n\nSee <https://example.com> and (<https://example.org>).\n"
+        );
+
+        let second = fix(&result.content, &options).expect("second fix should succeed");
+        assert_eq!(second.applied_fixes, 0);
+        assert_eq!(second.content, result.content);
+    }
+
+    #[test]
     fn fix_with_results_matches_fix_output() {
         let content = "#Title\n\n- item\n+ item";
         let mut options = LintOptions::default();

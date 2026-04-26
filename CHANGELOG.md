@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.12.3
+
+- Fixes `MD034` so every bare URL on the same line is reported and fixed, while
+  trailing prose delimiters such as a closing parenthesis stay outside the fix
+  range.
+- Fixes `MD059` so each prohibited Markdown link text on a line is reported with
+  a text-specific range, and longer inline code spans are still ignored.
+- Speeds up large-document lint and fix paths by caching code-line membership in
+  `DocumentContext` and dispatching lint evaluation through the static rule
+  registry.
+- Adds rule-local, document-level, and fix-idempotence regression tests for the
+  precision fixes.
+- Records the `v0.12.3` issue inventory, performance before/after numbers, and
+  test hardening evidence in OpenSpec before release.
+
 ## v0.12.2
 
 - Adds Windows to the normal CI matrix with locked `cargo check`, `cargo fmt`,
