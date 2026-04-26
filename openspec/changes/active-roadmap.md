@@ -48,8 +48,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Context-sensitive rule migration for `v0.12.6` | `v0-12-6-context-sensitive-rule-migration` | Completed for `v0.12.6`; MD033 / MD037 / MD038 / MD039 / MD044 / MD049 / MD050 now use shared parser or `DocumentContext` evidence, and the final performance baseline is refreshed. |
 | Done | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Completed for `v0.12.7`; parser migration speed, safe fix behavior, check/fix/fmt idempotence, and stable-score dry run are archived. |
 | Done | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Completed for `v0.12.8`; stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。 |
-| P1 | Public confidence hardening for `v0.12.9` | `v0-12-9-public-confidence-hardening` | Uses KatanA docs/assets Markdown and existing performance corpus to prove confidence before distribution expansion. |
-| Frozen | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Waits until `v0.12.9` public confidence hardening is complete; then defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
+| Done | Public confidence hardening for `v0.12.9` | `v0-12-9-public-confidence-hardening` | Completed as public confidence and required evidence gate before distribution expansion. |
+| P1 | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
 
@@ -74,6 +74,7 @@ Archived completed changes:
 - `v0-12-6-context-sensitive-rule-migration` -> `openspec/changes/archive/2026-04-26-v0-12-6-context-sensitive-rule-migration`
 - `v0-12-7-performance-convergence-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-7-performance-convergence-hardening`
 - `v0-12-8-stable-candidate-acceptance` -> `openspec/changes/archive/2026-04-26-v0-12-8-stable-candidate-acceptance`
+- `v0-12-9-public-confidence-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-9-public-confidence-hardening`
 
 ## Suggested Order
 

@@ -34,6 +34,18 @@ Archived OpenSpec documents are checked only when explicitly requested:
 make dogfood-archive
 ~~~
 
+Curated public confidence corpus:
+
+~~~bash
+make public-confidence
+~~~
+
+Optional KatanA external corpus:
+
+~~~bash
+KATANA_CHECKOUT=/path/to/katana make external-katana-dogfood
+~~~
+
 ## Gate Model
 
 `make dogfood` is a regression gate. It runs `kml` against maintained Markdown
@@ -115,3 +127,20 @@ No Markdown files were rewritten in the initial dogfood pass.
 Although 56 diagnostics were reported as fixable, automatic fix was skipped because some
 diagnostics appear to be false positives and the CLI currently lacks a non-writing fix
 preview mode.
+
+## Public Confidence Corpus
+
+`make public-confidence` runs `check`, `fix`, repeated `fix`, `fmt`, repeated
+`fmt`, and final `check` against
+`tests/fixtures/public-confidence/corpus`. It writes machine-readable evidence
+to `target/public-confidence-report.json`.
+
+The curated fixture includes links, images, inline HTML, fenced code, tables,
+reference definitions, and mixed Japanese/English text. It is committed so
+release gates never depend on a private sibling checkout.
+
+`make external-katana-dogfood` uses the same runner against KatanA
+`docs/**/*.md` and `assets/**/*.md` when `KATANA_CHECKOUT` is set. It records
+the real-document inventory and classified findings without modifying the
+KatanA checkout. Remaining true-positive diagnostics are evidence, not a
+release blocker for this crate.

@@ -25,7 +25,14 @@ use std::path::Path;
 
 /// Runs linting for the provided Markdown content.
 pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error> {
-    let file_path = Path::new("<memory>");
+    lint_for_path(Path::new("<memory>"), content, options)
+}
+
+pub(crate) fn lint_for_path(
+    file_path: &Path,
+    content: &str,
+    options: &LintOptions,
+) -> Result<Vec<LintResult>, Error> {
     let severity_map = build_severity_map(options);
     let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
         file_path,

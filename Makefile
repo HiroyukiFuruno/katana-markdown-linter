@@ -13,6 +13,10 @@ DOGFOOD_LOCALE ?= --locale en
 DOGFOOD_EXCLUDES ?= --exclude "openspec/changes/archive/**" --exclude "target/**"
 DOGFOOD_BASELINE ?= tests/fixtures/dogfood-baseline.json
 DOGFOOD_REPORT ?= target/dogfood-report.json
+PUBLIC_CONFIDENCE_CONFIG ?= tests/fixtures/public-confidence/.markdownlint.json
+PUBLIC_CONFIDENCE_CORPUS ?= tests/fixtures/public-confidence/corpus
+PUBLIC_CONFIDENCE_REPORT ?= target/public-confidence-report.json
+KATANA_CHECKOUT ?=
 PERF_BASELINE ?= tests/fixtures/perf-baseline.json
 PERF_REPORT ?= target/perf-report.json
 PERF_ITERATIONS ?= 20
@@ -121,6 +125,15 @@ dogfood-refresh-baseline: ## Refresh dogfood baseline after intentional Markdown
 dogfood-archive: ## Explicitly check archived OpenSpec Markdown
 	$(KML) check openspec/changes/archive --statistics
 
+.PHONY: public-confidence
+public-confidence: ## Run public confidence check/fix/fmt convergence evidence on curated Markdown
+	python3 scripts/ci/public-confidence.py --report $(PUBLIC_CONFIDENCE_REPORT) --corpus $(PUBLIC_CONFIDENCE_CORPUS) --config $(PUBLIC_CONFIDENCE_CONFIG) -- $(KML)
+
+.PHONY: external-katana-dogfood
+external-katana-dogfood: ## Run optional KatanA docs/assets Markdown confidence dogfood (KATANA_CHECKOUT=/path)
+	@test -n "$(KATANA_CHECKOUT)" || (echo "KATANA_CHECKOUT is required" >&2; exit 2)
+	python3 scripts/ci/public-confidence.py --report $(PUBLIC_CONFIDENCE_REPORT) --katana-checkout "$(KATANA_CHECKOUT)" --config $(PUBLIC_CONFIDENCE_CONFIG) -- $(KML)
+
 .PHONY: bench
 bench: ## Run repeatable performance benchmarks and write target/perf-report.json
 	cargo run --release --example perf_benchmark --locked -- --output $(PERF_REPORT) --iterations $(PERF_ITERATIONS) --samples $(PERF_SAMPLES) --warmup $(PERF_WARMUP)
@@ -188,6 +201,7 @@ release-test: ## Run release-equivalent tests with all optional features
 
 .PHONY: release-check
 release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml

@@ -98,39 +98,6 @@ impl RuleHelpers {
             None
         }
     }
-
-    /// Push a broken-link diagnostic for an internal-only rule.
-    pub fn push_broken_link_violation(
-        diagnostics: &mut Vec<MarkdownDiagnostic>,
-        file_path: &Path,
-        line_idx: usize,
-        actual_start: usize,
-        absolute_end: usize,
-        base_dir: &Path,
-        link: &str,
-    ) {
-        if link.starts_with("http") || link.starts_with('#') {
-            return;
-        }
-        let target_path = base_dir.join(link);
-        if target_path.exists() || target_path.with_extension("md").exists() {
-            return;
-        }
-        diagnostics.push(MarkdownDiagnostic {
-            file: file_path.to_path_buf(),
-            severity: DiagnosticSeverity::Error,
-            range: DiagnosticRange {
-                start_line: line_idx + 1,
-                start_column: actual_start + 1,
-                end_line: line_idx + 1,
-                end_column: absolute_end + 2,
-            },
-            message: format!("Broken local link: {}", link),
-            rule_id: "md-broken-link".to_string(),
-            official_meta: None,
-            fix_info: None,
-        });
-    }
 }
 
 #[cfg(test)]
@@ -138,61 +105,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ordered_numbers_and_broken_link_diagnostics_are_reported() {
+    fn ordered_numbers_are_reported() {
         assert_eq!(RuleHelpers::get_ordered_number("12. item"), Some(12));
-
-        let dir = std::env::temp_dir().join(format!(
-            "katana-markdown-linter-helper-{}",
-            std::process::id()
-        ));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir).expect("test directory should be created");
-        std::fs::write(dir.join("present.md"), "").expect("target file should be created");
-
-        let mut diagnostics = Vec::new();
-        RuleHelpers::push_broken_link_violation(
-            &mut diagnostics,
-            Path::new("doc.md"),
-            1,
-            3,
-            9,
-            &dir,
-            "https://example.com",
-        );
-        RuleHelpers::push_broken_link_violation(
-            &mut diagnostics,
-            Path::new("doc.md"),
-            1,
-            3,
-            9,
-            &dir,
-            "#heading",
-        );
-        RuleHelpers::push_broken_link_violation(
-            &mut diagnostics,
-            Path::new("doc.md"),
-            1,
-            3,
-            9,
-            &dir,
-            "present",
-        );
-        RuleHelpers::push_broken_link_violation(
-            &mut diagnostics,
-            Path::new("doc.md"),
-            1,
-            3,
-            9,
-            &dir,
-            "missing",
-        );
-
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(diagnostics[0].rule_id, "md-broken-link");
-        assert_eq!(diagnostics[0].range.start_line, 2);
-        assert_eq!(diagnostics[0].range.start_column, 4);
-        assert_eq!(diagnostics[0].range.end_column, 11);
-
-        let _ = std::fs::remove_dir_all(dir);
     }
 }

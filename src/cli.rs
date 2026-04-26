@@ -1,7 +1,7 @@
 use crate::i18n::{Locale, LocalizedDiagnostic, MessageParams};
 use crate::{
-    fix_with_results, fix_with_results_including_unsafe, format_markdown, lint, FixSafety,
-    FormatOptions, LintOptions, MarkdownLintConfig,
+    fix_with_results, fix_with_results_including_unsafe, format_markdown, lint, lint_for_path,
+    FixSafety, FormatOptions, LintOptions, MarkdownLintConfig,
 };
 use glob::{glob, Pattern};
 use ignore::{WalkBuilder, WalkState};
@@ -255,7 +255,7 @@ fn run_check_like(
         }
 
         let options = config.to_lint_options();
-        let results = match lint(&content, &options) {
+        let results = match lint_for_path(&path, &content, &options) {
             Ok(results) => results,
             Err(err) => {
                 report.errors.push(CliError::rule(&path, err.to_string()));
@@ -270,6 +270,7 @@ fn run_check_like(
                 applied_fixes,
             } = apply_fixes_until_stable(
                 &content,
+                &path,
                 results,
                 &options,
                 unsafe_policy.include_unsafe,
@@ -412,7 +413,13 @@ fn run_stdin_check_like(
             );
         }
         let results = lint(&content, &options).map_err(|err| err.to_string())?;
-        let fixed = apply_fixes_until_stable(&content, results, &options, cli.unsafe_fixes)?;
+        let fixed = apply_fixes_until_stable(
+            &content,
+            Path::new("<stdin>"),
+            results,
+            &options,
+            cli.unsafe_fixes,
+        )?;
         if matches!(cli.format, OutputFormat::Json) {
             let mut report = CliReport {
                 command,
@@ -558,7 +565,7 @@ fn collect_unsafe_fix_candidates(
             continue;
         }
         let options = config.to_lint_options();
-        let diagnostics = lint(&content, &options).map_err(|err| err.to_string())?;
+        let diagnostics = lint_for_path(path, &content, &options).map_err(|err| err.to_string())?;
         let mut by_rule = std::collections::BTreeMap::<String, usize>::new();
         for diagnostic in diagnostics {
             if diagnostic
@@ -635,6 +642,7 @@ fn prompt_unsafe_confirmation(
 
 fn apply_fixes_until_stable(
     content: &str,
+    file_path: &Path,
     initial_results: Vec<crate::LintResult>,
     options: &LintOptions,
     include_unsafe: bool,
@@ -664,7 +672,7 @@ fn apply_fixes_until_stable(
 
         applied_fixes += fixed.applied_fixes;
         content = fixed.content;
-        diagnostics = lint(&content, options).map_err(|err| err.to_string())?;
+        diagnostics = lint_for_path(file_path, &content, options).map_err(|err| err.to_string())?;
     }
 
     Ok(FixedContent {
