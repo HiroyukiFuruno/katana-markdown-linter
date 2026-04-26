@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.15.0
+
+- Adds a standalone `kml-mcp-remote` binary with remote MCP transport support (Streamable HTTP / SSE).
+- Introduces token-based authentication middleware for remote MCP connections.
+- Restricts workspace-backed tools in remote mode to maintain a safe security boundary.
+- Decouples core logic from remote transport dependencies via the `remote` feature.
+- Adds integration tests for remote transport, auth failure, and tool restriction.
+
 ## v0.12.11
 
 - No functional code changes. Release prep completed to advance patch version and
