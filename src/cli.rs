@@ -1952,14 +1952,10 @@ mod tests {
         env::set_current_dir(original_dir).expect("current dir should be restored");
 
         assert_eq!(
-            files,
+            canonical_paths(&files),
             vec![
-                dir.join("README.md")
-                    .canonicalize()
-                    .expect("path should canonicalize"),
-                dir.join("docs/guide.markdown")
-                    .canonicalize()
-                    .expect("path should canonicalize")
+                canonical_path(dir.join("README.md")),
+                canonical_path(dir.join("docs/guide.markdown"))
             ]
         );
         let _ = fs::remove_dir_all(dir);
@@ -2336,5 +2332,15 @@ mod tests {
             "katana-markdown-linter-cli-{name}-{}-{nanos}",
             std::process::id()
         ))
+    }
+
+    fn canonical_paths(paths: &[PathBuf]) -> Vec<PathBuf> {
+        paths.iter().map(canonical_path).collect()
+    }
+
+    fn canonical_path(path: impl AsRef<Path>) -> PathBuf {
+        path.as_ref()
+            .canonicalize()
+            .expect("path should canonicalize")
     }
 }

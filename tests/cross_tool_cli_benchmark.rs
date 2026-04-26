@@ -130,16 +130,17 @@ exit 1
     make_executable(path);
 }
 
+#[cfg(unix)]
 fn make_executable(path: &Path) {
-    #[cfg(unix)]
-    {
-        let mut permissions = fs::metadata(path)
-            .expect("mock file metadata should be readable")
-            .permissions();
-        permissions.set_mode(0o755);
-        fs::set_permissions(path, permissions).expect("mock file should be executable");
-    }
+    let mut permissions = fs::metadata(path)
+        .expect("mock file metadata should be readable")
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(path, permissions).expect("mock file should be executable");
 }
+
+#[cfg(not(unix))]
+fn make_executable(_path: &Path) {}
 
 fn run_python(args: &[String]) -> std::process::Output {
     Command::new("python3")
