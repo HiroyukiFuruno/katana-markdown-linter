@@ -6,6 +6,8 @@ use std::sync::mpsc;
 
 #[path = "ast_linter/documentation_language_guard.rs"]
 mod documentation_language_guard;
+#[path = "ast_linter/open_spec_command_portability_guard.rs"]
+mod open_spec_command_portability_guard;
 #[path = "ast_linter/workflow_portability_guard.rs"]
 mod workflow_portability_guard;
 
