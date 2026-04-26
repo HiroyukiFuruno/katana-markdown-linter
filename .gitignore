@@ -4,6 +4,7 @@ skill.md
 CLAUDE.md
 AGENTS.md
 *.skill.md
+tmp
 
 # openspec workfiles
 openspec*
@@ -11,3 +12,4 @@ openspec*
 !openspec/**
 opsx*
 !/scripts/openspec
+
