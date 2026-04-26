@@ -9,6 +9,7 @@ fn ci_workflows_keep_windows_and_cache_strategy_explicit() {
 
 struct WorkflowPortabilityGuard {
     ci: String,
+    attributes: String,
     preflight: String,
     release: String,
 }
@@ -17,6 +18,7 @@ impl WorkflowPortabilityGuard {
     fn new() -> Self {
         Self {
             ci: read_workspace_file(".github/workflows/test-and-build.yml"),
+            attributes: read_workspace_file(".gitattributes"),
             preflight: read_workspace_file(".github/workflows/release-preflight.yml"),
             release: read_workspace_file(".github/workflows/release.yml"),
         }
@@ -26,6 +28,7 @@ impl WorkflowPortabilityGuard {
         let mut violations = Vec::new();
         self.require_ci_windows_matrix(&mut violations);
         self.require_cross_platform_commands(&mut violations);
+        self.require_windows_line_ending_guard(&mut violations);
         self.require_unified_rust_cache(&mut violations);
         violations
     }
@@ -60,6 +63,15 @@ impl WorkflowPortabilityGuard {
                 required,
             );
         }
+    }
+
+    fn require_windows_line_ending_guard(&self, violations: &mut Vec<String>) {
+        require_contains(
+            violations,
+            ".gitattributes",
+            &self.attributes,
+            "*.rs text eol=lf",
+        );
     }
 
     fn require_unified_rust_cache(&self, violations: &mut Vec<String>) {
