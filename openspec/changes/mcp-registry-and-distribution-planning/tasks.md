@@ -5,6 +5,8 @@
 - [ ] `v0.12.8` で stable score が 90 点以上であること
 - [ ] `v0.12.8` の hard blocker が 0 件であること
 - [ ] `v0.12.8` をユーザーが安定版として受け入れていること
+- [ ] `v0.12.9` の public confidence score が 90 点以上であること
+- [ ] `v0.12.9` の release-blocking issue が 0 件であること
 - [x] `kml-mcp` が stdio server として build / install できること
 - [x] `make mcp-stdio-smoke` が存在し、stdio 経由の tool call を検証できること
 - [x] file mutation は preview と explicit apply に分離済みであること

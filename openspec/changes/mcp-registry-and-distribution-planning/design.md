@@ -7,7 +7,7 @@
 デスクトップまたは CLI の client に向いている。
 
 ただし、この distribution planning は安定版受け入れ後の作業である。
-`v0.12.8` の stable score が 90 点未満、hard blocker が 1 件以上、またはユーザー受け入れが未記録の場合は、この change を開始しない。
+`v0.12.8` の stable score が 90 点未満、hard blocker が 1 件以上、ユーザー受け入れが未記録、または `v0.12.9` の public confidence gate が未完了の場合は、この change を開始しない。
 
 一方で、LLM provider API から直接呼ぶ場合は、provider が接続できる遠隔 MCP
 サーバー（remote MCP server）が必要になる。local stdio server は hosted API
@@ -49,6 +49,7 @@ package registry または release artifact を参照する。
 Registry / Hub 公開は、少なくとも以下を満たすまで deferred とする。
 
 - `v0.12.8` で stable score 90 点以上、hard blocker 0 件、ユーザー受け入れが記録されている
+- `v0.12.9` で public confidence score 90 点以上、release-blocking issue 0 件が記録されている
 - `make mcp-stdio-smoke` が release gate に含まれている
 - file write は preview と explicit apply に分かれている
 - README / docs が install、safety、client config を説明している

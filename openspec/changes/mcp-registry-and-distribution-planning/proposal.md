@@ -12,7 +12,7 @@
 ただし `v0.12.1` 以降の patch で明らかになった通り、安定版と呼ぶには
 linter 本体の精度、速度、収束性を先に数値で評価する必要がある。
 そのため、この change は `v0.12.8` で stable score 90 点以上、hard blocker 0 件、
-ユーザー受け入れが記録されるまで着手しない。
+ユーザー受け入れが記録され、さらに `v0.12.9` の public confidence gate が完了するまで着手しない。
 
 次の課題は、MCP Registry と周辺の一覧サービス（Hub / aggregator）に載せる前に、
 どの配布物を正とするか、どこまでを公開前の合格条件にするかを決めることだ。
@@ -37,7 +37,7 @@ linter 本体の精度、速度、収束性を先に数値で評価する必要�
 
 ## Non-Goals
 
-- `v0.12.8` の安定版受け入れ前にこの change を進めない
+- `v0.12.8` の安定版受け入れ前、または `v0.12.9` の public confidence gate 完了前にこの change を進めない
 - この change では MCP Registry / Hub へ公開しない
 - この change では MCPB / OCI image / npm wrapper / PyPI wrapper を実装しない
 - この change では遠隔 MCP 接続（remote MCP transport）を実装しない
