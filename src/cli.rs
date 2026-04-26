@@ -101,11 +101,11 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(0)
         }
         Command::Check => {
-            let exit = run_check_like(cli.check_fix, &cli, locale)?;
+            let exit = run_check_like("check", cli.check_fix, &cli, locale)?;
             Ok(exit)
         }
         Command::Fix => {
-            let exit = run_check_like(true, &cli, locale)?;
+            let exit = run_check_like("fix", true, &cli, locale)?;
             Ok(exit)
         }
         Command::Fmt => run_fmt(&cli, locale),
@@ -191,8 +191,12 @@ fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
     Ok(exit_code)
 }
 
-fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
-    let command = if fix_mode { "fix" } else { "check" };
+fn run_check_like(
+    command: &'static str,
+    fix_mode: bool,
+    cli: &Cli,
+    locale: Locale,
+) -> Result<i32, String> {
     let mut report = CliReport {
         command,
         files: Vec::new(),
@@ -200,7 +204,7 @@ fn run_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, Stri
         summary: CliSummary::default(),
     };
     if cli.stdin {
-        return run_stdin_check_like(fix_mode, cli, locale);
+        return run_stdin_check_like(command, fix_mode, cli, locale);
     }
 
     let files = match expand_inputs(cli) {
@@ -360,7 +364,12 @@ fn format_stdin_content(content: &str) -> Result<String, String> {
         .content)
 }
 
-fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32, String> {
+fn run_stdin_check_like(
+    command: &'static str,
+    fix_mode: bool,
+    cli: &Cli,
+    locale: Locale,
+) -> Result<i32, String> {
     let mut content = String::new();
     io::stdin()
         .read_to_string(&mut content)
@@ -369,7 +378,7 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
         Ok(config) => config,
         Err(err) => {
             let mut report = CliReport {
-                command: "check",
+                command,
                 summary: CliSummary::default(),
                 files: Vec::new(),
                 errors: vec![CliError::config(Path::new("<stdin>"), err)],
@@ -379,6 +388,21 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
             return Ok(2);
         }
     };
+    let config_errors = config.validate_cached_rules();
+    if !config_errors.is_empty() {
+        let mut report = CliReport {
+            command,
+            summary: CliSummary::default(),
+            files: Vec::new(),
+            errors: config_errors
+                .into_iter()
+                .map(|error| CliError::config_validation(Path::new("<stdin>"), error))
+                .collect(),
+        };
+        report.recompute_summary();
+        output_report(&report, fix_mode, cli, locale)?;
+        return Ok(2);
+    }
     let options = config.to_lint_options();
     if fix_mode {
         if cli.unsafe_fixes && !cli.yes {
@@ -389,19 +413,40 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
         }
         let results = lint(&content, &options).map_err(|err| err.to_string())?;
         let fixed = apply_fixes_until_stable(&content, results, &options, cli.unsafe_fixes)?;
+        if matches!(cli.format, OutputFormat::Json) {
+            let mut report = CliReport {
+                command,
+                summary: CliSummary::default(),
+                files: vec![FileReport {
+                    path: "<stdin>".to_string(),
+                    diagnostics: fixed.diagnostics,
+                    applied_fixes: fixed.applied_fixes,
+                    changed: fixed.content != content,
+                }],
+                errors: Vec::new(),
+            };
+            report.recompute_summary();
+            let exit = if report.summary.total_issues > 0 {
+                1
+            } else {
+                0
+            };
+            output_report(&report, true, cli, locale)?;
+            return Ok(exit);
+        }
         if cli.diff {
             print_diff(Path::new("<stdin>"), &content, &fixed.content);
         } else {
             print!("{}", fixed.content);
         }
-        return Ok(0);
+        return Ok(if fixed.diagnostics.is_empty() { 0 } else { 1 });
     }
 
     let diagnostics = match lint(&content, &options) {
         Ok(diagnostics) => diagnostics,
         Err(err) => {
             let mut report = CliReport {
-                command: "check",
+                command,
                 summary: CliSummary::default(),
                 files: Vec::new(),
                 errors: vec![CliError::rule(Path::new("<stdin>"), err.to_string())],
@@ -412,7 +457,7 @@ fn run_stdin_check_like(fix_mode: bool, cli: &Cli, locale: Locale) -> Result<i32
         }
     };
     let mut report = CliReport {
-        command: "check",
+        command,
         summary: CliSummary::default(),
         files: vec![FileReport {
             path: "<stdin>".to_string(),

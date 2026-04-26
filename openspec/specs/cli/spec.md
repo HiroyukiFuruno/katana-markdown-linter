@@ -8,12 +8,53 @@ CLI の対話・非対話利用を満たし、Markdown linting を実行し、�
 
 CLIは、単体利用に耐えるcheck/fix workflowを提供しなければならない（SHALL）。
 
-#### Scenario: check と fix を実行する
+#### Scenario: check は診断だけを行う
 
 - **WHEN** user が `kml check` を実行する
 - **THEN** CLI は対象Markdownを再帰的にcheckする
-- **WHEN** user が `kml check --fix` または `kml fmt` を実行する
-- **THEN** CLI は安全なfixを適用し、残存違反を報告する
+- **THEN** CLI は対象ファイルを書き換えない
+- **THEN** CLI は違反があれば残存診断を報告する
+
+#### Scenario: check --fix は safe fix 後に再診断する
+
+- **WHEN** user が `kml check --fix` を実行する
+- **THEN** CLI は default-safe fix だけを適用する
+- **THEN** CLI は fix 後の内容を再 check する
+- **THEN** CLI は適用済み修正と残存違反を報告する
+- **THEN** CLI は unsafe fix を暗黙に適用しない
+
+#### Scenario: fix は明示的な safe fix command として動作する
+
+- **WHEN** user が `kml fix` を実行する
+- **THEN** CLI は default-safe fix だけを適用する
+- **THEN** CLI は適用済み修正と残存違反を報告する
+- **THEN** CLI は再実行時に不要な差分を増やさない
+
+#### Scenario: fmt は formatter contract を使う
+
+- **WHEN** user が `kml fmt` を実行する
+- **THEN** CLI は lint fix ではなく formatter contract に従って整形する
+- **THEN** CLI は整形後の内容が再実行で変化しないことを期待できる
+- **THEN** CLI は lint 違反を直す目的で unsafe fix を適用しない
+
+### Requirement: CLI SHALL keep check, fix, and fmt output contracts distinct
+
+CLIは、`check`、`fix`、`fmt` の責務に応じて output contract を分離しなければならない（SHALL）。
+
+#### Scenario: command-specific output を返す
+
+- **WHEN** user が `kml check` を実行する
+- **THEN** CLI は diagnostics を中心に出力する
+- **WHEN** user が `kml fix` または `kml check --fix` を実行する
+- **THEN** CLI は applied fixes と remaining diagnostics を区別して出力する
+- **WHEN** user が `kml fmt` を実行する
+- **THEN** CLI は formatter result を出力し、lint fix result と混同しない
+
+#### Scenario: JSON output と text output を混在させない
+
+- **WHEN** user が JSON output を指定する
+- **THEN** CLI は command-specific result を JSON payload として出力する
+- **THEN** CLI は human-readable progress や status を同じ stdout payload に混在させない
 
 ### Requirement: CLI SHALL support integration-friendly reporting
 

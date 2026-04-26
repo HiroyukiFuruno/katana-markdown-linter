@@ -14,8 +14,11 @@ REQUIRED_CASES = {
     "api_lint_large_document",
     "api_lint_clean_large_document",
     "api_fix_large_document",
+    "api_format_large_document",
     "api_lint_many_small_documents",
     "cli_check_many_small_files",
+    "cli_fix_many_small_files",
+    "cli_fmt_many_small_files",
     "config_validate_representative",
     "api_rule_catalog",
 }

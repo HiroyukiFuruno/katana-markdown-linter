@@ -16,6 +16,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.0`: MCP workspace tools を productize する。local stdio server として file/directory check と explicit apply を固定する。
 - `v0.12.2`: released patch として CI/CD parity、Windows 検証、cache strategy、誤検知回帰 fixture を締め直した。
 - `v0.12.3`: released patch として lint 精度、速度（performance）、単体テスト（UT）/結合テスト（IT）拡充を完了した。
+- `v0.12.4`: 展開より前の patch として、`linter` / `check` / `fix` / `fmt` の正しさ、収束性、冪等性、速度、release gate を固める。
 - `v0.13.0`: MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
@@ -37,6 +38,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Performance hot path work | `performance-hotpath-competition` | Completed; docs now include baseline, profile summary, before/after, and local regression guidance. |
 | Done | Quality hardening and CI parity for `v0.12.2` | `v0-12-2-quality-hardening-and-ci-parity` | Released in `v0.12.2`; Windows CI, cache strategy review, and file-level false-positive regression coverage are now in place. |
 | Done | Precision, performance, and test hardening for `v0.12.3` | `v0-12-3-precision-performance-test-hardening` | Completed for `v0.12.3`; `MD034` / `MD059` precision, code-line membership caching, static rule dispatch, and test evidence are archived. |
+| Done | Core linter/check/fix/fmt hardening for `v0.12.4` | `v0-12-4-linter-check-fix-fmt-hardening` | Completed for `v0.12.4`; CLI command contracts, stdin validation, core command integration tests, and check/fix/fmt performance cases are archived. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | P2 | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | P3 | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -57,18 +59,19 @@ Archived completed changes:
 - `mcp-workspace-tools-productization` -> `openspec/changes/archive/2026-04-26-mcp-workspace-tools-productization`
 - `v0-12-2-quality-hardening-and-ci-parity` -> `openspec/changes/archive/2026-04-26-v0-12-2-quality-hardening-and-ci-parity`
 - `v0-12-3-precision-performance-test-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-3-precision-performance-test-hardening`
+- `v0-12-4-linter-check-fix-fmt-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-4-linter-check-fix-fmt-hardening`
 
 ## Suggested Order
 
-1. Apply `mcp-registry-and-distribution-planning` after `v0.12.3`; it decides whether MCPB, OCI, or another package type is the primary path.
+1. Apply `mcp-registry-and-distribution-planning` after `v0.12.4`; it decides whether MCPB, OCI, or another package type is the primary path.
 2. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 3. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 
-## Deferred From v0.12.3
+## Deferred After v0.12.4
 
-- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分けてから別 change にする。
+- `distribution`: MCP Registry / Hub 公開、MCP package artifact、遠隔 MCP 接続（remote MCP transport）は `v0.12.4` 完了後に戻す。
 - `design-debt`: Markdown token parser の共有化、nested bracket/link title を含む link parser 化、inline code span parser の rule 間共通化は、parser 抽象化の後続 change で扱う。
-- `ci-gap`: Windows での action smoke / MCP stdio smoke は、script shell と binary suffix の扱いを分離した後続 change で扱う。
+- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分けてから別 change にする。
 
 ## Repository Guardrails
 
