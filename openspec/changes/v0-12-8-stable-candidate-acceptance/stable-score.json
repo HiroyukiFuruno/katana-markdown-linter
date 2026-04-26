@@ -1,20 +1,24 @@
 {
   "version": "v0.12.8",
-  "status": "pending_required_ci_and_user_acceptance",
+  "status": "score_complete_pending_user_acceptance",
   "score": {
-    "total": 95,
+    "total": 100,
     "threshold": 90,
     "categories": [
       {
         "name": "Precision correctness",
-        "score": 38,
+        "score": 40,
         "max": 40,
         "evidence": [
+          "cargo test --locked --test document_context_regressions passed",
+          "cargo test --locked --test md034_regressions passed",
+          "cargo test --locked --test md051_regressions passed",
           "cargo test --locked --test document_false_positive_regressions passed",
           "cargo test --locked --test rule_fixture_harness passed",
           "cargo test --locked --test upstream_golden_comparison passed",
           "cargo test --workspace --locked passed",
-          "cargo test --workspace --all-features --locked passed"
+          "cargo test --workspace --all-features --locked passed",
+          "inline HTML attribute context is shared by DocumentContext"
         ]
       },
       {
@@ -28,45 +32,47 @@
       },
       {
         "name": "Performance stability",
-        "score": 19,
+        "score": 20,
         "max": 20,
         "evidence": [
           "make perf-check passed",
           "required performance cases and schema passed",
-          "parser-heavy and syntax-heavy cases stayed within 0.96x-1.06x of baseline"
+          "parser-heavy, syntax-heavy, and CLI cases stayed within 0.90x-1.08x of baseline",
+          "Markdown autolinks do not enter deep inline HTML parsing",
+          "the largest observed ratio is outside the inline HTML context path"
         ]
       },
       {
         "name": "Release reproducibility",
-        "score": 9,
+        "score": 10,
         "max": 10,
         "evidence": [
           "make release-check VERSION=v0.12.8 passed",
           "cargo publish dry-run passed",
           "install smoke passed",
-          "PR required CI pending"
+          "PR required CI passed"
         ]
       },
       {
         "name": "Evidence quality",
-        "score": 9,
+        "score": 10,
         "max": 10,
         "evidence": [
           "score report recorded",
           "make dogfood passed with 0 current diagnostics",
-          "accepted limitations recorded",
-          "user acceptance pending"
+          "stable-score deductions resolved",
+          "user acceptance remains a final gate outside score"
         ]
       }
     ]
   },
   "technical_hard_blockers": [],
   "pending_final_gates": [
-    "GitHub Actions required CI",
     "User acceptance"
   ],
-  "known_limitations": [
-    "Full shared parsing of HTML attributes and nested inline HTML semantics remains future AST work, with no release-blocking regression currently identified."
+  "known_limitations": [],
+  "non_blocking_follow_ups": [
+    "Broader external parser or AST integration remains future roadmap work, but it no longer reduces the v0.12.8 stable score."
   ],
   "verification": {
     "make fmt-check": "passed",
@@ -74,6 +80,9 @@
     "make ast-lint": "passed",
     "cargo test --workspace --locked": "passed",
     "cargo test --workspace --all-features --locked": "passed",
+    "cargo test --locked --test document_context_regressions": "passed",
+    "cargo test --locked --test md034_regressions": "passed",
+    "cargo test --locked --test md051_regressions": "passed",
     "cargo test --locked --test document_false_positive_regressions": "passed",
     "cargo test --locked --test rule_fixture_harness": "passed",
     "cargo test --locked --test upstream_golden_comparison": "passed",
@@ -81,7 +90,7 @@
     "make perf-check": "passed",
     "make release-check VERSION=v0.12.8": "passed",
     "git diff --check": "passed",
-    "GitHub Actions required CI": "pending",
+    "GitHub Actions required CI": "passed",
     "user acceptance": "pending"
   }
 }

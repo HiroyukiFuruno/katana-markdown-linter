@@ -1,7 +1,6 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    SourceRange,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -30,69 +29,29 @@ impl MarkdownRule for NoInlineHtmlRule {
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD033");
         let mut diagnostics = Vec::new();
-        for (line_index, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(line_index) {
+        let mut reported_line = None;
+        for element in ctx.inline_html_elements() {
+            if !is_likely_html_tag(element.name) || reported_line == Some(element.line) {
                 continue;
             }
-            if contains_html_tag_outside_inline_code(ctx, line_index, line.text) {
-                RuleHelpers::push_diag(
-                    &mut diagnostics,
-                    ctx.file_path(),
-                    line_index,
-                    line.text,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                );
-            }
+            let line = &ctx.lines()[element.line];
+            RuleHelpers::push_diag(
+                &mut diagnostics,
+                ctx.file_path(),
+                element.line,
+                line.text,
+                &meta,
+                DiagnosticSeverity::Warning,
+            );
+            reported_line = Some(element.line);
         }
         diagnostics
     }
 }
 
-fn contains_html_tag_outside_inline_code(
-    ctx: &DocumentContext<'_>,
-    line_index: usize,
-    line: &str,
-) -> bool {
-    let line_start = ctx.lines()[line_index].content_range.start;
-    let has_inline_code = line.contains('`');
-    let mut offset = 0;
-    while let Some(tag_start_offset) = line[offset..].find('<') {
-        let tag_start = offset + tag_start_offset;
-        let tag_content_start = tag_start + 1;
-        let Some(tag_end_offset) = line[tag_content_start..].find('>') else {
-            return false;
-        };
-        let tag_content_end = tag_content_start + tag_end_offset;
-        let tag_end = tag_content_end + 1;
-        let tag_content = &line[tag_content_start..tag_content_end];
-        let tag_range = SourceRange {
-            start: line_start + tag_start,
-            end: line_start + tag_end,
-        };
-
-        if is_likely_html_tag(tag_content)
-            && !(has_inline_code && ctx.is_inside_inline_code(tag_range))
-        {
-            return true;
-        }
-        offset = tag_end;
-    }
-    false
-}
-
 fn is_likely_html_tag(content: &str) -> bool {
-    let trimmed = content.trim();
-    if trimmed.is_empty() {
-        return false;
-    }
-    let tag_name = trimmed
-        .trim_start_matches('/')
-        .split(|it: char| it.is_whitespace() || it == '/')
-        .next()
-        .unwrap_or("");
     matches!(
-        tag_name.to_lowercase().as_str(),
+        content.to_lowercase().as_str(),
         "br" | "hr"
             | "div"
             | "span"

@@ -9,6 +9,34 @@ pub struct InlineCodeSpan {
     pub closed: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InlineHtmlAttribute<'a> {
+    pub name: &'a str,
+    pub value: Option<&'a str>,
+    pub name_range: SourceRange,
+    pub value_range: Option<SourceRange>,
+    pub full_range: SourceRange,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InlineHtmlElement<'a> {
+    pub line: usize,
+    pub name: &'a str,
+    pub name_range: SourceRange,
+    pub attributes: Vec<InlineHtmlAttribute<'a>>,
+    pub full_range: SourceRange,
+    pub closing: bool,
+}
+
+impl<'a> InlineHtmlElement<'a> {
+    pub fn attribute_value(&self, name: &str) -> Option<&'a str> {
+        self.attributes
+            .iter()
+            .filter(|attribute| attribute.name.eq_ignore_ascii_case(name))
+            .find_map(|attribute| attribute.value)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InlineLinkKind {
     Inline,

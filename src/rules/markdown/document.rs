@@ -1,5 +1,6 @@
 use crate::rules::markdown::inline::{
-    extract_inline_code_spans, extract_inline_links, extract_reference_definitions, InlineCodeSpan,
+    extract_inline_code_spans, extract_inline_html_elements, extract_inline_links,
+    extract_reference_definitions, InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement,
     InlineLink, ReferenceDefinition,
 };
 use crate::rules::markdown::DiagnosticRange;
@@ -101,6 +102,7 @@ pub struct DocumentContext<'a> {
     code_line_flags: Vec<bool>,
     headings: OnceLock<Vec<Heading<'a>>>,
     inline_code_spans: OnceLock<Vec<InlineCodeSpan>>,
+    inline_html_elements: OnceLock<Vec<InlineHtmlElement<'a>>>,
     inline_links: OnceLock<Vec<InlineLink<'a>>>,
     reference_definitions: OnceLock<Vec<ReferenceDefinition<'a>>>,
     links: OnceLock<Vec<Link<'a>>>,
@@ -130,6 +132,7 @@ impl<'a> DocumentContext<'a> {
             code_line_flags,
             headings: OnceLock::new(),
             inline_code_spans: OnceLock::new(),
+            inline_html_elements: OnceLock::new(),
             inline_links: OnceLock::new(),
             reference_definitions: OnceLock::new(),
             links: OnceLock::new(),
@@ -172,6 +175,32 @@ impl<'a> DocumentContext<'a> {
         self.inline_code_spans
             .get_or_init(|| extract_inline_code_spans(&self.lines, &self.code_blocks))
             .as_slice()
+    }
+
+    pub fn inline_html_elements(&self) -> &[InlineHtmlElement<'a>] {
+        self.inline_html_elements
+            .get_or_init(|| {
+                if !self.content.contains('<') {
+                    return Vec::new();
+                }
+                extract_inline_html_elements(
+                    &self.lines,
+                    &self.code_blocks,
+                    self.inline_code_spans(),
+                )
+            })
+            .as_slice()
+    }
+
+    pub fn html_attribute_at(&self, offset: usize) -> Option<&InlineHtmlAttribute<'a>> {
+        self.inline_html_elements()
+            .iter()
+            .flat_map(|element| element.attributes.iter())
+            .find(|attribute| {
+                attribute
+                    .value_range
+                    .is_some_and(|range| range.start <= offset && offset < range.end)
+            })
     }
 
     pub fn inline_links(&self) -> &[InlineLink<'a>] {
@@ -647,6 +676,55 @@ mod tests {
             ctx.reference_definitions()[0].destination,
             "https://example.org/image.png"
         );
+    }
+
+    #[test]
+    fn context_extracts_source_preserving_inline_html_elements() {
+        let content = concat!(
+            "<span data-id=\"outer\"><a id=\"target\" href=\"https://example.com?q=>\">x</a></span>\n",
+            "<img data-count=42 alt='Image' />\n",
+            "<span =broken disabled></span>\n",
+            "<span missing=\"unterminated></span>\n",
+            "`<a id=\"code\"></a>`\n",
+            "```\n<a id=\"fenced\"></a>\n```\n",
+            "<https://example.com>\n",
+            "<span",
+        );
+        let ctx = DocumentContext::new(Path::new("doc.md"), content);
+        let elements = ctx.inline_html_elements();
+
+        assert!(elements.iter().any(|element| {
+            !element.closing
+                && element.name == "span"
+                && element.attribute_value("data-id") == Some("outer")
+        }));
+        assert!(elements.iter().any(|element| {
+            !element.closing
+                && element.name == "a"
+                && element.attribute_value("id") == Some("target")
+                && element.attribute_value("href") == Some("https://example.com?q=>")
+        }));
+        assert!(elements.iter().any(|element| {
+            !element.closing
+                && element.name == "img"
+                && element.attribute_value("data-count").is_none()
+                && element.attribute_value("alt") == Some("Image")
+        }));
+        assert!(elements.iter().any(|element| {
+            !element.closing
+                && element.name == "span"
+                && element.attribute_value("disabled").is_none()
+        }));
+        assert!(elements
+            .iter()
+            .any(|element| element.closing && element.name == "a"));
+        assert!(elements
+            .iter()
+            .all(|element| element.attribute_value("id") != Some("code")));
+        assert!(elements
+            .iter()
+            .all(|element| element.attribute_value("id") != Some("fenced")));
+        assert!(elements.iter().all(|element| element.name != "https:"));
     }
 
     #[test]
