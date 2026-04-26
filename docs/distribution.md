@@ -13,8 +13,8 @@ use the release tag directly:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.12.1
-  with: { version: "0.12.1", command: check, paths: "README.md\ndocs" }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.14.0
+  with: { version: "0.14.0", command: check, paths: "README.md\ndocs" }
 ~~~
 
 Pin both the action tag and the crate `version` input. The action installs the

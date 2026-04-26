@@ -51,8 +51,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.12.1
-  with: { version: "0.12.1", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.14.0
+  with: { version: "0.14.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
