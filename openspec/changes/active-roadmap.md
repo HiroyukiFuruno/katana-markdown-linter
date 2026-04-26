@@ -20,8 +20,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.5`: 安定版に向けた AST readiness と parser precision を優先する。link / inline code / reference の共有 parser と性能計測を作る。
 - `v0.12.6`: released patch として context-sensitive rule を parser / `DocumentContext` へ移譲し、単一行文字列だけに依存する rule を減らした。
 - `v0.12.7`: released patch として parser / context migration 後の performance、check / fix / fmt convergence、baseline evidence を固めた。
-- `v0.12.8`: stable candidate として 100 点満点の score、hard blocker、ユーザー受け入れ判断で安定版可否を決める。
-- `v0.13.0`: `v0.12.8` が stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了の場合だけ、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
+- `v0.12.8`: released patch として stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。
+- `v0.13.0`: `v0.12.8` の stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。`v0.12.9` を継続するかは `v0.12.8` release 後に議論する。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 
@@ -46,7 +46,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | AST readiness and parser precision for `v0.12.5` | `v0-12-5-ast-readiness-and-parser-precision-hardening` | Completed for `v0.12.5`; link / inline-code / reference precision now uses shared parser evidence and measured parser-index cost. |
 | Done | Context-sensitive rule migration for `v0.12.6` | `v0-12-6-context-sensitive-rule-migration` | Completed for `v0.12.6`; MD033 / MD037 / MD038 / MD039 / MD044 / MD049 / MD050 now use shared parser or `DocumentContext` evidence, and the final performance baseline is refreshed. |
 | Done | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Completed for `v0.12.7`; parser migration speed, safe fix behavior, check/fix/fmt idempotence, and stable-score dry run are archived. |
-| P1 | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Defines stable score, hard blockers, and final user acceptance before `v0.13.0` can begin. |
+| Done | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Completed for `v0.12.8`; stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。 |
 | Frozen | MCP Registry and distribution planning for `v0.13.0` | `mcp-registry-and-distribution-planning` | Waits until `v0.12.8` is accepted as stable; then defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -71,11 +71,12 @@ Archived completed changes:
 - `v0-12-5-ast-readiness-and-parser-precision-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-5-ast-readiness-and-parser-precision-hardening`
 - `v0-12-6-context-sensitive-rule-migration` -> `openspec/changes/archive/2026-04-26-v0-12-6-context-sensitive-rule-migration`
 - `v0-12-7-performance-convergence-hardening` -> `openspec/changes/archive/2026-04-26-v0-12-7-performance-convergence-hardening`
+- `v0-12-8-stable-candidate-acceptance` -> `openspec/changes/archive/2026-04-26-v0-12-8-stable-candidate-acceptance`
 
 ## Suggested Order
 
-1. Apply `v0-12-8-stable-candidate-acceptance`; it scores stable readiness and ends with user acceptance judgment.
-2. Apply `mcp-registry-and-distribution-planning` only after `v0.12.8` stable score is at least 90, hard blockers are 0, and user acceptance is recorded.
+1. Decide after `v0.12.8` release whether to continue hardening as `v0.12.9` or move to `v0.13.0` planning.
+2. Apply `mcp-registry-and-distribution-planning` only if the next direction is `v0.13.0`; `v0.12.8` stable score is at least 90, hard blockers are 0, and user acceptance is recorded.
 3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 

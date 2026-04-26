@@ -158,7 +158,7 @@ Score: 10 / 10
 
 根拠:
 
-- `openspec/changes/v0-12-8-stable-candidate-acceptance/stable-score.json` に machine-readable report を追加した。
+- `openspec/changes/archive/2026-04-26-v0-12-8-stable-candidate-acceptance/stable-score.json` に machine-readable report を追加した。
 - `make dogfood`: 0 current diagnostics、4 baseline diagnostics、4 resolved。
 - accepted limitation は stable score 減点対象なしとして tasks に明記した。
 - 最終ユーザー受け入れ判断は score 外の final gate として分離した。
@@ -179,14 +179,14 @@ Technical hard blocker: 0 件。
 
 Pending final gates:
 
-- ユーザー受け入れ判断。
+- なし。
 
 ## 7. User Acceptance
 
-- [ ] score total、category score、hard blocker、known limitation、verification result をユーザーに提示する。
-- [ ] ユーザーが `v0.12.8` を安定版として受け入れるか判断する。
-- [ ] 受け入れられた場合、`v0.13.0` の DoR を満たす条件として記録する。
-- [ ] 受け入れられない場合、追加の `v0.12.x` hardening scope を定義する。
+- [x] score total、category score、hard blocker、known limitation、verification result をユーザーに提示する。
+- [x] ユーザーが `v0.12.8` のリリース実施を受け入れるか判断する。
+- [x] 受け入れられたため、`v0.13.0` の DoR のうち stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了を満たしたことを記録する。
+- [x] `v0.12.9` として hardening を継続するか、release 後に別途議論することを記録する。
 
 現時点の判定:
 
@@ -202,14 +202,16 @@ Total: 100 / 100
 
 Technical hard blocker: 0 件。
 
-安定版として確定するには、ユーザー受け入れ判断が必要。
+ユーザー判断:
+
+- `2026-04-26`: `v0.12.8` として release する。`v0.12.9` として継続するかは release 後に議論する。
 
 ## 8. Release Preparation
 
 - [x] crate version を `0.12.8` に更新する。
 - [x] `CHANGELOG.md` に stable candidate evaluation を英語で記載する。
 - [x] OpenSpec delta を main specs に同期する。
-- [ ] ユーザー受け入れ判断の完了後に archive する。
+- [x] ユーザー受け入れ判断の完了後に archive する。
 - [x] release 前に `make release-check VERSION=v0.12.8` を通す。
 
 ## Verification
@@ -230,7 +232,7 @@ Technical hard blocker: 0 件。
 - [x] `make release-check VERSION=v0.12.8`
 - [x] GitHub Actions required CI
 - [x] `git diff --check`
-- [ ] ユーザー受け入れ判断
+- [x] ユーザー受け入れ判断
 
 ## Definition of Done
 
@@ -238,5 +240,5 @@ Technical hard blocker: 0 件。
 - [x] score が 90 点以上である。
 - [x] technical hard blocker が 0 件である。
 - [x] required CI が通過している。
-- [ ] ユーザーが安定版として受け入れている。
-- [ ] `v0.13.0` に進む DoR が満たされたことが記録されている。
+- [x] ユーザーが `v0.12.8` release として受け入れている。
+- [x] `v0.13.0` に進む DoR のうち、stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了が満たされたことが記録されている。
