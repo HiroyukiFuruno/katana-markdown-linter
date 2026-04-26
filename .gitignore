@@ -3,13 +3,13 @@
 skill.md
 CLAUDE.md
 AGENTS.md
-*.skill.md
-tmp
 
 # Python artifacts
 __pycache__/
 *.py[cod]
 *$py.class
+*.skill.md
+tmp
 
 # openspec workfiles
 openspec*
@@ -17,4 +17,3 @@ openspec*
 !openspec/**
 opsx*
 !/scripts/openspec
-

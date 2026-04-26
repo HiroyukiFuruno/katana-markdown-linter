@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 8,
+  "total_diagnostics": 50,
   "diagnostics": [
     {
       "path": "docs/mcp-server.md",
@@ -22,6 +22,300 @@
       "rule_id": "MD034",
       "message": "Bare URL used",
       "line_text": "\"url\": \"https://github.com/HiroyukiFuruno/katana-markdown-linter\",",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## 1. 品質ゲートの強化 (Quality Gate Overhaul)",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### 2.1 `src/cli.rs` の責務分離",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### 2.2 `target/internal-quality-report.json` 指摘事項の対応",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### 3.1 メモリアロケーションの削減",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### 3.2 重点監視ケースのパフォーマンス改善",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### 4.1 Known Limitations の整理と対策",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- **Arguments & Parsing Layer**: `Cli` 構造体の定義と、CLI引数の展開",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- 文字列や配列の所有権が不要な箇所では、参照 (`&str`, `&[T]`) を活用。",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/design.md",
+      "rule_id": "MD047",
+      "message": "Files should end with a single newline character.",
+      "line_text": "`v0.12.11` の `public-confidence` で検出されていた `md-broken-link` (4件) などについて、これが Linter の制約として許容すべき（外部依存による真のリンク切れ）か、それとも無視ルールの拡張によって運用でカバーすべきかを決定し、結果分類の精度をさらに高めます。",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/proposal.md",
+      "rule_id": "MD047",
+      "message": "Files should end with a single newline character.",
+      "line_text": "- Linterの検査精度の意図的な低下を伴うパフォーマンス最適化",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## Acceptance Criteria",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## Functional Requirements",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## Overview",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## Scope",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "2.  **Performance Optimization**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "3.  **Public Confidence**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   **Internal Quality**: `internal-quality-report.json` shows a significant reduction in `size_score` for `src/cli.rs` and other targeted files.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   **Performance**: `make perf-check-strict` passes with a `--max-ratio 1.4` (or better) and improvements are documented.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   **Release Readiness**: The final `make release-check VERSION=v0.12.12` must pass without any manual interventions.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Address duplication and structure issues highlighted in `target/internal-quality-report.json`.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   All tests, including `cli_convergence_contract`, must continue to pass exactly as they did in `v0.12.11`.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Analyze and resolve/manage the outstanding `md-broken-link` false positives in the KatanA external corpus.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Improve evaluation hotpaths.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   No changes to configuration file schemas.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   No changes to public command-line arguments.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   No regressions in existing AST and formatting precision.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Produce a verified `public-confidence-score.json` with a score of 100/100.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Reduce unnecessary allocations (`.clone()`, `.to_string()`, `.collect::<Vec<_>>()`).",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Separate the monolithic `src/cli.rs` into smaller, responsibility-focused modules.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "*   Update baseline after verified improvements.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "1.  **Refactoring (`src/cli.rs`)**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "2.  **Performance Optimization**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD030",
+      "message": "Spaces after list markers",
+      "line_text": "3.  **Public Confidence**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "*   **Internal Quality**: `internal-quality-report.json` shows a significant reduction in `size_score` for `src/cli.rs` and other targeted files.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "*   No changes to public command-line arguments.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "1.  **Refactoring (`src/cli.rs`)**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD047",
+      "message": "Files should end with a single newline character.",
+      "line_text": "*   **Release Readiness**: The final `make release-check VERSION=v0.12.12` must pass without any manual interventions.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## 1. Quick Wins & Stabilization (Phase 1)",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## 2. Quality Gate Overhaul (Phase 2)",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## 3. Architecture Refactoring (Phase 3)",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "## 4. Performance Optimization (Phase 4)",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD047",
+      "message": "Files should end with a single newline character.",
+      "line_text": "- [ ] `make release-check` がエラーなく通過する",
       "count": 1
     },
     {
