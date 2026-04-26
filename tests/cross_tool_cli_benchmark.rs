@@ -51,6 +51,21 @@ fn write_corpus(root: &Path) -> (PathBuf, PathBuf) {
     (clean, dirty)
 }
 
+fn mock_kml_path(root: &Path) -> PathBuf {
+    root.join(mock_kml_filename())
+}
+
+#[cfg(windows)]
+fn mock_kml_filename() -> &'static str {
+    "kml-mock.cmd"
+}
+
+#[cfg(not(windows))]
+fn mock_kml_filename() -> &'static str {
+    "kml-mock"
+}
+
+#[cfg(not(windows))]
 fn write_mock_kml(path: &Path, clean_fails: bool) {
     let clean_exit = if clean_fails { 1 } else { 0 };
     let script = format!(
@@ -92,6 +107,60 @@ esac
     make_executable(path);
 }
 
+#[cfg(windows)]
+fn write_mock_kml(path: &Path, clean_fails: bool) {
+    let clean_exit = if clean_fails { 1 } else { 0 };
+    let script = format!(
+        r#"@echo off
+setlocal EnableExtensions
+if "%~1"=="--version" (
+  echo kml-mock 1.0.0
+  exit /b 0
+)
+
+set "fix=0"
+set "target="
+:parse
+if "%~1"=="" goto done_parse
+if "%~1"=="--fix" (
+  set "fix=1"
+  shift
+  goto parse
+)
+if "%~1"=="check" (
+  shift
+  goto parse
+)
+set "arg=%~1"
+if "%arg:~0,2%"=="--" (
+  shift
+  goto parse
+)
+set "target=%~1"
+shift
+goto parse
+
+:done_parse
+if "%fix%"=="1" (
+  if exist "%target%\doc.md" (
+    echo.>>"%target%\doc.md"
+    echo fixed>>"%target%\doc.md"
+  )
+  exit /b 1
+)
+
+echo %target% | findstr /I "clean" >nul
+if %ERRORLEVEL%==0 exit /b {clean_exit}
+echo %target% | findstr /I "dirty" >nul
+if %ERRORLEVEL%==0 exit /b 1
+exit /b 0
+"#
+    );
+    fs::write(path, script).expect("mock kml should be written");
+    make_executable(path);
+}
+
+#[cfg(not(windows))]
 fn write_content_aware_mock_kml(path: &Path) {
     let script = r#"#!/bin/sh
 if [ "${1:-}" = "--version" ]; then
@@ -130,6 +199,68 @@ exit 1
     make_executable(path);
 }
 
+#[cfg(windows)]
+fn write_content_aware_mock_kml(path: &Path) {
+    let script = r#"@echo off
+setlocal EnableExtensions
+if "%~1"=="--version" (
+  echo kml-mock 1.0.0
+  exit /b 0
+)
+
+set "fix=0"
+set "target="
+set "skip=0"
+:parse
+if "%~1"=="" goto done_parse
+if "%skip%"=="1" (
+  set "skip=0"
+  shift
+  goto parse
+)
+if "%~1"=="--fix" (
+  set "fix=1"
+  shift
+  goto parse
+)
+if "%~1"=="check" (
+  shift
+  goto parse
+)
+if "%~1"=="--output" (
+  set "skip=1"
+  shift
+  goto parse
+)
+if "%~1"=="--config" (
+  set "skip=1"
+  shift
+  goto parse
+)
+set "arg=%~1"
+if "%arg:~0,2%"=="--" (
+  shift
+  goto parse
+)
+set "target=%~1"
+shift
+goto parse
+
+:done_parse
+if "%fix%"=="1" (
+  echo.>>"%target%\doc.md"
+  echo fixed>>"%target%\doc.md"
+  exit /b 0
+)
+
+findstr /C:"fixed" "%target%\doc.md" >nul
+if %ERRORLEVEL%==0 exit /b 0
+exit /b 1
+"#;
+    fs::write(path, script).expect("content-aware mock should be written");
+    make_executable(path);
+}
+
 #[cfg(unix)]
 fn make_executable(path: &Path) {
     let mut permissions = fs::metadata(path)
@@ -153,7 +284,7 @@ fn run_python(args: &[String]) -> std::process::Output {
 fn missing_optional_tools_are_reported_as_skipped_cases() {
     let dir = TestDir::new("missing-tools");
     let (clean, dirty) = write_corpus(dir.path());
-    let mock = dir.path().join("kml-mock");
+    let mock = mock_kml_path(dir.path());
     write_mock_kml(&mock, false);
     let output = dir.path().join("report.json");
     let summary = dir.path().join("summary.md");
@@ -237,7 +368,7 @@ fn missing_optional_tools_are_reported_as_skipped_cases() {
 fn dirty_check_violation_exit_code_is_normalized() {
     let dir = TestDir::new("dirty-normalized");
     let (_clean, dirty) = write_corpus(dir.path());
-    let mock = dir.path().join("kml-mock");
+    let mock = mock_kml_path(dir.path());
     write_mock_kml(&mock, false);
 
     let result = run_python(&[
@@ -267,7 +398,7 @@ fn dirty_check_violation_exit_code_is_normalized() {
 fn clean_check_non_zero_exit_is_a_failure() {
     let dir = TestDir::new("clean-failure");
     let (clean, _dirty) = write_corpus(dir.path());
-    let mock = dir.path().join("kml-mock");
+    let mock = mock_kml_path(dir.path());
     write_mock_kml(&mock, true);
 
     let result = run_python(&[
@@ -295,7 +426,7 @@ fn fix_workflow_uses_temporary_workspace_copy() {
     let (_clean, dirty) = write_corpus(dir.path());
     let source = dirty.join("doc.md");
     let before = fs::read_to_string(&source).expect("source should be readable");
-    let mock = dir.path().join("kml-mock");
+    let mock = mock_kml_path(dir.path());
     write_mock_kml(&mock, false);
 
     let result = run_python(&[
@@ -329,7 +460,7 @@ fn fix_workflow_reports_post_fix_validation() {
     let (clean, dirty) = write_corpus(dir.path());
     let source = dirty.join("doc.md");
     let before = fs::read_to_string(&source).expect("source should be readable");
-    let mock = dir.path().join("kml-mock");
+    let mock = mock_kml_path(dir.path());
     write_content_aware_mock_kml(&mock);
     let output = dir.path().join("report.json");
     let summary = dir.path().join("summary.md");
