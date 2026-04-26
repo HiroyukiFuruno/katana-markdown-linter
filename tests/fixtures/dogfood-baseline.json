@@ -1,34 +1,62 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 4,
+  "total_diagnostics": 8,
   "diagnostics": [
     {
-      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Goals:**",
+      "path": "docs/mcp-server.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "\"$schema\": \"https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json\",",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-10-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Non-Goals:**",
+      "path": "docs/mcp-server.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "\"identifier\": \"https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.13.0/kml-mcp.mcpb\",",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Goals:**",
+      "path": "docs/mcp-server.md",
+      "rule_id": "MD034",
+      "message": "Bare URL used",
+      "line_text": "\"url\": \"https://github.com/HiroyukiFuruno/katana-markdown-linter\",",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-11-quality-and-performance-hardening/design.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "**Non-Goals:**",
+      "path": "openspec/specs/cli/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Requirement: system SHALL separate CLI orchestration responsibilities with shared execution contracts",
+      "count": 1
+    },
+    {
+      "path": "openspec/specs/dogfood-workflow/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Requirement: public confidence corpus SHALL be expanded to mixed-structure representative coverage",
+      "count": 1
+    },
+    {
+      "path": "openspec/specs/performance-benchmarking/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Requirement: system SHALL classify and track performance regressions with per-case context",
+      "count": 1
+    },
+    {
+      "path": "openspec/specs/performance-benchmarking/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "#### Scenario: common-subset comparison を実行する",
+      "count": 1
+    },
+    {
+      "path": "openspec/specs/release-readiness/spec.md",
+      "rule_id": "MD022",
+      "message": "Headings should be surrounded by blank lines",
+      "line_text": "### Requirement: システムは `v0.12.11` で品質スコアを算出する",
       "count": 1
     }
   ]

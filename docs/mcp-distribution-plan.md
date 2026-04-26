@@ -32,6 +32,7 @@ For `v0.13.0` and beyond, we will focus on **MCPB (via GitHub Releases)** and **
 ### 2.1 `server.json` Draft
 
 A draft of `server.json` is maintained in `docs/mcp-server.md`. It includes:
+
 - Command: `kml-mcp`
 - Arguments: `["--workspace-root", "."]`
 - Required features: `mcp`
@@ -45,6 +46,7 @@ A draft of `server.json` is maintained in `docs/mcp-server.md`. It includes:
 ## 3. Public Readiness Gate
 
 Before publishing to the official MCP Registry or Hubs:
+
 - `v0.12.8` must achieve a stable score of 90+.
 - `v0.12.9` public confidence gate must pass.
 - `make mcp-stdio-smoke` must be part of the release workflow.
