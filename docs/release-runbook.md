@@ -64,6 +64,15 @@ The workflow validates:
 - `cargo publish --dry-run --locked --allow-dirty`
 - `cargo install --path . --locked --bin kml`
 
+Normal pull request CI validates Windows with locked workspace build and test
+commands before release. The Release workflow remains a single Ubuntu runner so
+GitHub Release creation and crates.io publication cannot execute from multiple
+OS jobs.
+
+Normal CI, release preflight, and release publication all use
+`Swatinem/rust-cache`. Each workflow uses an explicit `shared-key` to keep the
+cache family and feature scope visible in logs.
+
 The workflow creates or updates:
 
 - GitHub Release
@@ -91,6 +100,7 @@ Current `main` branch protection requires:
 
 - `Test and Build (macos-latest)`
 - `Test and Build (ubuntu-latest)`
+- `Test and Build (windows-latest)`
 
 If workflow job names are changed, update branch protection in the same change. Direct pushes to `main` are blocked for non-admin users; admin bypasses should be treated as exceptions and verified by CI immediately after push.
 
