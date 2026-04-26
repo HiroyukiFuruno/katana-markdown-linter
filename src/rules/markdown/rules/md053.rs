@@ -30,33 +30,25 @@ impl MarkdownRule for LinkDefinitionsRule {
         let meta = self.official_meta().expect("always Some for MD053");
         let mut diagnostics = Vec::new();
         let mut seen = std::collections::HashSet::new();
-        for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
-                continue;
-            }
-            let trimmed = line.text.trim_start();
-            if let Some(label) = trimmed
-                .strip_prefix('[')
-                .and_then(|rest| rest.split_once("]:"))
-            {
-                if !seen.insert(label.0.to_lowercase()) {
-                    let fix = crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: 1,
-                        end_line: line.number + 1,
-                        end_column: 1,
-                        replacement: String::new(),
-                    };
-                    RuleHelpers::push_diag_with_fix(
-                        &mut diagnostics,
-                        ctx.file_path(),
-                        i,
-                        line.text,
-                        &meta,
-                        DiagnosticSeverity::Warning,
-                        Some(fix),
-                    );
-                }
+        for definition in ctx.reference_definitions() {
+            if !seen.insert(definition.label.to_lowercase()) {
+                let line = &ctx.lines()[definition.line];
+                let fix = crate::rules::markdown::types::DiagnosticFix {
+                    start_line: line.number,
+                    start_column: 1,
+                    end_line: line.number + 1,
+                    end_column: 1,
+                    replacement: String::new(),
+                };
+                RuleHelpers::push_diag_with_fix(
+                    &mut diagnostics,
+                    ctx.file_path(),
+                    definition.line,
+                    line.text,
+                    &meta,
+                    DiagnosticSeverity::Warning,
+                    Some(fix),
+                );
             }
         }
         diagnostics

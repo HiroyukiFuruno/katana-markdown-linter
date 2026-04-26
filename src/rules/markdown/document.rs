@@ -1,3 +1,7 @@
+use crate::rules::markdown::inline::{
+    extract_inline_code_spans, extract_inline_links, extract_reference_definitions, InlineCodeSpan,
+    InlineLink, ReferenceDefinition,
+};
 use crate::rules::markdown::DiagnosticRange;
 use std::path::Path;
 use std::sync::OnceLock;
@@ -96,6 +100,9 @@ pub struct DocumentContext<'a> {
     code_blocks: Vec<BlockRange>,
     code_line_flags: Vec<bool>,
     headings: OnceLock<Vec<Heading<'a>>>,
+    inline_code_spans: OnceLock<Vec<InlineCodeSpan>>,
+    inline_links: OnceLock<Vec<InlineLink<'a>>>,
+    reference_definitions: OnceLock<Vec<ReferenceDefinition<'a>>>,
     links: OnceLock<Vec<Link<'a>>>,
     tables: OnceLock<Vec<TableBlock<'a>>>,
     #[allow(dead_code)]
@@ -122,6 +129,9 @@ impl<'a> DocumentContext<'a> {
             code_blocks,
             code_line_flags,
             headings: OnceLock::new(),
+            inline_code_spans: OnceLock::new(),
+            inline_links: OnceLock::new(),
+            reference_definitions: OnceLock::new(),
             links: OnceLock::new(),
             tables: OnceLock::new(),
             ast: OnceLock::new(),
@@ -158,9 +168,29 @@ impl<'a> DocumentContext<'a> {
             .as_slice()
     }
 
+    pub fn inline_code_spans(&self) -> &[InlineCodeSpan] {
+        self.inline_code_spans
+            .get_or_init(|| extract_inline_code_spans(&self.lines, &self.code_blocks))
+            .as_slice()
+    }
+
+    pub fn inline_links(&self) -> &[InlineLink<'a>] {
+        self.inline_links
+            .get_or_init(|| {
+                extract_inline_links(&self.lines, &self.code_blocks, self.inline_code_spans())
+            })
+            .as_slice()
+    }
+
+    pub fn reference_definitions(&self) -> &[ReferenceDefinition<'a>] {
+        self.reference_definitions
+            .get_or_init(|| extract_reference_definitions(&self.lines, &self.code_blocks))
+            .as_slice()
+    }
+
     pub fn links(&self) -> &[Link<'a>] {
         self.links
-            .get_or_init(|| extract_links(&self.lines, &self.code_blocks))
+            .get_or_init(|| extract_links(self.inline_links()))
             .as_slice()
     }
 
@@ -410,46 +440,20 @@ fn parse_heading<'a>(line_index: usize, line: &LineInfo<'a>) -> Option<Heading<'
     })
 }
 
-fn extract_links<'a>(lines: &[LineInfo<'a>], code_blocks: &[BlockRange]) -> Vec<Link<'a>> {
-    let mut links = Vec::new();
-    for (idx, line) in lines.iter().enumerate() {
-        if line_in_blocks(idx, code_blocks) {
-            continue;
-        }
-        let mut cursor = 0;
-        while let Some(open_text) = line.text[cursor..].find('[') {
-            let text_start_local = cursor + open_text + 1;
-            let Some(close_text_rel) = line.text[text_start_local..].find(']') else {
-                break;
-            };
-            let text_end_local = text_start_local + close_text_rel;
-            let after_text = text_end_local + 1;
-            if line.text.as_bytes().get(after_text) != Some(&b'(') {
-                cursor = after_text;
-                continue;
-            }
-            let dest_start_local = after_text + 1;
-            let Some(close_dest_rel) = line.text[dest_start_local..].find(')') else {
-                break;
-            };
-            let dest_end_local = dest_start_local + close_dest_rel;
-            links.push(Link {
-                line: idx,
-                text: &line.text[text_start_local..text_end_local],
-                destination: &line.text[dest_start_local..dest_end_local],
-                text_range: SourceRange {
-                    start: line.content_range.start + text_start_local,
-                    end: line.content_range.start + text_end_local,
-                },
-                destination_range: SourceRange {
-                    start: line.content_range.start + dest_start_local,
-                    end: line.content_range.start + dest_end_local,
-                },
-            });
-            cursor = dest_end_local + 1;
-        }
-    }
-    links
+fn extract_links<'a>(inline_links: &[InlineLink<'a>]) -> Vec<Link<'a>> {
+    inline_links
+        .iter()
+        .filter(|link| link.kind.is_inline() && !link.kind.is_image())
+        .filter_map(|link| {
+            Some(Link {
+                line: link.line,
+                text: link.text?,
+                destination: link.destination?,
+                text_range: link.text_range?,
+                destination_range: link.destination_range?,
+            })
+        })
+        .collect()
 }
 
 fn extract_tables<'a>(lines: &[LineInfo<'a>], code_blocks: &[BlockRange]) -> Vec<TableBlock<'a>> {
@@ -596,6 +600,8 @@ mod tests {
         assert_eq!(ctx.headings()[0].text, "Title");
         assert_eq!(ctx.links().len(), 1);
         assert_eq!(ctx.links()[0].destination, "#title");
+        assert_eq!(ctx.inline_links().len(), 1);
+        assert_eq!(ctx.inline_links()[0].destination, Some("#title"));
         assert_eq!(ctx.tables().len(), 1);
         assert_eq!(ctx.tables()[0].rows.len(), 3);
         assert_eq!(ctx.code_blocks().len(), 1);
@@ -603,6 +609,50 @@ mod tests {
         assert!(ctx.is_code_line(12));
         assert!(!ctx.is_code_line(99));
         assert_eq!(ctx.markdown_ast().blocks.len(), 3);
+    }
+
+    #[test]
+    fn context_extracts_source_preserving_inline_tokens() {
+        let content = concat!(
+            "See [nested [text]](https://example.com/path?q=1 \"title\") ",
+            "and ![alt][image-ref] plus <https://example.org>.\n",
+            "``[ignored](https://example.invalid)`` and `[ignored][]`\n",
+            "`[unclosed](https://example.invalid)\n",
+            "[image-ref]: <https://example.org/image.png> \"Image\"\n",
+        );
+        let ctx = DocumentContext::new(Path::new("doc.md"), content);
+
+        assert_eq!(ctx.inline_code_spans().len(), 3);
+        assert!(!ctx.inline_code_spans()[2].closed);
+        let links = ctx.inline_links();
+        assert_eq!(links.len(), 3);
+        assert_eq!(links[0].text, Some("nested [text]"));
+        assert_eq!(links[0].destination, Some("https://example.com/path?q=1"));
+        assert_eq!(links[1].text, Some("alt"));
+        assert_eq!(links[1].effective_label(), Some("image-ref"));
+        assert_eq!(links[2].destination, Some("https://example.org"));
+        assert_eq!(ctx.reference_definitions().len(), 1);
+        assert_eq!(ctx.reference_definitions()[0].label, "image-ref");
+        assert_eq!(
+            ctx.reference_definitions()[0].destination,
+            "https://example.org/image.png"
+        );
+    }
+
+    #[test]
+    fn context_inline_tokens_handle_empty_crlf_and_unicode() {
+        let empty_ctx = DocumentContext::new(Path::new("empty.md"), "");
+        assert!(empty_ctx.inline_code_spans().is_empty());
+        assert!(empty_ctx.inline_links().is_empty());
+        assert!(empty_ctx.reference_definitions().is_empty());
+
+        let content = "`コード` [表示](#見出し)\r\n# 見出し\r\n";
+        let ctx = DocumentContext::new(Path::new("doc.md"), content);
+
+        assert_eq!(ctx.inline_code_spans().len(), 1);
+        assert_eq!(ctx.inline_links().len(), 1);
+        assert_eq!(ctx.inline_links()[0].text, Some("表示"));
+        assert_eq!(ctx.inline_links()[0].destination, Some("#見出し"));
     }
 
     #[test]

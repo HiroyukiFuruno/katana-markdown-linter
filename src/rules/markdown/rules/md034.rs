@@ -33,6 +33,10 @@ impl MarkdownRule for NoBareUrlsRule {
                 continue;
             }
             for (start, end) in bare_url_ranges(line.text) {
+                let absolute_start = line.content_range.start + start;
+                if is_ignored_url(ctx, i, line.text, start, absolute_start) {
+                    continue;
+                }
                 let url = &line.text[start..end];
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
@@ -78,9 +82,6 @@ impl Iterator for BareUrlRanges<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(start) = next_url_start(self.line, self.search_start) {
             self.search_start = start + 1;
-            if is_ignored_url(self.line, start) {
-                continue;
-            }
             if let Some((_, end)) = url_range(self.line, start) {
                 self.search_start = end;
                 return Some((start, end));
@@ -101,17 +102,38 @@ fn next_url_start(line: &str, search_start: usize) -> Option<usize> {
     }
 }
 
-fn is_ignored_url(line: &str, start: usize) -> bool {
+fn is_ignored_url(
+    ctx: &DocumentContext<'_>,
+    line_index: usize,
+    line: &str,
+    start: usize,
+    absolute_start: usize,
+) -> bool {
     if start > 0 && line.as_bytes()[start - 1] == b'<' {
         return true;
     }
     if line[..start].ends_with("](") || line[..start].ends_with(")[") {
         return true;
     }
-    if is_link_reference_definition_destination(line, start) {
+    if ctx.inline_code_spans().iter().any(|span| {
+        span.line == line_index
+            && span.full_range.start <= absolute_start
+            && absolute_start < span.full_range.end
+    }) {
         return true;
     }
-    if is_inside_code_span(line, start) {
+    if ctx.inline_links().iter().any(|link| {
+        link.line == line_index
+            && link.full_range.start <= absolute_start
+            && absolute_start < link.full_range.end
+    }) {
+        return true;
+    }
+    if ctx.reference_definitions().iter().any(|definition| {
+        definition.line == line_index
+            && definition.full_range.start <= absolute_start
+            && absolute_start < definition.full_range.end
+    }) {
         return true;
     }
 
@@ -136,17 +158,6 @@ fn is_inside_html_attribute_value(line: &str, start: usize) -> bool {
         }
     }
     quote.is_some()
-}
-
-fn is_link_reference_definition_destination(line: &str, start: usize) -> bool {
-    let before = &line[..start];
-    let Some(definition_marker) = before.find("]:") else {
-        return false;
-    };
-    let label = before[..definition_marker].trim_start();
-    label.starts_with('[')
-        && !label[1..].contains('[')
-        && before[definition_marker + 2..].trim().is_empty()
 }
 
 fn url_range(line: &str, start: usize) -> Option<(usize, usize)> {
@@ -179,31 +190,6 @@ fn has_unmatched_closing_delimiter(text: &str, open: u8, close: u8) -> bool {
         .filter(|byte| **byte == close)
         .count();
     close_count > open_count
-}
-
-fn is_inside_code_span(line: &str, offset: usize) -> bool {
-    let bytes = line.as_bytes();
-    let mut cursor = 0;
-    while cursor < bytes.len() {
-        if bytes[cursor] != b'`' {
-            cursor += 1;
-            continue;
-        }
-        let marker_len = bytes[cursor..]
-            .iter()
-            .take_while(|byte| **byte == b'`')
-            .count();
-        let content_start = cursor + marker_len;
-        let Some(close_relative) = line[content_start..].find(&"`".repeat(marker_len)) else {
-            return false;
-        };
-        let close = content_start + close_relative;
-        if content_start <= offset && offset < close {
-            return true;
-        }
-        cursor = close + marker_len;
-    }
-    false
 }
 
 #[cfg(test)]
@@ -326,6 +312,20 @@ mod tests {
     fn ignores_url_inside_link_reference_definition() {
         let rule = NoBareUrlsRule;
         let diagnostics = rule.evaluate(Path::new("doc.md"), "[normal]: https://github.com\n");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_urls_inside_nested_links_images_titles_and_code_spans() {
+        let rule = NoBareUrlsRule;
+        let content = concat!(
+            "[nested [text]](https://example.com/path?q=1 \"title\")\n",
+            "![alt][image-ref]\n",
+            "[image-ref]: <https://example.org/image.png> \"Image\"\n",
+            "``https://example.invalid``\n",
+        );
+        let diagnostics = rule.evaluate(Path::new("doc.md"), content);
 
         assert!(diagnostics.is_empty());
     }

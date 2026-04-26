@@ -42,54 +42,54 @@ impl MarkdownRule for LinkStyleRule {
         }
 
         let meta = self.official_meta().expect("always Some for MD054");
-        let has_inline = active_lines(ctx).any(|(_, line)| line.text.contains("]("));
+        let has_inline = ctx.inline_links().iter().any(|link| link.kind.is_inline());
         let definitions = link_definitions(ctx);
-        let has_reference =
-            !definitions.is_empty() || active_lines(ctx).any(|(_, line)| line.text.contains("]["));
+        let has_reference = !definitions.is_empty()
+            || ctx
+                .inline_links()
+                .iter()
+                .any(|link| link.kind.is_reference());
         if !has_inline || !has_reference {
             return Vec::new();
         }
 
         let mut diagnostics = Vec::new();
-        for (_, line) in active_lines(ctx) {
-            for reference in collapsed_references(line.text) {
-                let destination = definitions.get(&reference.label.to_lowercase());
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: reference.start + 1,
-                        end_line: line.number,
-                        end_column: reference.end + 1,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: destination.map(|destination| {
-                        crate::rules::markdown::types::DiagnosticFix {
-                            start_line: line.number,
-                            start_column: reference.start + 1,
-                            end_line: line.number,
-                            end_column: reference.end + 1,
-                            replacement: format!("[{}]({destination})", reference.label),
-                        }
-                    }),
-                });
-            }
+        for reference in ctx
+            .inline_links()
+            .iter()
+            .filter(|link| link.kind.is_collapsed_reference())
+        {
+            let Some(label) = reference.effective_label() else {
+                continue;
+            };
+            let destination = definitions.get(&label.to_lowercase());
+            let range = ctx.diagnostic_range(reference.full_range);
+            diagnostics.push(MarkdownDiagnostic {
+                file: ctx.file_path().to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: range.start_line,
+                    start_column: range.start_column,
+                    end_line: range.end_line,
+                    end_column: range.end_column,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta.clone()),
+                fix_info: destination.map(|destination| {
+                    crate::rules::markdown::types::DiagnosticFix {
+                        start_line: range.start_line,
+                        start_column: range.start_column,
+                        end_line: range.end_line,
+                        end_column: range.end_column,
+                        replacement: format!("[{label}]({destination})"),
+                    }
+                }),
+            });
         }
 
         diagnostics
     }
-}
-
-fn active_lines<'ctx, 'src>(
-    ctx: &'ctx DocumentContext<'src>,
-) -> impl Iterator<Item = (usize, &'ctx crate::rules::markdown::LineInfo<'src>)> + 'ctx {
-    ctx.lines()
-        .iter()
-        .enumerate()
-        .filter(|(idx, _)| !ctx.is_code_line(*idx))
 }
 
 fn collapsed_references_allowed(config: Option<&RuleConfig>) -> bool {
@@ -99,72 +99,17 @@ fn collapsed_references_allowed(config: Option<&RuleConfig>) -> bool {
         .unwrap_or(true)
 }
 
-struct CollapsedReference<'a> {
-    start: usize,
-    end: usize,
-    label: &'a str,
-}
-
-fn collapsed_references(line: &str) -> Vec<CollapsedReference<'_>> {
-    let bytes = line.as_bytes();
-    let mut references = Vec::new();
-    let mut cursor = 0;
-    let mut in_code = false;
-
-    while cursor < bytes.len() {
-        match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            b'[' if !in_code && !is_image_marker(bytes, cursor) => {
-                let Some(close) = line[cursor + 1..]
-                    .find(']')
-                    .map(|offset| cursor + 1 + offset)
-                else {
-                    break;
-                };
-                if bytes.get(close + 1) == Some(&b'[') && bytes.get(close + 2) == Some(&b']') {
-                    let label = &line[cursor + 1..close];
-                    if !label.trim().is_empty() {
-                        references.push(CollapsedReference {
-                            start: cursor,
-                            end: close + 3,
-                            label,
-                        });
-                    }
-                    cursor = close + 3;
-                } else {
-                    cursor = close + 1;
-                }
-            }
-            _ => cursor += 1,
-        }
-    }
-
-    references
-}
-
 fn link_definitions(ctx: &DocumentContext<'_>) -> HashMap<String, String> {
     let mut definitions = HashMap::new();
-    for (_, line) in active_lines(ctx) {
-        let trimmed = line.text.trim_start();
-        let Some((label, rest)) = trimmed
-            .strip_prefix('[')
-            .and_then(|rest| rest.split_once("]:"))
-        else {
-            continue;
-        };
-        let destination = rest.split_whitespace().next().unwrap_or("");
-        if !label.is_empty() && !destination.is_empty() {
-            definitions.insert(label.to_lowercase(), destination.to_string());
+    for definition in ctx.reference_definitions() {
+        if !definition.label.is_empty() && !definition.destination.is_empty() {
+            definitions.insert(
+                definition.label.to_lowercase(),
+                definition.destination.to_string(),
+            );
         }
     }
     definitions
-}
-
-fn is_image_marker(bytes: &[u8], open_bracket: usize) -> bool {
-    open_bracket > 0 && bytes[open_bracket - 1] == b'!'
 }
 
 #[cfg(test)]

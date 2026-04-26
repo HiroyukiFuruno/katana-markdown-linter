@@ -22,6 +22,9 @@ fn main() -> BenchResult<()> {
     let options = LintOptions::default();
     let large_document = generate_large_document();
     let clean_large_document = generate_clean_large_document();
+    let link_heavy_document = generate_link_heavy_document();
+    let inline_code_heavy_document = generate_inline_code_heavy_document();
+    let reference_heavy_document = generate_reference_heavy_document();
     let many_small_documents = generate_many_small_documents();
     let check_workspace = prepare_cli_workspace(
         "check",
@@ -78,6 +81,27 @@ fn main() -> BenchResult<()> {
         },
     )?);
     cases.push(measure(
+        "api_lint_link_heavy_document",
+        &args,
+        link_heavy_document.lines().count(),
+        "lines",
+        || Ok(lint(black_box(&link_heavy_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
+        "api_lint_inline_code_heavy_document",
+        &args,
+        inline_code_heavy_document.lines().count(),
+        "lines",
+        || Ok(lint(black_box(&inline_code_heavy_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
+        "api_lint_reference_heavy_document",
+        &args,
+        reference_heavy_document.lines().count(),
+        "lines",
+        || Ok(lint(black_box(&reference_heavy_document), black_box(&options))?.len()),
+    )?);
+    cases.push(measure(
         "context_build_large_document",
         &args,
         large_document.lines().count(),
@@ -105,6 +129,18 @@ fn main() -> BenchResult<()> {
         || {
             let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&large_document));
             Ok(ctx.tables().len())
+        },
+    )?);
+    cases.push(measure(
+        "context_inline_token_index_large_document",
+        &args,
+        link_heavy_document.lines().count(),
+        "lines",
+        || {
+            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&link_heavy_document));
+            Ok(ctx.inline_code_spans().len()
+                + ctx.inline_links().len()
+                + ctx.reference_definitions().len())
         },
     )?);
     cases.push(measure(
@@ -258,6 +294,49 @@ fn generate_clean_large_document() -> String {
         content.push_str("- first item\n");
         content.push_str("- second item\n\n");
         content.push_str("```rust\nfn main() {}\n```\n\n");
+    }
+    content
+}
+
+fn generate_link_heavy_document() -> String {
+    let mut content = String::from("# Links\n\n");
+    for index in 0..500 {
+        content.push_str(&format!(
+            "See [nested [{index}]](https://example.com/{index}?q=1 \"title\") and <https://example.org/{index}>.\n"
+        ));
+        content.push_str(&format!(
+            "Image ![alt {index}][image-{index}] and `[ignored](https://example.invalid/{index})`.\n\n"
+        ));
+        content.push_str(&format!(
+            "[image-{index}]: <https://example.org/image-{index}.png> \"Image\"\n"
+        ));
+    }
+    content
+}
+
+fn generate_inline_code_heavy_document() -> String {
+    let mut content = String::from("# Inline Code\n\n");
+    for index in 0..600 {
+        content.push_str(&format!(
+            "`https://example.com/{index}` and ``[link {index}](https://example.org/{index})`` stay literal.\n"
+        ));
+    }
+    content
+}
+
+fn generate_reference_heavy_document() -> String {
+    let mut content = String::from("# References\n\n");
+    for index in 0..500 {
+        content.push_str(&format!(
+            "[Reference {index}][ref-{index}] and ![Image {index}][image-{index}]\n"
+        ));
+    }
+    content.push('\n');
+    for index in 0..500 {
+        content.push_str(&format!("[ref-{index}]: https://example.com/{index}\n"));
+        content.push_str(&format!(
+            "[image-{index}]: <https://example.org/image-{index}.png>\n"
+        ));
     }
     content
 }

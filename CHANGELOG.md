@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.12.5
+
+- Adds a source-preserving inline token layer for inline code spans, inline
+  links, images, autolinks, reference links, and reference definitions.
+- Migrates `MD034`, `MD051`, `MD052`, `MD054`, and `MD059` to shared
+  `DocumentContext` token evidence, with `MD053` aligned to the shared
+  reference definition index.
+- Expands rule-local and document-level regression coverage for nested
+  brackets, link titles, images, inline code spans, reference definitions,
+  CRLF, Unicode, and unclosed markers.
+- Extends performance benchmarking with link-heavy, inline-code-heavy,
+  reference-heavy, and inline token index construction cases.
+- Syncs the `v0.12.5` parser readiness OpenSpec requirements while keeping
+  `v0.13.0` distribution expansion frozen until stable-line acceptance.
+
 ## v0.12.4
 
 - Keeps `kml check --fix --output json` identified as the `check` workflow while
