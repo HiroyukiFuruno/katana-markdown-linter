@@ -1,6 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    SourceRange,
 };
 use std::path::Path;
 
@@ -25,6 +26,8 @@ impl MarkdownRule for SpacesInEmphasisRule {
             if ctx.is_code_line(i) {
                 continue;
             }
+            let has_inline_code_marker = line.text.contains('`');
+            let line_start = line.content_range.start;
             let line = line.text;
 
             let mut markers = Vec::new();
@@ -61,6 +64,13 @@ impl MarkdownRule for SpacesInEmphasisRule {
                     for &(end_start_idx, end_len, end_kind) in markers.iter().skip(m + 1) {
                         if end_kind == kind && end_len == len {
                             if line[..end_start_idx].ends_with(' ') {
+                                let full_range = SourceRange {
+                                    start: line_start + start_idx,
+                                    end: line_start + end_start_idx + end_len,
+                                };
+                                if has_inline_code_marker && ctx.is_inside_inline_code(full_range) {
+                                    break;
+                                }
                                 let inner_text = &line[after_marker_idx..end_start_idx];
                                 if !inner_text.contains('`')
                                     && inner_text.chars().any(|c| !c.is_whitespace())
@@ -98,5 +108,19 @@ impl MarkdownRule for SpacesInEmphasisRule {
         }
 
         diagnostics
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ignores_emphasis_markers_inside_long_and_unclosed_code_spans() {
+        let rule = SpacesInEmphasisRule;
+        let content = "``* spaced *``\n`_ spaced _\n";
+        let diagnostics = rule.evaluate(Path::new("doc.md"), content);
+
+        assert!(diagnostics.is_empty());
     }
 }

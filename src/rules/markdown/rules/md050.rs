@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
     DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta,
+    OfficialRuleMeta, SourceRange,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -62,7 +62,17 @@ impl StrongStyleRule {
             if ctx.is_code_line(i) {
                 continue;
             }
+            let has_inline_code_marker = line.text.contains('`');
+            let line_start = line.content_range.start;
             for span in strong_spans(line.text) {
+                if has_inline_code_marker
+                    && ctx.is_inside_inline_code(SourceRange {
+                        start: line_start + span.start,
+                        end: line_start + span.end,
+                    })
+                {
+                    continue;
+                }
                 let expected_marker = *expected.get_or_insert(span.marker);
                 if span.marker == expected_marker {
                     continue;
@@ -105,15 +115,10 @@ fn strong_spans(line: &str) -> Vec<StrongSpan<'_>> {
     let bytes = line.as_bytes();
     let mut spans = Vec::new();
     let mut cursor = 0;
-    let mut in_code = false;
 
     while cursor + 1 < bytes.len() {
         match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            marker @ (b'*' | b'_') if !in_code && bytes.get(cursor + 1) == Some(&marker) => {
+            marker @ (b'*' | b'_') if bytes.get(cursor + 1) == Some(&marker) => {
                 let Some(close) = find_double_marker(line, cursor + 2, marker) else {
                     cursor += 2;
                     continue;
@@ -210,6 +215,14 @@ mod tests {
     fn ignores_strong_inside_fenced_code() {
         let rule = StrongStyleRule;
         let diagnostics = rule.evaluate(Path::new("doc.md"), "```\n**one** and __two__\n```\n");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_strong_inside_long_and_unclosed_code_spans() {
+        let rule = StrongStyleRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "**one** ``__two__``\n`__three__\n");
 
         assert!(diagnostics.is_empty());
     }

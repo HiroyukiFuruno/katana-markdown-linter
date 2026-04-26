@@ -188,6 +188,12 @@ impl<'a> DocumentContext<'a> {
             .as_slice()
     }
 
+    pub fn is_inside_inline_code(&self, range: SourceRange) -> bool {
+        self.inline_code_spans()
+            .iter()
+            .any(|span| span.full_range.start <= range.start && range.end <= span.full_range.end)
+    }
+
     pub fn links(&self) -> &[Link<'a>] {
         self.links
             .get_or_init(|| extract_links(self.inline_links()))

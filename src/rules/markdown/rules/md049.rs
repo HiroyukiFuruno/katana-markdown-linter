@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
     DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta,
+    OfficialRuleMeta, SourceRange,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -62,7 +62,17 @@ impl EmphasisStyleRule {
             if ctx.is_code_line(i) {
                 continue;
             }
+            let has_inline_code_marker = line.text.contains('`');
+            let line_start = line.content_range.start;
             for span in emphasis_spans(line.text) {
+                if has_inline_code_marker
+                    && ctx.is_inside_inline_code(SourceRange {
+                        start: line_start + span.start,
+                        end: line_start + span.end,
+                    })
+                {
+                    continue;
+                }
                 let expected_marker = *expected.get_or_insert(span.marker);
                 if span.marker == expected_marker {
                     continue;
@@ -105,15 +115,10 @@ fn emphasis_spans(line: &str) -> Vec<EmphasisSpan<'_>> {
     let bytes = line.as_bytes();
     let mut spans = Vec::new();
     let mut cursor = 0;
-    let mut in_code = false;
 
     while cursor < bytes.len() {
         match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            marker @ (b'*' | b'_') if !in_code => {
+            marker @ (b'*' | b'_') => {
                 if bytes.get(cursor + 1) == Some(&marker) {
                     cursor += 2;
                     continue;
@@ -217,6 +222,14 @@ mod tests {
     fn ignores_emphasis_inside_fenced_code() {
         let rule = EmphasisStyleRule;
         let diagnostics = rule.evaluate(Path::new("doc.md"), "```\n*one* and _two_\n```\n");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_emphasis_inside_long_and_unclosed_code_spans() {
+        let rule = EmphasisStyleRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "*one* ``_two_``\n`_three_\n");
 
         assert!(diagnostics.is_empty());
     }
