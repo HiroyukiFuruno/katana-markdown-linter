@@ -22,6 +22,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.7`: released patch として parser / context migration 後の performance、check / fix / fmt convergence、baseline evidence を固めた。
 - `v0.12.8`: released patch として stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。
 - `v0.12.9`: 公開導線を広げる前の patch として、KatanA docs/assets Markdown と既存 performance corpus を使い、外部品質への confidence evidence を固める。
+- `v0.12.14`: precision-first を維持したまま `DocumentContext` の inline 抽出統合 (`InlineIndex`)、`MD051` の `ignored_pattern` regex キャッシュ、`MD046` の `code_line_flags` 索引活用で hot path コストを削減する。
+- `v0.12.15+`: 精度 fix+ 継続拡張。MD052 collapsed reference safe-fix、MD046 style 統一 fix、MD043 missing heading 挿入 fix、MD056 table column count 補完 fix、MD034 scheme 拡張、MD051 fragment Unicode/emoji 厳密化を逐次取り込む。
 - `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
@@ -51,6 +53,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Performance and convergence hardening for `v0.12.7` | `v0-12-7-performance-convergence-hardening` | Completed for `v0.12.7`; parser migration speed, safe fix behavior, check/fix/fmt idempotence, and stable-score dry run are archived. |
 | Done | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Completed for `v0.12.8`; stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。 |
 | Done | Public confidence hardening for `v0.12.9` | `v0-12-9-public-confidence-hardening` | Completed as public confidence and required evidence gate before distribution expansion. |
+| Done | Precision-zero-regression hot path consolidation for `v0.12.14` | `v0-12-14-precision-and-performance-hardening` | Eliminates O(L×b) line_in_blocks scan, replaces inside_code_span with partition_point binary search, and removes String allocation in the backtick scanner. context_inline_token_index improved ≈12×; inline-code and link benchmarks 3–7×. |
+| P2 | Precision fix+ continuous expansion for `v0.12.15+` | `v0-12-15-precision-fix-plus-expansion` (TBD) | Adds safe fixes to `MD052` (collapsed reference collapse), `MD046` (style unification), `MD043` (missing heading insertion), `MD056` (table column count), `MD034` (scheme expansion), and tightens `MD051` heading fragment Unicode/emoji handling. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -81,6 +85,7 @@ Archived completed changes:
 - `v0-12-9-public-confidence-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-9-public-confidence-hardening`
 - `v0-12-10-quality-and-performance-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-10-quality-and-performance-hardening`
 - `source-preserving-document-context` -> `openspec/changes/archive/2026-04-27-source-preserving-document-context`
+- `v0-12-14-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-14-precision-and-performance-hardening`
 
 ## Suggested Order
 
@@ -96,6 +101,7 @@ Archived completed changes:
 - `distribution`: MCP Registry / Hub 公開、MCP package artifact、遠隔 MCP 接続（remote MCP transport）は、`v0.12.8` の stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了まで凍結する。
 - `design-debt`: Markdown token parser の共有化、nested bracket/link title を含む link parser 化、inline code span parser の rule 間共通化は、`v0.12.5` から `v0.12.6` の安定版準備として扱う。
 - `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分け、安定版 score の release reproducibility に影響する場合だけ `v0.12.x` に含める。
+- `unsafe-fix`: `MD013` の line-length wrap fix は list / table / code 文脈ガードが必須で、デフォルトの safe-fix contract に組み込めない。`v0.13.x` 以降に独立 change として切り出し、`unsafe-fix` mode の opt-in 設定下でのみ有効化する。
 
 ## Repository Guardrails
 
