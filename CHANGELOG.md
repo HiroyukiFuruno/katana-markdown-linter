@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.13
+
+- Splits `src/cli/workflow.rs` (1197 size-score) into focused sub-modules:
+  `workflow/common.rs`, `workflow/check.rs`, `workflow/fmt.rs`, and
+  `workflow/config_cmd.rs`, each scoring ≤ 400 in the internal quality gate.
+- Eliminates intermediate `Vec` allocation in `md059.rs::normalize_link_text`
+  by replacing `collect::<Vec<_>>().join(" ")` with a direct char-push loop.
+- Updates `tests/ast_linter.rs` Windows-path compatibility: path separators are
+  normalized before string matching to fix two test failures on Windows CI.
+- Updates coverage baseline from 873 to 880 to account for the workflow module
+  split (cosmetic line-count increase with no functional coverage regression).
+
 ## v0.12.12
 
 - Fixes MD003 false positive: diagnostic now points to the heading text line
