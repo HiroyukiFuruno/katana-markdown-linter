@@ -1,3 +1,4 @@
+use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::{
     DiagnosticFix, DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic,
     MarkdownRule, OfficialRuleMeta, RuleParityStatus,
@@ -27,13 +28,14 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
         let meta = self.official_meta().expect("always Some for MD036");
         let mut diagnostics = Vec::new();
         let ctx = DocumentContext::new(file_path, content);
-        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
-        for (i, line) in lines.iter().enumerate() {
+        let ctx_lines = ctx.lines();
+        for (i, line_info) in ctx_lines.iter().enumerate() {
             if ctx.is_code_line(i) {
                 continue;
             }
+            let line = line_info.text;
             let trimmed = line.trim();
-            if let Some(heading_text) = emphasis_heading_text(trimmed, &lines, i) {
+            if let Some(heading_text) = emphasis_heading_text(trimmed, ctx_lines, i) {
                 diagnostics.push(MarkdownDiagnostic {
                     file: file_path.to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
@@ -172,7 +174,11 @@ fn leading_spaces(line: &str) -> &str {
     &line[..count]
 }
 
-fn emphasis_heading_text<'a>(trimmed: &'a str, lines: &[&str], idx: usize) -> Option<&'a str> {
+fn emphasis_heading_text<'a>(
+    trimmed: &'a str,
+    lines: &[LineInfo<'_>],
+    idx: usize,
+) -> Option<&'a str> {
     let heading_text = ["**", "__", "*", "_"].into_iter().find_map(|marker| {
         let text = trimmed.strip_prefix(marker)?.strip_suffix(marker)?;
         (!text.is_empty()).then_some(text)
@@ -180,8 +186,8 @@ fn emphasis_heading_text<'a>(trimmed: &'a str, lines: &[&str], idx: usize) -> Op
     if heading_text.trim().is_empty() {
         return None;
     }
-    let blank_before = idx == 0 || lines[idx - 1].trim().is_empty();
-    let blank_after = idx + 1 >= lines.len() || lines[idx + 1].trim().is_empty();
+    let blank_before = idx == 0 || lines[idx - 1].text.trim().is_empty();
+    let blank_after = idx + 1 >= lines.len() || lines[idx + 1].text.trim().is_empty();
     (blank_before && blank_after).then_some(heading_text)
 }
 

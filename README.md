@@ -272,21 +272,6 @@ Workspace paths must stay under the configured `--workspace-root`. File writes
 are limited to `fix_file_apply` and require `apply: true`; no directory apply
 tool is exposed.
 
-### Remote MCP (HTTP/SSE)
-
-For API-hosted LLMs, `kml-mcp-remote` provides a remote transport over HTTP (SSE).
-Build or install it with the `remote` feature:
-
-~~~bash
-cargo install katana-markdown-linter --locked --features remote --bin kml-mcp-remote
-~~~
-
-Remote mode exposes only text-only and metadata tools to maintain a safe security
-boundary. Workspace-backed file tools are restricted in this mode.
-
-See [Remote MCP deployment documentation](docs/remote-mcp-deployment.md) for auth
-and configuration details.
-
 Run `make mcp-stdio-smoke` to exercise the installed MCP server through
 JSON-RPC stdio calls.
 

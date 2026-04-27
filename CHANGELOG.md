@@ -1,12 +1,40 @@
 # Changelog
 
-## v0.15.0
+## v0.12.13
 
-- Adds a standalone `kml-mcp-remote` binary with remote MCP transport support (Streamable HTTP / SSE).
-- Introduces token-based authentication middleware for remote MCP connections.
-- Restricts workspace-backed tools in remote mode to maintain a safe security boundary.
-- Decouples core logic from remote transport dependencies via the `remote` feature.
-- Adds integration tests for remote transport, auth failure, and tool restriction.
+- Splits `src/cli/workflow.rs` (1197 size-score) into focused sub-modules:
+  `workflow/common.rs`, `workflow/check.rs`, `workflow/fmt.rs`, and
+  `workflow/config_cmd.rs`, each scoring ≤ 400 in the internal quality gate.
+- Eliminates intermediate `Vec` allocation in `md059.rs::normalize_link_text`
+  by replacing `collect::<Vec<_>>().join(" ")` with a direct char-push loop.
+- Updates `tests/ast_linter.rs` Windows-path compatibility: path separators are
+  normalized before string matching to fix two test failures on Windows CI.
+- Updates coverage baseline from 873 to 880 to account for the workflow module
+  split (cosmetic line-count increase with no functional coverage regression).
+
+## v0.12.12
+
+- Fixes MD003 false positive: diagnostic now points to the heading text line
+  instead of the setext underline, matching the markdownlint reference
+  implementation behavior.
+- Fixes MD046 false positive: 4-space-indented list items (using `-`, `*`, `+`,
+  or ordered markers) are no longer misidentified as indented code blocks.
+- Splits `src/cli.rs` (2399 lines) into focused sub-modules: `args.rs`,
+  `input.rs`, `reporter.rs`, and `workflow.rs`, each scoring ≤ 200 in the
+  internal quality gate.
+- Splits `src/upstream.rs` (1196 lines) into `upstream/document.rs`,
+  `upstream/fixture.rs`, and `upstream/drift.rs`.
+- Eliminates per-call `String` clones in severity map construction by switching
+  from `HashMap<String, …>` to `HashMap<&str, …>`.
+- Reduces intermediate `Vec<&str>` allocations in `heading_style.rs`,
+  `style.rs`, and `heading_duplicates.rs` by working directly with `ctx.lines()`
+  slices.
+- Removes `md-broken-link` from the default evaluation flow to eliminate
+  classification noise; the rule implementation is retained for future use.
+- Extends `tests/ast_linter.rs` and `scripts/ci/internal-quality.py` to cover
+  `tests/` and `build.rs` in addition to `src/`.
+- Refreshes performance baseline after optimizations; all benchmarks remain
+  within the 1.40× strict regression gate.
 
 ## v0.12.11
 

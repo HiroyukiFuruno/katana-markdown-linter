@@ -2,6 +2,15 @@ name: release-preflight
 
 on:
   pull_request:
+    branches: [main, master]
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Makefile'
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'tests/**'
   workflow_dispatch:
 
 jobs:

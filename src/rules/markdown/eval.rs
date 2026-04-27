@@ -1,4 +1,3 @@
-use crate::rules::markdown::BrokenLinkRule;
 use crate::rules::markdown::HeadingStructureRule;
 use crate::rules::markdown::ListIndentRule;
 
@@ -104,7 +103,6 @@ macro_rules! rule_entry {
 }
 
 rule_entry!(heading_structure_rule_entry: HeadingStructureRule, "MD001");
-rule_entry!(broken_link_rule_entry: BrokenLinkRule, "md-broken-link");
 rule_entry!(heading_style_rule_entry: HeadingStyleRule, "MD003");
 rule_entry!(blanks_around_headings_rule_entry: BlanksAroundHeadingsRule, "MD022");
 rule_entry!(heading_start_left_rule_entry: HeadingStartLeftRule, "MD023");
@@ -163,7 +161,6 @@ rule_entry!(table_pipe_style_rule_entry: TablePipeStyleRule, "MD055");
 
 static OFFICIAL_RULES: &[RuleEntry] = &[
     heading_structure_rule_entry::ENTRY,
-    broken_link_rule_entry::ENTRY,
     heading_style_rule_entry::ENTRY,
     blanks_around_headings_rule_entry::ENTRY,
     heading_start_left_rule_entry::ENTRY,
@@ -280,7 +277,7 @@ impl MarkdownLinterOps {
         content: &str,
         enabled: bool,
         severity_map: &std::collections::HashMap<
-            String,
+            &str,
             Option<crate::rules::markdown::DiagnosticSeverity>,
         >,
         rule_configs: &std::collections::HashMap<String, crate::RuleConfig>,
@@ -322,8 +319,6 @@ impl MarkdownLinterOps {
         vec![
             /* WHY: MD001 — heading-increment (full impl in mod.rs) */
             Box::new(HeadingStructureRule),
-            /* WHY: Internal-only broken link rule (hidden from user) */
-            Box::new(BrokenLinkRule),
             /* WHY: Heading rules */
             Box::new(HeadingStyleRule),          // MD003
             Box::new(BlanksAroundHeadingsRule),  // MD022

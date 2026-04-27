@@ -1,90 +1,63 @@
-#[path = "kml_mcp/model.rs"]
-mod model;
-#[path = "kml_mcp/server.rs"]
-mod server;
-#[path = "kml_mcp/workspace.rs"]
-mod workspace;
-
-use crate::server::{KmlMcpServer, ServerMode};
-use crate::workspace::Workspace;
+use anyhow::Result;
 use axum::{
-    body::Body,
-    http::{Request, StatusCode},
+    extract::Request,
     middleware::{self, Next},
     response::Response,
+    routing::get,
     Router,
 };
-use rmcp::transport::streamable_http_server::{
-    session::local::LocalSessionManager, StreamableHttpServerConfig, StreamableHttpService,
-};
+use rmcp::transport::http::HttpServerTransport;
+use std::env;
 use std::net::SocketAddr;
-use std::path::PathBuf;
-use std::sync::Arc;
-use tower_http::cors::CorsLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let port = std::env::var("PORT")
+mod kml_mcp;
+use crate::kml_mcp::server::{KmlMcpServer, ServerMode};
+
+#[tokio:main]
+async fn main() -> Result<()> {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    let port = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse::<u16>()?;
-    let workspace_root = std::env::var("KML_WORKSPACE_ROOT")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| std::env::current_dir().expect("current dir should be available"));
-    let auth_token = std::env::var("KML_AUTH_TOKEN").ok();
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-    if auth_token.is_none() {
-        eprintln!(
-            "Warning: KML_AUTH_TOKEN is not set. The server will not enforce authentication."
-        );
-    }
-
-    let workspace = Workspace::new(workspace_root)?;
-    let server_proto = KmlMcpServer::with_workspace(workspace).with_mode(ServerMode::Remote);
-
-    let session_manager = Arc::new(LocalSessionManager::default());
-    let config = StreamableHttpServerConfig::default().with_allowed_hosts(vec![
-        "localhost".to_string(),
-        format!("127.0.0.1:{}", port),
-        format!("0.0.0.0:{}", port),
-    ]);
-
-    let service_factory = move || Ok(server_proto.clone());
-    let transport = StreamableHttpService::new(service_factory, session_manager, config);
+    let server = KmlMcpServer::new().with_mode(ServerMode::Remote);
+    let transport = HttpServerTransport::new(server);
 
     let app = Router::new()
-        .fallback_service(transport)
-        .layer(middleware::from_fn(move |req, next| {
-            auth_middleware(req, next, auth_token.clone())
-        }))
-        .layer(CorsLayer::permissive());
+        .route("/sse", get(transport.sse_handler()).post(transport.post_handler()))
+        .layer(middleware::from_fn(auth_middleware));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    tracing::info!("kml-mcp-remote listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    println!("Remote MCP server listening on {}", addr);
-
     axum::serve(listener, app).await?;
 
     Ok(())
 }
 
-async fn auth_middleware(
-    req: Request<Body>,
-    next: Next,
-    expected_token: Option<String>,
-) -> Result<Response, StatusCode> {
-    if let Some(token) = expected_token {
+async fn auth_middleware(req: Request, next: Next) -> Result<Response, Response> {
+    let auth_token = env::var("KML_AUTH_TOKEN").ok();
+
+    if let Some(token) = auth_token {
         let auth_header = req
             .headers()
             .get("Authorization")
             .and_then(|h| h.to_str().ok());
 
-        let authenticated = match auth_header {
-            Some(h) if h.starts_with("Bearer ") => h[7..] == *token,
-            _ => false,
-        };
-
-        if !authenticated {
-            return Err(StatusCode::UNAUTHORIZED);
+        let expected = format!("Bearer {}", token);
+        if auth_header != Some(&expected) {
+            tracing::warn!("Unauthorized access attempt: Invalid or missing Bearer token");
+            return Err(Response::builder()
+                .status(axum::http::StatusCode::UNAUTHORIZED)
+                .body(axum::body::Body::from("401 Unauthorized: Invalid or missing Bearer token"))
+                .unwrap());
         }
     }
 

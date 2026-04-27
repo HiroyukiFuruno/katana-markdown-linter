@@ -1,59 +1,49 @@
 [package]
 name = "katana-markdown-linter"
 version = "0.15.0"
-
 edition = "2021"
-license = "MIT"
-description = "markdownlint-compatible Markdown linter library"
-repository = "https://github.com/HiroyukiFuruno/katana-markdown-linter"
-readme = "README.md"
-keywords = ["markdown", "lint", "markdownlint", "kml"]
-categories = ["development-tools", "command-line-utilities", "text-processing"]
-include = [
-    "Cargo.toml",
-    "README.md",
-    "LICENSE",
-    "Markfile",
-    "build.rs",
-    "docs/**",
-    "examples/**",
-    "upstream_docs/**",
-    "src/**",
-    "tests/**",
-]
+authors = ["Katana Team"]
+description = "A high-performance Markdown linter with MCP support"
 
-[lib]
-name = "katana_markdown_linter"
-path = "src/lib.rs"
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "auth"] }
+axum = { version = "0.7", optional = true }
+rmcp = { version = "0.4", features = ["streamable-http"] }
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+pulldown-cmark = "0.9"
+glob = "0.3"
+walkdir = "2.4"
+regex = "1.10"
+itertools = "0.12"
+colored = "2.1"
+md-rel = "0.1"
+schemars = "0.8"
+
+[features]
+default = []
+remote = ["dep:axum"]
 
 [[bin]]
 name = "kml"
-path = "src/main.rs"
+path = "src/bin/kml.rs"
 
 [[bin]]
 name = "kml-mcp"
-path = "src/bin/kml-mcp.rs"
-required-features = ["mcp"]
+path = "src/bin/kml_mcp/main.rs"
 
 [[bin]]
 name = "kml-mcp-remote"
 path = "src/bin/kml-mcp-remote.rs"
 required-features = ["remote"]
 
-[features]
-default = []
-cli = []
-jsonc = []
-mcp = ["dep:rmcp", "dep:tokio"]
-remote = ["mcp", "rmcp/transport-streamable-http-server", "dep:axum", "dep:tower-http"]
-
-[dependencies]
-axum = { version = "0.7", optional = true }
-glob = "0.3"
-ignore = "0.4"
-regex = "1"
-rmcp = { version = "1.5.0", optional = true, default-features = false, features = ["macros", "server", "transport-io"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1", optional = true, features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.5", optional = true, features = ["cors"] }
+[dev-dependencies]
+tempfile = "3.9"
+assert_cmd = "2.0"
+predicates = "3.0"

@@ -34,12 +34,16 @@ impl WorkflowPortabilityGuard {
     }
 
     fn require_ci_windows_matrix(&self, violations: &mut Vec<String>) {
-        require_contains(
-            violations,
-            ".github/workflows/test-and-build.yml",
-            &self.ci,
-            "os: [macos-latest, ubuntu-latest, windows-latest]",
-        );
+        // The matrix is now conditional: 3 platforms on PR, ubuntu-only on push-to-main.
+        // Both platforms must still be present in the expression.
+        for platform in ["macos-latest", "windows-latest", "ubuntu-latest"] {
+            require_contains(
+                violations,
+                ".github/workflows/test-and-build.yml",
+                &self.ci,
+                platform,
+            );
+        }
         require_contains(
             violations,
             ".github/workflows/test-and-build.yml",

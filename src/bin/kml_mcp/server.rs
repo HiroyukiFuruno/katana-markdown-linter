@@ -13,7 +13,8 @@ use crate::model::{
     CheckTextRequest, CheckTextResponse, ConfigValidateRequest, ConfigValidateResponse,
     DirectoryCheckResponse, DirectoryRequest, FileCheckResponse, FileFixApplyResponse,
     FileFixPreviewResponse, FileRequest, FixFileApplyRequest, FixTextRequest, FixTextResponse,
-    RuleGetRequest, RuleListRequest, RuleListResponse, RuleMetadata,
+    RuleDocRequest, RuleDocResponse, RuleGetRequest, RuleListRequest, RuleListResponse,
+    RuleMetadata,
 };
 use crate::workspace::Workspace;
 use rmcp::{
@@ -21,8 +22,13 @@ use rmcp::{
     model::{Implementation, ServerCapabilities, ServerInfo},
     tool, tool_handler, tool_router, Json, ServerHandler,
 };
-#[allow(unused_imports)]
 pub(crate) use runtime::run_from_env;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ServerMode {
+    Local,
+    Remote,
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct KmlMcpServer {
@@ -31,30 +37,29 @@ pub(crate) struct KmlMcpServer {
     mode: ServerMode,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ServerMode {
-    Local,
-    Remote,
-}
-
 impl KmlMcpServer {
     pub(crate) fn new() -> Self {
         let workspace = Workspace::current().expect("workspace root should resolve");
         Self::with_workspace(workspace)
     }
 
-    pub(crate) fn with_workspace(workspace: Workspace) -> Self {
+    pub(crate) fn new_remote() -> Self {
+        let mut server = Self::new();
+        server.mode = ServerMode::Remote;
+        server
+    }
+
+    pub(crate) fn with_mode(mut self, mode: ServerMode) -> Self {
+        self.mode = mode;
+        self
+    }
+
+    fn with_workspace(workspace: Workspace) -> Self {
         Self {
             tool_router: Self::tool_router(),
             workspace,
             mode: ServerMode::Local,
         }
-    }
-
-    #[allow(dead_code)]
-    pub(crate) fn with_mode(mut self, mode: ServerMode) -> Self {
-        self.mode = mode;
-        self
     }
 }
 
@@ -122,6 +127,17 @@ impl KmlMcpServer {
     }
 
     #[tool(
+        name = "rule_doc_get",
+        description = "Get full Markdown documentation for a rule, supporting multiple locales."
+    )]
+    async fn rule_doc_get(
+        &self,
+        Parameters(request): Parameters<RuleDocRequest>,
+    ) -> Result<Json<RuleDocResponse>, String> {
+        self.handle_rule_doc_get(request)
+    }
+
+    #[tool(
         name = "check_file",
         description = "Lint a Markdown file inside the configured workspace root."
     )]
@@ -130,7 +146,7 @@ impl KmlMcpServer {
         Parameters(request): Parameters<FileRequest>,
     ) -> Result<Json<FileCheckResponse>, String> {
         if self.mode == ServerMode::Remote {
-            return Err("check_file is only available in local mode".to_string());
+            return Err("406 Not Acceptable: Workspace access is disabled in remote mode".to_string());
         }
         self.handle_check_file(request)
     }
@@ -144,7 +160,7 @@ impl KmlMcpServer {
         Parameters(request): Parameters<DirectoryRequest>,
     ) -> Result<Json<DirectoryCheckResponse>, String> {
         if self.mode == ServerMode::Remote {
-            return Err("check_directory is only available in local mode".to_string());
+            return Err("406 Not Acceptable: Workspace access is disabled in remote mode".to_string());
         }
         self.handle_check_directory(request)
     }
@@ -158,7 +174,7 @@ impl KmlMcpServer {
         Parameters(request): Parameters<FileRequest>,
     ) -> Result<Json<FileFixPreviewResponse>, String> {
         if self.mode == ServerMode::Remote {
-            return Err("fix_file_preview is only available in local mode".to_string());
+            return Err("406 Not Acceptable: Workspace access is disabled in remote mode".to_string());
         }
         self.handle_fix_file_preview(request)
     }
@@ -172,7 +188,7 @@ impl KmlMcpServer {
         Parameters(request): Parameters<FixFileApplyRequest>,
     ) -> Result<Json<FileFixApplyResponse>, String> {
         if self.mode == ServerMode::Remote {
-            return Err("fix_file_apply is only available in local mode".to_string());
+            return Err("406 Not Acceptable: Workspace access is disabled in remote mode".to_string());
         }
         self.handle_fix_file_apply(request)
     }
@@ -181,24 +197,13 @@ impl KmlMcpServer {
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for KmlMcpServer {
     fn get_info(&self) -> ServerInfo {
-        let (name, instructions) = match self.mode {
-            ServerMode::Local => (
-                "kml-mcp",
+        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+            .with_server_info(Implementation::new("kml-mcp", env!("CARGO_PKG_VERSION")))
+            .with_instructions(
                 "Workspace-scoped MCP adapter for katana-markdown-linter. \
                  Use check_text, fix_text, config_validate, rule_list, rule_get, \
                  check_file, check_directory, fix_file_preview, and fix_file_apply. \
                  File writes require the explicit fix_file_apply tool with apply: true.",
-            ),
-            ServerMode::Remote => (
-                "kml-mcp-remote",
-                "Remote MCP adapter for katana-markdown-linter. \
-                 Use check_text, fix_text, config_validate, rule_list, and rule_get. \
-                 Workspace file tools are restricted in remote mode.",
-            ),
-        };
-
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(Implementation::new(name, env!("CARGO_PKG_VERSION")))
-            .with_instructions(instructions)
+            )
     }
 }

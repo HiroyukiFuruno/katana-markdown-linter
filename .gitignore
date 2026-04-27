@@ -6,6 +6,11 @@ AGENTS.md
 *.skill.md
 tmp
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # openspec workfiles
 openspec*
 !openspec/

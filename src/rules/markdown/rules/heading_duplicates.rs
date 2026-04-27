@@ -1,3 +1,4 @@
+use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
@@ -22,20 +23,20 @@ impl MarkdownRule for NoDuplicateHeadingRule {
         let mut diagnostics = Vec::new();
         let mut seen = HashSet::new();
         let ctx = DocumentContext::new(file_path, content);
-        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
+        let ctx_lines = ctx.lines();
 
-        for (i, line) in lines.iter().enumerate() {
+        for (i, line_info) in ctx_lines.iter().enumerate() {
             if ctx.is_code_line(i) {
                 continue;
             }
 
-            if let Some(heading_text) = extract_heading_text(&lines, i) {
+            if let Some(heading_text) = extract_heading_text(ctx_lines, i) {
                 if !seen.insert(heading_text.clone()) {
                     RuleHelpers::push_diag(
                         &mut diagnostics,
                         file_path,
                         i,
-                        line,
+                        line_info.text,
                         &meta,
                         DiagnosticSeverity::Warning,
                     );
@@ -47,14 +48,14 @@ impl MarkdownRule for NoDuplicateHeadingRule {
     }
 }
 
-fn extract_heading_text(lines: &[&str], idx: usize) -> Option<String> {
-    let line = lines[idx];
+fn extract_heading_text(lines: &[LineInfo<'_>], idx: usize) -> Option<String> {
+    let line = lines[idx].text;
     let trimmed = line.trim_start();
     if RuleHelpers::is_atx_heading(trimmed) {
         return Some(trimmed.trim_start_matches('#').trim().to_string());
     }
 
-    if idx + 1 < lines.len() && is_setext_underline(lines[idx + 1].trim()) {
+    if idx + 1 < lines.len() && is_setext_underline(lines[idx + 1].text.trim()) {
         let heading = line.trim();
         if !heading.is_empty() {
             return Some(heading.to_string());
