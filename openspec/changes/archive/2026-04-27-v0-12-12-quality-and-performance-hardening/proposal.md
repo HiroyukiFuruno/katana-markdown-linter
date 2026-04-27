@@ -38,12 +38,4 @@
 
 - ユーザー向け新機能の追加
 - 仕様の破壊的変更
-<<<<<<< HEAD:openspec/changes/v0-12-12-quality-and-performance-hardening/proposal.md
-<<<<<<< HEAD
 - Linterの検査精度の意図的な低下を伴うパフォーマンス最適化
-=======
-- Linterの検査精度の意図的な低下を伴うパフォーマンス最適化
->>>>>>> origin/main
-=======
-- Linterの検査精度の意図的な低下を伴うパフォーマンス最適化
->>>>>>> origin/main:openspec/changes/archive/2026-04-27-v0-12-12-quality-and-performance-hardening/proposal.md
