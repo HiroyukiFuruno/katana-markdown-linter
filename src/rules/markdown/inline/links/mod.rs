@@ -17,7 +17,7 @@ pub(crate) fn extract_inline_links<'a>(
 ) -> Vec<InlineLink<'a>> {
     let mut links = Vec::new();
     for (idx, line) in lines.iter().enumerate() {
-        if code_line_flags.get(idx).copied().unwrap_or(false) {
+        if code_line_flags[idx] {
             continue;
         }
         links.extend(markdown_links_on_line(idx, line, code_spans));
@@ -39,7 +39,7 @@ fn markdown_links_on_line<'a>(
     let mut cursor = 0;
     while cursor < bytes.len() {
         let Some((full_start_local, text_open_local, image)) =
-            next_link_open(line, code_spans, line_index, cursor)
+            next_link_open(line, code_spans, cursor)
         else {
             break;
         };
@@ -86,14 +86,13 @@ fn markdown_links_on_line<'a>(
 fn next_link_open(
     line: &LineInfo<'_>,
     code_spans: &[InlineCodeSpan],
-    line_index: usize,
     cursor: usize,
 ) -> Option<(usize, usize, bool)> {
     let bytes = line.text.as_bytes();
     let mut scan = cursor;
     while scan < bytes.len() {
         let offset = line.content_range.start + scan;
-        if inside_code_span(code_spans, line_index, offset) {
+        if inside_code_span(code_spans, offset) {
             scan += 1;
             continue;
         }

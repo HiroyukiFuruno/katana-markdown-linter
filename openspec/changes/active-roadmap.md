@@ -54,7 +54,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Stable candidate scoring and acceptance for `v0.12.8` | `v0-12-8-stable-candidate-acceptance` | Completed for `v0.12.8`; stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。 |
 | Done | Public confidence hardening for `v0.12.9` | `v0-12-9-public-confidence-hardening` | Completed as public confidence and required evidence gate before distribution expansion. |
 | Done | Precision-zero-regression hot path consolidation for `v0.12.14` | `v0-12-14-precision-and-performance-hardening` | Eliminates O(L×b) line_in_blocks scan, replaces inside_code_span with partition_point binary search, and removes String allocation in the backtick scanner. context_inline_token_index improved ≈12×; inline-code and link benchmarks 3–7×. |
-| P2 | Precision fix+ continuous expansion for `v0.12.15+` | `v0-12-15-precision-fix-plus-expansion` (TBD) | Adds safe fixes to `MD052` (collapsed reference collapse), `MD046` (style unification), `MD043` (missing heading insertion), `MD056` (table column count), `MD034` (scheme expansion), and tightens `MD051` heading fragment Unicode/emoji handling. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
+| Done | Dead-code removal and MD052 safe-fix for `v0.12.15` | `v0-12-15-precision-and-performance-hardening` | Removes unused `_line_index` parameter from `inside_code_span`, replaces defensive `.get(idx).copied().unwrap_or(false)` with direct indexing in 4 extractors, and adds safe-fix to MD052 (`[ref][]` → `[ref]`). |
+| P2 | Precision fix+ continuous expansion for `v0.12.16+` | (TBD) | Adds safe fixes to `MD046` (style unification), `MD043` (missing heading insertion), `MD056` (table column count), `MD034` (scheme expansion), and tightens `MD051` heading fragment Unicode/emoji handling. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -86,6 +87,7 @@ Archived completed changes:
 - `v0-12-10-quality-and-performance-hardening` -> `openspec/changes/archive/2026-04-27-v0-12-10-quality-and-performance-hardening`
 - `source-preserving-document-context` -> `openspec/changes/archive/2026-04-27-source-preserving-document-context`
 - `v0-12-14-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-14-precision-and-performance-hardening`
+- `v0-12-15-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-15-precision-and-performance-hardening`
 
 ## Suggested Order
 

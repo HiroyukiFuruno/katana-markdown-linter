@@ -8,7 +8,7 @@ pub(crate) fn extract_inline_html_elements<'a>(
 ) -> Vec<InlineHtmlElement<'a>> {
     let mut elements = Vec::new();
     for (line_index, line) in lines.iter().enumerate() {
-        if code_line_flags.get(line_index).copied().unwrap_or(false) {
+        if code_line_flags[line_index] {
             continue;
         }
         elements.extend(html_elements_on_line(line_index, line, code_spans));
@@ -28,7 +28,7 @@ fn html_elements_on_line<'a>(
         };
         let tag_start = cursor + relative_start;
         let absolute_start = line.content_range.start + tag_start;
-        if inside_code_span(code_spans, line_index, absolute_start) {
+        if inside_code_span(code_spans, absolute_start) {
             cursor = tag_start + 1;
             continue;
         }

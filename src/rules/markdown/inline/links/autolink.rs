@@ -13,7 +13,7 @@ pub(super) fn autolinks_on_line<'a>(
         let start = cursor + relative_start;
         let absolute_start = line.content_range.start + start;
         cursor = start + 1;
-        if inside_code_span(code_spans, line_index, absolute_start) {
+        if inside_code_span(code_spans, absolute_start) {
             continue;
         }
         let Some(close_relative) = line.text[cursor..].find('>') else {

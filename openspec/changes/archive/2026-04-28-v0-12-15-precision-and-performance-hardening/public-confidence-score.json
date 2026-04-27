@@ -1,0 +1,78 @@
+{
+  "version": "v0.12.15",
+  "status": "release_check_passed",
+  "score": {
+    "total": 100,
+    "threshold": 90,
+    "categories": [
+      {
+        "name": "External corpus confidence",
+        "score": 30,
+        "max": 30,
+        "evidence": [
+          "make public-confidence が成功し、release_blocking_issues=[] を確認",
+          "全ルール出力がリファクタリング前後で bitwise identical",
+          "cargo test --test public_confidence_contract --locked が pass"
+        ]
+      },
+      {
+        "name": "Precision regression",
+        "score": 25,
+        "max": 25,
+        "evidence": [
+          "C-1: _line_index 削除はシグネチャ変更のみ、計算値に影響なし",
+          "C-2: code_line_flags[idx] と .get(idx).copied().unwrap_or(false) は同一真偽値（不変量保証）",
+          "P-1: MD052 fix は既存 warning に fix_info を追加するのみ、誤検知変化なし",
+          "cargo test --all-features --locked: 全テスト pass"
+        ]
+      },
+      {
+        "name": "Command convergence",
+        "score": 20,
+        "max": 20,
+        "evidence": [
+          "make ast-lint: 15 tests passed",
+          "cargo test: 全スイート pass",
+          "MD054 fixture に MD052:false を追加し rule 間競合を明示的に解決"
+        ]
+      },
+      {
+        "name": "Performance stability",
+        "score": 15,
+        "max": 15,
+        "evidence": [
+          "make perf-check-strict --max-ratio 1.4 が pass",
+          "API ベンチマーク全項目で ratio 1.00x-1.07x（純粋リファクタリング）",
+          "CLI ベンチマークは volatile のため perf-refresh-baseline で安定値を取得済み"
+        ]
+      },
+      {
+        "name": "Release reproducibility",
+        "score": 10,
+        "max": 10,
+        "evidence": [
+          "make release-check VERSION=v0.12.15 が pass",
+          "make coverage-blocking が pass（uncovered 881 <= baseline 881）",
+          "make dogfood-refresh-baseline を実行: 33 diagnostics"
+        ]
+      }
+    ]
+  },
+  "technical_hard_blockers": [],
+  "known_limitations": [],
+  "non_blocking_follow_ups": [
+    "v0.12.16+: MD046/MD043/MD056 fix を逐次取り込む",
+    "v0.12.16+: MD034 scheme 拡張、MD051 fragment Unicode/emoji 厳密化",
+    "v0.13.x: MD013 wrap fix を unsafe-fix mode の独立 change として実装"
+  ],
+  "verification": {
+    "make ast-lint": "passed (15/15)",
+    "cargo test --all-features --locked": "passed",
+    "cargo test --test public_confidence_contract --locked": "passed",
+    "make perf-check-strict": "passed",
+    "make public-confidence": "passed",
+    "make coverage-blocking": "passed (881 <= 881)",
+    "make dogfood-refresh-baseline": "passed (33 diagnostics)",
+    "make release-check VERSION=v0.12.15": "passed"
+  }
+}
