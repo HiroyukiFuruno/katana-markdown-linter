@@ -1,5 +1,7 @@
 /target
 /.DS_Store
+__pycache__/
+*.pyc
 skill.md
 CLAUDE.md
 AGENTS.md

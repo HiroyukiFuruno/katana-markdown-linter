@@ -44,9 +44,9 @@
 
 ## 5. Quality Scoring (Phase 5)
 
-- [ ] 5.1 作成済みの `public-confidence-score.json` テンプレートを開く
-- [ ] 5.2 カテゴリ (`External corpus confidence`, `Precision regression`, `Command convergence`, `Performance stability`, `Release reproducibility`) の検証結果・根拠を記載する
-- [ ] 5.3 合否ルール（`score >= 90` かつ `technical_hard_blockers` 0 件）の達成を確認し、残存課題があれば `known_limitations` に追記する
+- [x] 5.1 作成済みの `public-confidence-score.json` テンプレートを開く
+- [x] 5.2 カテゴリ (`External corpus confidence`, `Precision regression`, `Command convergence`, `Performance stability`, `Release reproducibility`) の検証結果・根拠を記載する
+- [x] 5.3 合否ルール（`score >= 90` かつ `technical_hard_blockers` 0 件）の達成を確認し、残存課題があれば `known_limitations` に追記する
 
 ## Verification
 
