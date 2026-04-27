@@ -40,8 +40,9 @@ fn ast_linter_no_lazy_macros_in_source() {
         &[root.join("src"), root.join("tests"), root.join("build.rs")],
         |path, line_idx, line| {
             // Skip this file itself — it defines the banned token strings as literals.
-            let path_str = path.to_string_lossy();
-            if path_str.ends_with("tests/ast_linter.rs") || path_str.contains("tests/ast_linter/") {
+            // Normalize separators for Windows compatibility.
+            let path_normalized = path.to_string_lossy().replace('\\', "/");
+            if path_normalized.ends_with("tests/ast_linter.rs") || path_normalized.contains("tests/ast_linter/") {
                 return None;
             }
             let banned = ["todo!(", "unimplemented!(", "dbg!("];
@@ -79,8 +80,8 @@ fn ast_linter_cli_directory_walk_uses_parallel_ignore_walker() {
         scan_rust_sources(
             &[workspace_root().join("src")],
             move |path, _line_idx, line| {
-                let path_str = path.to_string_lossy();
-                if !path_str.contains("/cli") {
+                let path_normalized = path.to_string_lossy().replace('\\', "/");
+                if !path_normalized.contains("/cli") {
                     return None;
                 }
                 for token in required {
