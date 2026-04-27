@@ -42,7 +42,9 @@ fn ast_linter_no_lazy_macros_in_source() {
             // Skip this file itself — it defines the banned token strings as literals.
             // Normalize separators for Windows compatibility.
             let path_normalized = path.to_string_lossy().replace('\\', "/");
-            if path_normalized.ends_with("tests/ast_linter.rs") || path_normalized.contains("tests/ast_linter/") {
+            if path_normalized.ends_with("tests/ast_linter.rs")
+                || path_normalized.contains("tests/ast_linter/")
+            {
                 return None;
             }
             let banned = ["todo!(", "unimplemented!(", "dbg!("];
