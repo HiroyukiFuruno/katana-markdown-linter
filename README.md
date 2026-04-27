@@ -209,7 +209,7 @@ are not part of the active upstream rule catalog.
 | `MD049` | Implemented | Implemented subset | Not applicable |
 | `MD050` | Implemented | Implemented subset | Not applicable |
 | `MD051` | Implemented | Implemented subset | Not applicable |
-| `MD052` | Implemented | Diagnostic only | Needs triage |
+| `MD052` | Implemented | Implemented subset | Not applicable |
 | `MD053` | Implemented | Implemented subset | Not applicable |
 | `MD054` | Implemented | Implemented subset | Not applicable |
 | `MD055` | Implemented | Implemented subset | Not applicable |

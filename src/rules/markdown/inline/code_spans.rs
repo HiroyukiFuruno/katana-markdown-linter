@@ -7,7 +7,7 @@ pub(crate) fn extract_inline_code_spans<'a>(
 ) -> Vec<InlineCodeSpan> {
     let mut spans = Vec::new();
     for (idx, line) in lines.iter().enumerate() {
-        if code_line_flags.get(idx).copied().unwrap_or(false) {
+        if code_line_flags[idx] {
             continue;
         }
         spans.extend(inline_code_spans_on_line(idx, line));

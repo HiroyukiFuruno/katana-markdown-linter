@@ -9,7 +9,7 @@ pub(crate) fn extract_reference_definitions<'a>(
     lines
         .iter()
         .enumerate()
-        .filter(|(idx, _)| !code_line_flags.get(*idx).copied().unwrap_or(false))
+        .filter(|(idx, _)| !code_line_flags[*idx])
         .filter_map(|(idx, line)| reference_definition_on_line(idx, line))
         .collect()
 }

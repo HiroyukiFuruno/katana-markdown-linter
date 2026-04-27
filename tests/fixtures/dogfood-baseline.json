@@ -1,147 +1,105 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 31,
+  "total_diagnostics": 33,
   "diagnostics": [
     {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/design.md",
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/design.md",
       "rule_id": "MD032",
       "message": "Lists should be surrounded by blank lines",
-      "line_text": "- F-A: `line_in_blocks` と `code_line_flags[idx]` は同じ真偽値",
+      "line_text": "- Images `![alt][]` share the same `full_range` structure; the trailing `[]` is the same 2 bytes.",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/design.md",
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/design.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- `fix_image_removes_trailing_brackets`: same for `![alt][]`.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/design.md",
+      "rule_id": "MD040",
+      "message": "Fenced code blocks should have a language specified.",
+      "line_text": "```",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/design.md",
+      "rule_id": "MD048",
+      "message": "Code fence style",
+      "line_text": "```",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/design.md",
       "rule_id": "MD048",
       "message": "Code fence style",
       "line_text": "```rust",
+      "count": 4
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/proposal.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "2. **Defensive `.get(idx).copied().unwrap_or(false)` pattern** in all 4 inline extractors —",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/proposal.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "- **P-1**: Add `fix_info` to MD052 diagnostics (safe-fix: delete trailing `[]`); set",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/spec.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "3. The fix is idempotent: applying it once to `[ref][]` yields `[ref]`, which no longer triggers",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/spec.md",
+      "rule_id": "MD029",
+      "message": "Ordered list item prefix.",
+      "line_text": "4. Multiple collapsed references on one line produce non-overlapping fix ranges.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "3. The fix is idempotent: applying it once to `[ref][]` yields `[ref]`, which no longer triggers",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "4. Multiple collapsed references on one line produce non-overlapping fix ranges.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/tasks.md",
+      "rule_id": "MD040",
+      "message": "Fenced code blocks should have a language specified.",
+      "line_text": "```",
       "count": 6
     },
     {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD029",
-      "message": "Ordered list item prefix.",
-      "line_text": "2. **MD051 ignored_pattern Caching**:",
-      "count": 1
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/tasks.md",
+      "rule_id": "MD048",
+      "message": "Code fence style",
+      "line_text": "```",
+      "count": 6
     },
     {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD029",
-      "message": "Ordered list item prefix.",
-      "line_text": "3. **MD046 code_line_flags Lookup**:",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD029",
-      "message": "Ordered list item prefix.",
-      "line_text": "4. **Roadmap Update**:",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* **Internal Quality**: `internal-quality-report.json` shows no regression in",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* **Performance**: `make perf-check-strict` passes with `ratio ≤ 1.40x`. When",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* **Public Confidence**: `make public-confidence` reports `unclassified_count: 0`",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* **Release Readiness**: `make release-check VERSION=v0.12.14` passes with no",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* Behavior on empty or invalid patterns must match the current implementation.",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* Defer the MD013 wrap fix into a future unsafe-fix change.",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* Existing public methods (`inline_code_spans`, `inline_html_elements`,",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "* Style-distinguishing logic (fenced vs indented) remains via the existing",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "2. **MD051 ignored_pattern Caching**:",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/spec.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "4. **Roadmap Update**:",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: `\"`\".repeat(marker_len)` の per-span String 確保をゼロアロケーションに置き換える*",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: 全 4 inline extractor の O(L×b) code block 線形走査を O(L) 索引参照に置き換える*",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: 文字位置ごとの O(s) 線形走査を O(log s) 二分探索に置き換える*",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/tasks.md",
-      "rule_id": "MD038",
-      "message": "Spaces inside code span elements",
-      "line_text": "- [ ] 3.2 `\"`\".repeat(marker_len)` + `line.text[..].find(&marker)` を `find_closing_marker` 呼び出しに置き換える",
+      "path": "openspec/changes/v0-12-15-precision-and-performance-hardening/tasks.md",
+      "rule_id": "MD048",
+      "message": "Code fence style",
+      "line_text": "```rust",
       "count": 2
-    },
-    {
-      "path": "openspec/changes/v0-12-14-precision-and-performance-hardening/tasks.md",
-      "rule_id": "MD038",
-      "message": "Spaces inside code span elements",
-      "line_text": "- [ ] `\"`\".repeat()` が `find_closing_marker()` に置き換わっている",
-      "count": 1
     },
     {
       "path": "openspec/specs/cli/spec.md",

@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.12.15
+
+- Removes the unused `_line_index: usize` parameter from `scan::inside_code_span`
+  (dead after the v0.12.14 `partition_point` rewrite) and updates all three call
+  sites (`html.rs`, `links/mod.rs`, `links/autolink.rs`), eliminating the
+  leading-underscore suppression workaround.
+- Replaces the defensive `.get(idx).copied().unwrap_or(false)` chain in all four
+  inline extractors with direct `code_line_flags[idx]` indexing; the invariant is
+  guaranteed by `build_code_line_flags(lines.len(), ...)`.
+- Adds a safe fix to MD052 (`reference-links-images`): collapsed references such
+  as `[ref][]` and `![alt][]` can now be auto-fixed by deleting the trailing `[]`,
+  producing `[ref]` and `![alt]` respectively. Sets `is_fixable = true` in the
+  rule catalog so CLI `--fix`, MCP `apply_fix`, and API surfaces advertise the
+  new fix capability.
+- Adds MD052 to `is_safe_fix_rule` allowlist so the safe fix is applied in the
+  default `kml fix` pass without requiring unsafe-fix opt-in.
+- Updates MD054 fixture `inline_collapsed_reference_when_disabled` to explicitly
+  disable MD052 (`"MD052": false`) so the fixture tests MD054 behavior in
+  isolation without conflict from the new MD052 fix.
+
 ## v0.12.14
 
 - Replaces O(b) `line_in_blocks()` linear scan in all four inline extractors
