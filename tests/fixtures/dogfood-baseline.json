@@ -1,34 +1,83 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
-  "total_diagnostics": 9,
+  "total_diagnostics": 17,
   "diagnostics": [
     {
-      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: リファクタリング中の検証を阻害するノイズを最初に取り除き、検証環境を完全にクリーンにする*",
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/design.md",
+      "rule_id": "MD040",
+      "message": "Fenced code blocks should have a language specified.",
+      "line_text": "```",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: リファクタリング作業で新たな技術的負債が混入しないよう、防波堤（Quality Gate）を先に拡張・厳格化する*",
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/design.md",
+      "rule_id": "MD048",
+      "message": "Code fence style",
+      "line_text": "```",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
-      "rule_id": "MD036",
-      "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: 厳格化されたGateの元で、巨大なモノリスを安全に解体する*",
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/design.md",
+      "rule_id": "MD048",
+      "message": "Code fence style",
+      "line_text": "```rust",
+      "count": 2
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "* **Performance**: `make perf-check-strict` passes with `--max-ratio 1.4`;",
       "count": 1
     },
     {
-      "path": "openspec/changes/v0-12-12-quality-and-performance-hardening/tasks.md",
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "* **Release Readiness**: The final `make release-check VERSION=v0.12.13` must",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "* Each sub-module must have a size_score ≤ 400 after splitting.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "* Verify no performance regression with `make perf-check-strict`.",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/spec.md",
+      "rule_id": "MD032",
+      "message": "Lists should be surrounded by blank lines",
+      "line_text": "1. **Public Confidence**:",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/tasks.md",
       "rule_id": "MD036",
       "message": "Emphasis used instead of a heading",
-      "line_text": "*目的: 整理されたアーキテクチャの上で、ミクロな性能最適化を施す*",
+      "line_text": "*目的: リリース前の総合品質確認*",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "*目的: 最大の技術的負債である src/cli/workflow.rs を安全に解体し、保守性を高める*",
+      "count": 1
+    },
+    {
+      "path": "openspec/changes/v0-12-13-quality-and-performance-hardening/tasks.md",
+      "rule_id": "MD036",
+      "message": "Emphasis used instead of a heading",
+      "line_text": "*目的: 残存するホットパスアロケーションを除去し、性能ベースラインを改善する*",
       "count": 1
     },
     {

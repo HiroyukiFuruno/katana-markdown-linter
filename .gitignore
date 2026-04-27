@@ -1,12 +1,15 @@
 /target
 /.DS_Store
-__pycache__/
-*.pyc
 skill.md
 CLAUDE.md
 AGENTS.md
 *.skill.md
 tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 
 # openspec workfiles
 openspec*

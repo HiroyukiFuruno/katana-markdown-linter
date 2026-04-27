@@ -53,3 +53,9 @@ pub(crate) struct FixFileApplyRequest {
     pub(crate) locale: Option<String>,
     pub(crate) apply: bool,
 }
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct RuleDocRequest {
+    pub(crate) rule_id: String,
+    pub(crate) locale: Option<String>,
+}
