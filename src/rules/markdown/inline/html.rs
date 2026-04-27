@@ -1,14 +1,14 @@
-use super::scan::{inside_code_span, line_in_blocks, skip_ascii_whitespace};
+use super::scan::{inside_code_span, skip_ascii_whitespace};
 use super::types::{InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement};
-use crate::rules::markdown::document::{BlockRange, LineInfo, SourceRange};
+use crate::rules::markdown::document::{LineInfo, SourceRange};
 pub(crate) fn extract_inline_html_elements<'a>(
     lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
+    code_line_flags: &[bool],
     code_spans: &[InlineCodeSpan],
 ) -> Vec<InlineHtmlElement<'a>> {
     let mut elements = Vec::new();
     for (line_index, line) in lines.iter().enumerate() {
-        if line_in_blocks(line_index, code_blocks) {
+        if code_line_flags.get(line_index).copied().unwrap_or(false) {
             continue;
         }
         elements.extend(html_elements_on_line(line_index, line, code_spans));

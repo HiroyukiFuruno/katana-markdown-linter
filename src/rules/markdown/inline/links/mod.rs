@@ -3,21 +3,21 @@ mod bracket;
 mod destination;
 
 use super::reference_definitions::reference_definition_on_line;
-use super::scan::{find_unescaped, inside_code_span, line_in_blocks};
+use super::scan::{find_unescaped, inside_code_span};
 use super::types::{InlineCodeSpan, InlineLink, InlineLinkKind};
-use crate::rules::markdown::document::{BlockRange, LineInfo, SourceRange};
+use crate::rules::markdown::document::{LineInfo, SourceRange};
 use autolink::autolinks_on_line;
 use bracket::matching_bracket;
 use destination::parse_inline_destination;
 
 pub(crate) fn extract_inline_links<'a>(
     lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
+    code_line_flags: &[bool],
     code_spans: &[InlineCodeSpan],
 ) -> Vec<InlineLink<'a>> {
     let mut links = Vec::new();
     for (idx, line) in lines.iter().enumerate() {
-        if line_in_blocks(idx, code_blocks) {
+        if code_line_flags.get(idx).copied().unwrap_or(false) {
             continue;
         }
         links.extend(markdown_links_on_line(idx, line, code_spans));

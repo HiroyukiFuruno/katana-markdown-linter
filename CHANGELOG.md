@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.12.14
+
+- Replaces O(b) `line_in_blocks()` linear scan in all four inline extractors
+  (`extract_inline_code_spans`, `extract_inline_html_elements`,
+  `extract_inline_links`, `extract_reference_definitions`) with the pre-built
+  `code_line_flags` boolean index already held by `DocumentContext`, eliminating
+  per-line `code_blocks.iter().any()` traversal.
+- Replaces O(s) `inside_code_span()` linear scan with a `partition_point`
+  binary search on the sorted code-span list, reducing per-character-position
+  cost from O(s) to O(log s) in the HTML-element and link parsers.
+- Removes the `"`".repeat(marker_len)` String allocation in the inline code-span
+  scanner, replacing it with a zero-allocation `find_closing_marker` byte scan.
+- Updates coverage baseline from 880 to 881 to account for the new
+  `find_closing_marker` helper (net line increase with no precision regression).
+- Refreshes performance baseline: `context_inline_token_index_large_document`
+  drops from 10.7 ms to ~0.9 ms (≈12×); inline-code-heavy and link-heavy
+  corpus benchmarks improve by 3–7× with all ratios ≤ 1.40×.
+
 ## v0.12.13
 
 - Splits `src/cli/workflow.rs` (1197 size-score) into focused sub-modules:

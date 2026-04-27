@@ -173,7 +173,7 @@ impl<'a> DocumentContext<'a> {
 
     pub fn inline_code_spans(&self) -> &[InlineCodeSpan] {
         self.inline_code_spans
-            .get_or_init(|| extract_inline_code_spans(&self.lines, &self.code_blocks))
+            .get_or_init(|| extract_inline_code_spans(&self.lines, &self.code_line_flags))
             .as_slice()
     }
 
@@ -185,7 +185,7 @@ impl<'a> DocumentContext<'a> {
                 }
                 extract_inline_html_elements(
                     &self.lines,
-                    &self.code_blocks,
+                    &self.code_line_flags,
                     self.inline_code_spans(),
                 )
             })
@@ -206,14 +206,14 @@ impl<'a> DocumentContext<'a> {
     pub fn inline_links(&self) -> &[InlineLink<'a>] {
         self.inline_links
             .get_or_init(|| {
-                extract_inline_links(&self.lines, &self.code_blocks, self.inline_code_spans())
+                extract_inline_links(&self.lines, &self.code_line_flags, self.inline_code_spans())
             })
             .as_slice()
     }
 
     pub fn reference_definitions(&self) -> &[ReferenceDefinition<'a>] {
         self.reference_definitions
-            .get_or_init(|| extract_reference_definitions(&self.lines, &self.code_blocks))
+            .get_or_init(|| extract_reference_definitions(&self.lines, &self.code_line_flags))
             .as_slice()
     }
 
