@@ -50,7 +50,8 @@ jobs:
     name: Test and Build
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        # Full 3-platform matrix on pull_request; push-to-main already passed PR CI so ubuntu only.
+        os: ${{ github.event_name == 'pull_request' && fromJson('["macos-latest","ubuntu-latest","windows-latest"]') || fromJson('["ubuntu-latest"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
