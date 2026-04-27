@@ -48,6 +48,13 @@ env:
 jobs:
   test:
     name: Test and Build
+    # WHY: Avoid redundant CI runs when a PR is merged — tests already passed on the PR branch.
+    # Direct pushes to main (admin) still trigger the full 3-platform matrix.
+    if: >-
+      github.event_name != 'push' || (
+        !startsWith(github.event.head_commit.message, 'Merge pull request ') &&
+        !contains(github.event.head_commit.message, '(#')
+      )
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]

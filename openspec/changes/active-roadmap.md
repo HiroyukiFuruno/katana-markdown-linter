@@ -25,6 +25,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
+- `v0.16.0`: Introduce JSON schema and LSP entrypoint to enable editor auto-completion and real-time diagnostics.
+- `v0.17.0`: Expand distribution channels including Homebrew, standalone binary artifacts, and language wrappers (npm/pip).
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
@@ -52,6 +54,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Completed; defined package type, `server.json` draft, security review, and public readiness gates. |
 | P1 | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
+| Frozen | Config schema and editor integration for `v0.16.0` | `v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
+| Frozen | Binary distribution expansion for `v0.17.0` | `v0-17-0-binary-distribution-expansion` | Expands beyond Cargo/GitHub Actions to Homebrew and standalone artifacts. |
 
 Archived completed changes:
 
@@ -84,6 +88,8 @@ Archived completed changes:
 2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.9` public confidence score is at least 90 and release-blocking issues are 0.
 3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
+5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
+6. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 

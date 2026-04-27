@@ -200,8 +200,8 @@ mcp-stdio-smoke: mcp-install-smoke ## Exercise kml-mcp through MCP stdio JSON-RP
 	python3 scripts/ci/mcp-stdio-smoke.py --bin "$(MCP_INSTALL_SMOKE_DIR)/bin/kml-mcp"
 
 .PHONY: internal-quality-check
-internal-quality-check: ## Capture internal code quality evidence for src and CLI hot paths
-	python3 scripts/ci/internal-quality.py --report target/internal-quality-report.json --src src
+internal-quality-check: ## Capture internal code quality evidence for src, tests, and build.rs
+	python3 scripts/ci/internal-quality.py --report target/internal-quality-report.json --src src --extra-paths tests build.rs
 
 .PHONY: release-test
 release-test: ## Run release-equivalent tests with all optional features

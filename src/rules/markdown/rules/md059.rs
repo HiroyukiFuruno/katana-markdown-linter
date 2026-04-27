@@ -68,11 +68,14 @@ fn contains_prohibited_text(link_text: &str, prohibited: &[&str]) -> bool {
 }
 
 fn normalize_link_text(link_text: &str) -> String {
-    link_text
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ")
-        .to_lowercase()
+    let mut result = String::new();
+    for word in link_text.split_whitespace() {
+        if !result.is_empty() {
+            result.push(' ');
+        }
+        result.push_str(word);
+    }
+    result.to_lowercase()
 }
 
 #[cfg(test)]
