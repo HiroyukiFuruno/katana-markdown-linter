@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.12.12
+
+- Fixes MD003 false positive: diagnostic now points to the heading text line
+  instead of the setext underline, matching the markdownlint reference
+  implementation behavior.
+- Fixes MD046 false positive: 4-space-indented list items (using `-`, `*`, `+`,
+  or ordered markers) are no longer misidentified as indented code blocks.
+- Splits `src/cli.rs` (2399 lines) into focused sub-modules: `args.rs`,
+  `input.rs`, `reporter.rs`, and `workflow.rs`, each scoring ≤ 200 in the
+  internal quality gate.
+- Splits `src/upstream.rs` (1196 lines) into `upstream/document.rs`,
+  `upstream/fixture.rs`, and `upstream/drift.rs`.
+- Eliminates per-call `String` clones in severity map construction by switching
+  from `HashMap<String, …>` to `HashMap<&str, …>`.
+- Reduces intermediate `Vec<&str>` allocations in `heading_style.rs`,
+  `style.rs`, and `heading_duplicates.rs` by working directly with `ctx.lines()`
+  slices.
+- Removes `md-broken-link` from the default evaluation flow to eliminate
+  classification noise; the rule implementation is retained for future use.
+- Extends `tests/ast_linter.rs` and `scripts/ci/internal-quality.py` to cover
+  `tests/` and `build.rs` in addition to `src/`.
+- Refreshes performance baseline after optimizations; all benchmarks remain
+  within the 1.40× strict regression gate.
+
 ## v0.12.11
 
 - No functional code changes. Release prep completed to advance patch version and

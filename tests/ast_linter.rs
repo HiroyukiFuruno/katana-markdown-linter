@@ -2,7 +2,7 @@ use ignore::{WalkBuilder, WalkState};
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
 
 #[path = "ast_linter/documentation_language_guard.rs"]
 mod documentation_language_guard;
@@ -35,37 +35,68 @@ Parameters:
 
 #[test]
 fn ast_linter_no_lazy_macros_in_source() {
-    let violations = scan_rust_sources(&[workspace_root().join("src")], |path, line_idx, line| {
-        let banned = ["todo!(", "unimplemented!(", "dbg!("];
-        banned
-            .iter()
-            .find(|token| line.contains(**token))
-            .map(|token| {
-                format!(
-                    "{}:{}: remove lazy macro `{}` and implement the behavior",
-                    path.display(),
-                    line_idx + 1,
-                    token.trim_end_matches('(')
-                )
-            })
-    });
+    let root = workspace_root();
+    let violations = scan_rust_sources(
+        &[root.join("src"), root.join("tests"), root.join("build.rs")],
+        |path, line_idx, line| {
+            // Skip this file itself — it defines the banned token strings as literals.
+            let path_str = path.to_string_lossy();
+            if path_str.ends_with("tests/ast_linter.rs") || path_str.contains("tests/ast_linter/") {
+                return None;
+            }
+            let banned = ["todo!(", "unimplemented!(", "dbg!("];
+            banned
+                .iter()
+                .find(|token| line.contains(**token))
+                .map(|token| {
+                    format!(
+                        "{}:{}: remove lazy macro `{}` and implement the behavior",
+                        path.display(),
+                        line_idx + 1,
+                        token.trim_end_matches('(')
+                    )
+                })
+        },
+    );
 
     assert_no_violations("lazy-macros", violations);
 }
 
 #[test]
 fn ast_linter_cli_directory_walk_uses_parallel_ignore_walker() {
-    let cli = read_workspace_file("src/cli.rs");
-    let required = [
+    let required: &[&str] = &[
         "use ignore::{WalkBuilder, WalkState};",
         "WalkBuilder::new(dir)",
         ".build_parallel()",
         ".require_git(false)",
     ];
+    // Use scan_rust_sources so this test survives future splits of src/cli.rs into sub-modules.
+    // Task 2.2: filter to src/cli* paths only to avoid false-positives from test helpers that
+    // also use WalkBuilder.
+    let found: Arc<Mutex<BTreeSet<&str>>> = Arc::new(Mutex::new(BTreeSet::new()));
+    {
+        let found = found.clone();
+        scan_rust_sources(
+            &[workspace_root().join("src")],
+            move |path, _line_idx, line| {
+                let path_str = path.to_string_lossy();
+                if !path_str.contains("/cli") {
+                    return None;
+                }
+                for token in required {
+                    if line.contains(token) {
+                        found.lock().unwrap().insert(token);
+                    }
+                }
+                None
+            },
+        );
+    }
+    let found = found.lock().unwrap();
     let violations = required
         .iter()
-        .filter(|required| !cli.contains(**required))
-        .map(|required| format!("src/cli.rs: missing `{required}`"))
+        .filter(|token| !found.contains(*token))
+        .map(|token| format!("src/cli*: missing `{token}`"))
         .collect();
 
     assert_no_violations("cli-parallel-walker", violations);
@@ -130,7 +161,7 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
     let makefile = read_workspace_file("Makefile");
     let release = read_workspace_file(".github/workflows/release.yml");
     let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
-    let upstream = read_workspace_file("src/upstream.rs");
+    let upstream_drift = read_workspace_file("src/upstream/drift.rs");
     let required = [
         (
             "Makefile",
@@ -158,10 +189,14 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
             &preflight,
             "make upstream-drift",
         ),
-        ("src/upstream.rs", &upstream, "assert_no_unknown_drift"),
         (
-            "src/upstream.rs",
-            &upstream,
+            "src/upstream/drift.rs",
+            &upstream_drift,
+            "assert_no_unknown_drift",
+        ),
+        (
+            "src/upstream/drift.rs",
+            &upstream_drift,
             "known_current_drift_allowlist",
         ),
     ];

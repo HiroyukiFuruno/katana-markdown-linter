@@ -234,7 +234,7 @@ impl From<rules::markdown::OfficialRuleMeta> for RuleMeta {
 
 fn build_severity_map(
     options: &LintOptions,
-) -> std::collections::HashMap<String, Option<rules::markdown::DiagnosticSeverity>> {
+) -> std::collections::HashMap<&str, Option<rules::markdown::DiagnosticSeverity>> {
     options
         .rules
         .iter()
@@ -248,14 +248,14 @@ fn build_severity_map(
             } else {
                 None
             };
-            (rule_id.clone(), severity)
+            (rule_id.as_str(), severity)
         })
         .collect()
 }
 
 fn build_fix_severity_map(
     options: &LintOptions,
-) -> std::collections::HashMap<String, Option<rules::markdown::DiagnosticSeverity>> {
+) -> std::collections::HashMap<&'static str, Option<rules::markdown::DiagnosticSeverity>> {
     rules::markdown::MarkdownLinterOps::official_rules()
         .iter()
         .map(|rule| {
@@ -273,7 +273,7 @@ fn build_fix_severity_map(
             } else {
                 None
             };
-            (rule.id().to_string(), severity)
+            (rule.id(), severity)
         })
         .collect()
 }
