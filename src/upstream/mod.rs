@@ -3,8 +3,9 @@ pub mod drift;
 pub mod fixture;
 
 pub use document::{
-    load_catalog_from_dir, parse_rule_document, UpstreamCatalog, UpstreamRuleDocument,
-    UpstreamRuleExample, UpstreamRuleProperty,
+    get_rule_documentation, get_rule_documentation_from_dir, load_catalog_from_dir,
+    parse_rule_document, UpstreamCatalog, UpstreamRuleDocument, UpstreamRuleExample,
+    UpstreamRuleProperty,
 };
 pub use drift::{
     assert_no_unknown_drift, compare_with_local, known_current_drift_allowlist,

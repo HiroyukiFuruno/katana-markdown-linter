@@ -256,6 +256,34 @@ fn is_rule_doc(path: &Path) -> bool {
         && file_name[2..5].chars().all(|ch| ch.is_ascii_digit())
 }
 
+pub fn get_rule_documentation(rule_id: &str, locale: crate::Locale) -> Result<String, String> {
+    get_rule_documentation_from_dir(rule_id, locale, Path::new("upstream_docs"))
+}
+
+pub fn get_rule_documentation_from_dir(
+    rule_id: &str,
+    locale: crate::Locale,
+    base_dir: &Path,
+) -> Result<String, String> {
+    let id = rule_id.to_lowercase();
+    let file_name = format!("{}.md", id);
+
+    let ja_path = base_dir.join("ja").join(&file_name);
+    let en_path = base_dir.join(&file_name);
+
+    let path = match locale {
+        crate::Locale::Ja if ja_path.exists() => ja_path,
+        _ => en_path,
+    };
+
+    fs::read_to_string(&path).map_err(|err| {
+        format!(
+            "failed to read documentation for {rule_id} from {}: {err}",
+            path.display()
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
