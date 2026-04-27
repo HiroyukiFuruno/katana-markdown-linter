@@ -13,10 +13,10 @@ pub(crate) use config::{validate_config, ConfigValidateResponse};
 pub(crate) use diagnostic::Diagnostic;
 pub(crate) use request::{
     CheckTextRequest, ConfigValidateRequest, DirectoryRequest, FileRequest, FixFileApplyRequest,
-    FixTextRequest, RuleDocRequest, RuleGetRequest, RuleListRequest,
+    FixTextRequest, RuleGetRequest, RuleListRequest,
 };
 pub(crate) use response::{
     CheckTextResponse, DirectoryCheckResponse, FileCheckResponse, FileFixApplyResponse,
-    FileFixPreviewResponse, FixTextResponse, RuleDocResponse, WorkspaceToolError,
+    FileFixPreviewResponse, FixTextResponse, WorkspaceToolError,
 };
 pub(crate) use rule::{RuleListResponse, RuleMetadata};

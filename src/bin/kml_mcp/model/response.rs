@@ -69,10 +69,3 @@ pub(crate) struct WorkspaceToolError {
     pub(crate) path: String,
     pub(crate) message: String,
 }
-
-#[derive(Debug, Serialize, schemars::JsonSchema)]
-pub(crate) struct RuleDocResponse {
-    pub(crate) rule_id: String,
-    pub(crate) locale: String,
-    pub(crate) content: String,
-}

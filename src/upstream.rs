@@ -1,5 +1,4 @@
 use crate::rules::markdown::RulePropertyType;
-use crate::Locale;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -228,34 +227,6 @@ pub fn load_catalog_from_dir(doc_dir: &Path) -> Result<UpstreamCatalog, String> 
     Ok(UpstreamCatalog {
         source: "DavidAnson/markdownlint default branch".to_string(),
         rules,
-    })
-}
-
-pub fn get_rule_documentation(rule_id: &str, locale: Locale) -> Result<String, String> {
-    get_rule_documentation_from_dir(rule_id, locale, Path::new("upstream_docs"))
-}
-
-pub fn get_rule_documentation_from_dir(
-    rule_id: &str,
-    locale: Locale,
-    base_dir: &Path,
-) -> Result<String, String> {
-    let id = rule_id.to_lowercase();
-    let file_name = format!("{}.md", id);
-
-    let ja_path = base_dir.join("ja").join(&file_name);
-    let en_path = base_dir.join(&file_name);
-
-    let path = match locale {
-        Locale::Ja if ja_path.exists() => ja_path,
-        _ => en_path,
-    };
-
-    fs::read_to_string(&path).map_err(|err| {
-        format!(
-            "failed to read documentation for {rule_id} from {}: {err}",
-            path.display()
-        )
     })
 }
 
