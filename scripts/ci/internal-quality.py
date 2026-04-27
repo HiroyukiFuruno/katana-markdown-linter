@@ -27,14 +27,28 @@ class FileMetric:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--src", default="src", help="Source root directory")
+    parser.add_argument(
+        "--extra-paths",
+        nargs="*",
+        default=[],
+        metavar="PATH",
+        help="Additional files or directories to include (e.g. tests/ build.rs)",
+    )
     parser.add_argument("--report", required=True, help="Path to write JSON report")
     return parser.parse_args()
 
 
-def collect_rust_files(root: pathlib.Path) -> list[pathlib.Path]:
+def collect_rust_files(root: pathlib.Path, extras: list[pathlib.Path] | None = None) -> list[pathlib.Path]:
     files = sorted(root.rglob("*.rs"))
     if not files:
         raise SystemExit(f"no Rust files found under {root}")
+    for extra in extras or []:
+        if extra.is_file() and extra.suffix == ".rs" and extra not in files:
+            files.append(extra)
+        elif extra.is_dir():
+            for f in sorted(extra.rglob("*.rs")):
+                if f not in files:
+                    files.append(f)
     return files
 
 
@@ -83,8 +97,8 @@ def split_candidates(metrics: list[FileMetric]) -> list[dict[str, object]]:
     return sorted(candidates, key=lambda item: item["size_score"], reverse=True)
 
 
-def build_report(root: pathlib.Path) -> dict[str, object]:
-    metrics = [metric_for_file(path) for path in collect_rust_files(root)]
+def build_report(root: pathlib.Path, extras: list[pathlib.Path] | None = None) -> dict[str, object]:
+    metrics = [metric_for_file(path) for path in collect_rust_files(root, extras)]
     by_non_empty = sorted(metrics, key=lambda item: item.non_empty_lines, reverse=True)
     by_hot_path = sorted(metrics, key=lambda item: item.functions + item.impl_blocks, reverse=True)
 
@@ -140,7 +154,8 @@ def main() -> int:
     if not root.exists():
         raise SystemExit(f"source directory not found: {root}")
 
-    report = build_report(root)
+    extras = [pathlib.Path(p) for p in (args.extra_paths or [])]
+    report = build_report(root, extras)
     target = pathlib.Path(args.report)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,84 @@
+{
+  "version": "v0.12.12",
+  "status": "release_check_passed",
+  "score": {
+    "total": 100,
+    "threshold": 90,
+    "categories": [
+      {
+        "name": "External corpus confidence",
+        "score": 30,
+        "max": 30,
+        "evidence": [
+          "make public-confidence が成功し、check/fix/fmt 最終収束まで完了した",
+          "curated corpus: 2 files / 995 bytes / 4 true-positive / 0 release-blocking",
+          "unclassified_count=0、release_blocking_issues=[]",
+          "fix converged: final check exit_code=0、issues 0"
+        ]
+      },
+      {
+        "name": "Precision regression",
+        "score": 25,
+        "max": 25,
+        "evidence": [
+          "MD003 誤検知修正: setext heading 診断位置を underline 行から heading text 行（i-1）に修正",
+          "MD046 誤検知修正: 4スペースインデントリストアイテムを indented code block と誤判定しないよう is_list_marker_line を追加",
+          "cargo test --test public_confidence_contract --locked が pass",
+          "cargo test --test cli_convergence_contract --locked が pass",
+          "cargo test --test cli_path_context_contract --locked が pass",
+          "public-confidence classification が true-positive のみ / unclassified_count=0"
+        ]
+      },
+      {
+        "name": "Command convergence",
+        "score": 20,
+        "max": 20,
+        "evidence": [
+          "public-confidence curated: check source_unchanged=true、fix converged、fmt did not require 2nd pass",
+          "public-confidence curated: fix changed_files=1 then 0、final check exit_code=0、issues 0",
+          "make ast-lint: 15 tests passed",
+          "cargo test: 全スイート pass（lib/integration/upstream_golden_comparison）"
+        ]
+      },
+      {
+        "name": "Performance stability",
+        "score": 15,
+        "max": 15,
+        "evidence": [
+          "make perf-check-strict --max-ratio 1.4 が pass（2回実行で安定確認）",
+          "改善ケース: api_rule_catalog=0.78x、cli_fmt_many_small_files=0.82x、api_lint_many_small_documents=0.89x",
+          "make perf-refresh-baseline で新ベースラインを確立（tests/fixtures/perf-baseline.json 更新）",
+          "severity_map を HashMap<String,…> → HashMap<&str,…> に変更し per-call clone を削減"
+        ]
+      },
+      {
+        "name": "Release reproducibility",
+        "score": 10,
+        "max": 10,
+        "evidence": [
+          "make release-check VERSION=v0.12.12 が pass",
+          "make coverage-blocking が pass（uncovered 858 <= baseline 858）",
+          "scripts/ci/internal-quality.py と make internal-quality-check の再現証跡を target/internal-quality-report.json に保存",
+          "public-confidence / perf / 内部品質レポートの 3 系を再実行可能状態で保存"
+        ]
+      }
+    ]
+  },
+  "technical_hard_blockers": [],
+  "known_limitations": [
+    "coverage-baseline を 623 → 858 に更新: src/cli.rs および src/upstream.rs のモジュール分割により対象コード行が増加したことによる自然増（actual coverage rate は退行なし）"
+  ],
+  "non_blocking_follow_ups": [],
+  "verification": {
+    "make ast-lint": "passed",
+    "cargo test --all-features --locked": "passed",
+    "cargo test --test public_confidence_contract --locked": "passed",
+    "cargo test --test cli_convergence_contract --locked": "passed",
+    "cargo test --test cli_path_context_contract --locked": "passed",
+    "make perf-check-strict": "passed",
+    "make public-confidence": "passed",
+    "make internal-quality-check": "passed",
+    "make coverage-blocking": "passed",
+    "make release-check VERSION=v0.12.12": "passed"
+  }
+}

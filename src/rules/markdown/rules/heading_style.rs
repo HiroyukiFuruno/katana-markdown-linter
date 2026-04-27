@@ -1,3 +1,4 @@
+use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
@@ -20,18 +21,20 @@ impl MarkdownRule for HeadingStyleRule {
         let meta = self.official_meta().expect("always Some for MD003");
         let mut diagnostics = Vec::new();
         let ctx = DocumentContext::new(file_path, content);
-        let lines = ctx.lines().iter().map(|line| line.text).collect::<Vec<_>>();
-        for (i, line) in lines.iter().enumerate() {
+        let ctx_lines = ctx.lines();
+        for i in 0..ctx_lines.len() {
             if ctx.is_code_line(i) || is_front_matter_line(&ctx, i) {
                 continue;
             }
-            /* WHY: Setext heading markers only count when attached to paragraph text. */
-            if is_setext_heading_marker(&lines, i) {
+            /* WHY: Setext heading markers only count when attached to paragraph text.
+             * Diagnostic points to the heading text line (i-1), not the underline (i),
+             * matching markdownlint reference implementation behavior. */
+            if is_setext_heading_marker(ctx_lines, i) {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
                     file_path,
-                    i,
-                    line,
+                    i - 1,
+                    ctx_lines[i - 1].text,
                     &meta,
                     DiagnosticSeverity::Warning,
                 );
@@ -50,11 +53,11 @@ fn is_front_matter_line(ctx: &DocumentContext<'_>, line_index: usize) -> bool {
     })
 }
 
-fn is_setext_heading_marker(lines: &[&str], idx: usize) -> bool {
-    if idx == 0 || !is_setext_underline(lines[idx].trim()) {
+fn is_setext_heading_marker(lines: &[LineInfo<'_>], idx: usize) -> bool {
+    if idx == 0 || !is_setext_underline(lines[idx].text.trim()) {
         return false;
     }
-    let previous = lines[idx - 1].trim();
+    let previous = lines[idx - 1].text.trim();
     !previous.is_empty()
         && !RuleHelpers::is_fence(previous)
         && !RuleHelpers::is_atx_heading(previous)
@@ -74,11 +77,13 @@ mod tests {
 
     #[test]
     fn reports_setext_heading_marker() {
+        // Diagnostic must point to the heading text line (line 1), not the underline (line 2),
+        // matching the markdownlint reference implementation.
         let diagnostics = HeadingStyleRule.evaluate(Path::new("test.md"), "Heading\n---\n");
 
         assert_eq!(diagnostics.len(), 1);
         assert_eq!(diagnostics[0].rule_id, "MD003");
-        assert_eq!(diagnostics[0].range.start_line, 2);
+        assert_eq!(diagnostics[0].range.start_line, 1);
     }
 
     #[test]
