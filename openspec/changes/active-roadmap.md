@@ -23,7 +23,9 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.8`: released patch として stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。
 - `v0.12.9`: 公開導線を広げる前の patch として、KatanA docs/assets Markdown と既存 performance corpus を使い、外部品質への confidence evidence を固める。
 - `v0.12.14`: precision-first を維持したまま `DocumentContext` の inline 抽出統合 (`InlineIndex`)、`MD051` の `ignored_pattern` regex キャッシュ、`MD046` の `code_line_flags` 索引活用で hot path コストを削減する。
-- `v0.12.19+`: 精度 fix+ 継続拡張。MD052 collapsed reference safe-fix、MD046 style 統一 fix、MD043 missing heading 挿入 fix、MD034 scheme 拡張、MD051 fragment Unicode/emoji 厳密化を逐次取り込む。
+- `v0.12.19`: `MD003` の safe-fix と `MD028` の fix policy を扱う。`MD028` は安全条件を定義できない場合、`v0.12.21` の by-design 宣言へ送る。
+- `v0.12.20`: `v0.12.19` 後の performance 計測と、測定で必要になった hot path 改善だけを扱う。新規 rule/fix は入れない。
+- `v0.12.21`: `v0.12.20` 完了後に KatanA 側ドキュメント feedback sweep を行い、issue があれば bugfix として扱う。release-blocking issue がなければ残り rule の by-design 宣言で 0.12.x を閉じる。
 - `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
@@ -58,7 +60,9 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | MD046 safe-fix and MD034 scheme expansion for `v0.12.16` | `v0-12-16-precision-and-performance-hardening` | Adds per-block safe-fix to MD046 (indented→fenced), extends MD034 to ftp/ftps/mailto schemes, and replaces O(n) is_ignored_url scans with partition_point binary search. |
 | Done | FixDetail API and MD051 Unicode/emoji precision for `v0.12.17` | `v0-12-17-fix-detail-api-and-md051-unicode-precision` | Adds `FixDetail { rule_id, range, applied }` to `FixResult` (Issue #43). Locks in MD051 emoji/CJK fragment behavior via comprehensive unit and integration tests. |
 | Done | Precision fix+ continuous expansion for `v0.12.18` | `v0-12-18-md056-table-column-padding-safe-fix` | Added `MD029` regression fix for nested unordered-list interruption and `MD056` table-column safe-fix. |
-| P2 | Precision fix+ continuous expansion for `v0.12.19+` | (TBD) | Adds `MD043` (missing heading insertion) and remaining safe-fix candidates. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
+| P1 | MD003 safe-fix and MD028 fix policy for `v0.12.19` | `v0-12-19-md003-md028-fix-policy` | Adds the remaining low-risk heading-style fix and decides whether MD028 can be safely automated or must be declared by design. |
+| P1 | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Freezes rule expansion, measures the post-`v0.12.19` cost, and fixes only evidence-backed regressions. |
+| P1 | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Runs KatanA-side document feedback after `v0.12.20`; release-blocking issues are fixed here, otherwise remaining diagnostic-only rules get by-design reasons and 0.12.x closes. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -95,12 +99,14 @@ Archived completed changes:
 
 ## Suggested Order
 
-1. Apply `v0-12-9-public-confidence-hardening`; it proves external corpus confidence before distribution expansion.
-2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.9` public confidence score is at least 90 and release-blocking issues are 0.
-3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
-4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
-5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
-6. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
+1. Apply `v0-12-19-md003-md028-fix-policy`; it closes the remaining plausible safe-fix work or explicitly sends risky MD028 behavior to by-design.
+2. Apply `v0-12-20-performance-measurement-and-hotpath-hardening`; it measures the post-fix state before any closeout decision.
+3. Apply `v0-12-21-katana-feedback-and-012x-closeout`; it handles KatanA feedback issues discovered after `v0.12.20` and records the final by-design rule map.
+4. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.21` has no release-blocking KatanA feedback issue and 0.12.x is marked DONE.
+5. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+6. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
+7. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
+8. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
