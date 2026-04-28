@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.13.0
+
+- Completes MCP Registry and hub distribution planning without publishing
+  registry metadata yet. The selected package targets are MCPB from GitHub
+  Releases and an OCI image on GHCR, with npm and PyPI wrappers deferred.
+- Adds `docs/mcp-distribution-plan.md` and extends `docs/mcp-server.md` with a
+  `server.json` draft plus a registry security checklist for workspace-safe
+  stdio use.
+- Updates the OpenSpec roadmap and `v0.13.0` task ledger so publication work is
+  explicitly handed off to `v0.14.0`, while remote MCP transport remains split
+  into `v0.15.0`.
+- Extends release preflight triggers to include README, docs, and OpenSpec
+  changes so required checks run for documentation-only release planning PRs.
+
 ## v0.12.21
 
 - Excludes reserved and normally ignored directories from recursive CLI input by
