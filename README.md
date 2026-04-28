@@ -278,7 +278,8 @@ tool is exposed.
 Run `make mcp-stdio-smoke` to exercise the installed MCP server through
 JSON-RPC stdio calls.
 
-See [MCP server documentation](docs/mcp-server.md) and the earlier
+See [MCP server documentation](docs/mcp-server.md), the
+[MCP distribution plan](docs/mcp-distribution-plan.md), and the earlier
 [MCP integration evaluation](docs/mcp-integration-evaluation.md).
 
 ## Release Policy
