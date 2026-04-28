@@ -1,6 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    SourceRange,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -33,7 +34,7 @@ impl MarkdownRule for NoAltTextRule {
             if ctx.is_code_line(i) {
                 continue;
             }
-            if line.text.contains("![]") {
+            if has_empty_alt_image_outside_inline_code(ctx, line.content_range.start, line.text) {
                 RuleHelpers::push_diag(
                     &mut diagnostics,
                     ctx.file_path(),
@@ -46,6 +47,20 @@ impl MarkdownRule for NoAltTextRule {
         }
         diagnostics
     }
+}
+
+fn has_empty_alt_image_outside_inline_code(
+    ctx: &DocumentContext<'_>,
+    line_start: usize,
+    line: &str,
+) -> bool {
+    line.match_indices("![]").any(|(index, token)| {
+        let start = line_start + index;
+        !ctx.is_inside_inline_code(SourceRange {
+            start,
+            end: start + token.len(),
+        })
+    })
 }
 
 #[cfg(test)]

@@ -65,12 +65,7 @@ impl EmphasisStyleRule {
             let has_inline_code_marker = line.text.contains('`');
             let line_start = line.content_range.start;
             for span in emphasis_spans(line.text) {
-                if has_inline_code_marker
-                    && ctx.is_inside_inline_code(SourceRange {
-                        start: line_start + span.start,
-                        end: line_start + span.end,
-                    })
-                {
+                if has_inline_code_marker && span_touches_inline_code(ctx, line_start, &span) {
                     continue;
                 }
                 let expected_marker = *expected.get_or_insert(span.marker);
@@ -173,6 +168,23 @@ fn is_intraword(line: &str, open: usize, close: usize) -> bool {
         && bytes
             .get(close + 1)
             .is_some_and(|byte| byte.is_ascii_alphanumeric())
+}
+
+fn span_touches_inline_code(
+    ctx: &DocumentContext<'_>,
+    line_start: usize,
+    span: &EmphasisSpan<'_>,
+) -> bool {
+    ctx.is_inside_inline_code(SourceRange {
+        start: line_start + span.start,
+        end: line_start + span.start + 1,
+    }) || ctx.is_inside_inline_code(SourceRange {
+        start: line_start + span.end.saturating_sub(1),
+        end: line_start + span.end,
+    }) || ctx.is_inside_inline_code(SourceRange {
+        start: line_start + span.start,
+        end: line_start + span.end,
+    })
 }
 
 #[cfg(test)]

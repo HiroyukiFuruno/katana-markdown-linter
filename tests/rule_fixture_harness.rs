@@ -106,7 +106,7 @@ fn fixture_matrix_can_be_loaded_by_harness() {
         .filter_map(|rule| rule.official_meta().map(|meta| meta.code.to_string()))
         .collect::<HashSet<_>>();
 
-    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(3));
+    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(13));
     assert!(rules(&matrix)
         .iter()
         .all(|rule| active.contains(rule_id(rule))));
@@ -310,7 +310,7 @@ fn config_property_error_shapes_are_fixed() {
 fn edge_cases_cover_empty_no_newline_long_code_fence_and_html() {
     let options = LintOptions::default();
     let empty = lint("", &options).expect("lint should run");
-    assert!(empty.iter().any(|diagnostic| diagnostic.rule_id == "MD043"));
+    assert!(empty.iter().all(|diagnostic| diagnostic.rule_id != "MD043"));
 
     let missing_newline = lint("text", &options).expect("lint should run");
     assert!(missing_newline

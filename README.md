@@ -79,6 +79,7 @@ kml check --format json "docs/**/*.md"
 kml check --stdin
 kml fix --stdin
 kml check --include "**/*.md" --exclude "target/**"
+kml check --include-reserved node_modules
 kml check --no-ignore --force-exclude --exclude "vendor/**" vendor/README.md
 kml check --statistics --quiet
 kml fix --diff README.md
@@ -112,10 +113,12 @@ Unsafe fixes require explicit opt-in. Interactive use prompts with `[Y/n]`;
 non-interactive use must pass `--unsafe --yes`.
 
 `--output json` is the preferred JSON output flag. `--format json` remains a compatibility alias.
+Fix-mode JSON includes per-file `fix_details` so applied rules can be compared
+with pre-fix diagnostics and rewritten file diffs.
 
 `--stdin` reads Markdown from standard input. `check --stdin` reports diagnostics against `<stdin>`; `fix --stdin` writes fixed Markdown to stdout; `fmt --stdin` writes formatted Markdown only to stdout.
 
-Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
+Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths everywhere, or `--include-ignored` to include ignored paths only under explicit directory inputs such as `.agents`. Reserved directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `coverage` are skipped by default even without gitignore entries; use `--include-reserved` only when you intentionally want to scan them. Project-specific generated or agent directories should be covered by gitignore or `--exclude`. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
 `--locale <locale>` and `-l <locale>` select user-facing CLI message locale.
 Supported values currently resolve to English (`en`, `en-US`) or Japanese
@@ -141,14 +144,13 @@ The short version:
 | Capability | Status |
 | --- | --- |
 | Check coverage | `Implemented` for all 53 active rules |
-| Safe fix coverage | Safe fix available for 39 rules; diagnostic-only for 14 rules |
-| Unsafe fix coverage | Explicit opt-in unsafe subset for 1 rule; remaining rules are not applicable, need manual intent, or need triage |
+| Safe fix coverage | Safe fix available for 38 rules; diagnostic-only for 15 rules |
+| Unsafe fix coverage | Explicit opt-in unsafe subset for 1 rule; remaining rules are not applicable or need manual intent |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
 Safe fixes are intentionally conservative. `Implemented subset` means kml
 rewrites fixture-locked, low-risk violation forms for that rule. `Diagnostic
 only` means checks are implemented, but safe fixes are not provided.
-`Needs triage` means an unsafe fix candidate has not been evaluated yet.
 `Manual intent required` means an automatic rewrite would choose author intent.
 `Not applicable` means no separate unsafe candidate is currently identified
 beyond the safe-fix policy. `Deleted` rows are historical markdownlint IDs that
@@ -159,7 +161,7 @@ are not part of the active upstream rule catalog.
 
 | Rule | Check | Fix (safe) | Fix (unsafe) |
 | --- | --- | --- | --- |
-| `MD001` | Implemented | Diagnostic only | Needs triage |
+| `MD001` | Implemented | Diagnostic only | Manual intent required |
 | `MD002` | Deleted | - | - |
 | `MD003` | Implemented | Implemented subset | Not applicable |
 | `MD004` | Implemented | Implemented subset | Not applicable |
@@ -171,7 +173,7 @@ are not part of the active upstream rule catalog.
 | `MD010` | Implemented | Implemented subset | Not applicable |
 | `MD011` | Implemented | Implemented subset | Not applicable |
 | `MD012` | Implemented | Implemented subset | Not applicable |
-| `MD013` | Implemented | Diagnostic only | Needs triage |
+| `MD013` | Implemented | Diagnostic only | Manual intent required |
 | `MD014` | Implemented | Implemented subset | Not applicable |
 | `MD015` | Deleted | - | - |
 | `MD016` | Deleted | - | - |
@@ -182,7 +184,7 @@ are not part of the active upstream rule catalog.
 | `MD021` | Implemented | Implemented subset | Not applicable |
 | `MD022` | Implemented | Implemented subset | Not applicable |
 | `MD023` | Implemented | Implemented subset | Not applicable |
-| `MD024` | Implemented | Diagnostic only | Needs triage |
+| `MD024` | Implemented | Diagnostic only | Manual intent required |
 | `MD025` | Implemented | Implemented subset | Not applicable |
 | `MD026` | Implemented | Implemented subset | Not applicable |
 | `MD027` | Implemented | Implemented subset | Not applicable |
@@ -191,7 +193,7 @@ are not part of the active upstream rule catalog.
 | `MD030` | Implemented | Implemented subset | Not applicable |
 | `MD031` | Implemented | Implemented subset | Not applicable |
 | `MD032` | Implemented | Implemented subset | Not applicable |
-| `MD033` | Implemented | Diagnostic only | Needs triage |
+| `MD033` | Implemented | Diagnostic only | Manual intent required |
 | `MD034` | Implemented | Implemented subset | Not applicable |
 | `MD035` | Implemented | Implemented subset | Not applicable |
 | `MD036` | Implemented | Diagnostic only | Implemented subset |
@@ -199,25 +201,25 @@ are not part of the active upstream rule catalog.
 | `MD038` | Implemented | Implemented subset | Not applicable |
 | `MD039` | Implemented | Implemented subset | Not applicable |
 | `MD040` | Implemented | Implemented subset | Not applicable |
-| `MD041` | Implemented | Diagnostic only | Needs triage |
-| `MD042` | Implemented | Diagnostic only | Needs triage |
-| `MD043` | Implemented | Diagnostic only | Needs triage |
+| `MD041` | Implemented | Diagnostic only | Manual intent required |
+| `MD042` | Implemented | Diagnostic only | Manual intent required |
+| `MD043` | Implemented | Diagnostic only | Manual intent required |
 | `MD044` | Implemented | Implemented subset | Not applicable |
-| `MD045` | Implemented | Diagnostic only | Needs triage |
+| `MD045` | Implemented | Diagnostic only | Manual intent required |
 | `MD046` | Implemented | Implemented subset | Not applicable |
 | `MD047` | Implemented | Implemented subset | Not applicable |
 | `MD048` | Implemented | Implemented subset | Not applicable |
 | `MD049` | Implemented | Implemented subset | Not applicable |
 | `MD050` | Implemented | Implemented subset | Not applicable |
 | `MD051` | Implemented | Implemented subset | Not applicable |
-| `MD052` | Implemented | Implemented subset | Not applicable |
+| `MD052` | Implemented | Diagnostic only | Manual intent required |
 | `MD053` | Implemented | Implemented subset | Not applicable |
 | `MD054` | Implemented | Implemented subset | Not applicable |
 | `MD055` | Implemented | Implemented subset | Not applicable |
 | `MD056` | Implemented | Implemented (pads short rows; overflow rows remain diagnostic-only) | Not applicable |
 | `MD057` | Deleted | - | - |
 | `MD058` | Implemented | Implemented subset | Not applicable |
-| `MD059` | Implemented | Diagnostic only | Needs triage |
+| `MD059` | Implemented | Diagnostic only | Manual intent required |
 | `MD060` | Implemented | Implemented subset | Not applicable |
 
 </details>

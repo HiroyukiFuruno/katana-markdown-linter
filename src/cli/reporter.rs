@@ -104,6 +104,7 @@ pub(crate) struct FileReport {
     pub(crate) path: String,
     pub(crate) diagnostics: Vec<crate::LintResult>,
     pub(crate) applied_fixes: usize,
+    pub(crate) fix_details: Vec<crate::FixDetail>,
     pub(crate) changed: bool,
 }
 
@@ -131,6 +132,7 @@ impl LocalizedCliReport {
                         .map(|diagnostic| LocalizedDiagnostic::from_result(diagnostic, locale))
                         .collect(),
                     applied_fixes: file.applied_fixes,
+                    fix_details: file.fix_details.clone(),
                     changed: file.changed,
                 })
                 .collect(),
@@ -148,6 +150,7 @@ struct LocalizedFileReport {
     path: String,
     diagnostics: Vec<LocalizedDiagnostic>,
     applied_fixes: usize,
+    fix_details: Vec<crate::FixDetail>,
     changed: bool,
 }
 
@@ -468,6 +471,7 @@ mod tests {
                     fix: None,
                 }],
                 applied_fixes: 0,
+                fix_details: Vec::new(),
                 changed: false,
             }],
             errors: Vec::new(),
@@ -524,6 +528,7 @@ mod tests {
                     }),
                 }],
                 applied_fixes: 0,
+                fix_details: Vec::new(),
                 changed: false,
             }],
             errors: Vec::new(),
@@ -570,6 +575,7 @@ mod tests {
                     fix: None,
                 }],
                 applied_fixes: 0,
+                fix_details: Vec::new(),
                 changed: false,
             }],
             errors: Vec::new(),
@@ -615,6 +621,7 @@ mod tests {
                     }),
                 }],
                 applied_fixes: 0,
+                fix_details: Vec::new(),
                 changed: false,
             }],
             errors: Vec::new(),

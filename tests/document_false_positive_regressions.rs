@@ -159,7 +159,7 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
         ("MD039", "[ text ](https://example.com)\n"),
         ("MD049", "*one* and _two_\n"),
         ("MD050", "**one** and __two__\n"),
-        ("MD052", "[ref][]\n"),
+        ("MD052", "[ref][missing]\n"),
         (
             "MD053",
             "[ref]: https://example.com\n[ref]: https://example.org\n",

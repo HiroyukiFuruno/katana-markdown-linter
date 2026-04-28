@@ -215,6 +215,10 @@ release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking ex
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
 	"$${TMPDIR:-/tmp}/kml-release-install-check/bin/kml" init-config --config "$${TMPDIR:-/tmp}/kml-release-install-check/.markdownlint.json"
 
+.PHONY: release-task-ledger-check
+release-task-ledger-check: ## Verify OpenSpec tasks.md has no open work and the quality score is 100/100
+	python3 scripts/release/verify-task-ledger.py --version "$(VERSION)" --allow-open-containing "release-task-ledger-check"
+
 .PHONY: release-package
 release-package: ## Build .crate package and sha256 checksum for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"

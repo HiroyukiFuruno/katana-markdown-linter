@@ -11,6 +11,17 @@
 - **THEN** system は by-design 宣言対象が README と fixture matrix に反映されていることを確認する
 - **THEN** system は未分類の high-risk finding を残さない
 
+### Requirement: KatanA false positives and bad fixes SHALL block release until fixed
+
+KatanA feedback sweep で見つかった `check` の誤検知と `fix` の誤修正は、release 前に kml 側で修正されなければならない（SHALL）。
+
+#### Scenario: precision blocker を扱う
+
+- **WHEN** KatanA feedback sweep で false-positive または bad-fix が見つかる
+- **THEN** system は該当 pattern を kml repository の regression test に落とす
+- **THEN** system は production code を修正し、test 都合だけの挙動変更をしない
+- **THEN** system は該当 pattern が再発しないことを確認するまで release readiness を満たさない
+
 ### Requirement: v0.12.21 SHALL record follow-up issues separately from release blockers
 
 `v0.12.21` は、後続対応でよい issue と release blocker を混同してはならない（SHALL NOT）。

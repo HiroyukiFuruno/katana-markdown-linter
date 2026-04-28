@@ -34,6 +34,8 @@ pub struct Cli {
     pub include: Vec<String>,
     pub exclude: Vec<String>,
     pub respect_gitignore: bool,
+    pub include_ignored: bool,
+    pub include_reserved: bool,
     pub force_exclude: bool,
     pub statistics: bool,
     pub quiet: bool,
@@ -56,6 +58,8 @@ impl Default for Cli {
             include: Vec::new(),
             exclude: Vec::new(),
             respect_gitignore: true,
+            include_ignored: false,
+            include_reserved: false,
             force_exclude: false,
             statistics: false,
             quiet: false,
@@ -78,6 +82,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
     let mut include = Vec::new();
     let mut exclude = Vec::new();
     let mut respect_gitignore = true;
+    let mut include_ignored = false;
+    let mut include_reserved = false;
     let mut force_exclude = false;
     let mut statistics = false;
     let mut quiet = false;
@@ -155,6 +161,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             }
             "--respect-gitignore" => respect_gitignore = true,
             "--no-ignore" => respect_gitignore = false,
+            "--include-ignored" => include_ignored = true,
+            "--include-reserved" => include_reserved = true,
             "--force-exclude" => force_exclude = true,
             "--statistics" => statistics = true,
             "--quiet" => quiet = true,
@@ -177,6 +185,8 @@ pub fn parse_args(args: Vec<String>) -> Cli {
         include,
         exclude,
         respect_gitignore,
+        include_ignored,
+        include_reserved,
         force_exclude,
         statistics,
         quiet,
@@ -292,12 +302,16 @@ mod tests {
             "--exclude".to_string(),
             "**/skip.md".to_string(),
             "--no-ignore".to_string(),
+            "--include-ignored".to_string(),
+            "--include-reserved".to_string(),
             "--force-exclude".to_string(),
         ]);
 
         assert_eq!(cli.include, vec!["**/*.md"]);
         assert_eq!(cli.exclude, vec!["**/skip.md"]);
         assert!(!cli.respect_gitignore);
+        assert!(cli.include_ignored);
+        assert!(cli.include_reserved);
         assert!(cli.force_exclude);
     }
 

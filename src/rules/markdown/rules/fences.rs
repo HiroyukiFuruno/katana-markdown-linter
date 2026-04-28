@@ -31,7 +31,9 @@ impl MarkdownRule for BlanksAroundFencesRule {
         let mut diagnostics = Vec::new();
 
         for block in ctx.code_blocks() {
-            if block.start_line > 0 && !ctx.lines()[block.start_line - 1].text.trim().is_empty() {
+            if block.start_line > 0
+                && !is_blank_around_fence(ctx.lines()[block.start_line - 1].text)
+            {
                 diagnostics.push(fence_blank_fix(
                     ctx,
                     block.start_line,
@@ -40,7 +42,7 @@ impl MarkdownRule for BlanksAroundFencesRule {
                 ));
             }
             if block.end_line + 1 < ctx.lines().len()
-                && !ctx.lines()[block.end_line + 1].text.trim().is_empty()
+                && !is_blank_around_fence(ctx.lines()[block.end_line + 1].text)
             {
                 diagnostics.push(fence_blank_fix(
                     ctx,
@@ -53,6 +55,21 @@ impl MarkdownRule for BlanksAroundFencesRule {
 
         diagnostics
     }
+}
+
+fn is_blank_around_fence(line: &str) -> bool {
+    line.trim().is_empty() || is_blank_blockquote_line(line)
+}
+
+fn is_blank_blockquote_line(line: &str) -> bool {
+    let mut rest = line.trim_start();
+    let mut saw_blockquote = false;
+    while let Some(after_marker) = rest.strip_prefix('>') {
+        saw_blockquote = true;
+        rest = after_marker.strip_prefix(' ').unwrap_or(after_marker);
+        rest = rest.trim_start();
+    }
+    saw_blockquote && rest.is_empty()
 }
 
 enum FenceBlankFix {
@@ -68,8 +85,8 @@ fn fence_blank_fix(
 ) -> MarkdownDiagnostic {
     let line = &ctx.lines()[line_idx];
     let (start_column, replacement) = match kind {
-        FenceBlankFix::Before => (1, "\n".to_string()),
-        FenceBlankFix::After => (line.text.len() + 1, "\n".to_string()),
+        FenceBlankFix::Before => (1, before_fence_blank(line.text)),
+        FenceBlankFix::After => (line.text.len() + 1, after_fence_blank(line.text)),
     };
     MarkdownDiagnostic {
         file: ctx.file_path().to_path_buf(),
@@ -90,6 +107,22 @@ fn fence_blank_fix(
             end_column: start_column,
             replacement,
         }),
+    }
+}
+
+fn before_fence_blank(fence_line: &str) -> String {
+    if fence_line.trim_start().starts_with('>') {
+        ">\n".to_string()
+    } else {
+        "\n".to_string()
+    }
+}
+
+fn after_fence_blank(fence_line: &str) -> String {
+    if fence_line.trim_start().starts_with('>') {
+        "\n>".to_string()
+    } else {
+        "\n".to_string()
     }
 }
 

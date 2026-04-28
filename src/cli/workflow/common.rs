@@ -8,6 +8,7 @@ pub(super) struct FixedContent {
     pub(super) content: String,
     pub(super) diagnostics: Vec<crate::LintResult>,
     pub(super) applied_fixes: usize,
+    pub(super) fix_details: Vec<crate::FixDetail>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -62,6 +63,7 @@ pub(super) fn apply_fixes_until_stable(
     let mut content = content.to_string();
     let mut diagnostics = initial_results;
     let mut applied_fixes = 0;
+    let mut fix_details = Vec::new();
 
     for _ in 0..MAX_FIX_PASSES {
         if !diagnostics
@@ -81,6 +83,7 @@ pub(super) fn apply_fixes_until_stable(
         }
 
         applied_fixes += fixed.applied_fixes;
+        fix_details.extend(fixed.details);
         content = fixed.content;
         diagnostics = lint_for_path(file_path, &content, options).map_err(|err| err.to_string())?;
     }
@@ -89,6 +92,7 @@ pub(super) fn apply_fixes_until_stable(
         content,
         diagnostics,
         applied_fixes,
+        fix_details,
     })
 }
 

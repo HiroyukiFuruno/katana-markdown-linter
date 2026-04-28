@@ -56,6 +56,30 @@ impl MarkdownRule for NoMultipleBlanksRule {
                 consecutive_blanks = 0;
             }
         }
+        if content.ends_with("\n\n") && consecutive_blanks == 1 {
+            diagnostics.push(MarkdownDiagnostic {
+                file: file_path.to_path_buf(),
+                severity: DiagnosticSeverity::Warning,
+                range: DiagnosticRange {
+                    start_line: ctx.lines().len() + 1,
+                    start_column: 1,
+                    end_line: ctx.lines().len() + 1,
+                    end_column: 1,
+                },
+                message: meta.description.to_string(),
+                rule_id: meta.code.to_string(),
+                official_meta: Some(meta),
+                fix_info: ctx.lines().last().map(|line| {
+                    crate::rules::markdown::types::DiagnosticFix {
+                        start_line: line.number,
+                        start_column: 1,
+                        end_line: line.number + 1,
+                        end_column: 1,
+                        replacement: String::new(),
+                    }
+                }),
+            });
+        }
         diagnostics
     }
 }

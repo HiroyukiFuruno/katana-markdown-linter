@@ -69,6 +69,8 @@ fn check_fix_json_keeps_check_command_identity() {
     assert_eq!(json["command"], "check");
     assert_eq!(json["files"][0]["changed"], true);
     assert_eq!(json["files"][0]["applied_fixes"], 1);
+    assert_eq!(json["files"][0]["fix_details"][0]["rule_id"], "MD018");
+    assert_eq!(json["files"][0]["fix_details"][0]["applied"], true);
     assert_eq!(json["summary"]["total_issues"], 0);
 }
 

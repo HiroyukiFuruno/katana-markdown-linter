@@ -31,6 +31,9 @@ impl MarkdownRule for NoSpaceInCodeRule {
             if !(inner_text.starts_with(' ') || inner_text.ends_with(' ')) {
                 continue;
             }
+            if trim_requires_padding_space(inner_text) {
+                continue;
+            }
             let marker = "`".repeat(span.marker_len);
             let replacement = format!("{marker}{}{marker}", inner_text.trim());
             let range = ctx.diagnostic_range(span.full_range);
@@ -56,6 +59,11 @@ impl MarkdownRule for NoSpaceInCodeRule {
     }
 }
 
+fn trim_requires_padding_space(inner_text: &str) -> bool {
+    let trimmed = inner_text.trim();
+    trimmed.starts_with('`') || trimmed.ends_with('`')
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -77,6 +85,14 @@ mod tests {
     fn ignores_unclosed_code_span() {
         let rule = NoSpaceInCodeRule;
         let diagnostics = rule.evaluate(Path::new("doc.md"), "` spaced\n");
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_padding_spaces_needed_to_show_backtick_literals() {
+        let rule = NoSpaceInCodeRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "` ``` ` and ` ```mermaid `");
 
         assert!(diagnostics.is_empty());
     }

@@ -98,7 +98,27 @@ fn is_indented_code_line(ctx: &DocumentContext<'_>, line_index: usize, line: &st
     if ctx.is_code_line(line_index) || !line.starts_with("    ") || line.trim().is_empty() {
         return false;
     }
+    if is_definition_list_continuation(ctx, line_index) {
+        return false;
+    }
     !is_list_marker_line(&line[4..])
+}
+
+fn is_definition_list_continuation(ctx: &DocumentContext<'_>, line_index: usize) -> bool {
+    if line_index == 0 {
+        return false;
+    }
+    for previous_index in (0..line_index).rev() {
+        let previous = ctx.lines()[previous_index].text;
+        if previous.trim().is_empty()
+            || previous.starts_with("    ")
+            || ctx.is_code_line(previous_index)
+        {
+            continue;
+        }
+        return previous.trim_start().starts_with(':');
+    }
+    false
 }
 
 fn is_list_marker_line(s: &str) -> bool {

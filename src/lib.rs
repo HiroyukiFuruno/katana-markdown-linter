@@ -588,7 +588,6 @@ mod tests {
         let content = "No heading here.\n\n```rust\ncode\n```\n~~~\ncode\n~~~\n    indented\n*em* and _em_\n**strong** and __strong__\nmarkdownlint and github\nlink [fragment](#frag)\n[ref][]\n[dup]: https://example.com\n[dup]: https://example.com/2\ninline [link](https://example.com)\n| a | b |\n|---|---\n  c | d\n";
         let options = LintOptions::default();
         let results = lint(content, &options).expect("lint should succeed");
-        assert!(results.iter().any(|result| result.rule_id == "MD043"));
         assert!(results.iter().any(|result| result.rule_id == "MD046"));
         assert!(results.iter().any(|result| result.rule_id == "MD048"));
         assert!(results.iter().any(|result| result.rule_id == "MD049"));
