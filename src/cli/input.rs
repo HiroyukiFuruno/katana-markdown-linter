@@ -24,6 +24,7 @@ pub(crate) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
             markdown_files_in_dir(
                 &env::current_dir().map_err(|err| InputExpandError::Filesystem(err.to_string()))?,
                 cli.respect_gitignore,
+                cli.include_reserved,
             )
             .map_err(InputExpandError::Filesystem)?,
             cli,
@@ -48,8 +49,9 @@ pub(crate) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
     let mut expanded = Vec::new();
     for path in paths {
         if path.is_dir() {
+            let respect_gitignore = cli.respect_gitignore && !cli.include_ignored;
             expanded.extend(
-                markdown_files_in_dir(&path, cli.respect_gitignore)
+                markdown_files_in_dir(&path, respect_gitignore, cli.include_reserved)
                     .map_err(InputExpandError::Filesystem)?,
             );
         } else {
@@ -65,9 +67,13 @@ fn has_glob_chars(input: &str) -> bool {
     input.contains('*') || input.contains('?') || input.contains('[')
 }
 
-fn markdown_files_in_dir(dir: &Path, respect_gitignore: bool) -> Result<Vec<PathBuf>, String> {
+fn markdown_files_in_dir(
+    dir: &Path,
+    respect_gitignore: bool,
+    include_reserved: bool,
+) -> Result<Vec<PathBuf>, String> {
     let mut paths = Vec::new();
-    collect_markdown_files(dir, &mut paths, respect_gitignore)?;
+    collect_markdown_files(dir, &mut paths, respect_gitignore, include_reserved)?;
     paths.sort();
     Ok(paths)
 }
@@ -76,17 +82,22 @@ fn collect_markdown_files(
     dir: &Path,
     paths: &mut Vec<PathBuf>,
     respect_gitignore: bool,
+    include_reserved: bool,
 ) -> Result<(), String> {
     let (tx, rx) = mpsc::channel();
-    let walker = WalkBuilder::new(dir)
+    let mut builder = WalkBuilder::new(dir);
+    builder
         .hidden(false)
         .parents(true)
         .ignore(respect_gitignore)
         .git_ignore(respect_gitignore)
         .git_global(respect_gitignore)
         .git_exclude(respect_gitignore)
-        .require_git(false)
-        .build_parallel();
+        .require_git(false);
+    if !include_reserved {
+        builder.filter_entry(|entry| !is_reserved_directory(entry.path()));
+    }
+    let walker = builder.build_parallel();
 
     walker.run(|| {
         let tx = tx.clone();
@@ -152,6 +163,31 @@ fn is_markdown_file(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+fn is_reserved_directory(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(is_reserved_directory_name)
+}
+
+fn is_reserved_directory_name(name: &str) -> bool {
+    matches!(
+        name,
+        ".git"
+            | ".hg"
+            | ".svn"
+            | ".cache"
+            | ".next"
+            | ".turbo"
+            | "node_modules"
+            | "bower_components"
+            | "target"
+            | "dist"
+            | "build"
+            | "coverage"
+            | "out"
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,7 +235,7 @@ mod tests {
             canonical_paths(&files),
             vec![
                 canonical_path(dir.join("README.md")),
-                canonical_path(dir.join("docs/guide.markdown"))
+                canonical_path(dir.join("docs").join("guide.markdown"))
             ]
         );
         let _ = fs::remove_dir_all(dir);

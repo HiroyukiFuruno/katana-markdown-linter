@@ -72,6 +72,7 @@ pub(super) fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
             path: path.display().to_string(),
             diagnostics: Vec::new(),
             applied_fixes: formatted.applied_operations,
+            fix_details: Vec::new(),
             changed,
         });
     }

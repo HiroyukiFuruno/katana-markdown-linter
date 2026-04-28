@@ -88,6 +88,7 @@ pub(super) fn run_check_like(
                 content: fixed_content,
                 diagnostics,
                 applied_fixes,
+                fix_details,
             } = apply_fixes_until_stable(
                 &content,
                 &path,
@@ -110,6 +111,7 @@ pub(super) fn run_check_like(
                 path: path.display().to_string(),
                 diagnostics,
                 applied_fixes,
+                fix_details,
                 changed,
             });
         } else {
@@ -117,6 +119,7 @@ pub(super) fn run_check_like(
                 path: path.display().to_string(),
                 diagnostics: results,
                 applied_fixes: 0,
+                fix_details: Vec::new(),
                 changed: false,
             });
         }
@@ -201,6 +204,7 @@ fn run_stdin_check_like(
                     path: "<stdin>".to_string(),
                     diagnostics: fixed.diagnostics,
                     applied_fixes: fixed.applied_fixes,
+                    fix_details: fixed.fix_details,
                     changed: fixed.content != content,
                 }],
                 errors: Vec::new(),
@@ -246,6 +250,7 @@ fn run_stdin_check_like(
             path: "<stdin>".to_string(),
             diagnostics,
             applied_fixes: 0,
+            fix_details: Vec::new(),
             changed: false,
         }],
         errors: Vec::new(),

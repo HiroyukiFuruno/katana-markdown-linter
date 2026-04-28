@@ -5,7 +5,7 @@
     "rules_with_examples": 53,
     "rules_with_fix_metadata": 37,
     "rules_with_parameters": 34,
-    "manual_required": 3,
+    "manual_required": 13,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -73,7 +73,9 @@
           "expected": null
         }
       ],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: changing heading levels can change document structure and anchors"
+      ]
     },
     {
       "rule_id": "MD003",
@@ -344,7 +346,7 @@
         {
           "name": "normalize_unordered_indent",
           "source": "   - item\n",
-          "expected": "  - item\n"
+          "expected": "- item\n"
         }
       ],
       "config_valid": [
@@ -900,7 +902,9 @@
           "expected": "MD013"
         }
       ],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: line wrapping can change prose, code, tables, or inline references"
+      ]
     },
     {
       "rule_id": "MD014",
@@ -1343,7 +1347,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: duplicate heading fixes require choosing new heading text"
+      ]
     },
     {
       "rule_id": "MD025",
@@ -2002,7 +2008,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: removing or replacing inline HTML changes rendered output"
+      ]
     },
     {
       "rule_id": "MD034",
@@ -2509,7 +2517,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: first heading text cannot be inferred safely"
+      ]
     },
     {
       "rule_id": "MD042",
@@ -2551,7 +2561,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: empty link or image targets require author-provided destinations"
+      ]
     },
     {
       "rule_id": "MD043",
@@ -2578,16 +2590,35 @@
       "fixable": null,
       "check_pass": [
         {
-          "name": "has_heading",
-          "source": "# Title\n",
+          "name": "default_without_required_headings",
+          "source": "No heading here.\n",
           "expected": null
+        },
+        {
+          "name": "configured_required_headings",
+          "source": "# Title\n",
+          "expected": null,
+          "config": {
+            "MD043": {
+              "headings": [
+                "# Title"
+              ]
+            }
+          }
         }
       ],
       "check_fail": [
         {
-          "name": "missing_heading",
-          "source": "No heading here.\n",
-          "expected": "MD043"
+          "name": "configured_required_heading_mismatch",
+          "source": "# Other\n",
+          "expected": "MD043",
+          "config": {
+            "MD043": {
+              "headings": [
+                "# Title"
+              ]
+            }
+          }
         }
       ],
       "fix": [],
@@ -2626,7 +2657,10 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "check requires configured MD043.headings; default markdownlint headings is empty",
+        "fix requires author intent: required headings require author-provided sections and order"
+      ]
     },
     {
       "rule_id": "MD044",
@@ -2798,7 +2832,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: alt text requires image-specific author knowledge"
+      ]
     },
     {
       "rule_id": "MD046",
@@ -3284,7 +3320,7 @@
           "values": []
         }
       ],
-      "fixable": true,
+      "fixable": false,
       "check_pass": [
         {
           "name": "inline_link",
@@ -3294,23 +3330,12 @@
       ],
       "check_fail": [
         {
-          "name": "shortcut_reference_link",
+          "name": "missing_collapsed_reference_label",
           "source": "[ref][]\n",
           "expected": "MD052"
         }
       ],
-      "fix": [
-        {
-          "name": "fix_collapsed_reference_link",
-          "source": "[ref][]\n",
-          "expected": "[ref]\n"
-        },
-        {
-          "name": "fix_collapsed_reference_image",
-          "source": "![alt][]\n",
-          "expected": "![alt]\n"
-        }
-      ],
+      "fix": [],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -3346,7 +3371,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "safe fix is not provided because the missing reference destination cannot be inferred"
+      ]
     },
     {
       "rule_id": "MD053",
@@ -3578,7 +3605,7 @@
       ],
       "edge": [],
       "manual_required": [
-        "check requires a disabled MD054 style such as MD054.collapsed=false",
+        "check requires a disabled link style such as MD054.collapsed=false",
         "fix requires: disabled style and an inline-safe reference definition"
       ]
     },
@@ -3812,7 +3839,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: descriptive link text requires replacement wording"
+      ]
     },
     {
       "rule_id": "MD060",

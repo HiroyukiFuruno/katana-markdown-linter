@@ -20,12 +20,12 @@ BASELINE_FILE=${COVERAGE_BASELINE_FILE:-scripts/ci/coverage-baseline.txt}
 info "Cleaning up old coverage data..."
 cargo llvm-cov clean --workspace
 
-info "Running workspace lib/bin tests with llvm-cov (-j $JOBS)..."
+info "Running workspace tests with llvm-cov (-j $JOBS)..."
 if [ -n "$COVERAGE_IGNORE" ]; then
-    cargo llvm-cov --no-report --jobs "$JOBS" --workspace --lib --bins -q \
+    cargo llvm-cov --no-report --jobs "$JOBS" --workspace -q \
         -- --test-threads="$JOBS"
 else
-    cargo llvm-cov --no-report --jobs "$JOBS" --workspace --lib --bins -q \
+    cargo llvm-cov --no-report --jobs "$JOBS" --workspace -q \
         -- --test-threads="$JOBS"
 fi
 

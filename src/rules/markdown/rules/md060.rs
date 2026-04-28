@@ -4,6 +4,7 @@ use crate::rules::markdown::{
 };
 use crate::types::RuleConfig;
 use std::path::Path;
+use unicode_width::UnicodeWidthStr;
 
 /// MD060 / table-column-style - Table column style.
 pub struct TableColumnStyleRule;
@@ -124,11 +125,11 @@ fn matches_style<'a>(ctx: &DocumentContext<'a>, table: &TableBlock<'a>, style: T
         TableStyle::Compact => table
             .rows
             .iter()
-            .all(|row| line_text(ctx, row).trim() == format_simple_row(row, " ")),
+            .all(|row| line_text(ctx, row).trim() == format_simple_row_for_match(row, " ")),
         TableStyle::Tight => table
             .rows
             .iter()
-            .all(|row| line_text(ctx, row).trim() == format_simple_row(row, "")),
+            .all(|row| line_text(ctx, row).trim() == format_simple_row_for_match(row, "")),
     }
 }
 
@@ -224,6 +225,24 @@ fn format_simple_row(row: &TableRow<'_>, padding: &str) -> String {
     output
 }
 
+fn format_simple_row_for_match(row: &TableRow<'_>, padding: &str) -> String {
+    let cells = row
+        .cells
+        .iter()
+        .map(|cell| cell.text.to_string())
+        .collect::<Vec<_>>();
+    let separator = format!("{padding}|{padding}");
+    let mut output = cells.join(&separator);
+    if row.leading_pipe {
+        output = format!("|{padding}{output}");
+    }
+    if row.trailing_pipe {
+        output.push_str(padding);
+        output.push('|');
+    }
+    output
+}
+
 fn format_aligned_row(table: &TableBlock<'_>, row: &TableRow<'_>) -> String {
     let widths = column_widths(table);
     let mut cells = Vec::new();
@@ -234,7 +253,7 @@ fn format_aligned_row(table: &TableBlock<'_>, row: &TableRow<'_>) -> String {
         } else {
             cell.text.to_string()
         };
-        cells.push(format!("{text:<width$}"));
+        cells.push(pad_to_width(&text, width));
     }
     let mut output = cells.join(" | ");
     if row.leading_pipe {
@@ -251,7 +270,7 @@ fn column_widths(table: &TableBlock<'_>) -> Vec<usize> {
     let mut widths = vec![3; column_count];
     for row in &table.rows {
         for (idx, cell) in row.cells.iter().enumerate() {
-            widths[idx] = widths[idx].max(cell.text.chars().count());
+            widths[idx] = widths[idx].max(display_width(cell.text));
         }
     }
     widths
@@ -288,14 +307,23 @@ fn delimiter_aligned_with_header<'a>(ctx: &DocumentContext<'a>, table: &TableBlo
 }
 
 fn pipe_positions(line: &str) -> Vec<usize> {
-    line.bytes()
-        .enumerate()
-        .filter_map(|(idx, byte)| (byte == b'|').then_some(idx))
+    line.char_indices()
+        .filter_map(|(idx, char)| (char == '|').then_some(display_width(&line[..idx])))
         .collect()
 }
 
 fn line_text<'a>(ctx: &DocumentContext<'a>, row: &TableRow<'a>) -> &'a str {
     ctx.lines()[row.line].text
+}
+
+fn display_width(text: &str) -> usize {
+    UnicodeWidthStr::width(text)
+}
+
+fn pad_to_width(text: &str, width: usize) -> String {
+    let mut output = text.to_string();
+    output.push_str(&" ".repeat(width.saturating_sub(display_width(text))));
+    output
 }
 
 #[cfg(test)]

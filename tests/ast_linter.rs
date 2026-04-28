@@ -279,11 +279,14 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let release_notes = read_workspace_file("scripts/release/release-notes.sh");
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
+    let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
     let required = [
         ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke action-smoke"),
+        ("Makefile", &makefile, "release-task-ledger-check:"),
         ("Makefile", &makefile, "release-test:"),
         ("Makefile", &makefile, "cargo test --all-features --locked"),
         ("Makefile", &makefile, "scripts/release/assert-crate-not-published.sh"),
+        ("Makefile", &makefile, "scripts/release/verify-task-ledger.py"),
         ("Makefile", &makefile, "release-verify:"),
         ("Makefile", &makefile, "scripts/release/verify-release-published.sh"),
         (".github/workflows/release.yml", &workflow, "run: make lint"),
@@ -304,6 +307,9 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_title="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "crates_io_version="),
+        ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Verify that the OpenSpec task ledger is release-ready."),
+        ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Release task ledger is not ready"),
+        ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "品質評価スコア table is missing a 合計 row"),
     ];
     let violations = required
         .iter()
@@ -312,6 +318,30 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         .collect();
 
     assert_no_violations("release-local-ci-parity-and-retry-safety", violations);
+}
+
+#[test]
+fn ast_linter_coverage_gate_counts_integration_tests() {
+    let coverage = read_workspace_file("scripts/ci/coverage.sh");
+    let violations = [
+        (
+            coverage.contains("cargo llvm-cov --no-report --jobs \"$JOBS\" --workspace -q"),
+            "scripts/ci/coverage.sh: coverage must run workspace tests, including integration tests",
+        ),
+        (
+            !coverage.contains("--workspace --lib --bins"),
+            "scripts/ci/coverage.sh: remove --lib --bins so integration-test coverage is counted",
+        ),
+        (
+            coverage.contains("Running workspace tests with llvm-cov"),
+            "scripts/ci/coverage.sh: status text must describe the actual coverage scope",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
+
+    assert_no_violations("coverage-gate-integration-tests", violations);
 }
 
 #[test]

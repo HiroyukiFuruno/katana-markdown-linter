@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta, RuleParityStatus,
+    fence_line_marker, DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic,
+    MarkdownRule, OfficialRuleMeta, RuleParityStatus,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -45,17 +45,14 @@ impl MarkdownRule for FencedCodeLanguageRule {
         let mut diagnostics = Vec::new();
         for block in ctx.code_blocks() {
             let line = &ctx.lines()[block.start_line];
-            let trimmed = line.text.trim_start();
-            let after_fence = trimmed.trim_start_matches('`').trim_start_matches('~');
+            let Some(marker) = fence_line_marker(line.text) else {
+                continue;
+            };
+            let after_fence = &line.text[marker.info_start..];
             if !after_fence.trim().is_empty() {
                 continue;
             }
-            let indent = line.text.len() - trimmed.len();
-            let fence_len = trimmed
-                .chars()
-                .take_while(|ch| *ch == '`' || *ch == '~')
-                .count();
-            let column = indent + fence_len + 1;
+            let column = marker.info_start + 1;
             diagnostics.push(MarkdownDiagnostic {
                 file: ctx.file_path().to_path_buf(),
                 severity: DiagnosticSeverity::Warning,

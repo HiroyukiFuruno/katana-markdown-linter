@@ -43,7 +43,11 @@ impl RuleHelpers {
 
     /// Returns the ordered list number prefix if present.
     pub fn get_ordered_number(trimmed: &str) -> Option<u32> {
-        let dot_pos = trimmed.find(". ")?;
+        let dot_pos = trimmed.find('.')?;
+        let after_marker = &trimmed[dot_pos + 1..];
+        if !after_marker.is_empty() && !after_marker.starts_with(char::is_whitespace) {
+            return None;
+        }
         let prefix = &trimmed[..dot_pos];
         prefix.parse::<u32>().ok()
     }

@@ -25,9 +25,18 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD036");
         let mut diagnostics = Vec::new();
-        let ctx = DocumentContext::new(file_path, content);
+        let punctuation = configured_md036_punctuation(config);
         let ctx_lines = ctx.lines();
         for (i, line_info) in ctx_lines.iter().enumerate() {
             if ctx.is_code_line(i) {
@@ -35,9 +44,9 @@ impl MarkdownRule for NoEmphasisAsHeadingRule {
             }
             let line = line_info.text;
             let trimmed = line.trim();
-            if let Some(heading_text) = emphasis_heading_text(trimmed, ctx_lines, i) {
+            if let Some(heading_text) = emphasis_heading_text(trimmed, ctx_lines, i, &punctuation) {
                 diagnostics.push(MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
                         start_line: i + 1,
@@ -174,10 +183,18 @@ fn leading_spaces(line: &str) -> &str {
     &line[..count]
 }
 
+fn configured_md036_punctuation(config: Option<&RuleConfig>) -> String {
+    config
+        .and_then(|config| config.properties.get("punctuation"))
+        .cloned()
+        .unwrap_or_else(|| ".,;:!?。，；：！？".to_string())
+}
+
 fn emphasis_heading_text<'a>(
     trimmed: &'a str,
     lines: &[LineInfo<'_>],
     idx: usize,
+    punctuation: &str,
 ) -> Option<&'a str> {
     let heading_text = ["**", "__", "*", "_"].into_iter().find_map(|marker| {
         let text = trimmed.strip_prefix(marker)?.strip_suffix(marker)?;
@@ -186,9 +203,23 @@ fn emphasis_heading_text<'a>(
     if heading_text.trim().is_empty() {
         return None;
     }
+    if heading_text
+        .chars()
+        .last()
+        .is_some_and(|char| punctuation.contains(char))
+    {
+        return None;
+    }
+    if contains_inline_markdown_token(heading_text) {
+        return None;
+    }
     let blank_before = idx == 0 || lines[idx - 1].text.trim().is_empty();
     let blank_after = idx + 1 >= lines.len() || lines[idx + 1].text.trim().is_empty();
     (blank_before && blank_after).then_some(heading_text)
+}
+
+fn contains_inline_markdown_token(text: &str) -> bool {
+    text.contains(['`', '[', ']', '<', '>'])
 }
 
 fn is_horizontal_rule(trimmed: &str) -> bool {

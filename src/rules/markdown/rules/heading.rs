@@ -36,9 +36,10 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
         for heading in ctx.headings() {
             let i = heading.line;
             let line = &ctx.lines()[i];
-            let needs_blank_before = i > 0 && !ctx.lines()[i - 1].text.trim().is_empty();
+            let needs_blank_before =
+                i > 0 && !is_blank_for_heading_spacing(ctx.lines()[i - 1].text);
             let needs_blank_after =
-                i + 1 < ctx.lines().len() && !ctx.lines()[i + 1].text.trim().is_empty();
+                i + 1 < ctx.lines().len() && !is_blank_for_heading_spacing(ctx.lines()[i + 1].text);
             if needs_blank_before || needs_blank_after {
                 let mut replacement = String::new();
                 if needs_blank_before {
@@ -68,6 +69,11 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
         }
         diagnostics
     }
+}
+
+fn is_blank_for_heading_spacing(line: &str) -> bool {
+    let trimmed = line.trim();
+    trimmed.is_empty() || (trimmed.starts_with("<!--") && trimmed.ends_with("-->"))
 }
 
 /// MD023 / heading-start-left — Headings must start at the beginning of the line.

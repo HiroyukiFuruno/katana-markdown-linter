@@ -39,7 +39,8 @@ impl MarkdownRule for BlanksAroundListsRule {
             }
             let prev_is_problem = i > 0
                 && !ctx.lines()[i - 1].text.trim().is_empty()
-                && !RuleHelpers::is_list_item(ctx.lines()[i - 1].text.trim_start());
+                && !RuleHelpers::is_list_item(ctx.lines()[i - 1].text.trim_start())
+                && !previous_line_continues_list_item(ctx, i);
             if prev_is_problem {
                 let fix = crate::rules::markdown::types::DiagnosticFix {
                     start_line: i + 1,
@@ -60,6 +61,24 @@ impl MarkdownRule for BlanksAroundListsRule {
             }
         }
         diagnostics
+    }
+}
+
+fn previous_line_continues_list_item(ctx: &DocumentContext<'_>, index: usize) -> bool {
+    let mut previous_index = index.saturating_sub(1);
+    loop {
+        let previous = ctx.lines()[previous_index].text;
+        let previous_trimmed = previous.trim_start();
+        if previous_trimmed.trim().is_empty() {
+            return false;
+        }
+        if RuleHelpers::is_list_item(previous_trimmed) {
+            return true;
+        }
+        if previous_index == 0 {
+            return false;
+        }
+        previous_index -= 1;
     }
 }
 

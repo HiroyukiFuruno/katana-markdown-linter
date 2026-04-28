@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.12.21
+
+- Excludes reserved and normally ignored directories from recursive CLI input by
+  default, including `node_modules`, VCS metadata, build outputs, and cache
+  directories. `--include-reserved` restores reserved paths, while
+  `--include-ignored` allows explicitly requested ignored directories such as
+  `.agents`.
+- Adds JSON fix details for `fix --output json` and `check --fix --output json`
+  so automated reviews can map each applied rewrite back to its rule and source
+  range.
+- Completes a KatanA 524-file check/fix sweep with every check result, every fix
+  result, and all 82 fix hunks reviewed. The sweep found and fixed an `MD007`
+  bad-fix case for unordered child lists under ordered parents, then re-ran the
+  review with release-blocking check/fix findings at zero.
+- Closes the remaining diagnostic-only rule map by marking author-intent cases
+  as manual-required in README, fixture metadata, generated dashboard, and fix
+  feasibility docs.
+- Records external KatanA dogfood evidence with release-blocking issues at zero.
+
 ## v0.12.20
 
 - Adds an internal cache for exported rule metadata so `available_rules()` keeps

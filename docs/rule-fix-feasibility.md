@@ -16,7 +16,7 @@ diagnostic-only at the start of the change.
 
 | Rule | State | Reason |
 | --- | --- | --- |
-| `MD001` | `unsafe-candidate` | Changing heading levels can change document structure and anchors. |
+| `MD001` | `manual-required` | Changing heading levels can change document structure and anchors. |
 | `MD003` | `safe-after-context` | Setext/ATX conversion needs source ranges and style-specific guards. |
 | `MD013` | `manual-required` | Line wrapping can change prose, code, tables, or inline references. |
 | `MD024` | `manual-required` | Duplicate heading fixes require choosing new heading text. |

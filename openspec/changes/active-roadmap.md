@@ -25,8 +25,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.14`: precision-first を維持したまま `DocumentContext` の inline 抽出統合 (`InlineIndex`)、`MD051` の `ignored_pattern` regex キャッシュ、`MD046` の `code_line_flags` 索引活用で hot path コストを削減する。
 - `v0.12.19`: `MD003` の safe-fix を追加し、`MD028` は作者判断が必要なため `v0.12.21` の by-design 宣言へ送る。
 - `v0.12.20`: released patch として `v0.12.19` 後の performance 計測、`api_rule_catalog` の hot path 改善、baseline refresh を完了した。新規 rule/fix は入れていない。
-- `v0.12.21`: `v0.12.20` 完了後に KatanA 側ドキュメント feedback sweep を行い、issue があれば bugfix として扱う。release-blocking issue がなければ残り rule の by-design 宣言で 0.12.x を閉じる。
-- `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
+- `v0.12.21`: KatanA 側ドキュメント feedback sweep、`MD007` bad-fix 修正、reserved / ignored directory の default exclude、残り rule の by-design 宣言を完了し、0.12.x closeout 条件を満たした。
+- `v0.13.0`: `v0.12.21` release 後、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 - `v0.16.0`: Introduce JSON schema and LSP entrypoint to enable editor auto-completion and real-time diagnostics.
@@ -62,7 +62,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Precision fix+ continuous expansion for `v0.12.18` | `v0-12-18-md056-table-column-padding-safe-fix` | Added `MD029` regression fix for nested unordered-list interruption and `MD056` table-column safe-fix. |
 | Done | MD003 safe-fix and MD028 fix policy for `v0.12.19` | `v0-12-19-md003-md028-fix-policy` | Added fixture-backed `MD003` setext-to-ATX safe-fix and kept `MD028` diagnostic-only as a manual-intent by-design candidate for `v0.12.21`. |
 | Done | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Completed post-`v0.12.19` measurement, fixed the `api_rule_catalog` metadata clone hot path, refreshed the baseline, and kept rule expansion frozen. |
-| P1 | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Runs KatanA-side document feedback after `v0.12.20`; release-blocking issues are fixed here, otherwise remaining diagnostic-only rules get by-design reasons and 0.12.x closes. |
+| Done | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Completed 524-file KatanA check/fix review, fixed the `MD007` bad-fix pattern, recorded release-blocking issues at 0, and closed remaining diagnostic-only rules with by-design reasons. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
@@ -100,8 +100,8 @@ Archived completed changes:
 
 ## Suggested Order
 
-1. Apply `v0-12-21-katana-feedback-and-012x-closeout`; it handles KatanA feedback issues discovered after `v0.12.20` and records the final by-design rule map.
-2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.21` has no release-blocking KatanA feedback issue and 0.12.x is marked DONE.
+1. Archive `v0-12-21-katana-feedback-and-012x-closeout` after release verification completes.
+2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after the `v0.12.21` release is published and 0.12.x remains release-blocking issue 0.
 3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
