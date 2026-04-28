@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.19
+
+- Adds a safe fix to `MD003` (`heading-style`) that converts setext H1/H2
+  headings to ATX H1/H2 headings while preserving the heading text and source
+  replacement range.
+- Keeps front matter delimiters, standalone horizontal rules, and code blocks
+  outside the `MD003` safe-fix scope.
+- Keeps `MD028` (`no-blanks-blockquote`) diagnostic-only because the official
+  repairs require choosing whether adjacent blockquotes are separate quotes or
+  one continuous quote. The fixture matrix and rule map now mark that case as
+  requiring manual intent.
+
 ## v0.12.18
 
 - Fixes `MD029` (`ordered-list-marker`) so nested unordered-list items do not

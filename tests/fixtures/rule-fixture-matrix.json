@@ -3,9 +3,9 @@
   "summary": {
     "total_rules": 53,
     "rules_with_examples": 53,
-    "rules_with_fix_metadata": 36,
+    "rules_with_fix_metadata": 37,
     "rules_with_parameters": 34,
-    "manual_required": 2,
+    "manual_required": 3,
     "missing_fixtures": 0,
     "stale_fixtures": 0
   },
@@ -98,7 +98,7 @@
           ]
         }
       ],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "atx_heading_style",
@@ -113,7 +113,18 @@
           "expected": "MD003"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "setext_h1_to_atx_h1",
+          "source": "Heading\n=======\n",
+          "expected": "# Heading\n"
+        },
+        {
+          "name": "setext_h2_to_atx_h2",
+          "source": "Heading\n-------\n",
+          "expected": "## Heading\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -1598,7 +1609,9 @@
         }
       ],
       "edge": [],
-      "manual_required": []
+      "manual_required": [
+        "fix requires author intent: official docs allow either separating adjacent quotes with prose or joining them by adding a blockquote marker"
+      ]
     },
     {
       "rule_id": "MD029",

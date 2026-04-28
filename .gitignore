@@ -3,6 +3,7 @@
 skill.md
 CLAUDE.md
 AGENTS.md
+.claude/scheduled_tasks.lock
 *.skill.md
 tmp
 
@@ -17,4 +18,3 @@ openspec*
 !openspec/**
 opsx*
 !/scripts/openspec
-

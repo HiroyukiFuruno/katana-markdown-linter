@@ -462,9 +462,19 @@ fn rule_map_unsafe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
         "Implemented subset"
     } else if has_safe_fix {
         "Not applicable"
+    } else if has_manual_required_reason(rules, rule_id) {
+        "Manual intent required"
     } else {
         "Needs triage"
     }
+}
+
+fn has_manual_required_reason(rules: &[Value], rule_id: &str) -> bool {
+    rules
+        .iter()
+        .find(|entry| entry["rule_id"].as_str() == Some(rule_id))
+        .and_then(|entry| entry["manual_required"].as_array())
+        .is_some_and(|reasons| !reasons.is_empty())
 }
 
 #[test]

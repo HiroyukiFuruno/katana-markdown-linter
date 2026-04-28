@@ -285,7 +285,8 @@ fn build_fix_severity_map(
 fn is_safe_fix_rule(rule_id: &str) -> bool {
     matches!(
         rule_id,
-        "MD004"
+        "MD003"
+            | "MD004"
             | "MD005"
             | "MD007"
             | "MD009"

@@ -7,14 +7,14 @@ KatanA 側の複数ドキュメントを読ませることで、synthetic fixtur
 
 ## Goals / Non-Goals
 
-**Goals:**
+### Goals
 
 - KatanA feedback で出た issue を `v0.12.21` の対象として分類する。
 - release-blocking な bug は `v0.12.21` で修正する。
 - 残り diagnostic-only rule の by-design 理由を公開表示に反映する。
 - 0.12.x を閉じ、`v0.13.0` の配布計画へ進める条件を明確にする。
 
-**Non-Goals:**
+### Non-Goals
 
 - KatanA repository を required CI dependency にしない。
 - 全ての feedback を 0.12.x に詰め込まない。
