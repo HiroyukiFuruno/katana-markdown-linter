@@ -1,0 +1,11 @@
+cargo fmt --all -- --check
+cargo clippy -j 2 --workspace --all-targets --all-features --locked -- -D warnings
+error: failed to parse lock file at: /app/Cargo.lock
+
+Caused by:
+  TOML parse error at line 340, column 9
+      |
+  340 | <<<<<<< HEAD
+      |         ^
+  key with no value, expected `=`
+make: *** [Makefile:66: lint] Error 101

@@ -1,15 +1,15 @@
-use super::scan::{find_unescaped, line_in_blocks, skip_ascii_whitespace};
+use super::scan::{find_unescaped, skip_ascii_whitespace};
 use super::types::ReferenceDefinition;
-use crate::rules::markdown::document::{BlockRange, LineInfo, SourceRange};
+use crate::rules::markdown::document::{LineInfo, SourceRange};
 
 pub(crate) fn extract_reference_definitions<'a>(
     lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
+    code_line_flags: &[bool],
 ) -> Vec<ReferenceDefinition<'a>> {
     lines
         .iter()
         .enumerate()
-        .filter(|(idx, _)| !line_in_blocks(*idx, code_blocks))
+        .filter(|(idx, _)| !code_line_flags[*idx])
         .filter_map(|(idx, line)| reference_definition_on_line(idx, line))
         .collect()
 }

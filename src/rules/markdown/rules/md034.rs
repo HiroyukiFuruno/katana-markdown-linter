@@ -96,13 +96,13 @@ impl Iterator for BareUrlRanges<'_> {
 }
 
 fn next_url_start(line: &str, search_start: usize) -> Option<usize> {
+    const SCHEMES: &[&str] = &["http://", "https://", "ftp://", "ftps://", "mailto:"];
     let remainder = &line[search_start..];
-    match (remainder.find("http://"), remainder.find("https://")) {
-        (Some(http), Some(https)) => Some(search_start + http.min(https)),
-        (Some(http), None) => Some(search_start + http),
-        (None, Some(https)) => Some(search_start + https),
-        (None, None) => None,
-    }
+    SCHEMES
+        .iter()
+        .filter_map(|scheme| remainder.find(scheme))
+        .min()
+        .map(|offset| search_start + offset)
 }
 
 fn is_ignored_url(
@@ -118,25 +118,34 @@ fn is_ignored_url(
     if line[..start].ends_with("](") || line[..start].ends_with(")[") {
         return true;
     }
-    if ctx.inline_code_spans().iter().any(|span| {
-        span.line == line_index
-            && span.full_range.start <= absolute_start
-            && absolute_start < span.full_range.end
-    }) {
+    let lo = ctx
+        .inline_code_spans()
+        .partition_point(|span| span.line < line_index);
+    if ctx.inline_code_spans()[lo..]
+        .iter()
+        .take_while(|span| span.line == line_index)
+        .any(|span| span.full_range.start <= absolute_start && absolute_start < span.full_range.end)
+    {
         return true;
     }
-    if ctx.inline_links().iter().any(|link| {
-        link.line == line_index
-            && link.full_range.start <= absolute_start
-            && absolute_start < link.full_range.end
-    }) {
+    let lo = ctx
+        .inline_links()
+        .partition_point(|link| link.line < line_index);
+    if ctx.inline_links()[lo..]
+        .iter()
+        .take_while(|link| link.line == line_index)
+        .any(|link| link.full_range.start <= absolute_start && absolute_start < link.full_range.end)
+    {
         return true;
     }
-    if ctx.reference_definitions().iter().any(|definition| {
-        definition.line == line_index
-            && definition.full_range.start <= absolute_start
-            && absolute_start < definition.full_range.end
-    }) {
+    let lo = ctx
+        .reference_definitions()
+        .partition_point(|def| def.line < line_index);
+    if ctx.reference_definitions()[lo..]
+        .iter()
+        .take_while(|def| def.line == line_index)
+        .any(|def| def.full_range.start <= absolute_start && absolute_start < def.full_range.end)
+    {
         return true;
     }
 

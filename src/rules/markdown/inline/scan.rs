@@ -1,5 +1,4 @@
 use super::types::InlineCodeSpan;
-use crate::rules::markdown::document::BlockRange;
 
 pub(super) fn skip_ascii_whitespace(line: &str, start: usize, end: usize) -> usize {
     let mut cursor = start;
@@ -30,18 +29,11 @@ pub(super) fn find_unescaped(line: &str, start: usize, needle: u8) -> Option<usi
     None
 }
 
-pub(super) fn inside_code_span(
-    code_spans: &[InlineCodeSpan],
-    line_index: usize,
-    offset: usize,
-) -> bool {
-    code_spans.iter().any(|span| {
-        span.line == line_index && span.full_range.start <= offset && offset < span.full_range.end
-    })
-}
-
-pub(super) fn line_in_blocks(line_index: usize, blocks: &[BlockRange]) -> bool {
-    blocks
-        .iter()
-        .any(|block| (block.start_line..=block.end_line).contains(&line_index))
+/// Returns true if `offset` (document-absolute byte position) falls inside any code span.
+/// Code spans are sorted by `full_range.start`, so binary search (O(log s)) is used.
+pub(super) fn inside_code_span(code_spans: &[InlineCodeSpan], offset: usize) -> bool {
+    // partition_point returns the first index where full_range.start > offset,
+    // so the span at idx-1 is the only candidate that can contain offset.
+    let idx = code_spans.partition_point(|span| span.full_range.start <= offset);
+    idx > 0 && offset < code_spans[idx - 1].full_range.end
 }

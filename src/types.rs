@@ -51,6 +51,15 @@ pub struct LintResult {
 pub struct FixResult {
     pub content: String,
     pub applied_fixes: usize,
+    #[serde(default)]
+    pub details: Vec<FixDetail>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct FixDetail {
+    pub rule_id: String,
+    pub range: Range,
+    pub applied: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]

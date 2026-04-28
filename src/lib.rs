@@ -18,7 +18,8 @@ pub use i18n::{
     resolve_locale_code_or, supported_locales, Locale, LocaleError, LocalizedDiagnostic,
 };
 pub use types::{
-    Fix, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity,
+    Fix, FixDetail, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta,
+    Severity,
 };
 
 use std::path::Path;
@@ -50,6 +51,7 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
 
     let mut content = content.to_string();
     let mut applied_fixes = 0;
+    let mut all_details = Vec::new();
     let severity_map = build_fix_severity_map(options);
 
     for _ in 0..MAX_FIX_PASSES {
@@ -74,12 +76,14 @@ pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
         }
 
         applied_fixes += fixed.applied_fixes;
+        all_details.extend(fixed.details);
         content = fixed.content;
     }
 
     Ok(FixResult {
         content,
         applied_fixes,
+        details: all_details,
     })
 }
 
@@ -309,11 +313,13 @@ fn is_safe_fix_rule(rule_id: &str) -> bool {
             | "MD039"
             | "MD040"
             | "MD044"
+            | "MD046"
             | "MD047"
             | "MD048"
             | "MD049"
             | "MD050"
             | "MD051"
+            | "MD052"
             | "MD053"
             | "MD054"
             | "MD055"

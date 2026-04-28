@@ -47,13 +47,13 @@
 | MD043 | 1 | 1 | 0 | 0 | 3 | 3 | 0 |  |
 | MD044 | 2 | 1 | 1 | 0 | 4 | 4 | 0 | check requires configured MD044.names; default markdownlint names is empty; fix requires: configured MD044.names to avoid guessing product capitalization |
 | MD045 | 1 | 1 | 0 | 0 | 1 | 1 | 0 |  |
-| MD046 | 1 | 1 | 0 | 0 | 2 | 2 | 0 |  |
+| MD046 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD047 | 1 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD048 | 1 | 1 | 1 | 0 | 2 | 2 | 1 |  |
 | MD049 | 1 | 1 | 2 | 0 | 2 | 2 | 0 |  |
 | MD050 | 1 | 1 | 2 | 0 | 2 | 2 | 0 |  |
 | MD051 | 5 | 1 | 1 | 0 | 3 | 3 | 0 |  |
-| MD052 | 1 | 1 | 0 | 0 | 3 | 3 | 0 |  |
+| MD052 | 1 | 1 | 2 | 0 | 3 | 3 | 0 |  |
 | MD053 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD054 | 2 | 1 | 1 | 0 | 7 | 7 | 0 | check requires a disabled link style such as MD054.collapsed=false; fix requires: disabled style and an inline-safe reference definition |
 | MD055 | 1 | 1 | 1 | 0 | 2 | 2 | 1 |  |

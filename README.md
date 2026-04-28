@@ -203,13 +203,13 @@ are not part of the active upstream rule catalog.
 | `MD043` | Implemented | Diagnostic only | Needs triage |
 | `MD044` | Implemented | Implemented subset | Not applicable |
 | `MD045` | Implemented | Diagnostic only | Needs triage |
-| `MD046` | Implemented | Diagnostic only | Needs triage |
+| `MD046` | Implemented | Implemented subset | Not applicable |
 | `MD047` | Implemented | Implemented subset | Not applicable |
 | `MD048` | Implemented | Implemented subset | Not applicable |
 | `MD049` | Implemented | Implemented subset | Not applicable |
 | `MD050` | Implemented | Implemented subset | Not applicable |
 | `MD051` | Implemented | Implemented subset | Not applicable |
-| `MD052` | Implemented | Diagnostic only | Needs triage |
+| `MD052` | Implemented | Implemented subset | Not applicable |
 | `MD053` | Implemented | Implemented subset | Not applicable |
 | `MD054` | Implemented | Implemented subset | Not applicable |
 | `MD055` | Implemented | Implemented subset | Not applicable |

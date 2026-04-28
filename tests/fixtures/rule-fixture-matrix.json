@@ -3,7 +3,7 @@
   "summary": {
     "total_rules": 53,
     "rules_with_examples": 53,
-    "rules_with_fix_metadata": 35,
+    "rules_with_fix_metadata": 36,
     "rules_with_parameters": 34,
     "manual_required": 2,
     "missing_fixtures": 0,
@@ -1428,7 +1428,7 @@
         {
           "key": "punctuation",
           "value_type": "string",
-          "default_value": ".,;:!\u3002\uff0c\uff1b\uff1a\uff01",
+          "default_value": ".,;:!。，；：！",
           "values": []
         }
       ],
@@ -2124,7 +2124,7 @@
         {
           "key": "punctuation",
           "value_type": "string",
-          "default_value": ".,;:!?\u3002\uff0c\uff1b\uff1a\uff01\uff1f",
+          "default_value": ".,;:!?。，；：！？",
           "values": []
         }
       ],
@@ -2822,7 +2822,13 @@
           "expected": "MD046"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "convert_indented_block_to_fenced",
+          "source": "```rust\ncode\n```\n\n    indented\n",
+          "expected": "```rust\ncode\n```\n\n```text\nindented\n```\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -3265,7 +3271,7 @@
           "values": []
         }
       ],
-      "fixable": null,
+      "fixable": true,
       "check_pass": [
         {
           "name": "inline_link",
@@ -3280,7 +3286,18 @@
           "expected": "MD052"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "fix_collapsed_reference_link",
+          "source": "[ref][]\n",
+          "expected": "[ref]\n"
+        },
+        {
+          "name": "fix_collapsed_reference_image",
+          "source": "![alt][]\n",
+          "expected": "![alt]\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
@@ -3467,7 +3484,8 @@
           "config": {
             "MD054": {
               "collapsed": false
-            }
+            },
+            "MD052": false
           }
         }
       ],

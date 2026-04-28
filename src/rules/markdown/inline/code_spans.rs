@@ -1,14 +1,13 @@
-use super::scan::line_in_blocks;
 use super::types::InlineCodeSpan;
-use crate::rules::markdown::document::{BlockRange, LineInfo, SourceRange};
+use crate::rules::markdown::document::{LineInfo, SourceRange};
 
 pub(crate) fn extract_inline_code_spans<'a>(
     lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
+    code_line_flags: &[bool],
 ) -> Vec<InlineCodeSpan> {
     let mut spans = Vec::new();
     for (idx, line) in lines.iter().enumerate() {
-        if line_in_blocks(idx, code_blocks) {
+        if code_line_flags[idx] {
             continue;
         }
         spans.extend(inline_code_spans_on_line(idx, line));
@@ -31,8 +30,7 @@ fn inline_code_spans_on_line(line_index: usize, line: &LineInfo<'_>) -> Vec<Inli
             .take_while(|byte| **byte == b'`')
             .count();
         let content_start = cursor + marker_len;
-        let marker = "`".repeat(marker_len);
-        let Some(close_relative) = line.text[content_start..].find(&marker) else {
+        let Some(close_relative) = find_closing_marker(line.text, content_start, marker_len) else {
             spans.push(InlineCodeSpan {
                 line: line_index,
                 marker_len,
@@ -66,4 +64,23 @@ fn inline_code_spans_on_line(line_index: usize, line: &LineInfo<'_>) -> Vec<Inli
         cursor = close + marker_len;
     }
     spans
+}
+
+/// Find the first occurrence of exactly `marker_len` consecutive backticks starting at `start`,
+/// returning the offset relative to `start`. Avoids String allocation from "`".repeat(n)`.
+fn find_closing_marker(text: &str, start: usize, marker_len: usize) -> Option<usize> {
+    let bytes = text.as_bytes();
+    let mut cursor = start;
+    while cursor < bytes.len() {
+        if bytes[cursor] != b'`' {
+            cursor += 1;
+            continue;
+        }
+        let run = bytes[cursor..].iter().take_while(|&&b| b == b'`').count();
+        if run == marker_len {
+            return Some(cursor - start);
+        }
+        cursor += run;
+    }
+    None
 }

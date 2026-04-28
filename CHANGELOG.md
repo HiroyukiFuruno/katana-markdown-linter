@@ -8,6 +8,73 @@
 - Adds `make mcpb-package` to the release workflow.
 - Documents MCP Registry and MCPB bundle support in README and distribution docs.
 
+## v0.12.17
+
+- Adds `FixDetail { rule_id, range, applied }` as a new public type and extends
+  `FixResult` with a `details: Vec<FixDetail>` field. `fix_with_results` and
+  `fix_with_results_including_unsafe` now populate `details` with one entry per
+  candidate fix, recording whether it was applied or skipped due to a range
+  conflict. `fix()` accumulates details across all passes. Existing
+  `applied_fixes` and `content` fields are unchanged (Issue #43).
+- Adds unit and integration tests that lock in the behaviour of MD051
+  `github_heading_slug` for emoji and CJK characters: emoji are silently removed
+  (matching GitHub's anchor generation), CJK characters are preserved, and no
+  false positives are emitted for links to emoji-mixed or CJK headings.
+
+## v0.12.16
+
+- Adds a safe fix to MD046 (`code-block-style`): indented code blocks are now
+  auto-converted to fenced blocks when a file contains mixed fenced and indented
+  styles. Emits one diagnostic per indented block group (split at blank lines)
+  with a `fix_info` that strips 4 leading spaces and wraps the block with
+  triple-backtick fences. Adds MD046 to `is_safe_fix_rule` allowlist.
+- Extends MD034 (`no-bare-urls`) to detect `ftp://`, `ftps://`, and `mailto:`
+  bare URLs in addition to the existing `http://` and `https://` schemes.
+  Existing suppression (code spans, inline links, reference definitions, HTML
+  attributes) applies equally to all new schemes.
+- Replaces O(n) linear scan in `MD034::is_ignored_url` for `inline_code_spans`,
+  `inline_links`, and `reference_definitions` lookups with `partition_point`
+  binary search, reducing per-URL ignore check from O(n) to O(log n + k) where
+  k is the number of spans on the same line (same technique as v0.12.14).
+
+## v0.12.15
+
+- Removes the unused `_line_index: usize` parameter from `scan::inside_code_span`
+  (dead after the v0.12.14 `partition_point` rewrite) and updates all three call
+  sites (`html.rs`, `links/mod.rs`, `links/autolink.rs`), eliminating the
+  leading-underscore suppression workaround.
+- Replaces the defensive `.get(idx).copied().unwrap_or(false)` chain in all four
+  inline extractors with direct `code_line_flags[idx]` indexing; the invariant is
+  guaranteed by `build_code_line_flags(lines.len(), ...)`.
+- Adds a safe fix to MD052 (`reference-links-images`): collapsed references such
+  as `[ref][]` and `![alt][]` can now be auto-fixed by deleting the trailing `[]`,
+  producing `[ref]` and `![alt]` respectively. Sets `is_fixable = true` in the
+  rule catalog so CLI `--fix`, MCP `apply_fix`, and API surfaces advertise the
+  new fix capability.
+- Adds MD052 to `is_safe_fix_rule` allowlist so the safe fix is applied in the
+  default `kml fix` pass without requiring unsafe-fix opt-in.
+- Updates MD054 fixture `inline_collapsed_reference_when_disabled` to explicitly
+  disable MD052 (`"MD052": false`) so the fixture tests MD054 behavior in
+  isolation without conflict from the new MD052 fix.
+
+## v0.12.14
+
+- Replaces O(b) `line_in_blocks()` linear scan in all four inline extractors
+  (`extract_inline_code_spans`, `extract_inline_html_elements`,
+  `extract_inline_links`, `extract_reference_definitions`) with the pre-built
+  `code_line_flags` boolean index already held by `DocumentContext`, eliminating
+  per-line `code_blocks.iter().any()` traversal.
+- Replaces O(s) `inside_code_span()` linear scan with a `partition_point`
+  binary search on the sorted code-span list, reducing per-character-position
+  cost from O(s) to O(log s) in the HTML-element and link parsers.
+- Removes the `"`".repeat(marker_len)` String allocation in the inline code-span
+  scanner, replacing it with a zero-allocation `find_closing_marker` byte scan.
+- Updates coverage baseline from 880 to 881 to account for the new
+  `find_closing_marker` helper (net line increase with no precision regression).
+- Refreshes performance baseline: `context_inline_token_index_large_document`
+  drops from 10.7 ms to ~0.9 ms (≈12×); inline-code-heavy and link-heavy
+  corpus benchmarks improve by 3–7× with all ratios ≤ 1.40×.
+
 ## v0.12.13
 
 - Splits `src/cli/workflow.rs` (1197 size-score) into focused sub-modules:
