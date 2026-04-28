@@ -141,14 +141,15 @@ The short version:
 | Capability | Status |
 | --- | --- |
 | Check coverage | `Implemented` for all 53 active rules |
-| Safe fix coverage | Safe fix available for 38 rules; diagnostic-only for 15 rules |
-| Unsafe fix coverage | Explicit opt-in unsafe subset for 1 rule; remaining rules are either not applicable or need triage |
+| Safe fix coverage | Safe fix available for 39 rules; diagnostic-only for 14 rules |
+| Unsafe fix coverage | Explicit opt-in unsafe subset for 1 rule; remaining rules are not applicable, need manual intent, or need triage |
 | Deleted upstream IDs | 7 historical IDs shown as `Deleted` with `-` fix states |
 
 Safe fixes are intentionally conservative. `Implemented subset` means kml
 rewrites fixture-locked, low-risk violation forms for that rule. `Diagnostic
 only` means checks are implemented, but safe fixes are not provided.
 `Needs triage` means an unsafe fix candidate has not been evaluated yet.
+`Manual intent required` means an automatic rewrite would choose author intent.
 `Not applicable` means no separate unsafe candidate is currently identified
 beyond the safe-fix policy. `Deleted` rows are historical markdownlint IDs that
 are not part of the active upstream rule catalog.
@@ -160,7 +161,7 @@ are not part of the active upstream rule catalog.
 | --- | --- | --- | --- |
 | `MD001` | Implemented | Diagnostic only | Needs triage |
 | `MD002` | Deleted | - | - |
-| `MD003` | Implemented | Diagnostic only | Needs triage |
+| `MD003` | Implemented | Implemented subset | Not applicable |
 | `MD004` | Implemented | Implemented subset | Not applicable |
 | `MD005` | Implemented | Implemented subset | Not applicable |
 | `MD006` | Deleted | - | - |
@@ -185,7 +186,7 @@ are not part of the active upstream rule catalog.
 | `MD025` | Implemented | Implemented subset | Not applicable |
 | `MD026` | Implemented | Implemented subset | Not applicable |
 | `MD027` | Implemented | Implemented subset | Not applicable |
-| `MD028` | Implemented | Diagnostic only | Needs triage |
+| `MD028` | Implemented | Diagnostic only | Manual intent required |
 | `MD029` | Implemented | Implemented subset | Not applicable |
 | `MD030` | Implemented | Implemented subset | Not applicable |
 | `MD031` | Implemented | Implemented subset | Not applicable |

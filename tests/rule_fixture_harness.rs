@@ -106,7 +106,7 @@ fn fixture_matrix_can_be_loaded_by_harness() {
         .filter_map(|rule| rule.official_meta().map(|meta| meta.code.to_string()))
         .collect::<HashSet<_>>();
 
-    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(2));
+    assert_eq!(matrix["summary"]["manual_required"].as_u64(), Some(3));
     assert!(rules(&matrix)
         .iter()
         .all(|rule| active.contains(rule_id(rule))));

@@ -8,14 +8,14 @@
 
 ## Goals / Non-Goals
 
-**Goals:**
+### Goals
 
 - `v0.12.19` 後の性能状態を記録する。
 - 説明不能な退行があれば、原因を特定して修正する。
 - 改善は正しさを変えない内部最適化に限定する。
 - `v0.12.21` の KatanA feedback sweep に進める状態を作る。
 
-**Non-Goals:**
+### Non-Goals
 
 - 新しい rule や safe-fix を追加しない。
 - benchmark 数値のために lint semantics を弱めない。

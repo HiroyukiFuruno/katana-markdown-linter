@@ -9,14 +9,14 @@
 
 ## Goals / Non-Goals
 
-**Goals:**
+### Goals
 
 - `MD003` の低リスクな safe-fix を実装する。
 - `MD028` は安全条件を先に定義し、条件を満たせない場合は診断のみとして明文化する。
 - どちらの rule も fixture matrix と README の表示を現在の実態に合わせる。
 - `make` entrypoint で検証する。
 
-**Non-Goals:**
+### Non-Goals
 
 - `MD013` の改行整形や `MD043` の見出し挿入など、人間の判断が強い修正は扱わない。
 - `MD028` を広く自動修正して文意変更リスクを取ることはしない。

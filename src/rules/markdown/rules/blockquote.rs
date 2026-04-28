@@ -146,4 +146,12 @@ mod tests {
         assert_eq!(diagnostics.len(), 1);
         assert_eq!(diagnostics[0].rule_id, "MD028");
     }
+
+    #[test]
+    fn md028_regular_blockquote_blank_line_is_not_auto_fixable() {
+        let rule = NoBlanksBlockquoteRule;
+        let diagnostics = rule.evaluate(Path::new("doc.md"), "> quote\n\n> more\n");
+
+        assert!(diagnostics[0].fix_info.is_none());
+    }
 }

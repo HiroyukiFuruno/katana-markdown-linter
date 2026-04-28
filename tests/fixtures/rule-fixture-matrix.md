@@ -2,14 +2,14 @@
 
 - upstream source: DavidAnson/markdownlint default branch
 - total rules: 53
-- manual required: 2
+- manual required: 3
 - missing fixtures: 0
 - stale fixtures: 0
 
 | Rule | Check Pass | Check Fail | Fix | Unsafe Fix | Config Valid | Config Invalid | Edge | Manual Required |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | MD001 | 1 | 1 | 0 | 0 | 2 | 2 | 1 |  |
-| MD003 | 1 | 1 | 0 | 0 | 2 | 2 | 2 |  |
+| MD003 | 1 | 1 | 2 | 0 | 2 | 2 | 2 |  |
 | MD004 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD005 | 1 | 1 | 1 | 0 | 1 | 1 | 1 |  |
 | MD007 | 1 | 1 | 1 | 0 | 4 | 4 | 0 |  |
@@ -29,7 +29,7 @@
 | MD025 | 1 | 1 | 1 | 0 | 3 | 3 | 0 |  |
 | MD026 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD027 | 1 | 1 | 1 | 0 | 3 | 2 | 0 |  |
-| MD028 | 2 | 1 | 0 | 0 | 1 | 1 | 0 |  |
+| MD028 | 2 | 1 | 0 | 0 | 1 | 1 | 0 | fix requires author intent: official docs allow either separating adjacent quotes with prose or joining them by adding a blockquote marker |
 | MD029 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD030 | 1 | 1 | 2 | 0 | 5 | 5 | 1 |  |
 | MD031 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |

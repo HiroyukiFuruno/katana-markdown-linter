@@ -20,7 +20,7 @@ diagnostic-only at the start of the change.
 | `MD003` | `safe-after-context` | Setext/ATX conversion needs source ranges and style-specific guards. |
 | `MD013` | `manual-required` | Line wrapping can change prose, code, tables, or inline references. |
 | `MD024` | `manual-required` | Duplicate heading fixes require choosing new heading text. |
-| `MD028` | `unsafe-candidate` | Official docs allow either separating quotes or joining them with `>`. |
+| `MD028` | `manual-required` | Official docs allow either separating quotes or joining them with `>`, so automatic repair would choose author intent. |
 | `MD033` | `manual-required` | Removing or replacing inline HTML changes rendered output. |
 | `MD035` | `safe-now` | Horizontal rule style normalization preserves Markdown meaning. Implemented in `v0.8.0` first batch. |
 | `MD036` | `unsafe-candidate` | Converting emphasis to heading changes structure and anchors. Exposed as an unsafe fix candidate in `v0.9.0`. |
