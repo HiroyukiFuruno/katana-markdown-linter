@@ -84,7 +84,7 @@ impl IgnoredWorkspace {
         ));
         let ignored_dir = root.join(".agents");
         let ignored_file = ignored_dir.join("bad.md");
-        let docs_file = root.join("docs/bad.md");
+        let docs_file = root.join("docs").join("bad.md");
         let config = root.join(".markdownlint.json");
         create_bad_markdown(&ignored_file);
         create_bad_markdown(&docs_file);

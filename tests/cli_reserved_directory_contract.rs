@@ -135,7 +135,7 @@ impl ReservedWorkspace {
             std::process::id()
         ));
         let docs_dir = root.join("docs");
-        let reserved_dir = root.join("node_modules/package");
+        let reserved_dir = root.join("node_modules").join("package");
         fs::create_dir_all(&docs_dir).expect("docs directory should be created");
         fs::create_dir_all(&reserved_dir).expect("reserved directory should be created");
 

@@ -235,7 +235,7 @@ mod tests {
             canonical_paths(&files),
             vec![
                 canonical_path(dir.join("README.md")),
-                canonical_path(dir.join("docs/guide.markdown"))
+                canonical_path(dir.join("docs").join("guide.markdown"))
             ]
         );
         let _ = fs::remove_dir_all(dir);

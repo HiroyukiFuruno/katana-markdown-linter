@@ -104,3 +104,4 @@ score が `100` 未満、または gate が失敗した場合は、この `tasks
 - [x] 7.5 `make dogfood` が `MD052` で失敗したため、字下げコードブロック内の参照風テキストを無視し、shortcut syntax 有効時も full reference を二重検出しない regression test / 実装修正を追加し、OpenSpec の `[Risk]` 表記は `Risk:` へ変更する
 - [x] 7.6 `make release-check` が coverage で失敗したため、coverage gate を `--lib --bins` 限定から workspace integration test 込みへ戻し、AST lint で再発防止する
 - [x] 7.7 最終 `release-check` 再実行で追加 failure がないことを確認する
+- [x] 7.8 PR CI の Windows job で `PathBuf::join("a/b")` 由来の path separator mismatch が出たため、test fixture path を component ごとの `join` に修正する
