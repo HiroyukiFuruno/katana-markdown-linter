@@ -42,6 +42,13 @@ cross-tool benchmark は任意 evidence とし、optional tool がない場合�
 - `api_fix_large_document` または `api_fix_parser_heavy_document` が悪化した場合: fix convergence と range application を確認する。
 - `context_*` が悪化した場合: `DocumentContext` の lazy index と重複構築を確認する。
 - `cli_*_many_small_files` が悪化した場合: CLI traversal、config validation、file IO の分離を確認する。
+- `api_rule_catalog` が悪化した場合: public API の catalog / metadata clone 経路を確認する。
+
+### D-4. catalog metadata は公開APIのhot pathとして扱う
+
+`make perf-check-strict` で `api_rule_catalog` だけが上限を超えた場合は、
+`available_rules()` が `RuleCatalog` clone と `RuleMeta` 変換を毎回重ねていないかを先に確認する。
+修正は返却値の所有権（owned `Vec<RuleMeta>`）を維持し、内部cacheからcloneする範囲に限定する。
 
 ### D-3. baseline refresh は根拠がある場合だけ行う
 

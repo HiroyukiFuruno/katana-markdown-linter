@@ -8,7 +8,7 @@
 
 - **WHEN** developer が `v0.12.20` に着手する
 - **THEN** system は `make bench` または `make perf-check` の結果を記録する
-- **THEN** system は `api_lint_*`、`api_fix_*`、`context_*`、`cli_*` のどこが変化したかを case 単位で分類する
+- **THEN** system は `api_lint_*`、`api_fix_*`、`api_rule_catalog`、`context_*`、`cli_*` のどこが変化したかを case 単位で分類する
 - **THEN** system は測定結果なしに最適化を始めない
 
 ### Requirement: performance improvements SHALL be evidence-led and semantics-preserving

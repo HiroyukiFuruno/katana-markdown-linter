@@ -1,6 +1,6 @@
 ## 0. 前提確認
 
-- [ ] 0.1 `v0.12.20` が release 済みで、performance blocker が残っていないことを確認する
+- [ ] 0.1 `v0.12.20` が release 済みで、`api_rule_catalog` cache 後の performance blocker が残っていないことを確認する
 - [ ] 0.2 `v0.12.19` の結果を確認し、`MD028` が safe-fix 実装済みか by-design 候補かを確定する
 - [ ] 0.3 KatanA checkout の場所を確認し、`KATANA_CHECKOUT` を使う実行方法を決める
 

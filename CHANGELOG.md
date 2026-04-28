@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.20
+
+- Adds an internal cache for exported rule metadata so `available_rules()` keeps
+  returning an owned `Vec<RuleMeta>` without rebuilding it from the structured
+  catalog on every call.
+- Fixes the `api_rule_catalog` strict performance regression found after
+  `v0.12.19`; the case moved from 0.013 ms / 1.47x over baseline to about
+  0.006 ms in the refreshed baseline.
+- Refreshes `tests/fixtures/perf-baseline.json` after the catalog hot-path fix
+  and documents the `v0.12.20` performance snapshot, public-confidence result,
+  and optional cross-tool skipped evidence.
+
 ## v0.12.19
 
 - Adds a safe fix to `MD003` (`heading-style`) that converts setext H1/H2
