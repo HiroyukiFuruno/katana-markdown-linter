@@ -499,7 +499,7 @@ fn ast_linter_public_api_surface_is_explicit() {
         "supported_locales",
         "Locale, LocaleError",
         "LocalizedDiagnostic",
-        "Fix, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta, Severity,",
+        "Fix, FixDetail, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta,",
     ];
     let mut violations = required
         .iter()

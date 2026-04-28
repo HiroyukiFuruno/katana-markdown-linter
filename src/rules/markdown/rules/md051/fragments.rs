@@ -80,3 +80,48 @@ fn html_defined_fragments(ctx: &DocumentContext<'_>) -> Vec<String> {
     }
     fragments
 }
+
+#[cfg(test)]
+mod slug_tests {
+    use super::github_heading_slug;
+
+    #[test]
+    fn emoji_is_removed_from_slug() {
+        assert_eq!(github_heading_slug("Hello 🎉 World"), "hello-world");
+        assert_eq!(github_heading_slug("🎉 World"), "world");
+        assert_eq!(github_heading_slug("Hello 🎉"), "hello");
+    }
+
+    #[test]
+    fn emoji_only_heading_produces_empty_slug() {
+        assert_eq!(github_heading_slug("🎉"), "");
+        assert_eq!(github_heading_slug("🎉 🚀"), "");
+    }
+
+    #[test]
+    fn cjk_characters_are_preserved_in_slug() {
+        assert_eq!(github_heading_slug("中文标题"), "中文标题");
+        assert_eq!(github_heading_slug("日本語の見出し"), "日本語の見出し");
+        assert_eq!(github_heading_slug("한국어 제목"), "한국어-제목");
+    }
+
+    #[test]
+    fn cjk_mixed_with_ascii_slug() {
+        assert_eq!(github_heading_slug("Hello 世界 World"), "hello-世界-world");
+    }
+
+    #[test]
+    fn underscores_are_preserved() {
+        assert_eq!(github_heading_slug("some_section"), "some_section");
+    }
+
+    #[test]
+    fn no_duplicate_dashes() {
+        assert_eq!(github_heading_slug("hello  world"), "hello-world");
+    }
+
+    #[test]
+    fn leading_trailing_dashes_trimmed() {
+        assert_eq!(github_heading_slug("-hello-"), "hello");
+    }
+}

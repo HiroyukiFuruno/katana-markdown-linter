@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.12.17
+
+- Adds `FixDetail { rule_id, range, applied }` as a new public type and extends
+  `FixResult` with a `details: Vec<FixDetail>` field. `fix_with_results` and
+  `fix_with_results_including_unsafe` now populate `details` with one entry per
+  candidate fix, recording whether it was applied or skipped due to a range
+  conflict. `fix()` accumulates details across all passes. Existing
+  `applied_fixes` and `content` fields are unchanged (Issue #43).
+- Adds unit and integration tests that lock in the behaviour of MD051
+  `github_heading_slug` for emoji and CJK characters: emoji are silently removed
+  (matching GitHub's anchor generation), CJK characters are preserved, and no
+  false positives are emitted for links to emoji-mixed or CJK headings.
+
 ## v0.12.16
 
 - Adds a safe fix to MD046 (`code-block-style`): indented code blocks are now
