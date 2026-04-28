@@ -67,3 +67,45 @@ fn ignore_case_accepts_existing_fragment_but_missing_remains_unfixable() {
     assert_eq!(diagnostics.len(), 1);
     assert!(diagnostics[0].fix_info.is_none());
 }
+
+#[test]
+fn no_false_positive_for_emoji_mixed_heading_link() {
+    let rule = LinkFragmentsRule;
+    let content = "# Hello 🎉 World\n\n[Link](#hello-world)";
+    assert!(
+        rule.evaluate(Path::new("doc.md"), content).is_empty(),
+        "emoji-mixed heading should produce fragment 'hello-world'"
+    );
+}
+
+#[test]
+fn false_positive_when_emoji_wrongly_included_in_fragment() {
+    let rule = LinkFragmentsRule;
+    let content = "# Hello 🎉 World\n\n[Bad link](#hello--world)";
+    assert_eq!(
+        rule.evaluate(Path::new("doc.md"), content).len(),
+        1,
+        "double dash fragment does not match 'hello-world'"
+    );
+}
+
+#[test]
+fn no_false_positive_for_cjk_heading_link() {
+    let rule = LinkFragmentsRule;
+    let content = "# 中文标题\n\n[Link](#中文标题)";
+    assert!(
+        rule.evaluate(Path::new("doc.md"), content).is_empty(),
+        "CJK heading should produce fragment '中文标题'"
+    );
+}
+
+#[test]
+fn emoji_only_heading_produces_no_usable_fragment() {
+    let rule = LinkFragmentsRule;
+    let content = "# 🎉\n\n[Link](#🎉)";
+    assert_eq!(
+        rule.evaluate(Path::new("doc.md"), content).len(),
+        1,
+        "emoji-only heading produces empty slug; fragment '#🎉' is unknown"
+    );
+}
