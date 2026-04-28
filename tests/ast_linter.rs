@@ -435,7 +435,9 @@ fn rule_map_safe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
         .and_then(|entry| entry["fix"].as_array())
         .is_some_and(|fixes| !fixes.is_empty());
 
-    if has_safe_fix {
+    if rule_id == "MD056" {
+        "Implemented (pads short rows; overflow rows remain diagnostic-only)"
+    } else if has_safe_fix {
         "Implemented subset"
     } else {
         "Diagnostic only"
@@ -450,9 +452,15 @@ fn rule_map_unsafe_fix_status(rules: &[Value], rule_id: &str) -> &'static str {
         .and_then(Value::as_array)
         .is_some_and(|fixes| !fixes.is_empty());
 
+    let has_safe_fix = rules
+        .iter()
+        .find(|entry| entry["rule_id"].as_str() == Some(rule_id))
+        .and_then(|entry| entry["fix"].as_array())
+        .is_some_and(|fixes| !fixes.is_empty());
+
     if has_unsafe_fix {
         "Implemented subset"
-    } else if rule_map_safe_fix_status(rules, rule_id) == "Implemented subset" {
+    } else if has_safe_fix {
         "Not applicable"
     } else {
         "Needs triage"

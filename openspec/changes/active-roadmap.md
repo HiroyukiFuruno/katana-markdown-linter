@@ -23,7 +23,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.8`: released patch として stable score 100 点、hard blocker 0 件、ユーザー受け入れ判断を記録した。
 - `v0.12.9`: 公開導線を広げる前の patch として、KatanA docs/assets Markdown と既存 performance corpus を使い、外部品質への confidence evidence を固める。
 - `v0.12.14`: precision-first を維持したまま `DocumentContext` の inline 抽出統合 (`InlineIndex`)、`MD051` の `ignored_pattern` regex キャッシュ、`MD046` の `code_line_flags` 索引活用で hot path コストを削減する。
-- `v0.12.15+`: 精度 fix+ 継続拡張。MD052 collapsed reference safe-fix、MD046 style 統一 fix、MD043 missing heading 挿入 fix、MD056 table column count 補完 fix、MD034 scheme 拡張、MD051 fragment Unicode/emoji 厳密化を逐次取り込む。
+- `v0.12.19+`: 精度 fix+ 継続拡張。MD052 collapsed reference safe-fix、MD046 style 統一 fix、MD043 missing heading 挿入 fix、MD034 scheme 拡張、MD051 fragment Unicode/emoji 厳密化を逐次取り込む。
 - `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
@@ -57,7 +57,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Dead-code removal and MD052 safe-fix for `v0.12.15` | `v0-12-15-precision-and-performance-hardening` | Removes unused `_line_index` parameter from `inside_code_span`, replaces defensive `.get(idx).copied().unwrap_or(false)` with direct indexing in 4 extractors, and adds safe-fix to MD052 (`[ref][]` → `[ref]`). |
 | Done | MD046 safe-fix and MD034 scheme expansion for `v0.12.16` | `v0-12-16-precision-and-performance-hardening` | Adds per-block safe-fix to MD046 (indented→fenced), extends MD034 to ftp/ftps/mailto schemes, and replaces O(n) is_ignored_url scans with partition_point binary search. |
 | Done | FixDetail API and MD051 Unicode/emoji precision for `v0.12.17` | `v0-12-17-fix-detail-api-and-md051-unicode-precision` | Adds `FixDetail { rule_id, range, applied }` to `FixResult` (Issue #43). Locks in MD051 emoji/CJK fragment behavior via comprehensive unit and integration tests. |
-| P2 | Precision fix+ continuous expansion for `v0.12.18+` | (TBD) | Adds `MD043` (missing heading insertion) and `MD056` (table column count) fixes. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
+| Done | Precision fix+ continuous expansion for `v0.12.18` | `v0-12-18-md056-table-column-padding-safe-fix` | Added `MD029` regression fix for nested unordered-list interruption and `MD056` table-column safe-fix. |
+| P2 | Precision fix+ continuous expansion for `v0.12.19+` | (TBD) | Adds `MD043` (missing heading insertion) and remaining safe-fix candidates. Sequenced 1-2 rules per patch to preserve precision-first cadence. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |

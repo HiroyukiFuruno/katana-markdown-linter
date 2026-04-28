@@ -57,7 +57,7 @@
 | MD053 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |
 | MD054 | 2 | 1 | 1 | 0 | 7 | 7 | 0 | check requires a disabled link style such as MD054.collapsed=false; fix requires: disabled style and an inline-safe reference definition |
 | MD055 | 1 | 1 | 1 | 0 | 2 | 2 | 1 |  |
-| MD056 | 1 | 1 | 0 | 0 | 1 | 1 | 0 |  |
+| MD056 | 1 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD058 | 1 | 1 | 1 | 0 | 1 | 1 | 0 |  |
 | MD059 | 1 | 1 | 0 | 0 | 2 | 2 | 0 |  |
 | MD060 | 3 | 1 | 3 | 0 | 3 | 5 | 3 |  |

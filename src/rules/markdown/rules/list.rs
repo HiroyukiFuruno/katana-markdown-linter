@@ -125,7 +125,8 @@ impl MarkdownRule for OlPrefixRule {
                 }
                 *expected_number += 1;
             } else if !trimmed.is_empty() {
-                expected_numbers.clear();
+                let indent = line.len() - trimmed.len();
+                expected_numbers.retain(|level, _| *level < indent);
             }
         }
         diagnostics
@@ -167,5 +168,37 @@ mod tests {
 
         assert_eq!(diagnostics.len(), 1);
         assert_eq!(diagnostics[0].range.start_line, 4);
+    }
+
+    #[test]
+    fn md029_no_false_positive_when_nested_unordered_list_interrupts_ordered() {
+        let content = "\
+1. item1
+2. item2
+3. item3
+   - sub bullet
+4. item4
+5. item5
+";
+        let diagnostics = OlPrefixRule.evaluate(Path::new("doc.md"), content);
+        assert!(
+            diagnostics.is_empty(),
+            "nested unordered list should not reset parent ordered list counter"
+        );
+    }
+
+    #[test]
+    fn md029_fix_is_correct_after_nested_unordered_list() {
+        let content = "\
+1. item1
+2. item2
+   - sub
+4. item3
+";
+        let diagnostics = OlPrefixRule.evaluate(Path::new("doc.md"), content);
+        assert_eq!(diagnostics.len(), 1, "only item4 (should be 3) is wrong");
+        assert_eq!(diagnostics[0].range.start_line, 4);
+        let fix = diagnostics[0].fix_info.as_ref().expect("fix should exist");
+        assert_eq!(fix.replacement, "3");
     }
 }

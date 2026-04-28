@@ -211,6 +211,14 @@ link 系 rule の精度改善は、共有 parser または `DocumentContext` の
 - **THEN** system は CJK 文字を含む見出しに対して false positive を出さない
 - **THEN** system は誤ったフラグメントを参照するリンクに対して false negative を出さない
 
+#### Scenario: MD056 が列数不足のテーブル行を空セルで補完する
+
+- **WHEN** テーブル行のセル数が header のセル数より少ない（`row.cells.len() < expected_columns`）Markdown を fix モードで処理する
+- **THEN** system は不足分だけ空セルを補完し、行のパイプスタイル（leading/trailing）を保持する
+- **THEN** system は補完後の行が header と同じ列数になるように修正する
+- **THEN** system は `row.safe_to_fix=false`（escaped pipe や inline code を含む行）は fix 対象外として診断のみ返す
+- **THEN** system は列数過多の行（`row.cells.len() > expected_columns`）に対しては fix を生成せず診断のみ返す（データ消失防止）
+
 ### Requirement: parser migration SHALL document non-migrated rules
 
 parser migration は、移譲しない rule の理由を明文化しなければならない（SHALL）。

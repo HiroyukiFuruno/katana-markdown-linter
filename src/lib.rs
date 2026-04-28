@@ -323,6 +323,7 @@ fn is_safe_fix_rule(rule_id: &str) -> bool {
             | "MD053"
             | "MD054"
             | "MD055"
+            | "MD056"
             | "MD058"
             | "MD060"
     )
