@@ -11,6 +11,7 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 - 対象バージョンはユーザー入力から受け取る。例: `/impl-release v0.12.2`
 - 作業対象 repository は `katana-markdown-linter`
 - default branch は `main`
+- `main` は GitHub branch protection で signed commits を必須にし、admin にも保護を適用する
 - release は `make release VERSION=vX.Y.Z` を正とする
 - publish 後 verification は `make release-verify VERSION=vX.Y.Z` を正とする
 - `make release` が失敗した場合、手動 tag 作成や `cargo publish` 直叩きで迂回しない
@@ -92,7 +93,8 @@ make release-check VERSION=vX.Y.Z
 2. public docs は英語で書く。`README.md` または `docs/**` を変更した場合は `make ast-lint` を実行する。
 3. 対象 OpenSpec change の全 task が完了したら、`openspec-archive-change` skill に従って archive する。
 4. commit 前に `git status --short --branch` と `git diff --cached --stat` を確認する。
-5. release PR を次の形式で作成し、CI を監視する。
+5. commit 作成後、GitHub 上の head commit が `verified=true` / `reason=valid` であることを確認する。
+6. release PR を次の形式で作成し、CI を監視する。
 
 ```bash
 gh pr create --title "Prepare vX.Y.Z release" --base main --body-file <pr-body-file>
@@ -115,10 +117,12 @@ gh pr create --title "Prepare vX.Y.Z release" --base main --body-file <pr-body-f
 ## Phase 4: PR merge
 
 1. CI が全て pass していることを確認する。
-2. review comment がある場合は `github:gh-address-comments` skill で対応する。
-3. `--admin` は使わない。
-4. `gh pr merge --merge --delete-branch <PR番号またはURL>` で `main` に取り込む。
-5. merge 後に `git switch main && git pull --ff-only origin main` を実行する。
+2. PR の全 commit が GitHub で `verified=true` / `reason=valid` であることを確認する。
+3. 未検証 commit がある場合は merge せず、署名者と author / committer identity を修正してから CI を再実行する。
+4. review comment がある場合は `github:gh-address-comments` skill で対応する。
+5. `--admin` は使わない。
+6. `gh pr merge --merge --delete-branch <PR番号またはURL>` で `main` に取り込む。
+7. merge 後に `git switch main && git pull --ff-only origin main` を実行する。
 
 ## Phase 5: 公開
 
