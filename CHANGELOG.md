@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.12.18
+
+- Fixes `MD029` (`ordered-list-marker`) so nested unordered-list items do not
+  reset parent ordered-list numbering, and adds regression tests for both false
+  positives and fix behavior.
+- Adds a safe fix to `MD056` (`table-column-count`) that pads short table rows
+  with empty cells while preserving each row's leading/trailing pipe style.
+- Keeps `MD056` diagnostic-only for overflow rows and rows marked unsafe,
+  preventing data-loss risk while making short-row repair safe.
+
 ## v0.12.17
 
 - Adds `FixDetail { rule_id, range, applied }` as a new public type and extends

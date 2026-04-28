@@ -213,7 +213,7 @@ are not part of the active upstream rule catalog.
 | `MD053` | Implemented | Implemented subset | Not applicable |
 | `MD054` | Implemented | Implemented subset | Not applicable |
 | `MD055` | Implemented | Implemented subset | Not applicable |
-| `MD056` | Implemented | Diagnostic only | Needs triage |
+| `MD056` | Implemented | Implemented (pads short rows; overflow rows remain diagnostic-only) | Not applicable |
 | `MD057` | Deleted | - | - |
 | `MD058` | Implemented | Implemented subset | Not applicable |
 | `MD059` | Implemented | Diagnostic only | Needs triage |

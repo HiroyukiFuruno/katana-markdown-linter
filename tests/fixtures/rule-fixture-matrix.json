@@ -3670,7 +3670,13 @@
           "expected": "MD056"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "pad_short_table_row_with_empty_cells",
+          "source": "| a | b |\n|---|---|\n| 1 |\n",
+          "expected": "| a | b |\n| --- | --- |\n| 1 |  |\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
