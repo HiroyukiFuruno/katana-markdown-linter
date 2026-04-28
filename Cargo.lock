@@ -337,7 +337,7 @@ dependencies = [
 
 [[package]]
 name = "katana-markdown-linter"
-version = "0.12.15"
+version = "0.12.16"
 dependencies = [
  "glob",
  "ignore",

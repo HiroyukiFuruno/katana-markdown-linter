@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.12.16
+
+- Adds a safe fix to MD046 (`code-block-style`): indented code blocks are now
+  auto-converted to fenced blocks when a file contains mixed fenced and indented
+  styles. Emits one diagnostic per indented block group (split at blank lines)
+  with a `fix_info` that strips 4 leading spaces and wraps the block with
+  triple-backtick fences. Adds MD046 to `is_safe_fix_rule` allowlist.
+- Extends MD034 (`no-bare-urls`) to detect `ftp://`, `ftps://`, and `mailto:`
+  bare URLs in addition to the existing `http://` and `https://` schemes.
+  Existing suppression (code spans, inline links, reference definitions, HTML
+  attributes) applies equally to all new schemes.
+- Replaces O(n) linear scan in `MD034::is_ignored_url` for `inline_code_spans`,
+  `inline_links`, and `reference_definitions` lookups with `partition_point`
+  binary search, reducing per-URL ignore check from O(n) to O(log n + k) where
+  k is the number of spans on the same line (same technique as v0.12.14).
+
 ## v0.12.15
 
 - Removes the unused `_line_index: usize` parameter from `scan::inside_code_span`
