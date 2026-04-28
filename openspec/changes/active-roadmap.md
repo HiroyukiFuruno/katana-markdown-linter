@@ -24,7 +24,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.9`: 公開導線を広げる前の patch として、KatanA docs/assets Markdown と既存 performance corpus を使い、外部品質への confidence evidence を固める。
 - `v0.12.14`: precision-first を維持したまま `DocumentContext` の inline 抽出統合 (`InlineIndex`)、`MD051` の `ignored_pattern` regex キャッシュ、`MD046` の `code_line_flags` 索引活用で hot path コストを削減する。
 - `v0.12.19`: `MD003` の safe-fix を追加し、`MD028` は作者判断が必要なため `v0.12.21` の by-design 宣言へ送る。
-- `v0.12.20`: `v0.12.19` 後の performance 計測と、測定で必要になった hot path 改善だけを扱う。新規 rule/fix は入れない。
+- `v0.12.20`: released patch として `v0.12.19` 後の performance 計測、`api_rule_catalog` の hot path 改善、baseline refresh を完了した。新規 rule/fix は入れていない。
 - `v0.12.21`: `v0.12.20` 完了後に KatanA 側ドキュメント feedback sweep を行い、issue があれば bugfix として扱う。release-blocking issue がなければ残り rule の by-design 宣言で 0.12.x を閉じる。
 - `v0.13.0`: `v0.12.8` の stable 条件と `v0.12.9` の public confidence gate を満たしてから、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決める。公開自体はまだ行わない。
 - `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
@@ -61,7 +61,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | FixDetail API and MD051 Unicode/emoji precision for `v0.12.17` | `v0-12-17-fix-detail-api-and-md051-unicode-precision` | Adds `FixDetail { rule_id, range, applied }` to `FixResult` (Issue #43). Locks in MD051 emoji/CJK fragment behavior via comprehensive unit and integration tests. |
 | Done | Precision fix+ continuous expansion for `v0.12.18` | `v0-12-18-md056-table-column-padding-safe-fix` | Added `MD029` regression fix for nested unordered-list interruption and `MD056` table-column safe-fix. |
 | Done | MD003 safe-fix and MD028 fix policy for `v0.12.19` | `v0-12-19-md003-md028-fix-policy` | Added fixture-backed `MD003` setext-to-ATX safe-fix and kept `MD028` diagnostic-only as a manual-intent by-design candidate for `v0.12.21`. |
-| P1 | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Freezes rule expansion, measures the post-`v0.12.19` cost, and fixes only evidence-backed regressions. |
+| Done | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Completed post-`v0.12.19` measurement, fixed the `api_rule_catalog` metadata clone hot path, refreshed the baseline, and kept rule expansion frozen. |
 | P1 | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Runs KatanA-side document feedback after `v0.12.20`; release-blocking issues are fixed here, otherwise remaining diagnostic-only rules get by-design reasons and 0.12.x closes. |
 | P1 | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Proceed after release and user approval; defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
@@ -96,16 +96,16 @@ Archived completed changes:
 - `v0-12-14-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-14-precision-and-performance-hardening`
 - `v0-12-15-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-15-precision-and-performance-hardening`
 - `v0-12-16-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-16-precision-and-performance-hardening`
+- `v0-12-20-performance-measurement-and-hotpath-hardening` -> `openspec/changes/archive/2026-04-29-v0-12-20-performance-measurement-and-hotpath-hardening`
 
 ## Suggested Order
 
-1. Apply `v0-12-20-performance-measurement-and-hotpath-hardening`; it measures the post-fix state before any closeout decision.
-2. Apply `v0-12-21-katana-feedback-and-012x-closeout`; it handles KatanA feedback issues discovered after `v0.12.20` and records the final by-design rule map.
-3. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.21` has no release-blocking KatanA feedback issue and 0.12.x is marked DONE.
-4. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
-5. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
-6. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
-7. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
+1. Apply `v0-12-21-katana-feedback-and-012x-closeout`; it handles KatanA feedback issues discovered after `v0.12.20` and records the final by-design rule map.
+2. Apply `v0-13-0-mcp-registry-and-distribution-planning` only after `v0.12.21` has no release-blocking KatanA feedback issue and 0.12.x is marked DONE.
+3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
+5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
+6. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 

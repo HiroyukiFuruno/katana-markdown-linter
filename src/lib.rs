@@ -23,6 +23,7 @@ pub use types::{
 };
 
 use std::path::Path;
+use std::sync::OnceLock;
 
 /// Runs linting for the provided Markdown content.
 pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error> {
@@ -102,7 +103,10 @@ pub fn fix_with_results_including_unsafe(content: &str, results: &[LintResult]) 
 
 /// Returns the set of available rules.
 pub fn available_rules() -> Vec<RuleMeta> {
-    catalog::RuleCatalog::build().to_rule_meta()
+    static AVAILABLE_RULES: OnceLock<Vec<RuleMeta>> = OnceLock::new();
+    AVAILABLE_RULES
+        .get_or_init(|| catalog::RuleCatalog::build().to_rule_meta())
+        .clone()
 }
 
 /// Returns the set of available rules with descriptions localized by language code.

@@ -207,3 +207,38 @@ Full local baseline after the change:
 The optimization is internal and preserves the public fix contract, including
 multi-line ranges, virtual EOF positions, UTF-8 boundary clamping, and overlap
 resolution.
+
+## v0.12.20 Catalog Metadata Snapshot
+
+`v0.12.20` measured the post-`v0.12.19` rule set before adding more rule or
+fix coverage. The first strict run found one blocker: `api_rule_catalog`
+reached 0.013 ms, or 1.47x over the committed baseline. The hot path was the
+public `available_rules()` API, which rebuilt owned `RuleMeta` values from the
+cached structured catalog on every call.
+
+The fix keeps the public owned `Vec<RuleMeta>` contract and caches the exported
+metadata vector internally. Callers still receive an owned vector, but the
+library no longer repeats the catalog-to-metadata conversion for every call.
+
+Local snapshot after `make perf-refresh-baseline`:
+
+| Case | Median |
+| --- | ---: |
+| `api_lint_large_document` | 6.914 ms |
+| `api_lint_clean_large_document` | 4.215 ms |
+| `api_fix_large_document` | 20.775 ms |
+| `api_lint_many_small_documents` | 2.109 ms |
+| `api_fix_parser_heavy_document` | 8.237 ms |
+| `context_inline_token_index_large_document` | 0.891 ms |
+| `cli_check_many_small_files` | 9.314 ms |
+| `cli_fix_many_small_files` | 31.765 ms |
+| `cli_fmt_many_small_files` | 32.748 ms |
+| `config_validate_representative` | 0.034 ms |
+| `api_rule_catalog` | 0.006 ms |
+
+Validation evidence:
+
+- `make test` passed after the metadata cache change.
+- `make perf-check-strict` passed; `api_rule_catalog` measured 0.007 ms, or 0.74x against the previous baseline.
+- `make public-confidence` passed and recorded check/fix/fmt convergence in `target/public-confidence-report.json`.
+- The cross-tool targets passed; `mado` and `rumdl` were not installed locally, so their cases were recorded as skipped evidence.
