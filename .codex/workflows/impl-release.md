@@ -92,7 +92,13 @@ make release-check VERSION=vX.Y.Z
 2. public docs は英語で書く。`README.md` または `docs/**` を変更した場合は `make ast-lint` を実行する。
 3. 対象 OpenSpec change の全 task が完了したら、`openspec-archive-change` skill に従って archive する。
 4. commit 前に `git status --short --branch` と `git diff --cached --stat` を確認する。
-5. PR を作成し、CI を監視する。
+5. release PR を次の形式で作成し、CI を監視する。
+
+```bash
+gh pr create --title "Prepare vX.Y.Z release" --base main --body-file <pr-body-file>
+```
+
+`gh pr create` には source branch 削除 option がない。PR merge 時に必ず `gh pr merge --merge --delete-branch` を使い、merge 後に local / remote branch が削除されたことを `branch-hygiene` skill で確認する。
 
 推奨 PR body:
 
@@ -111,7 +117,7 @@ make release-check VERSION=vX.Y.Z
 1. CI が全て pass していることを確認する。
 2. review comment がある場合は `github:gh-address-comments` skill で対応する。
 3. `--admin` は使わない。
-4. 通常 merge で `main` に取り込む。
+4. `gh pr merge --merge --delete-branch <PR番号またはURL>` で `main` に取り込む。
 5. merge 後に `git switch main && git pull --ff-only origin main` を実行する。
 
 ## Phase 5: 公開
