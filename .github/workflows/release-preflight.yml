@@ -5,10 +5,13 @@ on:
     branches: [main, master]
     paths:
       - '**.rs'
+      - 'README.md'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Makefile'
       - '.github/workflows/**'
+      - 'docs/**'
+      - 'openspec/**'
       - 'scripts/**'
       - 'tests/**'
   workflow_dispatch:
