@@ -2822,7 +2822,13 @@
           "expected": "MD046"
         }
       ],
-      "fix": [],
+      "fix": [
+        {
+          "name": "convert_indented_block_to_fenced",
+          "source": "```rust\ncode\n```\n\n    indented\n",
+          "expected": "```rust\ncode\n```\n\n```text\nindented\n```\n"
+        }
+      ],
       "config_valid": [
         {
           "name": "rule_enabled_valid",
