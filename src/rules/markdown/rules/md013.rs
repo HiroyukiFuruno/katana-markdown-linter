@@ -117,9 +117,38 @@ fn is_line_too_long(line: &str, limit: usize, strict: bool, stern: bool) -> bool
     if strict {
         return true;
     }
-    let tail = &line[limit..];
+    let tail = tail_after_byte_limit(line, limit);
     if tail.chars().all(|ch| !ch.is_whitespace()) {
         return false;
     }
     stern || tail.chars().any(char::is_whitespace)
+}
+
+fn tail_after_byte_limit(line: &str, limit: usize) -> &str {
+    if line.is_char_boundary(limit) {
+        return &line[limit..];
+    }
+    match line.char_indices().find(|(index, _)| *index > limit) {
+        Some((index, _)) => &line[index..],
+        None => "",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LineLengthRule;
+    use crate::rules::markdown::MarkdownRule;
+    use std::path::Path;
+
+    #[test]
+    fn handles_unicode_at_line_length_boundary_without_panicking() {
+        let content = format!(
+            "{}？ suffix keeps the line over the configured limit\n",
+            "a".repeat(78)
+        );
+        let diagnostics = LineLengthRule.evaluate(Path::new("doc.md"), &content);
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].rule_id, "MD013");
+    }
 }

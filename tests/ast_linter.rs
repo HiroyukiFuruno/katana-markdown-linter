@@ -282,8 +282,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
+    let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
+    let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke"),
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke document-answer-fix"),
+        ("Makefile", &makefile, "document-answer-fix:"),
         ("Makefile", &makefile, "mcp-release-build:"),
         ("Makefile", &makefile, "mcp-remote-build:"),
         ("Makefile", &makefile, "mcp-remote-smoke:"),
@@ -303,6 +306,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "run: make mcp-remote-smoke"),
         (".github/workflows/release.yml", &workflow, "MCPB smoke"),
         (".github/workflows/release.yml", &workflow, "MCP Registry metadata"),
+        (".github/workflows/release.yml", &workflow, "run: make document-answer-fix"),
         (".github/workflows/release.yml", &workflow, "Publish MCP Registry metadata"),
         (".github/workflows/release.yml", &workflow, "mcp-publisher login github-oidc"),
         (".github/workflows/release.yml", &workflow, "gh release upload \"$TAG\" \"$PACKAGE_PATH\" \"$CHECKSUM_PATH\" \"$MCPB_PATH\" \"$MCPB_CHECKSUM_PATH\" \"$SERVER_JSON_PATH\" --clobber"),
@@ -314,6 +318,18 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-remote-smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCPB smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCP Registry metadata"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make document-answer-fix"),
+        ("scripts/ci/document_answer_fix_runner.py", &answer_runner, "AnswerValidationRunner"),
+        (
+            "scripts/ci/document_answer_validator.py",
+            &answer_validator,
+            "answer_diagnostics",
+        ),
+        (
+            "scripts/ci/document_answer_validator.py",
+            &answer_validator,
+            "answer fixture changes when fixed again",
+        ),
         ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "make mcpb-smoke VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "mcp-publisher login github-oidc"),
