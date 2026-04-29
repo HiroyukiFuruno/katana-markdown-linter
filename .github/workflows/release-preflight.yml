@@ -51,6 +51,12 @@ jobs:
       - name: MCP stdio smoke
         run: make mcp-stdio-smoke
 
+      - name: MCP remote build
+        run: make mcp-remote-build
+
+      - name: MCP remote smoke
+        run: make mcp-remote-smoke
+
       - name: MCPB smoke
         run: make mcpb-smoke
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.15.0
+
+- Adds the self-hosted `kml-mcp-remote` binary for MCP Streamable HTTP clients.
+  The remote server is intentionally text-only in this release and exposes
+  `check_text`, `fix_text`, `config_validate`, `rule_list`, `rule_get`, and
+  `rule_doc_get`.
+- Requires bearer authentication by default for the remote server and adds
+  request body, timeout, and concurrency limits. Anonymous read-only operation
+  is available only through an explicit environment opt-in and still exposes no
+  workspace tools.
+- Adds `make mcp-remote-build` and `make mcp-remote-smoke`, wiring the remote
+  smoke into release checks, release preflight, and release publication gates.
+- Documents the boundary between local stdio MCP, the MCPB/Registry package,
+  and self-hosted remote transport. Workspace-backed remote file access remains
+  deferred until authentication, tenant boundary, and audit requirements are
+  implemented.
+
 ## v0.14.0
 
 - Adds the `katana-markdown-linter-0.14.0.mcpb` release artifact for the

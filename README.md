@@ -51,8 +51,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.14.0
-  with: { version: "0.14.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.15.0
+  with: { version: "0.15.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -278,15 +278,28 @@ tool is exposed.
 Run `make mcp-stdio-smoke` to exercise the installed MCP server through
 JSON-RPC stdio calls.
 
-`v0.14.0` also publishes a Linux MCPB bundle from GitHub Releases and MCP
+`kml-mcp-remote` is a separate self-hosted Streamable HTTP server for API-hosted
+LLM clients that cannot launch a stdio subprocess. It exposes text-only tools
+by default and does not expose workspace file tools:
+
+~~~bash
+cargo build --bin kml-mcp-remote --features mcp-remote --locked
+KML_MCP_REMOTE_TOKEN=change-me target/debug/kml-mcp-remote
+~~~
+
+Run `make mcp-remote-smoke` to verify bearer authentication, text-only tool
+capabilities, text diagnostics, and the request body limit.
+
+`v0.14.0` introduced a Linux MCPB bundle from GitHub Releases and MCP
 Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.14.0
+make mcpb-smoke VERSION=v0.15.0
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the
+[remote MCP deployment guide](docs/remote-mcp-transport.md), the
 [MCP distribution plan](docs/mcp-distribution-plan.md), and the earlier
 [MCP integration evaluation](docs/mcp-integration-evaluation.md).
 

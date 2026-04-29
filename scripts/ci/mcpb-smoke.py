@@ -11,8 +11,9 @@ from pathlib import Path
 
 
 class McpbSmoke:
-    def __init__(self, package: Path) -> None:
+    def __init__(self, package: Path, version: str) -> None:
         self.package = package
+        self.version = version.removeprefix("v")
 
     def run(self) -> None:
         with tempfile.TemporaryDirectory(prefix="kml-mcpb-") as directory:
@@ -36,12 +37,11 @@ class McpbSmoke:
             raise AssertionError("manifest.json must contain a JSON object")
         return payload
 
-    @staticmethod
-    def assert_manifest(manifest: dict[str, object], root: Path) -> Path:
+    def assert_manifest(self, manifest: dict[str, object], root: Path) -> Path:
         expected = {
             "manifest_version": "0.3",
             "name": "katana-markdown-linter",
-            "version": "0.14.0",
+            "version": self.version,
         }
         for key, value in expected.items():
             if manifest.get(key) != value:
@@ -73,6 +73,7 @@ class McpbSmoke:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke test a kml MCPB package.")
     parser.add_argument("--mcpb", required=True, type=Path)
+    parser.add_argument("--version", required=True)
     return parser.parse_args()
 
 
@@ -81,7 +82,7 @@ def main() -> int:
     if not args.mcpb.is_file():
         print(f"MCPB package not found: {args.mcpb}", file=sys.stderr)
         return 1
-    McpbSmoke(args.mcpb).run()
+    McpbSmoke(args.mcpb, args.version).run()
     print("MCPB smoke passed")
     return 0
 

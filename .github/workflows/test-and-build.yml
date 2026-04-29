@@ -120,6 +120,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: make mcp-stdio-smoke
 
+      - name: Run MCP remote smoke
+        if: matrix.os == 'ubuntu-latest'
+        run: make mcp-remote-smoke
+
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'
         continue-on-error: true

@@ -30,6 +30,7 @@ CROSS_TOOL_WARMUP ?= 1
 CROSS_TOOL_ARGS ?=
 ACTION_SMOKE_DIR ?= target/action-smoke
 MCP_INSTALL_SMOKE_DIR ?= target/mcp-install-smoke
+MCP_REMOTE_INSTALL_SMOKE_DIR ?= target/mcp-remote-install-smoke
 MCPB_DIST_DIR ?= target/mcpb
 MCPB_PACKAGE ?= $(MCPB_DIST_DIR)/katana-markdown-linter-$(VERSION_BARE).mcpb
 MCP_SERVER_JSON ?= $(MCPB_DIST_DIR)/server.json
@@ -189,6 +190,10 @@ action-smoke: ## Smoke test the repository GitHub Action through shared action s
 mcp-build: ## Build optional experimental MCP server
 	cargo build --bin kml-mcp --features mcp --locked
 
+.PHONY: mcp-remote-build
+mcp-remote-build: ## Build optional remote MCP Streamable HTTP server
+	cargo build --bin kml-mcp-remote --features mcp-remote --locked
+
 .PHONY: mcp-release-build
 mcp-release-build: ## Build optimized optional MCP server for packaging
 	cargo build --release --bin kml-mcp --features mcp --locked
@@ -206,13 +211,22 @@ mcp-install-smoke: ## Install optional MCP server binary into a local smoke-test
 mcp-stdio-smoke: mcp-install-smoke ## Exercise kml-mcp through MCP stdio JSON-RPC
 	python3 scripts/ci/mcp-stdio-smoke.py --bin "$(MCP_INSTALL_SMOKE_DIR)/bin/kml-mcp"
 
+.PHONY: mcp-remote-install-smoke
+mcp-remote-install-smoke: ## Install optional remote MCP server binary into a local smoke-test root
+	cargo install --path . --locked --features mcp-remote --bin kml-mcp-remote --root "$(MCP_REMOTE_INSTALL_SMOKE_DIR)" --force
+	test -x "$(MCP_REMOTE_INSTALL_SMOKE_DIR)/bin/kml-mcp-remote"
+
+.PHONY: mcp-remote-smoke
+mcp-remote-smoke: mcp-remote-install-smoke ## Exercise kml-mcp-remote through Streamable HTTP JSON-RPC
+	python3 scripts/ci/mcp-remote-smoke.py --bin "$(MCP_REMOTE_INSTALL_SMOKE_DIR)/bin/kml-mcp-remote"
+
 .PHONY: mcpb-package
 mcpb-package: mcp-release-build ## Build .mcpb bundle and sha256 checksum for VERSION
 	scripts/release/package-mcpb.sh "$(VERSION)"
 
 .PHONY: mcpb-smoke
 mcpb-smoke: mcpb-package ## Exercise the bundled kml-mcp binary from the .mcpb artifact
-	python3 scripts/ci/mcpb-smoke.py --mcpb "$(MCPB_PACKAGE)"
+	python3 scripts/ci/mcpb-smoke.py --mcpb "$(MCPB_PACKAGE)" --version "$(VERSION)"
 
 .PHONY: mcp-server-json
 mcp-server-json: mcpb-package ## Render release-ready MCP Registry metadata
@@ -231,7 +245,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcpb-smoke server-json-validate action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty

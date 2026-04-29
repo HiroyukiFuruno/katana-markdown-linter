@@ -20,6 +20,8 @@
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
 | `make action-smoke` | Install through the shared GitHub Action scripts and run a CLI smoke check | Yes for release gates |
+| `make mcp-stdio-smoke` | Install `kml-mcp` and exercise the local stdio server through JSON-RPC | Yes for release gates |
+| `make mcp-remote-smoke` | Install `kml-mcp-remote` and exercise Streamable HTTP auth, tools, diagnostics, and size limits | Yes for release gates |
 | `make mcpb-smoke` | Build the MCPB bundle and run the bundled `kml-mcp` binary through stdio smoke | Yes for release gates |
 | `make server-json-validate` | Render and validate MCP Registry metadata for the release MCPB artifact | Yes for release gates |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
@@ -71,6 +73,11 @@ install script, then runs `kml check` through the shared action runner script.
 `kml-mcp` binary, extracts the bundle, validates the manifest entrypoint, and
 runs the stdio smoke test from the bundled binary.
 
+`make mcp-remote-smoke` verifies the self-hosted remote channel. It starts
+`kml-mcp-remote`, checks bearer authentication, confirms that remote
+`tools/list` exposes only text and metadata tools, calls `check_text`, and
+checks the request body limit.
+
 `make server-json-validate` renders release metadata with the computed MCPB
 checksum and verifies that the metadata points at the GitHub Release artifact
 without declaring remote MCP transport.
@@ -83,7 +90,7 @@ manifest, and MCP Registry metadata are tested before publication.
 Branch protection for `main` currently requires:
 
 - `Test and Build (macos-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `make fmt-check`, `make lint`, `make ast-lint`, `cargo test --workspace --locked`, `make dogfood`, and `make public-confidence`
-- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke`, `make mcp-stdio-smoke`, and non-blocking `make coverage`
+- `Test and Build (ubuntu-latest)` -> `.github/workflows/test-and-build.yml`, same checks plus `make action-smoke`, `make mcp-stdio-smoke`, `make mcp-remote-smoke`, and non-blocking `make coverage`
 - `Test and Build (windows-latest)` -> `.github/workflows/test-and-build.yml`, `cargo check --workspace --locked`, `cargo fmt --all -- --check`, and `cargo test --workspace --locked`
 
 If required check names or workflow job names change, update branch protection in the same change. Otherwise the repository can either block valid merges or allow merges without the intended gate.
@@ -113,7 +120,7 @@ make release-check VERSION=vX.Y.Z
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 public confidence, coverage regression, example builds, optional MCP build,
-MCP stdio smoke, MCPB smoke, Registry metadata validation, version
+MCP stdio smoke, MCP remote smoke, MCPB smoke, Registry metadata validation, version
 verification, dry-run publish, action smoke, and install smoke checks. The
 GitHub release workflows additionally clone upstream markdownlint and run
 `make upstream-drift` against the default branch docs.

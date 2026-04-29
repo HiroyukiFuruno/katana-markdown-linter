@@ -281,8 +281,10 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcpb-smoke server-json-validate action-smoke"),
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke"),
         ("Makefile", &makefile, "mcp-release-build:"),
+        ("Makefile", &makefile, "mcp-remote-build:"),
+        ("Makefile", &makefile, "mcp-remote-smoke:"),
         ("Makefile", &makefile, "mcpb-package: mcp-release-build"),
         ("Makefile", &makefile, "mcpb-smoke: mcpb-package"),
         ("Makefile", &makefile, "server-json-validate: mcp-server-json"),
@@ -296,6 +298,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "run: make lint"),
         (".github/workflows/release.yml", &workflow, "run: make examples"),
         (".github/workflows/release.yml", &workflow, "run: make mcp-build"),
+        (".github/workflows/release.yml", &workflow, "run: make mcp-remote-smoke"),
         (".github/workflows/release.yml", &workflow, "MCPB smoke"),
         (".github/workflows/release.yml", &workflow, "MCP Registry metadata"),
         (".github/workflows/release.yml", &workflow, "Publish MCP Registry metadata"),
@@ -306,6 +309,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release-preflight.yml", &preflight, "run: make lint"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make examples"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-build"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-remote-smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCPB smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCP Registry metadata"),
         ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),

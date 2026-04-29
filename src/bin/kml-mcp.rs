@@ -2,6 +2,8 @@
 mod model;
 #[path = "kml_mcp/server.rs"]
 mod server;
+#[path = "kml_mcp/shared.rs"]
+mod shared;
 #[path = "kml_mcp/workspace.rs"]
 mod workspace;
 

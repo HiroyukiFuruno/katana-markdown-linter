@@ -62,10 +62,10 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Precision fix+ continuous expansion for `v0.12.18` | `v0-12-18-md056-table-column-padding-safe-fix` | Added `MD029` regression fix for nested unordered-list interruption and `MD056` table-column safe-fix. |
 | Done | MD003 safe-fix and MD028 fix policy for `v0.12.19` | `v0-12-19-md003-md028-fix-policy` | Added fixture-backed `MD003` setext-to-ATX safe-fix and kept `MD028` diagnostic-only as a manual-intent by-design candidate for `v0.12.21`. |
 | Done | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Completed post-`v0.12.19` measurement, fixed the `api_rule_catalog` metadata clone hot path, refreshed the baseline, and kept rule expansion frozen. |
-| Done | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Completed 524-file KatanA check/fix review, fixed the `MD007` bad-fix pattern, recorded release-blocking issues at 0, and closed remaining diagnostic-only rules with by-design reasons. |
-| Done | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
-| Done | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Adds the MCPB release artifact, Registry metadata rendering, release publication step, and release gates. |
-| Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
+| Done | KatanA feedback and 0.12.x closeout for `v0.12.21` | `archive/2026-04-29-v0-12-21-katana-feedback-and-012x-closeout` | Completed 524-file KatanA check/fix review, fixed the `MD007` bad-fix pattern, recorded release-blocking issues at 0, and closed remaining diagnostic-only rules with by-design reasons. |
+| Done | MCP Registry and distribution planning for `v0.13.0` | `archive/2026-04-29-v0-13-0-mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
+| Done | MCP package and Registry publication for `v0.14.0` | `archive/2026-04-29-v0-14-0-mcp-package-and-registry-publication` | Adds the MCPB release artifact, Registry metadata rendering, release publication step, and release gates. |
+| Done | Remote MCP transport for `v0.15.0` | `archive/2026-04-29-v0-15-0-remote-mcp-transport` | Adds self-hosted text-only Streamable HTTP transport while keeping workspace-backed remote access deferred. |
 | Frozen | Config schema and editor integration for `v0.16.0` | `v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
 | Frozen | Binary distribution expansion for `v0.17.0` | `v0-17-0-binary-distribution-expansion` | Expands beyond Cargo/GitHub Actions to Homebrew and standalone artifacts. |
 
@@ -96,16 +96,19 @@ Archived completed changes:
 - `v0-12-14-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-14-precision-and-performance-hardening`
 - `v0-12-15-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-15-precision-and-performance-hardening`
 - `v0-12-16-precision-and-performance-hardening` -> `openspec/changes/archive/2026-04-28-v0-12-16-precision-and-performance-hardening`
+- `v0-12-17-fix-detail-api-and-md051-unicode-precision` -> `openspec/changes/archive/2026-04-28-v0-12-17-fix-detail-api-and-md051-unicode-precision`
+- `v0-12-18-md056-table-column-padding-safe-fix` -> `openspec/changes/archive/2026-04-28-v0-12-18-md056-table-column-padding-safe-fix`
+- `v0-12-19-md003-md028-fix-policy` -> `openspec/changes/archive/2026-04-29-v0-12-19-md003-md028-fix-policy`
 - `v0-12-20-performance-measurement-and-hotpath-hardening` -> `openspec/changes/archive/2026-04-29-v0-12-20-performance-measurement-and-hotpath-hardening`
+- `v0-12-21-katana-feedback-and-012x-closeout` -> `openspec/changes/archive/2026-04-29-v0-12-21-katana-feedback-and-012x-closeout`
+- `v0-13-0-mcp-registry-and-distribution-planning` -> `openspec/changes/archive/2026-04-29-v0-13-0-mcp-registry-and-distribution-planning`
+- `v0-14-0-mcp-package-and-registry-publication` -> `openspec/changes/archive/2026-04-29-v0-14-0-mcp-package-and-registry-publication`
+- `v0-15-0-remote-mcp-transport` -> `openspec/changes/archive/2026-04-29-v0-15-0-remote-mcp-transport`
 
 ## Suggested Order
 
-1. Archive `v0-12-21-katana-feedback-and-012x-closeout` after release verification completes.
-2. Archive `v0-13-0-mcp-registry-and-distribution-planning` after the `v0.13.0` release is merged and verified.
-3. Archive `v0-14-0-mcp-package-and-registry-publication` after the `v0.14.0` release is merged and verified.
-4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
-5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
-6. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
+1. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
+2. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
