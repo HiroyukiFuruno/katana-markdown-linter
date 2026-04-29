@@ -7,6 +7,7 @@
 - [x] KatanA 本体の supported locale は `en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`, `de`, `es`, `it` と確認済み。
 - [x] OpenSpec proposal, design, delta specs, and tasks exist for this change.
 - [x] User feedback: English の単純コピーは不可。各言語で自然な翻訳にする。
+- [x] User feedback: KatanA 本家の `katana-linter` と同様に、i18n データをロジックから分離し、AST lint で整合性を検査する。
 
 ## 0. Planning
 
@@ -27,6 +28,7 @@
 - [x] 2.2 Keep English canonical descriptions available in localized catalog output.
 - [x] 2.3 Add tests proving supported-locale descriptions are not English copies.
 - [x] 2.4 Update CLI `kml rule` tests for at least one new non-Japanese locale.
+- [x] 2.5 Move rule description translations into locale JSON catalogs.
 
 ## 3. Rule Document Markdown
 
@@ -35,6 +37,7 @@
 - [x] 3.3 Add tests for `get_rule_documentation` and `rule_doc_get` with a new non-Japanese locale.
 - [x] 3.4 Add coverage checks for missing localized rule documents.
 - [x] 3.5 Add checks that localized prose is not an English copy.
+- [x] 3.6 Move rule document generation labels into locale JSON catalogs.
 
 ## 4. MCP And Remote Surfaces
 
@@ -59,6 +62,7 @@
 - [x] 6.5 Run `make dogfood`.
 - [x] 6.6 Run `git diff --check`.
 - [x] 6.7 Run `make release-check VERSION=v0.16.1`.
+- [x] 6.8 Run targeted i18n AST lint and runtime contract tests after JSON catalog migration.
 
 ## Definition Of Done
 
@@ -66,5 +70,6 @@
 - [x] Description 系 API returns natural localized text for every supported locale.
 - [x] Rule document Markdown API returns natural localized Markdown for every supported locale.
 - [x] English copy and missing translation gates fail when coverage regresses.
+- [x] Locale JSON catalog and generated rule-document consistency gates fail when data and generated artifacts drift.
 - [x] Public docs describe the 10-locale support in English.
 - [x] Release PR for v0.16.1 is ready.

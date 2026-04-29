@@ -10,6 +10,8 @@
   structured responses.
 - Adds localized rule Markdown documentation for `rule_doc_get` and coverage
   gates that reject missing translations or English-copy localized content.
+- Moves locale text into JSON catalogs and adds KatanA-style AST checks for
+  locale catalog consistency, generated rule-doc labels, and rule-doc titles.
 
 ## v0.16.0
 

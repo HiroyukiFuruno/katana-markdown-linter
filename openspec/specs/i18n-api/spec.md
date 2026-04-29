@@ -107,3 +107,15 @@ Translation coverage は、supported locale ごとの漏れを CI / AST lint で
 - **THEN** system は active rule descriptions が全 supported locale catalog に存在することを確認する
 - **THEN** system は supported locale の rule document Markdown が全 active rule 分存在することを確認する
 - **THEN** system は missing translation と English の単純コピーを failure として報告する
+
+### Requirement: locale translation data SHALL be separated from runtime logic
+
+Locale translation data は、Rust の分岐ロジックではなく、機械検査できる JSON catalog として管理されなければならない（SHALL）。
+
+#### Scenario: locale JSON catalog を検証する
+
+- **WHEN** developer が repository quality gates を実行する
+- **THEN** system は `src/i18n/locales/languages.json` と `<locale>.json` の対応を確認する
+- **THEN** system は KatanA 本体と同じ locale code set であることを確認する
+- **THEN** system は `rule_descriptions` の key set が active rule set と一致することを確認する
+- **THEN** system は English catalog が canonical rule metadata と一致することを確認する
