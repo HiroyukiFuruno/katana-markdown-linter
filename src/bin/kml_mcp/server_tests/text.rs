@@ -82,3 +82,21 @@ async fn rule_tools_expose_catalog_metadata() {
     assert_eq!(rule.locale, "ja");
     assert_ne!(rule.description, rule.english_description);
 }
+
+#[tokio::test]
+async fn rule_doc_tool_returns_localized_markdown() {
+    let server = KmlMcpServer::new();
+    let Json(response) = server
+        .rule_doc_get(Parameters(RuleDocRequest {
+            rule_id: "MD013".to_string(),
+            locale: Some("fr-FR".to_string()),
+        }))
+        .await
+        .expect("MD013 documentation should exist");
+
+    assert_eq!(response.rule_id, "MD013");
+    assert_eq!(response.locale, "fr");
+    assert!(response.content.contains("La longueur de ligne"));
+    assert!(response.content.contains("## Vue d'ensemble"));
+    assert!(!response.content.contains("# `MD013` - Line length"));
+}

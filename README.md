@@ -18,6 +18,7 @@ Use the crate directly when embedding linting into another Rust application.
 - `resolve_locale_code_or(language_code, fallback)`
 - `localized_rule_description(rule_id, fallback_description, language_code)`
 - `supported_locales()`
+- `upstream::get_rule_documentation(rule_id, locale)`
 - `MarkdownLintConfig`
 - `MarkdownLintConfig::schema()`
 - `MarkdownLintConfig::to_lint_options()`
@@ -30,7 +31,9 @@ without reimplementing kml's fallback policy.
 
 `Locale` is `#[non_exhaustive]` from v0.6.0. Consumers that match on `Locale`
 should include a wildcard arm and prefer `resolve_locale_code(...)` or
-`resolve_locale_code_or(...)` for UI language strings.
+`resolve_locale_code_or(...)` for UI language strings. Rule descriptions and
+rule Markdown documentation are localized for `en`, `ja`, `zh-CN`, `zh-TW`,
+`ko`, `pt`, `fr`, `de`, `es`, and `it`.
 
 Minimal embedding examples are available under [`examples/`](examples/):
 
@@ -52,8 +55,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.16.0
-  with: { version: "0.16.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.16.1
+  with: { version: "0.16.1", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -86,6 +89,7 @@ kml check --statistics --quiet
 kml fix --diff README.md
 kml rule
 kml rule --locale ja
+kml rule --locale fr
 kml rule MD013
 kml rule MD013 --locale ja --output json
 kml config file
@@ -123,9 +127,10 @@ with pre-fix diagnostics and rewritten file diffs.
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths everywhere, or `--include-ignored` to include ignored paths only under explicit directory inputs such as `.agents`. Reserved directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `coverage` are skipped by default even without gitignore entries; use `--include-reserved` only when you intentionally want to scan them. Project-specific generated or agent directories should be covered by gitignore or `--exclude`. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
 `--locale <locale>` and `-l <locale>` select user-facing CLI message locale.
-Supported values currently resolve to English (`en`, `en-US`) or Japanese
-(`ja`, `ja-JP`). When omitted, `kml` reads OS locale environment variables and
-falls back to English if the locale is unavailable or unsupported. Explicit
+Supported values resolve to `en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`,
+`de`, `es`, and `it`, including common region forms such as `fr-FR`,
+`pt-BR`, or `ko-KR`. When omitted, `kml` reads OS locale environment variables
+and falls back to English if the locale is unavailable or unsupported. Explicit
 unsupported locales fail with a CLI error. `--local` is accepted as a
 backward-compatible alias for v0.4.0 users.
 
@@ -308,7 +313,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.16.0
+make mcpb-smoke VERSION=v0.16.1
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the

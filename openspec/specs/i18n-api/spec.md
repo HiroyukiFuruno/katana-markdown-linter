@@ -6,7 +6,7 @@ Library API は、consumer application から受け取る任意の language / lo
 
 #### Scenario: supported locale code を解決する
 
-- **WHEN** consumer が `en`, `en-US`, `ja`, `ja-JP`, `en_US.UTF-8`, または `ja_JP.UTF-8` を resolver に渡す
+- **WHEN** consumer が `en`, `en-US`, `ja`, `ja-JP`, `zh-CN`, `zh_TW.UTF-8`, `ko`, `pt-BR`, `fr-FR`, `de-DE`, `es-ES`, または `it-IT` を resolver に渡す
 - **THEN** system は対応する supported locale を返す
 - **THEN** system は大文字小文字、hyphen / underscore、charset suffix の違いを吸収する
 
@@ -23,9 +23,10 @@ Library API は、rule metadata の description を caller が指定した local
 
 #### Scenario: known rule description を localized 表示する
 
-- **WHEN** consumer が known rule id、English fallback description、Japanese locale code を渡す
-- **THEN** system はその rule の Japanese description を返す
+- **WHEN** consumer が known rule id、English fallback description、supported locale code を渡す
+- **THEN** system はその rule の localized description を返す
 - **THEN** consumer は diagnostic-specific helper を直接使う必要がない
+- **THEN** localized description は English fallback の単純コピーではない
 
 #### Scenario: unsupported locale の rule description を表示する
 
@@ -43,6 +44,24 @@ Library API は、consumer application が rule catalog を指定 locale で取�
 - **THEN** system は existing resolver fallback policy に従って locale を解決する
 - **THEN** system は rule description を解決済み locale に合わせて返す
 - **THEN** system は rule ID、rule name、docs URL、fixability、lifecycle を保持する
+- **THEN** supported locale の description は English canonical description の単純コピーではない
+
+### Requirement: library SHALL expose localized rule documentation Markdown
+
+Library API は、rule documentation Markdown を caller が指定した locale code に基づいて取得できなければならない（SHALL）。
+
+#### Scenario: supported locale の rule document を取得する
+
+- **WHEN** consumer が known rule id と supported locale code を渡す
+- **THEN** system はその locale の Markdown document を返す
+- **THEN** Markdown document は rule ID、設定 key、example code block を保持する
+- **THEN** Markdown prose は English document の単純コピーではない
+
+#### Scenario: unsupported locale の rule document を取得する
+
+- **WHEN** consumer が unsupported locale code を渡す
+- **THEN** system は English Markdown document を返す
+- **THEN** unknown rule handling は existing behavior と同じ error contract を保つ
 
 ### Requirement: v0.4.3 locale metadata API SHALL remain source-compatible
 
@@ -85,5 +104,6 @@ Translation coverage は、supported locale ごとの漏れを CI / AST lint で
 
 - **WHEN** developer が repository quality gates を実行する
 - **THEN** system は supported locale が同じ message ID set を持つことを確認する
-- **THEN** system は active rule descriptions が Japanese catalog に存在することを確認する
-- **THEN** system は missing translation を failure として報告する
+- **THEN** system は active rule descriptions が全 supported locale catalog に存在することを確認する
+- **THEN** system は supported locale の rule document Markdown が全 active rule 分存在することを確認する
+- **THEN** system は missing translation と English の単純コピーを failure として報告する

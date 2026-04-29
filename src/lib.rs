@@ -364,7 +364,11 @@ mod tests {
             rule.localized_description("ja-JP"),
             "見出しのスタイルを統一してください"
         );
-        assert_eq!(resolve_locale_code_or("fr", Locale::Ja), Locale::Ja);
+        assert_eq!(
+            rule.localized_description("fr-FR"),
+            "Conservez un style de titre cohérent"
+        );
+        assert_eq!(resolve_locale_code_or("sv", Locale::Ja), Locale::Ja);
     }
 
     #[test]

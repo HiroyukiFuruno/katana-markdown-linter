@@ -53,6 +53,21 @@ fn rule_output_uses_selected_japanese_locale() {
 }
 
 #[test]
+fn rule_output_uses_selected_non_japanese_locale() {
+    use crate::i18n::Locale;
+    let list = super::config_cmd::render_rule(None, OutputFormat::Text, Locale::Fr)
+        .expect("rule list should render");
+    assert!(list.contains("MD003 heading-style - Conservez un style de titre cohérent"));
+
+    let json = super::config_cmd::render_rule(Some("MD003"), OutputFormat::Json, Locale::Fr)
+        .expect("rule detail json should render");
+    let value: serde_json::Value = serde_json::from_str(&json).expect("rule detail should be json");
+    assert_eq!(value["locale"], "fr");
+    assert_eq!(value["description"], "Conservez un style de titre cohérent");
+    assert_eq!(value["english_description"], "Heading style");
+}
+
+#[test]
 fn renders_config_file_and_get_contract() {
     let dir = test_dir("config-render");
     fs::create_dir_all(&dir).expect("test dir should be created");
