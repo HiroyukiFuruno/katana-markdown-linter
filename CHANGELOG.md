@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.0
+
+- Adds `kml config schema`, exposing a generated JSON Schema for
+  `.markdownlint.json` and `.markdownlint.jsonc` with rule descriptions,
+  property types, enum values, and defaults.
+- Adds `kml lsp`, a stdio Language Server Protocol entrypoint for Markdown
+  diagnostics, document formatting, range formatting, and safe quick fixes.
+- Documents editor integration for VS Code, Zed, and Neovim, and wires
+  configuration validation through the same schema-derived rule metadata used
+  by the CLI and MCP validation tool.
+
 ## v0.15.1
 
 - Fixes `MD046` false positives where continuation prose under ordered or nested

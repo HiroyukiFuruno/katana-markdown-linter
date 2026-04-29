@@ -48,7 +48,7 @@ pub(super) fn validate_effective_config(
     path: &Path,
     explicit: Option<&Path>,
 ) -> Result<Vec<crate::ConfigError>, String> {
-    Ok(load_effective_config(path, explicit)?.validate_cached_rules())
+    Ok(load_effective_config(path, explicit)?.validate_against_schema())
 }
 
 pub(super) fn apply_fixes_until_stable(

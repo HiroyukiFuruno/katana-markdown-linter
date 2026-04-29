@@ -6,6 +6,7 @@ pub mod config;
 pub mod fix;
 pub mod formatter;
 pub mod i18n;
+pub mod lsp;
 pub mod parser;
 pub mod rules;
 pub mod types;

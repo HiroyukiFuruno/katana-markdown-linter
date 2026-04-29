@@ -8,13 +8,13 @@
     "source": "github",
     "id": "1218222437"
   },
-  "version": "0.15.1",
+  "version": "0.16.0",
   "websiteUrl": "https://github.com/HiroyukiFuruno/katana-markdown-linter/blob/main/docs/mcp-server.md",
   "packages": [
     {
       "registryType": "mcpb",
-      "identifier": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.15.1/katana-markdown-linter-0.15.1.mcpb",
-      "version": "0.15.1",
+      "identifier": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.16.0/katana-markdown-linter-0.16.0.mcpb",
+      "version": "0.16.0",
       "transport": {
         "type": "stdio"
       }

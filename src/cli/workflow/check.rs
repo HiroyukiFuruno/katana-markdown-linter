@@ -64,7 +64,7 @@ pub(super) fn run_check_like(
                 continue;
             }
         };
-        let config_errors = config.validate_cached_rules();
+        let config_errors = config.validate_against_schema();
         if !config_errors.is_empty() {
             for error in config_errors {
                 report
@@ -165,7 +165,7 @@ fn run_stdin_check_like(
             return Ok(2);
         }
     };
-    let config_errors = config.validate_cached_rules();
+    let config_errors = config.validate_against_schema();
     if !config_errors.is_empty() {
         let mut report = CliReport {
             command,

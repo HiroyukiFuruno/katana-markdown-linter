@@ -19,6 +19,7 @@ Use the crate directly when embedding linting into another Rust application.
 - `localized_rule_description(rule_id, fallback_description, language_code)`
 - `supported_locales()`
 - `MarkdownLintConfig`
+- `MarkdownLintConfig::schema()`
 - `MarkdownLintConfig::to_lint_options()`
 
 `available_rules()` returns canonical English metadata. For user-facing rule
@@ -51,8 +52,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.15.1
-  with: { version: "0.15.1", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.16.0
+  with: { version: "0.16.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -89,6 +90,7 @@ kml rule MD013
 kml rule MD013 --locale ja --output json
 kml config file
 kml config get --output json
+kml config schema
 kml version
 kml fix --config .markdownlint.json README.md
 kml init-config
@@ -233,6 +235,17 @@ The crate reads and writes markdownlint-compatible JSON and JSONC configuration 
 
 Use `kml init-config` to create a default `.markdownlint.json`.
 
+Use `kml config schema` to print the JSON Schema used by editor integration and
+configuration validation. The stable schema ID is
+`https://schemas.katana.tools/kml/markdownlint.schema.json`.
+
+## Editor Integration
+
+`kml lsp` starts a stdio Language Server Protocol server for Markdown
+diagnostics, formatting, range formatting, and safe quick fixes. VS Code, Zed,
+and Neovim setup examples are documented in
+[`docs/editor-integration.md`](docs/editor-integration.md).
+
 ## Quality Gates
 
 Use `make check` for the default local gate. It runs format, Clippy, AST lint, and tests.
@@ -295,7 +308,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.15.1
+make mcpb-smoke VERSION=v0.16.0
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the
