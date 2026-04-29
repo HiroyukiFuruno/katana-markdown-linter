@@ -1,3 +1,4 @@
+use crate::rules::markdown::rules::list_context::ListContext;
 use crate::rules::markdown::{
     DiagnosticFix, DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic,
     MarkdownRule, OfficialRuleMeta,
@@ -53,9 +54,6 @@ impl MarkdownRule for CodeBlockStyleRule {
     }
 }
 
-/// Returns groups of consecutive indented code block lines as
-/// `(start_line_1based, end_line_1based, last_line_byte_len, line_texts)`.
-/// Blank lines split blocks; list continuations are excluded.
 fn indented_code_block_groups<'a>(
     ctx: &'a DocumentContext<'_>,
 ) -> Vec<(usize, usize, usize, Vec<&'a str>)> {
@@ -99,6 +97,9 @@ fn is_indented_code_line(ctx: &DocumentContext<'_>, line_index: usize, line: &st
         return false;
     }
     if is_definition_list_continuation(ctx, line_index) {
+        return false;
+    }
+    if ListContext::is_paragraph_continuation(ctx, line_index) {
         return false;
     }
     !is_list_marker_line(&line[4..])
@@ -171,16 +172,8 @@ mod tests {
         let content = "```rust\nlet x = 1;\n```\n\n    hello\n    world\n";
         let result = fix(content, &LintOptions::default()).expect("fix runs");
 
-        assert!(
-            result.content.contains("hello\nworld\n```"),
-            "expected stripped lines inside fenced block, got:\n{}",
-            result.content
-        );
-        assert!(
-            !result.content.contains("    hello"),
-            "expected indented block to be removed, got:\n{}",
-            result.content
-        );
+        assert!(result.content.contains("hello\nworld\n```"));
+        assert!(!result.content.contains("    hello"));
         assert!(result.applied_fixes >= 1);
     }
 

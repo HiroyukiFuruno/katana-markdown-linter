@@ -61,11 +61,30 @@ fn reports_shortcut_syntax_only_when_enabled() {
         .properties
         .insert("shortcut_syntax".to_string(), "true".to_string());
 
-    let diagnostics = lint("## [0.22.8] - released\n", &options).expect("lint should run");
+    let diagnostics = lint("## [release] - released\n", &options).expect("lint should run");
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(diagnostics[0].rule_id, "MD052");
 
     let diagnostics = lint("## [0.22.8] - released\n", &md052_options()).expect("lint should run");
+    assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
+}
+
+#[test]
+fn ignores_changelog_version_headings_with_shortcut_syntax() {
+    let mut options = md052_options();
+    options
+        .rules
+        .get_mut("MD052")
+        .expect("MD052 should be enabled")
+        .properties
+        .insert("shortcut_syntax".to_string(), "true".to_string());
+
+    let content = concat!(
+        "## [0.1.2] - 2026-03-20 01:54:57 (JST)\n",
+        "### [v1.2.3-beta.1] - released\n",
+    );
+    let diagnostics = lint(content, &options).expect("lint should run");
+
     assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
 }
 

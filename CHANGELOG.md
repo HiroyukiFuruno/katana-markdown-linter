@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.15.1
+
+- Fixes `MD046` false positives where continuation prose under ordered or nested
+  list items was mistaken for indented code and rewritten into fenced code.
+- Fixes `MD052` false positives for changelog headings such as
+  `## [0.1.2] - ...` when shortcut reference syntax is enabled.
+- Splits shared list-continuation and `MD052` shortcut-reference helpers so the
+  regression coverage stays focused and maintainable.
+
 ## v0.15.0
 
 - Adds the self-hosted `kml-mcp-remote` binary for MCP Streamable HTTP clients.
