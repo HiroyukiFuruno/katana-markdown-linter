@@ -8,6 +8,7 @@
 | GitHub Action | Official from `v0.11.0` | `make action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
 | MCPB bundle | Official from `v0.14.0` | `make mcpb-smoke`, `make server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
 | MCP Registry metadata | Official from `v0.14.0` | rendered `server.json`, MCPB checksum, registry publish verification | Discovery metadata for the MCPB bundle |
+| Remote MCP server | Official from `v0.15.0` for self-hosted text-only use | `make mcp-remote-smoke`, release remote smoke | Streamable HTTP server for clients that cannot launch stdio |
 
 The GitHub Action lives at the repository root as `action.yml`, so consumers can
 use the release tag directly:
@@ -38,6 +39,10 @@ waiting for crates.io publication.
 The first MCPB bundle is a Linux release-runner artifact for the local stdio
 server. Wider platform-specific MCPB or standalone binary artifacts belong to
 the binary distribution expansion track.
+
+`kml-mcp-remote` is not a hosted service and is not described by the MCPB
+Registry metadata. Operators deploy it themselves, keep bearer authentication
+enabled, and expose only text-only tools in `v0.15.0`.
 
 ## Action Inputs
 

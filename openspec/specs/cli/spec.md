@@ -104,6 +104,7 @@ CLI は config validation error を text と JSON の両方で localized metadat
 - **THEN** CLI JSON error は localized message を含む
 - **THEN** CLI JSON error は stable message ID と message parameters を含む
 - **THEN** exit code は existing config error behavior と同じく `2` になる
+
 ### Requirement: system SHALL separate CLI orchestration responsibilities with shared execution contracts
 
 システムは、`check`、`fix`、`fmt` の主要パスを一貫した実行契約で扱い、`output` と exit code の契約を壊さない形で責務を分離しなければならない（SHALL）。

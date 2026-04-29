@@ -1,6 +1,6 @@
 [package]
 name = "katana-markdown-linter"
-version = "0.14.0"
+version = "0.15.0"
 
 edition = "2021"
 license = "MIT"
@@ -37,13 +37,27 @@ name = "kml-mcp"
 path = "src/bin/kml-mcp.rs"
 required-features = ["mcp"]
 
+[[bin]]
+name = "kml-mcp-remote"
+path = "src/bin/kml-mcp-remote.rs"
+required-features = ["mcp-remote"]
+
 [features]
 default = []
 cli = []
 jsonc = []
 mcp = ["dep:rmcp", "dep:tokio"]
+mcp-remote = [
+    "mcp",
+    "dep:axum",
+    "dep:tracing-subscriber",
+    "rmcp/transport-streamable-http-server",
+    "tokio/net",
+    "tokio/time",
+]
 
 [dependencies]
+axum = { version = "0.8", optional = true, default-features = false, features = ["http1", "tokio"] }
 glob = "0.3"
 ignore = "0.4"
 regex = "1"
@@ -51,4 +65,5 @@ rmcp = { version = "1.5.0", optional = true, default-features = false, features 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", optional = true, features = ["macros", "rt-multi-thread"] }
+tracing-subscriber = { version = "0.3", optional = true, features = ["env-filter", "fmt"] }
 unicode-width = "0.2"

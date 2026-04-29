@@ -63,6 +63,8 @@ The workflow validates:
 - `cargo test --all-features --locked`
 - `make examples`
 - `make mcp-build`
+- `make mcp-remote-build`
+- `make mcp-remote-smoke`
 - `make mcpb-smoke`
 - `make server-json-validate`
 - `make action-smoke`
@@ -208,6 +210,14 @@ If workflow job names are changed, update branch protection in the same change. 
   `scripts/ci/mcpb-smoke.py`.
 - Keep the manifest aligned with local stdio execution; do not claim remote MCP
   transport.
+
+### MCP remote smoke fails
+
+- Re-run `make mcp-remote-smoke`.
+- Inspect `src/bin/kml-mcp-remote.rs`, `src/bin/kml_mcp/remote/`, and
+  `scripts/ci/mcp-remote-smoke.py`.
+- Keep remote `tools/list` text-only unless workspace authentication, tenant
+  boundary, explicit apply, and audit logging are implemented together.
 
 ### Release notes generation fails
 

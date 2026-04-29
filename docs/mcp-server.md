@@ -22,7 +22,7 @@ Run the local stdio smoke test:
 
 Build and smoke test the MCPB bundle:
 
-    make mcpb-smoke VERSION=v0.14.0
+    make mcpb-smoke VERSION=v0.15.0
 
 ## Run
 
@@ -30,6 +30,12 @@ Build and smoke test the MCPB bundle:
 
 The server uses MCP stdio transport. If `--workspace-root` is omitted, the
 current working directory is used.
+
+For API-hosted LLM clients that need an HTTP-reachable MCP endpoint, use the
+separate `kml-mcp-remote` binary documented in
+[`remote-mcp-transport.md`](remote-mcp-transport.md). The local stdio server and
+the remote server are intentionally separate because workspace file access,
+authentication, and write policy have different safety boundaries over HTTP.
 
 ## Tools
 
@@ -136,20 +142,20 @@ configuration. Add:
 
 ## MCPB And Registry Metadata
 
-`v0.14.0` publishes the local stdio server as an MCPB bundle attached to the
-GitHub Release:
+From `v0.14.0`, the local stdio server is published as an MCPB bundle attached
+to each GitHub Release:
 
-    katana-markdown-linter-0.14.0.mcpb
-    katana-markdown-linter-0.14.0.mcpb.sha256
+    katana-markdown-linter-0.15.0.mcpb
+    katana-markdown-linter-0.15.0.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`make mcp-server-json VERSION=v0.14.0` renders `target/mcpb/server.json` with
+`make mcp-server-json VERSION=v0.15.0` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    make server-json-validate VERSION=v0.14.0
+    make server-json-validate VERSION=v0.15.0
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP

@@ -10,6 +10,10 @@ remote MCP transport は local stdio server と同じ binary に無理に混ぜ�
 
 core crate は引き続き MCP を知らない。
 
+`v0.15.0` では `kml-mcp-remote` binary を分離して実装する。
+transport は MCP Streamable HTTP とし、`rmcp` の Streamable HTTP server
+transport を使う。
+
 ## Product Modes
 
 remote MCP は 2 つの mode を分けて扱う。
@@ -56,6 +60,10 @@ deployment docs には以下を含める。
 - workspace mount / provisioning
 - log と audit policy
 - remote で提供しない tool の一覧
+
+`v0.15.0` の remote server は text-only remote だけを出す。workspace-backed
+remote は auth、tenant boundary、explicit apply、audit log を同時に実装できる
+段階まで延期する。
 
 ## Failure Policy
 

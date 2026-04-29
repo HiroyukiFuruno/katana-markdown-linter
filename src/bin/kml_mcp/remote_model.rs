@@ -8,10 +8,6 @@ mod request;
 mod response;
 #[path = "model/rule.rs"]
 mod rule;
-#[path = "model/workspace_request.rs"]
-mod workspace_request;
-#[path = "model/workspace_response.rs"]
-mod workspace_response;
 
 pub(crate) use config::{validate_config, ConfigValidateResponse};
 pub(crate) use diagnostic::Diagnostic;
@@ -21,8 +17,3 @@ pub(crate) use request::{
 };
 pub(crate) use response::{CheckTextResponse, FixTextResponse, RuleDocResponse};
 pub(crate) use rule::{RuleListResponse, RuleMetadata};
-pub(crate) use workspace_request::{DirectoryRequest, FileRequest, FixFileApplyRequest};
-pub(crate) use workspace_response::{
-    DirectoryCheckResponse, FileCheckResponse, FileFixApplyResponse, FileFixPreviewResponse,
-    WorkspaceToolError,
-};
