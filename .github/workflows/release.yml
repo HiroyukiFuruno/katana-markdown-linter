@@ -25,6 +25,7 @@ concurrency:
 
 permissions:
   contents: write
+  id-token: write
 
 env:
   CARGO_INCREMENTAL: 0
@@ -115,6 +116,12 @@ jobs:
       - name: MCP stdio smoke
         run: make mcp-stdio-smoke
 
+      - name: MCPB smoke
+        run: make mcpb-smoke VERSION="${{ steps.version.outputs.version }}"
+
+      - name: MCP Registry metadata
+        run: make server-json-validate VERSION="${{ steps.version.outputs.version }}"
+
       - name: Action smoke
         run: make action-smoke
 
@@ -147,6 +154,16 @@ jobs:
         id: package
         run: scripts/release/package-crate.sh "${{ steps.version.outputs.version_bare }}"
 
+      - name: Package MCPB
+        id: mcpb
+        run: |
+          make mcp-server-json VERSION="${{ steps.version.outputs.version }}"
+          mcpb_path="target/mcpb/katana-markdown-linter-${{ steps.version.outputs.version_bare }}.mcpb"
+          mcpb_checksum_path="${mcpb_path}.sha256"
+          echo "mcpb_path=${mcpb_path}" >> "$GITHUB_OUTPUT"
+          echo "mcpb_checksum_path=${mcpb_checksum_path}" >> "$GITHUB_OUTPUT"
+          echo "server_json_path=target/mcpb/server.json" >> "$GITHUB_OUTPUT"
+
       - name: Build release notes
         run: scripts/release/release-notes.sh "${{ steps.version.outputs.version_bare }}" > RELEASE_NOTES.md
 
@@ -156,20 +173,29 @@ jobs:
           TAG: ${{ steps.version.outputs.version }}
           PACKAGE_PATH: ${{ steps.package.outputs.package_path }}
           CHECKSUM_PATH: ${{ steps.package.outputs.checksum_path }}
+          MCPB_PATH: ${{ steps.mcpb.outputs.mcpb_path }}
+          MCPB_CHECKSUM_PATH: ${{ steps.mcpb.outputs.mcpb_checksum_path }}
+          SERVER_JSON_PATH: ${{ steps.mcpb.outputs.server_json_path }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" \
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md \
               --target "$(git rev-parse HEAD)"
-            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" --clobber
+            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" --clobber
           else
-            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" \
+            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" \
               --verify-tag \
               --target "$(git rev-parse HEAD)" \
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md
           fi
+
+      - name: Publish MCP Registry metadata
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar -xz -f - mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish "${{ steps.mcpb.outputs.server_json_path }}"
 
       - name: Publish crate
         if: >

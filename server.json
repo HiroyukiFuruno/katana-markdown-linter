@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.HiroyukiFuruno/kml",
+  "title": "KatanA Markdown Linter",
+  "description": "Markdown linter and workspace-scoped stdio MCP server.",
+  "repository": {
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter",
+    "source": "github",
+    "id": "1218222437"
+  },
+  "version": "0.14.0",
+  "websiteUrl": "https://github.com/HiroyukiFuruno/katana-markdown-linter/blob/main/docs/mcp-server.md",
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.14.0/katana-markdown-linter-0.14.0.mcpb",
+      "version": "0.14.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

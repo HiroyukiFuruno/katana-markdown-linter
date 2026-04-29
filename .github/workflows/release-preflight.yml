@@ -11,8 +11,10 @@ on:
       - 'Makefile'
       - '.github/workflows/**'
       - 'docs/**'
+      - 'mcpb/**'
       - 'openspec/**'
       - 'scripts/**'
+      - 'server.json'
       - 'tests/**'
   workflow_dispatch:
 
@@ -48,6 +50,12 @@ jobs:
 
       - name: MCP stdio smoke
         run: make mcp-stdio-smoke
+
+      - name: MCPB smoke
+        run: make mcpb-smoke
+
+      - name: MCP Registry metadata
+        run: make server-json-validate
 
       - name: Action smoke
         run: make action-smoke

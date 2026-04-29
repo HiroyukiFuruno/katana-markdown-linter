@@ -1,0 +1,61 @@
+{
+  "manifest_version": "0.3",
+  "name": "katana-markdown-linter",
+  "display_name": "KatanA Markdown Linter",
+  "version": "0.14.0",
+  "description": "Markdown lint diagnostics and workspace-scoped safe fixes through MCP stdio.",
+  "author": {
+    "name": "Hiroyuki Furuno",
+    "url": "https://github.com/HiroyukiFuruno"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
+  },
+  "homepage": "https://github.com/HiroyukiFuruno/katana-markdown-linter",
+  "documentation": "https://github.com/HiroyukiFuruno/katana-markdown-linter/blob/main/docs/mcp-server.md",
+  "support": "https://github.com/HiroyukiFuruno/katana-markdown-linter/issues",
+  "license": "MIT",
+  "keywords": ["markdown", "lint", "markdownlint", "mcp", "stdio"],
+  "server": {
+    "type": "binary",
+    "entry_point": "server/kml-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/server/kml-mcp",
+      "args": ["--workspace-root", "${user_config.workspace_root}"],
+      "env": {}
+    }
+  },
+  "tools": [
+    {
+      "name": "check_text",
+      "description": "Return Markdown diagnostics for provided text without reading files."
+    },
+    {
+      "name": "fix_text",
+      "description": "Return fixed Markdown text without writing files."
+    },
+    {
+      "name": "check_file",
+      "description": "Check one Markdown file inside the configured workspace root."
+    },
+    {
+      "name": "fix_file_preview",
+      "description": "Preview safe fixes for one workspace file without writing it."
+    },
+    {
+      "name": "fix_file_apply",
+      "description": "Apply safe fixes to one workspace file only when apply is true."
+    }
+  ],
+  "tools_generated": true,
+  "user_config": {
+    "workspace_root": {
+      "type": "directory",
+      "title": "Workspace Root",
+      "description": "Directory that kml-mcp may read and update only through explicit apply.",
+      "required": true,
+      "default": "${HOME}"
+    }
+  }
+}

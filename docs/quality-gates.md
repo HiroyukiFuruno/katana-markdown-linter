@@ -20,6 +20,8 @@
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
 | `make action-smoke` | Install through the shared GitHub Action scripts and run a CLI smoke check | Yes for release gates |
+| `make mcpb-smoke` | Build the MCPB bundle and run the bundled `kml-mcp` binary through stdio smoke | Yes for release gates |
+| `make server-json-validate` | Render and validate MCP Registry metadata for the release MCPB artifact | Yes for release gates |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
 | `make release-verify` | Verify published tag, GitHub Release, and crates.io state | Yes after publication |
 
@@ -37,6 +39,7 @@
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - public confidence evidence must stay wired into release preflight and release workflows
 - the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
+- MCPB packaging and MCP Registry metadata validation must stay wired into local and release gates
 - CI workflows must keep Windows workspace verification and Rust cache strategy explicit
 - public Markdown docs must stay English-only
 - public library API and rule catalog entrypoints must remain explicit
@@ -64,9 +67,16 @@ Use these targets when comparing CLI behavior or speed against peer tools:
 published crate. It installs the current checkout through the shared action
 install script, then runs `kml check` through the shared action runner script.
 
-The release workflows run the same smoke target so `action.yml`,
-`scripts/action/install-kml.sh`, and `scripts/action/run-kml.sh` are tested
-before publication.
+`make mcpb-smoke` verifies the MCPB channel. It packages the current
+`kml-mcp` binary, extracts the bundle, validates the manifest entrypoint, and
+runs the stdio smoke test from the bundled binary.
+
+`make server-json-validate` renders release metadata with the computed MCPB
+checksum and verifies that the metadata points at the GitHub Release artifact
+without declaring remote MCP transport.
+
+The release workflows run the same smoke targets so the action scripts, MCPB
+manifest, and MCP Registry metadata are tested before publication.
 
 ## CI Required Checks
 
@@ -103,9 +113,10 @@ make release-check VERSION=vX.Y.Z
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 public confidence, coverage regression, example builds, optional MCP build,
-version verification, dry-run publish, action smoke, and install smoke checks. The GitHub release
-workflows additionally clone upstream markdownlint and run `make upstream-drift`
-against the default branch docs.
+MCP stdio smoke, MCPB smoke, Registry metadata validation, version
+verification, dry-run publish, action smoke, and install smoke checks. The
+GitHub release workflows additionally clone upstream markdownlint and run
+`make upstream-drift` against the default branch docs.
 
 Use `make release-tag VERSION=vX.Y.Z` before dispatching a release. It creates
 or verifies a signed annotated tag and then requires GitHub to report the tag as
