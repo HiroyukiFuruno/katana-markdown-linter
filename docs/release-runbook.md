@@ -21,6 +21,11 @@ Run local validation:
 make release-check VERSION=vX.Y.Z
 ~~~
 
+For MCP distribution changes, the release check includes:
+
+- `make mcpb-smoke VERSION=vX.Y.Z`
+- `make server-json-validate VERSION=vX.Y.Z`
+
 If validating upstream drift locally, clone upstream docs and run:
 
 ~~~bash
@@ -58,6 +63,8 @@ The workflow validates:
 - `cargo test --all-features --locked`
 - `make examples`
 - `make mcp-build`
+- `make mcpb-smoke`
+- `make server-json-validate`
 - `make action-smoke`
 - upstream markdownlint drift gate
 - `make lint`
@@ -78,6 +85,9 @@ The workflow creates or updates:
 - GitHub Release
 - `.crate` package artifact
 - `.sha256` checksum
+- `.mcpb` package artifact for `kml-mcp`
+- `.mcpb.sha256` checksum
+- rendered MCP Registry `server.json`
 
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
 Release preflight must keep `make action-smoke` passing before publishing a tag.
@@ -88,9 +98,42 @@ Manual GitHub Actions dispatch is still available, but the local `make`
 targets are preferred because they create or verify the signed tag and check the
 `CARGO_REGISTRY_TOKEN` secret before dispatch.
 
+## MCPB And Registry Publication
+
+Build and validate the MCPB artifact locally:
+
+~~~bash
+make mcpb-smoke VERSION=vX.Y.Z
+make server-json-validate VERSION=vX.Y.Z
+~~~
+
+`make mcpb-smoke` builds `target/mcpb/katana-markdown-linter-X.Y.Z.mcpb`,
+writes a SHA-256 checksum beside it, extracts the bundle, and runs the bundled
+`kml-mcp` binary through the stdio smoke test.
+
+`make server-json-validate` renders `target/mcpb/server.json` from the
+repository `server.json` and the computed MCPB checksum. Publish the rendered
+file, not the source template.
+
+The Release workflow uploads the MCPB artifact, its checksum, and the rendered
+`server.json` to the GitHub Release before publishing Registry metadata. It
+authenticates with GitHub OIDC:
+
+~~~bash
+mcp-publisher login github-oidc
+mcp-publisher publish target/mcpb/server.json
+~~~
+
+The MCP Registry version and MCPB artifact are immutable release outputs. If a
+published artifact or checksum is wrong, bump to the next patch version instead
+of replacing the published meaning of the same version.
+
 ## Required Secrets
 
 - `CARGO_REGISTRY_TOKEN`: crates.io API token used only when manual dispatch sets `publish_crate: true`.
+
+GitHub OIDC Registry authentication does not require a dedicated secret, but the
+Release workflow must keep `id-token: write`.
 
 ## Quality Gates and Branch Protection
 
@@ -146,6 +189,25 @@ If workflow job names are changed, update branch protection in the same change. 
 - If it was partially published, do not reuse the same version for changed content; bump `Cargo.toml` version.
 - `make release` fails fast when the requested version already exists on crates.io.
 - Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, and crates.io version after retry.
+
+### MCP Registry publish failed
+
+- Verify the GitHub Release contains the `.mcpb`, `.mcpb.sha256`, and rendered
+  `server.json` assets.
+- Re-run `make server-json-validate VERSION=vX.Y.Z` and inspect the rendered
+  `fileSha256`.
+- If the Registry version was not accepted, fix authentication or metadata and
+  rerun the workflow with the same version.
+- If the Registry version was accepted with a bad artifact reference, do not
+  reuse the same version for changed content; bump `Cargo.toml` version.
+
+### MCPB smoke fails
+
+- Re-run `make mcpb-smoke VERSION=vX.Y.Z`.
+- Inspect `mcpb/manifest.json`, `scripts/release/package-mcpb.sh`, and
+  `scripts/ci/mcpb-smoke.py`.
+- Keep the manifest aligned with local stdio execution; do not claim remote MCP
+  transport.
 
 ### Release notes generation fails
 

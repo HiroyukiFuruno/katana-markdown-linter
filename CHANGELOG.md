@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.14.0
+
+- Adds the `katana-markdown-linter-0.14.0.mcpb` release artifact for the
+  `kml-mcp` stdio server, including the bundled binary, MCPB manifest, SHA-256
+  checksum, and artifact smoke test.
+- Adds repository `server.json` metadata and release-time rendering so MCP
+  Registry publication points at the GitHub Release MCPB artifact with its
+  computed `fileSha256` value.
+- Wires MCPB smoke testing and MCP Registry metadata validation into
+  `make release-check`, release preflight, and the Release workflow.
+- Documents MCPB publication, Registry publication, retry policy, and
+  post-publication verification while keeping remote MCP transport out of this
+  release.
+
 ## v0.13.0
 
 - Completes MCP Registry and hub distribution planning without publishing

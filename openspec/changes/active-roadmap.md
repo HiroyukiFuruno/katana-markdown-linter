@@ -27,7 +27,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.12.20`: released patch として `v0.12.19` 後の performance 計測、`api_rule_catalog` の hot path 改善、baseline refresh を完了した。新規 rule/fix は入れていない。
 - `v0.12.21`: KatanA 側ドキュメント feedback sweep、`MD007` bad-fix 修正、reserved / ignored directory の default exclude、残り rule の by-design 宣言を完了し、0.12.x closeout 条件を満たした。
 - `v0.13.0`: `v0.12.21` release 後、MCP Registry / Hub 公開前の配布方式、`server.json`、security gate を決めた。公開自体はまだ行わない。
-- `v0.14.0`: `v0.13.0` で選んだ package artifact と Registry metadata を実装し、公開まで進める。
+- `v0.14.0`: `v0.13.0` で選んだ MCPB package artifact と Registry metadata を実装し、公開導線を release workflow に組み込んだ。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 - `v0.16.0`: Introduce JSON schema and LSP entrypoint to enable editor auto-completion and real-time diagnostics.
 - `v0.17.0`: Expand distribution channels including Homebrew, standalone binary artifacts, and language wrappers (npm/pip).
@@ -64,7 +64,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Performance measurement and hot path hardening for `v0.12.20` | `v0-12-20-performance-measurement-and-hotpath-hardening` | Completed post-`v0.12.19` measurement, fixed the `api_rule_catalog` metadata clone hot path, refreshed the baseline, and kept rule expansion frozen. |
 | Done | KatanA feedback and 0.12.x closeout for `v0.12.21` | `v0-12-21-katana-feedback-and-012x-closeout` | Completed 524-file KatanA check/fix review, fixed the `MD007` bad-fix pattern, recorded release-blocking issues at 0, and closed remaining diagnostic-only rules with by-design reasons. |
 | Done | MCP Registry and distribution planning for `v0.13.0` | `v0-13-0-mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
-| Frozen | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Implements the selected MCP package artifact and publishes Registry / Hub metadata after readiness gates pass. |
+| Done | MCP package and Registry publication for `v0.14.0` | `v0-14-0-mcp-package-and-registry-publication` | Adds the MCPB release artifact, Registry metadata rendering, release publication step, and release gates. |
 | Frozen | Remote MCP transport for `v0.15.0` | `v0-15-0-remote-mcp-transport` | Adds provider API reachable MCP transport only if local stdio support is not sufficient. |
 | Frozen | Config schema and editor integration for `v0.16.0` | `v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
 | Frozen | Binary distribution expansion for `v0.17.0` | `v0-17-0-binary-distribution-expansion` | Expands beyond Cargo/GitHub Actions to Homebrew and standalone artifacts. |
@@ -102,7 +102,7 @@ Archived completed changes:
 
 1. Archive `v0-12-21-katana-feedback-and-012x-closeout` after release verification completes.
 2. Archive `v0-13-0-mcp-registry-and-distribution-planning` after the `v0.13.0` release is merged and verified.
-3. Apply `v0-14-0-mcp-package-and-registry-publication` only after the `v0.13.0` package and security gates are complete.
+3. Archive `v0-14-0-mcp-package-and-registry-publication` after the `v0.14.0` release is merged and verified.
 4. Apply `v0-15-0-remote-mcp-transport` only when API-hosted LLM usage is a concrete requirement; local stdio support is already covered by `v0.12.0`.
 5. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
 6. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.

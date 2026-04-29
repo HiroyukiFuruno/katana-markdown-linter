@@ -20,6 +20,10 @@ Run the local stdio smoke test:
 
     make mcp-stdio-smoke
 
+Build and smoke test the MCPB bundle:
+
+    make mcpb-smoke VERSION=v0.14.0
+
 ## Run
 
     kml-mcp --workspace-root /absolute/path/to/workspace
@@ -130,39 +134,26 @@ configuration. Add:
       }
     }
 
-## MCP Registry Metadata Draft
+## MCPB And Registry Metadata
 
-`v0.13.0` does not publish this metadata. The draft below records the selected
-shape for `v0.14.0`, after MCPB and OCI artifacts exist.
+`v0.14.0` publishes the local stdio server as an MCPB bundle attached to the
+GitHub Release:
 
-    {
-      "$schema": "https:\/\/static.modelcontextprotocol.io\/schemas\/2025-12-11\/server.schema.json",
-      "name": "io.github.HiroyukiFuruno/kml",
-      "title": "KatanA Markdown Linter",
-      "description": "Markdown linter, safe fixer, and workspace-scoped MCP server.",
-      "repository": {
-        "url": "https:\/\/github.com\/HiroyukiFuruno\/katana-markdown-linter",
-        "source": "github"
-      },
-      "version": "0.13.0",
-      "packages": [
-        {
-          "registryType": "mcpb",
-          "identifier": "https:\/\/github.com\/HiroyukiFuruno\/katana-markdown-linter\/releases\/download\/v0.14.0\/kml-mcp.mcpb",
-          "fileSha256": "TODO_RELEASE_ARTIFACT_SHA256",
-          "transport": {
-            "type": "stdio"
-          }
-        },
-        {
-          "registryType": "oci",
-          "identifier": "ghcr.io/hiroyukifuruno/kml-mcp:0.14.0",
-          "transport": {
-            "type": "stdio"
-          }
-        }
-      ]
-    }
+    katana-markdown-linter-0.14.0.mcpb
+    katana-markdown-linter-0.14.0.mcpb.sha256
+
+The committed `server.json` is the source metadata. During release,
+`make mcp-server-json VERSION=v0.14.0` renders `target/mcpb/server.json` with
+the final GitHub Release artifact URL and computed `fileSha256` value. The
+rendered file is the MCP Registry publication input.
+
+Validate the rendered metadata:
+
+    make server-json-validate VERSION=v0.14.0
+
+The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
+uses only a package-based stdio transport and does not declare remote MCP
+transport.
 
 ### Registry Security Checklist
 
