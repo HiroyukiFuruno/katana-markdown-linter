@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -116,37 +116,30 @@ impl DocumentAnswerCase {
     }
 
     fn write_manifest(&self, rule_id: &str) {
-        fs::write(
-            self.manifest(),
-            format!(
-                r#"{{
-  "schema_version": 1,
-  "license_allowlist": ["MIT"],
-  "samples": [
-    {{
-      "id": "mini-public-answer-validation",
-      "kind": "public",
-      "input_path": "{}",
-      "answer_path": "{}",
-      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
-      "source_commit": "d57b33878aae976677e361a0c1cae2e9f6463d4e",
-      "source_path": "mini/sample.md",
-      "license": "MIT",
-      "retrieved_at": "2026-04-29",
-      "selection_reason": "Minimal answer validation fixture.",
-      "historical_patterns": ["{}"],
-      "answer_reviewed": true,
-      "answer_review_note": "Expected Markdown output was reviewed independently."
-    }}
-  ]
-}}
-"#,
-                self.input().display(),
-                self.answer().display(),
-                rule_id
-            ),
-        )
-        .expect("manifest should be written");
+        write_json(
+            &self.manifest(),
+            &json!({
+                "schema_version": 1,
+                "license_allowlist": ["MIT"],
+                "samples": [
+                    {
+                        "id": "mini-public-answer-validation",
+                        "kind": "public",
+                        "input_path": self.input().display().to_string(),
+                        "answer_path": self.answer().display().to_string(),
+                        "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+                        "source_commit": "d57b33878aae976677e361a0c1cae2e9f6463d4e",
+                        "source_path": "mini/sample.md",
+                        "license": "MIT",
+                        "retrieved_at": "2026-04-29",
+                        "selection_reason": "Minimal answer validation fixture.",
+                        "historical_patterns": [rule_id],
+                        "answer_reviewed": true,
+                        "answer_review_note": "Expected Markdown output was reviewed independently."
+                    }
+                ]
+            }),
+        );
     }
 
     fn run(&self) -> std::process::Output {
@@ -196,6 +189,14 @@ impl DocumentAnswerCase {
 fn read_json(path: &Path) -> Value {
     serde_json::from_str(&fs::read_to_string(path).expect("JSON file should be readable"))
         .expect("JSON file should parse")
+}
+
+fn write_json(path: &Path, value: &Value) {
+    fs::write(
+        path,
+        serde_json::to_string_pretty(value).expect("JSON should serialize"),
+    )
+    .expect("JSON file should be written");
 }
 
 fn create_temp_dir(name: &str) -> PathBuf {

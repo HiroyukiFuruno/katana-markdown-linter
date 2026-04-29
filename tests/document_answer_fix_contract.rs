@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -43,36 +43,30 @@ fn document_answer_runner_compares_fixed_output_with_answer_fixture() {
     fs::write(&answer, "# Title\n").expect("answer fixture should be written");
     fs::write(&config, "{ \"default\": false, \"MD018\": true }\n")
         .expect("config should be written");
-    fs::write(
+    write_json(
         &manifest,
-        format!(
-            r#"{{
-  "schema_version": 1,
-  "license_allowlist": ["MIT"],
-  "samples": [
-    {{
-      "id": "mini-public-md018",
-      "kind": "public",
-      "input_path": "{}",
-      "answer_path": "{}",
-      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
-      "source_commit": "d57b33878aae976677e361a0c1cae2e9f6463d4e",
-      "source_path": "mini/sample.md",
-      "license": "MIT",
-      "retrieved_at": "2026-04-29",
-      "selection_reason": "Minimal runner contract fixture.",
-      "historical_patterns": ["MD018"],
-      "answer_reviewed": true,
-      "answer_review_note": "Expected heading spacing was reviewed manually."
-    }}
-  ]
-}}
-"#,
-            input.display(),
-            answer.display()
-        ),
-    )
-    .expect("manifest should be written");
+        &json!({
+            "schema_version": 1,
+            "license_allowlist": ["MIT"],
+            "samples": [
+                {
+                    "id": "mini-public-md018",
+                    "kind": "public",
+                    "input_path": input.display().to_string(),
+                    "answer_path": answer.display().to_string(),
+                    "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+                    "source_commit": "d57b33878aae976677e361a0c1cae2e9f6463d4e",
+                    "source_path": "mini/sample.md",
+                    "license": "MIT",
+                    "retrieved_at": "2026-04-29",
+                    "selection_reason": "Minimal runner contract fixture.",
+                    "historical_patterns": ["MD018"],
+                    "answer_reviewed": true,
+                    "answer_review_note": "Expected heading spacing was reviewed manually."
+                }
+            ]
+        }),
+    );
 
     let output = Command::new("python3")
         .arg(root.join("scripts/ci/document-answer-fix.py"))
@@ -180,6 +174,14 @@ fn sample_path(root: &Path, sample: &Value, key: &str) -> PathBuf {
 fn read_json(path: &Path) -> Value {
     serde_json::from_str(&fs::read_to_string(path).expect("JSON file should be readable"))
         .expect("JSON file should parse")
+}
+
+fn write_json(path: &Path, value: &Value) {
+    fs::write(
+        path,
+        serde_json::to_string_pretty(value).expect("JSON should serialize"),
+    )
+    .expect("JSON file should be written");
 }
 
 fn workspace_root() -> PathBuf {
