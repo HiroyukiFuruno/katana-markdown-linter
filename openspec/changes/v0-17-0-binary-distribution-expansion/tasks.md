@@ -2,18 +2,50 @@
 
 ## Definition of Ready
 
-- [ ] 0.1 Homebrew tap の対象を、既存 `homebrew-katana` へ追加するか別 tap にするか決める
-- [ ] 0.2 Homebrew formula 名を `kml` にするか `katana-markdown-linter` にするか決める
+- [x] 0.1 Homebrew tap の対象は既存 `homebrew-katana` にする
+- [x] 0.2 Homebrew formula 名は `kml` を第一候補にし、衝突する場合は `katana-markdown-linter` または `katana-ml` にする
 - [ ] 0.3 npm package 名と publish ownership を確認し、公開しない場合の deferred 表記を決める
 - [ ] 0.4 PyPI package 名と publish ownership を確認し、公開しない場合の deferred 表記を決める
-- [ ] 0.5 `v0.17.0` の supported target matrix を design の 4 target で確定する
-- [ ] 0.6 release asset naming と checksum naming を README / docs に出せる形で確定する
+- [x] 0.5 `v0.17.0` の supported target matrix は design の 4 target を MVP scope として確定する
+- [x] 0.6 release asset naming は `kml-vX.Y.Z-<target>.tar.gz`、Windows は `kml-vX.Y.Z-<target>.zip`、checksum naming は `<archive>.sha256` にする
+- [ ] 0.7 ユーザーは npm アカウントを用意し、`katana-markdown-linter` を公開できる読み書き権限付き token を作成する
+- [ ] 0.8 ユーザーは PyPI アカウントを用意し、`katana-markdown-linter` を公開できる API token を作成する
+- [ ] 0.9 ユーザーは GitHub の秘匿変数（Secrets）に `NPM_TOKEN` と `PYPI_API_TOKEN` を登録する
+
+### Task 0 ユーザー実施内容
+
+#### npm
+
+- URL: <https://docs.npmjs.com/creating-and-viewing-access-tokens/>
+- package 名は `katana-markdown-linter` を第一候補にする。最終確定は 0.3 で行う。
+- token は読み書き権限付きにする。
+- npm 側で公開時の二要素認証（2FA）が必要な場合、GitHub Actions から publish できる設定にする。
+
+#### PyPI
+
+- URL: <https://pypi.org/manage/account/>
+- package 名は `katana-markdown-linter` を第一候補にする。最終確定は 0.4 で行う。
+- API token は `katana-markdown-linter` を公開できる権限にする。
+
+#### GitHub Secrets 登録コマンド
+
+```bash
+cd /Users/hiroyuki_furuno/works/private/katana-markdown-linter
+
+gh secret set NPM_TOKEN \
+  --repo HiroyukiFuruno/katana-markdown-linter \
+  --body "$NPM_TOKEN"
+
+gh secret set PYPI_API_TOKEN \
+  --repo HiroyukiFuruno/katana-markdown-linter \
+  --body "$PYPI_API_TOKEN"
+```
 
 ## 1. Binary Packaging
 
 - [ ] 1.1 `kml` release binary を target ごとに build する release script を追加する
-- [ ] 1.2 Unix archive を `katana-markdown-linter-vX.Y.Z-<target>.tar.gz` で作る
-- [ ] 1.3 Windows archive を `katana-markdown-linter-vX.Y.Z-<target>.zip` で作る
+- [ ] 1.2 Unix archive を `kml-vX.Y.Z-<target>.tar.gz` で作る
+- [ ] 1.3 Windows archive を `kml-vX.Y.Z-<target>.zip` で作る
 - [ ] 1.4 各 archive に `kml` / `kml.exe`、`LICENSE`、install note を含める
 - [ ] 1.5 各 archive の `<archive>.sha256` を生成する
 - [ ] 1.6 archive 展開後に `kml --version` と小さな `kml check` を実行する smoke test を追加する
