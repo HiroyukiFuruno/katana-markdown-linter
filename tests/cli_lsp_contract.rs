@@ -1,6 +1,7 @@
 use serde_json::Value;
-use std::io::Write;
+use std::fs::File;
 use std::process::{Command, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[test]
 fn lsp_initialize_reports_diagnostics_and_formats_open_document() {
@@ -101,20 +102,27 @@ fn lsp_initialize_reports_diagnostics_and_formats_open_document() {
 }
 
 fn run_lsp(input: &str) -> std::process::Output {
+    let input_path = std::env::temp_dir().join(format!(
+        "katana-markdown-linter-lsp-{}-{}.input",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time should be monotonic")
+            .as_nanos()
+    ));
+    std::fs::write(&input_path, input).expect("lsp input file should be written");
+
     let mut command = Command::new(env!("CARGO_BIN_EXE_kml"));
     command.arg("lsp");
-    command.stdin(Stdio::piped());
+    command.stdin(Stdio::from(
+        File::open(&input_path).expect("lsp input file should open"),
+    ));
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
 
-    let mut child = command.spawn().expect("kml lsp should start");
-    child
-        .stdin
-        .as_mut()
-        .expect("stdin should be piped")
-        .write_all(input.as_bytes())
-        .expect("lsp input should be written");
-    child.wait_with_output().expect("kml lsp should finish")
+    let output = command.output().expect("kml lsp should finish");
+    let _ = std::fs::remove_file(input_path);
+    output
 }
 
 fn request(id: i64, method: &str, params: Value) -> Value {

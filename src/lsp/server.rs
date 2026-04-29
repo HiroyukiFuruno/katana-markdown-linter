@@ -15,6 +15,7 @@ pub(crate) fn run_stdio() -> Result<(), String> {
 struct LspServer {
     documents: HashMap<String, String>,
     shutdown_requested: bool,
+    exit_requested: bool,
 }
 
 impl LspServer {
@@ -23,6 +24,9 @@ impl LspServer {
             let outgoing = self.handle_message(message)?;
             for message in outgoing {
                 protocol::write_message(writer, &message)?;
+            }
+            if self.shutdown_requested || self.exit_requested {
+                break;
             }
         }
         Ok(())
@@ -80,7 +84,10 @@ impl LspServer {
     fn handle_notification(&mut self, method: &str, params: Value) -> Result<Vec<Value>, String> {
         match method {
             "initialized" => Ok(Vec::new()),
-            "exit" => Ok(Vec::new()),
+            "exit" => {
+                self.exit_requested = true;
+                Ok(Vec::new())
+            }
             "textDocument/didOpen" => self.open_document(params),
             "textDocument/didChange" => self.change_document(params),
             "textDocument/didSave" => self.saved_document(params),

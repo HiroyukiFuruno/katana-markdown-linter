@@ -54,6 +54,6 @@ enabled, and expose only text-only tools in `v0.15.0`.
 | `command` | `check` | Supported commands are `check`, `fix`, `fmt`, `rule`, `config`, `version`, and `init-config`. |
 | `paths` | `.` | Newline-separated paths passed to `check`, `fix`, or `fmt`. |
 | `config` | empty | Optional markdownlint config path. |
-| `locale` | `en` | CLI message locale. |
+| `locale` | `en` | CLI message locale (`en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`, `de`, `es`, or `it`). |
 | `output` | `text` | Use `text` or `json`. |
 | `extra-args` | empty | Additional `kml` arguments, one argument per line. |

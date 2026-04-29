@@ -6,6 +6,8 @@ use std::sync::{mpsc, Arc, Mutex};
 
 #[path = "ast_linter/documentation_language_guard.rs"]
 mod documentation_language_guard;
+#[path = "ast_linter/i18n_guard.rs"]
+mod i18n_guard;
 #[path = "ast_linter/open_spec_command_portability_guard.rs"]
 mod open_spec_command_portability_guard;
 #[path = "ast_linter/workflow_portability_guard.rs"]
@@ -602,14 +604,25 @@ fn ast_linter_i18n_translation_coverage_is_complete_for_supported_locales() {
     }
 
     for rule in katana_markdown_linter::available_rules() {
-        if !katana_markdown_linter::has_rule_description_translation(
-            &rule.id,
-            katana_markdown_linter::Locale::Ja,
-        ) {
-            violations.push(format!(
-                "i18n: missing Japanese rule description for {}",
-                rule.id
-            ));
+        for locale in katana_markdown_linter::supported_locales() {
+            if *locale == katana_markdown_linter::Locale::En {
+                continue;
+            }
+            if !katana_markdown_linter::has_rule_description_translation(&rule.id, *locale) {
+                violations.push(format!(
+                    "i18n: missing {} rule description for {}",
+                    locale.code(),
+                    rule.id
+                ));
+            }
+            let localized = rule.localized_description(locale.code());
+            if localized == rule.description {
+                violations.push(format!(
+                    "i18n: {} rule description is an English copy for {}",
+                    locale.code(),
+                    rule.id
+                ));
+            }
         }
     }
 

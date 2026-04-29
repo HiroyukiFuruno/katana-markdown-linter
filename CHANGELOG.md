@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.16.1
+
+- Expands supported locales to match KatanA: English, Japanese, Simplified
+  Chinese, Traditional Chinese, Korean, Portuguese, French, German, Spanish,
+  and Italian.
+- Localizes rule descriptions for Rust APIs, `kml rule`, and MCP
+  `rule_list` / `rule_get` while preserving canonical English descriptions in
+  structured responses.
+- Adds localized rule Markdown documentation for `rule_doc_get` and coverage
+  gates that reject missing translations or English-copy localized content.
+- Moves locale text into JSON catalogs and adds KatanA-style AST checks for
+  locale catalog consistency, generated rule-doc labels, and rule-doc titles.
+
 ## v0.16.0
 
 - Adds `kml config schema`, exposing a generated JSON Schema for

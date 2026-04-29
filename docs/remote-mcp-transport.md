@@ -49,6 +49,11 @@ SSE stream for server-initiated messages.
 | `rule_get` | none | Returns metadata for one rule ID. |
 | `rule_doc_get` | none | Returns Markdown documentation for one rule ID. |
 
+All remote tools accept the same optional `locale` string as the local MCP
+server. Rule descriptions and `rule_doc_get` Markdown content are localized for
+`en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`, `de`, `es`, and `it`;
+unsupported locale values fall back to English.
+
 These local stdio tools are intentionally absent from remote `tools/list` in
 `v0.15.0`:
 

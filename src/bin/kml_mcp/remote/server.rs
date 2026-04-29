@@ -11,6 +11,10 @@ use rmcp::{
     tool, tool_handler, tool_router, Json, ServerHandler,
 };
 
+#[cfg(test)]
+#[path = "server_tests.rs"]
+mod tests;
+
 #[derive(Debug, Clone)]
 pub(super) struct KmlMcpRemoteServer {
     tool_router: ToolRouter<Self>,

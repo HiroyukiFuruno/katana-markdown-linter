@@ -268,12 +268,9 @@ pub fn get_rule_documentation_from_dir(
     let id = rule_id.to_lowercase();
     let file_name = format!("{}.md", id);
 
-    let ja_path = base_dir.join("ja").join(&file_name);
-    let en_path = base_dir.join(&file_name);
-
     let path = match locale {
-        crate::Locale::Ja if ja_path.exists() => ja_path,
-        _ => en_path,
+        crate::Locale::En => base_dir.join(&file_name),
+        _ => base_dir.join(locale.code()).join(&file_name),
     };
 
     fs::read_to_string(&path).map_err(|err| {

@@ -30,6 +30,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.14.0`: `v0.13.0` で選んだ MCPB package artifact と Registry metadata を実装し、公開導線を release workflow に組み込んだ。
 - `v0.15.0`: API-hosted LLM から直接使う必要が出た場合だけ、遠隔 MCP 接続（remote MCP transport）を設計・実装する。
 - `v0.16.0`: Introduce JSON schema and LSP entrypoint to enable editor auto-completion and real-time diagnostics.
+- `v0.16.1`: KatanA 本体と同じ locale set に合わせ、description 系 API と rule document Markdown の i18n 欠落を閉じる。
 - `v0.17.0`: Expand distribution channels including Homebrew, standalone binary artifacts, and language wrappers (npm/pip).
 
 | Priority | Work Area | Change | Why Now |
@@ -66,7 +67,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | MCP Registry and distribution planning for `v0.13.0` | `archive/2026-04-29-v0-13-0-mcp-registry-and-distribution-planning` | Defines package type, `server.json`, security review, and publish deferral before public Registry listing. |
 | Done | MCP package and Registry publication for `v0.14.0` | `archive/2026-04-29-v0-14-0-mcp-package-and-registry-publication` | Adds the MCPB release artifact, Registry metadata rendering, release publication step, and release gates. |
 | Done | Remote MCP transport for `v0.15.0` | `archive/2026-04-29-v0-15-0-remote-mcp-transport` | Adds self-hosted text-only Streamable HTTP transport while keeping workspace-backed remote access deferred. |
-| Frozen | Config schema and editor integration for `v0.16.0` | `v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
+| Done | Config schema and editor integration for `v0.16.0` | `archive/2026-04-29-v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
+| Done | Full locale i18n for `v0.16.1` | `archive/2026-04-29-v0-16-1-full-locale-i18n` | Matches KatanA supported locales and localizes both rule descriptions and rule Markdown documentation. |
 | Frozen | Binary distribution expansion for `v0.17.0` | `v0-17-0-binary-distribution-expansion` | Expands beyond Cargo/GitHub Actions to Homebrew and standalone artifacts. |
 
 Archived completed changes:
@@ -104,11 +106,12 @@ Archived completed changes:
 - `v0-13-0-mcp-registry-and-distribution-planning` -> `openspec/changes/archive/2026-04-29-v0-13-0-mcp-registry-and-distribution-planning`
 - `v0-14-0-mcp-package-and-registry-publication` -> `openspec/changes/archive/2026-04-29-v0-14-0-mcp-package-and-registry-publication`
 - `v0-15-0-remote-mcp-transport` -> `openspec/changes/archive/2026-04-29-v0-15-0-remote-mcp-transport`
+- `v0-16-0-config-schema-and-editor-integration` -> `openspec/changes/archive/2026-04-29-v0-16-0-config-schema-and-editor-integration`
+- `v0-16-1-full-locale-i18n` -> `openspec/changes/archive/2026-04-29-v0-16-1-full-locale-i18n`
 
 ## Suggested Order
 
-1. Apply `v0-16-0-config-schema-and-editor-integration` after remote transport is stable.
-2. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
+1. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 

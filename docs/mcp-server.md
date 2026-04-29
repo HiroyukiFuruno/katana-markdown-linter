@@ -22,7 +22,7 @@ Run the local stdio smoke test:
 
 Build and smoke test the MCPB bundle:
 
-    make mcpb-smoke VERSION=v0.16.0
+    make mcpb-smoke VERSION=v0.16.1
 
 ## Run
 
@@ -46,21 +46,26 @@ authentication, and write policy have different safety boundaries over HTTP.
 | `config_validate` | none | Validates markdownlint-compatible JSON config against the kml schema model. |
 | `rule_list` | none | Lists known rule metadata. |
 | `rule_get` | none | Returns metadata for one rule ID. |
+| `rule_doc_get` | none | Returns Markdown documentation for one rule ID. |
 | `check_file` | read | Checks one Markdown file under the workspace root. |
 | `check_directory` | read | Recursively checks Markdown files under one workspace directory. |
 | `fix_file_preview` | read | Previews safe fixes for one workspace file and returns a text diff. |
 | `fix_file_apply` | write | Applies safe fixes to one workspace file only when `apply` is `true`. |
 
 All tools default to English. Pass an optional `locale` string to request
-localized messages or rule descriptions. Supported values currently resolve to
-English (`en`, `en-US`) or Japanese (`ja`, `ja-JP`); unsupported MCP locale
-values fall back to English instead of failing the tool call.
+localized messages, rule descriptions, or rule Markdown documentation.
+Supported values resolve to `en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`,
+`de`, `es`, and `it`, including common region forms such as `fr-FR`,
+`pt-BR`, or `ko-KR`. Unsupported MCP locale values fall back to English
+instead of failing the tool call.
 
 ### Text Tools
 
     { "content": "# title\n\n### skipped\n", "locale": "ja-JP" }
 
     { "rule_id": "MD003", "locale": "ja" }
+
+    { "rule_id": "MD013", "locale": "fr-FR" }
 
 Localized responses keep stable fields such as `message_id`, `message_params`,
 `kind`, `expected`, `actual`, `allowed`, rule IDs, and documentation URLs.
@@ -147,17 +152,17 @@ configuration. Add:
 From `v0.14.0`, the local stdio server is published as an MCPB bundle attached
 to each GitHub Release:
 
-    katana-markdown-linter-0.16.0.mcpb
-    katana-markdown-linter-0.16.0.mcpb.sha256
+    katana-markdown-linter-0.16.1.mcpb
+    katana-markdown-linter-0.16.1.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`make mcp-server-json VERSION=v0.16.0` renders `target/mcpb/server.json` with
+`make mcp-server-json VERSION=v0.16.1` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    make server-json-validate VERSION=v0.16.0
+    make server-json-validate VERSION=v0.16.1
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP
