@@ -81,6 +81,11 @@ pub(super) fn render_config(command: ConfigCommand, cli: &Cli) -> Result<String,
                     .map_err(|err| err.to_string())?
             )),
         },
+        ConfigCommand::Schema => Ok(format!(
+            "{}\n",
+            serde_json::to_string_pretty(&MarkdownLintConfig::schema())
+                .map_err(|err| err.to_string())?
+        )),
         ConfigCommand::Get => {
             let config = MarkdownLintConfig::load(&path).map_err(|err| err.to_string())?;
             match cli.format {

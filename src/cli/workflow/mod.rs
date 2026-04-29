@@ -37,6 +37,10 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(exit)
         }
         Command::Fmt => fmt::run_fmt(&cli, locale),
+        Command::Lsp => {
+            crate::lsp::run_stdio()?;
+            Ok(0)
+        }
         Command::Rule(rule_id) => config_cmd::run_rule(rule_id.as_deref(), cli.format, locale),
         Command::Config(ref command) => config_cmd::run_config(command.clone(), &cli),
         Command::Version => {

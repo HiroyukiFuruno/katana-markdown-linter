@@ -12,6 +12,7 @@ pub enum Command {
     Fix,
     Fmt,
     InitConfig,
+    Lsp,
     Rule(Option<String>),
     Config(ConfigCommand),
     Version,
@@ -21,6 +22,7 @@ pub enum Command {
 pub enum ConfigCommand {
     File,
     Get,
+    Schema,
 }
 
 #[derive(Debug, Clone)]
@@ -99,6 +101,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             "check" => command = Command::Check,
             "fix" => command = Command::Fix,
             "fmt" => command = Command::Fmt,
+            "lsp" => command = Command::Lsp,
             "version" | "--version" | "-V" => command = Command::Version,
             "rule" => {
                 let rule_id = iter
@@ -112,6 +115,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
                     .map(|value| value.to_string());
                 command = Command::Config(match sub.as_deref() {
                     Some("file") => ConfigCommand::File,
+                    Some("schema") => ConfigCommand::Schema,
                     Some("get") | None => ConfigCommand::Get,
                     Some(value) if value.starts_with('-') => ConfigCommand::Get,
                     Some(_) => ConfigCommand::Get,
@@ -270,6 +274,7 @@ mod tests {
         assert!(unsafe_fix.yes);
 
         assert_eq!(parse_args(vec!["fmt".to_string()]).command, Command::Fmt);
+        assert_eq!(parse_args(vec!["lsp".to_string()]).command, Command::Lsp);
         assert_eq!(
             parse_args(vec!["rule".to_string(), "MD013".to_string()]).command,
             Command::Rule(Some("MD013".to_string()))
@@ -286,6 +291,10 @@ mod tests {
         assert_eq!(
             parse_args(vec!["config".to_string(), "file".to_string()]).command,
             Command::Config(ConfigCommand::File)
+        );
+        assert_eq!(
+            parse_args(vec!["config".to_string(), "schema".to_string()]).command,
+            Command::Config(ConfigCommand::Schema)
         );
         assert_eq!(
             parse_args(vec!["version".to_string()]).command,

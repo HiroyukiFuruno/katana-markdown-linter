@@ -1,0 +1,1505 @@
+{
+  "$id": "https://schemas.katana.tools/kml/markdownlint.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "JSON schema for .markdownlint.json and .markdownlint.jsonc files consumed by kml.",
+  "properties": {
+    "MD001": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD001.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Heading levels should only increment by one level at a time",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD001.",
+              "type": "boolean"
+            },
+            "front_matter_title": {
+              "default": "^\\s*title\\s*[:=]",
+              "description": "RegExp for matching title in front matter",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Heading levels should only increment by one level at a time See https://github.com/DavidAnson/markdownlint/blob/main/doc/md001.md."
+    },
+    "MD003": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD003.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Heading style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD003.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Heading style",
+              "enum": [
+                "atx",
+                "atx_closed",
+                "consistent",
+                "setext",
+                "setext_with_atx",
+                "setext_with_atx_closed"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Heading style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md003.md."
+    },
+    "MD004": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD004.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Unordered list style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD004.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "List style",
+              "enum": [
+                "asterisk",
+                "consistent",
+                "dash",
+                "plus",
+                "sublist"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Unordered list style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md004.md."
+    },
+    "MD005": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD005.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Inconsistent indentation for list items at the same level",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD005.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Inconsistent indentation for list items at the same level See https://github.com/DavidAnson/markdownlint/blob/main/doc/md005.md."
+    },
+    "MD007": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD007.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Unordered list indentation",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD007.",
+              "type": "boolean"
+            },
+            "indent": {
+              "default": 2,
+              "description": "Spaces for indent",
+              "type": "number"
+            },
+            "start_indent": {
+              "default": 2,
+              "description": "Spaces for first level indent",
+              "type": "number"
+            },
+            "start_indented": {
+              "default": false,
+              "description": "Whether to indent the first level of the list",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Unordered list indentation See https://github.com/DavidAnson/markdownlint/blob/main/doc/md007.md."
+    },
+    "MD009": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD009.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Trailing spaces",
+          "properties": {
+            "br_spaces": {
+              "default": 2,
+              "description": "Spaces for line break",
+              "type": "number"
+            },
+            "code_blocks": {
+              "default": false,
+              "description": "Include code blocks",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD009.",
+              "type": "boolean"
+            },
+            "list_item_empty_lines": {
+              "default": false,
+              "description": "Allow spaces for empty lines in list items",
+              "type": "boolean"
+            },
+            "strict": {
+              "default": false,
+              "description": "Include unnecessary breaks",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Trailing spaces See https://github.com/DavidAnson/markdownlint/blob/main/doc/md009.md."
+    },
+    "MD010": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD010.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Hard tabs",
+          "properties": {
+            "code_blocks": {
+              "default": true,
+              "description": "Include code blocks",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD010.",
+              "type": "boolean"
+            },
+            "ignore_code_languages": {
+              "default": [],
+              "description": "Fenced code languages to ignore",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "spaces_per_tab": {
+              "default": 1,
+              "description": "Number of spaces for each hard tab",
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Hard tabs See https://github.com/DavidAnson/markdownlint/blob/main/doc/md010.md."
+    },
+    "MD011": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD011.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Reversed link syntax",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD011.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Reversed link syntax See https://github.com/DavidAnson/markdownlint/blob/main/doc/md011.md."
+    },
+    "MD012": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD012.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple consecutive blank lines",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD012.",
+              "type": "boolean"
+            },
+            "maximum": {
+              "default": 1,
+              "description": "Consecutive blank lines",
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple consecutive blank lines See https://github.com/DavidAnson/markdownlint/blob/main/doc/md012.md."
+    },
+    "MD013": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD013.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Line length",
+          "properties": {
+            "code_block_line_length": {
+              "default": 80,
+              "description": "Number of characters for code blocks",
+              "type": "number"
+            },
+            "code_blocks": {
+              "default": true,
+              "description": "Include code blocks",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD013.",
+              "type": "boolean"
+            },
+            "heading_line_length": {
+              "default": 80,
+              "description": "Number of characters for headings",
+              "type": "number"
+            },
+            "headings": {
+              "default": true,
+              "description": "Include headings",
+              "type": "boolean"
+            },
+            "line_length": {
+              "default": 80,
+              "description": "Number of characters",
+              "type": "number"
+            },
+            "stern": {
+              "default": false,
+              "description": "Stern length checking",
+              "type": "boolean"
+            },
+            "strict": {
+              "default": false,
+              "description": "Strict length checking",
+              "type": "boolean"
+            },
+            "tables": {
+              "default": true,
+              "description": "Include tables",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Line length See https://github.com/DavidAnson/markdownlint/blob/main/doc/md013.md."
+    },
+    "MD014": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD014.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Dollar signs used before commands without showing output",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD014.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Dollar signs used before commands without showing output See https://github.com/DavidAnson/markdownlint/blob/main/doc/md014.md."
+    },
+    "MD018": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD018.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "No space after hash on atx style heading",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD018.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "No space after hash on atx style heading See https://github.com/DavidAnson/markdownlint/blob/main/doc/md018.md."
+    },
+    "MD019": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD019.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple spaces after hash on atx style heading",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD019.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple spaces after hash on atx style heading See https://github.com/DavidAnson/markdownlint/blob/main/doc/md019.md."
+    },
+    "MD020": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD020.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "No space inside hashes on closed atx style heading",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD020.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "No space inside hashes on closed atx style heading See https://github.com/DavidAnson/markdownlint/blob/main/doc/md020.md."
+    },
+    "MD021": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD021.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple spaces inside hashes on closed atx style heading",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD021.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple spaces inside hashes on closed atx style heading See https://github.com/DavidAnson/markdownlint/blob/main/doc/md021.md."
+    },
+    "MD022": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD022.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Headings should be surrounded by blank lines",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD022.",
+              "type": "boolean"
+            },
+            "lines_above": {
+              "default": "1",
+              "description": "Blank lines above heading",
+              "type": "string"
+            },
+            "lines_below": {
+              "default": "1",
+              "description": "Blank lines below heading",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Headings should be surrounded by blank lines See https://github.com/DavidAnson/markdownlint/blob/main/doc/md022.md."
+    },
+    "MD023": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD023.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Headings must start at the beginning of the line.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD023.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Headings must start at the beginning of the line. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md023.md."
+    },
+    "MD024": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD024.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple headings with the same content",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD024.",
+              "type": "boolean"
+            },
+            "siblings_only": {
+              "default": false,
+              "description": "Only check sibling headings",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple headings with the same content See https://github.com/DavidAnson/markdownlint/blob/main/doc/md024.md."
+    },
+    "MD025": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD025.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple top-level headings in the same document",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD025.",
+              "type": "boolean"
+            },
+            "front_matter_title": {
+              "default": "^\\s*title\\s*[:=]",
+              "description": "RegExp for matching title in front matter",
+              "type": "string"
+            },
+            "level": {
+              "default": 1,
+              "description": "Heading level",
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple top-level headings in the same document See https://github.com/DavidAnson/markdownlint/blob/main/doc/md025.md."
+    },
+    "MD026": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD026.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Trailing punctuation in heading.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD026.",
+              "type": "boolean"
+            },
+            "punctuation": {
+              "default": ".,;:!。，；：！",
+              "description": "Punctuation characters",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Trailing punctuation in heading. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md026.md."
+    },
+    "MD027": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD027.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Multiple spaces after blockquote symbol.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD027.",
+              "type": "boolean"
+            },
+            "list_items": {
+              "default": true,
+              "description": "Include list items",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Multiple spaces after blockquote symbol. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md027.md."
+    },
+    "MD028": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD028.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Blank line inside blockquote",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD028.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Blank line inside blockquote See https://github.com/DavidAnson/markdownlint/blob/main/doc/md028.md."
+    },
+    "MD029": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD029.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Ordered list item prefix.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD029.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "one_or_ordered",
+              "description": "List style",
+              "enum": [
+                "one",
+                "ordered",
+                "one_or_ordered",
+                "zero"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Ordered list item prefix. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md029.md."
+    },
+    "MD030": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD030.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Spaces after list markers",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD030.",
+              "type": "boolean"
+            },
+            "ol_multi": {
+              "default": 1,
+              "description": "Spaces for multi-line ordered list items",
+              "type": "number"
+            },
+            "ol_single": {
+              "default": 1,
+              "description": "Spaces for single-line ordered list items",
+              "type": "number"
+            },
+            "ul_multi": {
+              "default": 1,
+              "description": "Spaces for multi-line unordered list items",
+              "type": "number"
+            },
+            "ul_single": {
+              "default": 1,
+              "description": "Spaces for single-line unordered list items",
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Spaces after list markers See https://github.com/DavidAnson/markdownlint/blob/main/doc/md030.md."
+    },
+    "MD031": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD031.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Fenced code blocks should be surrounded by blank lines",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD031.",
+              "type": "boolean"
+            },
+            "list_items": {
+              "default": true,
+              "description": "Include list items",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Fenced code blocks should be surrounded by blank lines See https://github.com/DavidAnson/markdownlint/blob/main/doc/md031.md."
+    },
+    "MD032": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD032.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Lists should be surrounded by blank lines",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD032.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Lists should be surrounded by blank lines See https://github.com/DavidAnson/markdownlint/blob/main/doc/md032.md."
+    },
+    "MD033": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD033.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Inline HTML",
+          "properties": {
+            "allowed_elements": {
+              "default": [],
+              "description": "Allowed elements",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "enabled": {
+              "description": "Enable or disable MD033.",
+              "type": "boolean"
+            },
+            "table_allowed_elements": {
+              "default": [],
+              "description": "Allowed elements in tables",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Inline HTML See https://github.com/DavidAnson/markdownlint/blob/main/doc/md033.md."
+    },
+    "MD034": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD034.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Bare URL used",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD034.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Bare URL used See https://github.com/DavidAnson/markdownlint/blob/main/doc/md034.md."
+    },
+    "MD035": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD035.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Horizontal rule style.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD035.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Horizontal rule style",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Horizontal rule style. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md035.md."
+    },
+    "MD036": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD036.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Emphasis used instead of a heading",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD036.",
+              "type": "boolean"
+            },
+            "punctuation": {
+              "default": ".,;:!?。，；：！？",
+              "description": "Punctuation characters",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Emphasis used instead of a heading See https://github.com/DavidAnson/markdownlint/blob/main/doc/md036.md."
+    },
+    "MD037": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD037.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Spaces inside emphasis markers",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD037.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Spaces inside emphasis markers See https://github.com/DavidAnson/markdownlint/blob/main/doc/md037.md."
+    },
+    "MD038": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD038.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Spaces inside code span elements",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD038.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Spaces inside code span elements See https://github.com/DavidAnson/markdownlint/blob/main/doc/md038.md."
+    },
+    "MD039": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD039.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Spaces inside link text",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD039.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Spaces inside link text See https://github.com/DavidAnson/markdownlint/blob/main/doc/md039.md."
+    },
+    "MD040": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD040.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Fenced code blocks should have a language specified.",
+          "properties": {
+            "allowed_languages": {
+              "default": [],
+              "description": "List of languages",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "enabled": {
+              "description": "Enable or disable MD040.",
+              "type": "boolean"
+            },
+            "language_only": {
+              "default": false,
+              "description": "Require language only",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Fenced code blocks should have a language specified. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md040.md."
+    },
+    "MD041": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD041.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "First line in a file should be a top-level heading.",
+          "properties": {
+            "allow_preamble": {
+              "default": false,
+              "description": "Allow content before first heading",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD041.",
+              "type": "boolean"
+            },
+            "front_matter_title": {
+              "default": "^\\s*title\\s*[:=]",
+              "description": "RegExp for matching title in front matter",
+              "type": "string"
+            },
+            "level": {
+              "default": 1,
+              "description": "Heading level",
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "First line in a file should be a top-level heading. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md041.md."
+    },
+    "MD042": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD042.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "No empty links",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD042.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "No empty links See https://github.com/DavidAnson/markdownlint/blob/main/doc/md042.md."
+    },
+    "MD043": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD043.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Required heading structure",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD043.",
+              "type": "boolean"
+            },
+            "headings": {
+              "default": [],
+              "description": "List of headings",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "match_case": {
+              "default": false,
+              "description": "Match case of headings",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Required heading structure See https://github.com/DavidAnson/markdownlint/blob/main/doc/md043.md."
+    },
+    "MD044": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD044.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Proper names should have the correct capitalization",
+          "properties": {
+            "code_blocks": {
+              "default": true,
+              "description": "Include code blocks",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD044.",
+              "type": "boolean"
+            },
+            "html_elements": {
+              "default": true,
+              "description": "Include HTML elements",
+              "type": "boolean"
+            },
+            "names": {
+              "default": [],
+              "description": "List of proper names",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Proper names should have the correct capitalization See https://github.com/DavidAnson/markdownlint/blob/main/doc/md044.md."
+    },
+    "MD045": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD045.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Images should have alternate text (alt text)",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD045.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Images should have alternate text (alt text) See https://github.com/DavidAnson/markdownlint/blob/main/doc/md045.md."
+    },
+    "MD046": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD046.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Code block style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD046.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Block style",
+              "enum": [
+                "consistent",
+                "fenced",
+                "indented"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Code block style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md046.md."
+    },
+    "MD047": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD047.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Files should end with a single newline character.",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD047.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Files should end with a single newline character. See https://github.com/DavidAnson/markdownlint/blob/main/doc/md047.md."
+    },
+    "MD048": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD048.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Code fence style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD048.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Code fence style",
+              "enum": [
+                "backtick",
+                "consistent",
+                "tilde"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Code fence style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md048.md."
+    },
+    "MD049": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD049.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Emphasis style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD049.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Emphasis style",
+              "enum": [
+                "asterisk",
+                "consistent",
+                "underscore"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Emphasis style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md049.md."
+    },
+    "MD050": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD050.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Strong style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD050.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Strong style",
+              "enum": [
+                "asterisk",
+                "consistent",
+                "underscore"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Strong style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md050.md."
+    },
+    "MD051": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD051.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Link fragments should be valid",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD051.",
+              "type": "boolean"
+            },
+            "ignore_case": {
+              "default": false,
+              "description": "Ignore case of fragments",
+              "type": "boolean"
+            },
+            "ignored_pattern": {
+              "default": "",
+              "description": "Pattern for ignoring additional fragments",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Link fragments should be valid See https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md."
+    },
+    "MD052": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD052.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Reference links and images should use a label that is defined",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD052.",
+              "type": "boolean"
+            },
+            "ignored_labels": {
+              "default": [
+                "x"
+              ],
+              "description": "Ignored link labels",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "shortcut_syntax": {
+              "default": false,
+              "description": "Include shortcut syntax",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Reference links and images should use a label that is defined See https://github.com/DavidAnson/markdownlint/blob/main/doc/md052.md."
+    },
+    "MD053": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD053.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Link and image reference definitions should be needed",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD053.",
+              "type": "boolean"
+            },
+            "ignored_definitions": {
+              "default": [
+                "//"
+              ],
+              "description": "Ignored definitions",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Link and image reference definitions should be needed See https://github.com/DavidAnson/markdownlint/blob/main/doc/md053.md."
+    },
+    "MD054": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD054.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Link and image style",
+          "properties": {
+            "autolink": {
+              "default": true,
+              "description": "Allow autolinks",
+              "type": "boolean"
+            },
+            "collapsed": {
+              "default": true,
+              "description": "Allow collapsed reference links and images",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD054.",
+              "type": "boolean"
+            },
+            "full": {
+              "default": true,
+              "description": "Allow full reference links and images",
+              "type": "boolean"
+            },
+            "inline": {
+              "default": true,
+              "description": "Allow inline links and images",
+              "type": "boolean"
+            },
+            "shortcut": {
+              "default": true,
+              "description": "Allow shortcut reference links and images",
+              "type": "boolean"
+            },
+            "url_inline": {
+              "default": true,
+              "description": "Allow URLs as inline links",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Link and image style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md054.md."
+    },
+    "MD055": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD055.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Table pipe style",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD055.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "consistent",
+              "description": "Table pipe style",
+              "enum": [
+                "consistent",
+                "leading_and_trailing",
+                "leading_only",
+                "no_leading_or_trailing",
+                "trailing_only"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Table pipe style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md055.md."
+    },
+    "MD056": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD056.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Table column count",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD056.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Table column count See https://github.com/DavidAnson/markdownlint/blob/main/doc/md056.md."
+    },
+    "MD058": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD058.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Tables should be surrounded by blank lines",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD058.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Tables should be surrounded by blank lines See https://github.com/DavidAnson/markdownlint/blob/main/doc/md058.md."
+    },
+    "MD059": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD059.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Link text should be descriptive",
+          "properties": {
+            "enabled": {
+              "description": "Enable or disable MD059.",
+              "type": "boolean"
+            },
+            "prohibited_texts": {
+              "default": [
+                "clickhere",
+                "here",
+                "link",
+                "more"
+              ],
+              "description": "Prohibited link texts",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Link text should be descriptive See https://github.com/DavidAnson/markdownlint/blob/main/doc/md059.md."
+    },
+    "MD060": {
+      "anyOf": [
+        {
+          "description": "Enable or disable MD060.",
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Table column style",
+          "properties": {
+            "aligned_delimiter": {
+              "default": false,
+              "description": "Aligned delimiter columns",
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable or disable MD060.",
+              "type": "boolean"
+            },
+            "style": {
+              "default": "any",
+              "description": "Table column style",
+              "enum": [
+                "aligned",
+                "any",
+                "compact",
+                "tight"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "description": "Table column style See https://github.com/DavidAnson/markdownlint/blob/main/doc/md060.md."
+    },
+    "default": {
+      "default": true,
+      "description": "Enable all markdownlint rules by default.",
+      "type": "boolean"
+    }
+  },
+  "title": "katana-markdown-linter configuration",
+  "type": "object"
+}

@@ -41,7 +41,7 @@ impl ConfigValidationError {
 
 pub(crate) fn validate_config(raw: Value, locale: Locale) -> Vec<ConfigValidationError> {
     MarkdownLintConfig { raw }
-        .validate_cached_rules()
+        .validate_against_schema()
         .into_iter()
         .map(|error| ConfigValidationError::from_error(error, locale))
         .collect()

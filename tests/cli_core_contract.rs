@@ -132,6 +132,64 @@ fn fmt_json_uses_formatter_contract_without_lint_fixing_heading_text() {
     assert_eq!(json["files"][0]["diagnostics"].as_array().unwrap().len(), 0);
 }
 
+#[test]
+fn config_schema_outputs_json_schema_for_editor_completion() {
+    let output = run_kml(["config", "schema", "--output", "json"], None);
+
+    assert!(output.status.success());
+    let json = stdout_json(&output);
+    assert_eq!(
+        json["$schema"],
+        "https://json-schema.org/draft/2020-12/schema"
+    );
+    assert_eq!(
+        json["$id"],
+        "https://schemas.katana.tools/kml/markdownlint.schema.json"
+    );
+    assert_eq!(json["type"], "object");
+    assert_eq!(json["additionalProperties"], false);
+    assert_eq!(json["properties"]["default"]["type"], "boolean");
+    assert_eq!(json["properties"]["MD003"]["anyOf"][0]["type"], "boolean");
+    let style_options = json["properties"]["MD003"]["anyOf"][1]["properties"]["style"]["enum"]
+        .as_array()
+        .expect("style enum should be an array");
+    assert!(style_options.contains(&Value::String("atx".to_string())));
+}
+
+#[test]
+fn config_validation_reports_schema_property_errors() {
+    let dir = TestDir::new("config-schema-validation");
+    let file = dir.path().join("bad.md");
+    let config = dir.path().join(".markdownlint.json");
+    fs::write(&file, "# Title\n").expect("fixture should be written");
+    fs::write(
+        &config,
+        r#"{ "default": true, "MD003": { "style": "invalid" } }"#,
+    )
+    .expect("config should be written");
+
+    let output = run_kml(
+        [
+            "check",
+            "--output",
+            "json",
+            "--config",
+            file_text(&config).as_str(),
+            file_text(&file).as_str(),
+        ],
+        None,
+    );
+
+    assert_eq!(output.status.code(), Some(2));
+    let json = stdout_json(&output);
+    assert_eq!(json["errors"][0]["kind"], "config");
+    assert_eq!(json["errors"][0]["message_id"], "config.invalid_enum_value");
+    assert!(json["errors"][0]["message"]
+        .as_str()
+        .expect("message should be text")
+        .contains("MD003.style"));
+}
+
 fn run_kml<const N: usize>(args: [&str; N], stdin: Option<&str>) -> std::process::Output {
     let mut command = Command::new(env!("CARGO_BIN_EXE_kml"));
     command.args(args);

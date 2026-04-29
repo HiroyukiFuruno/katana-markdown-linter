@@ -22,7 +22,7 @@ Run the local stdio smoke test:
 
 Build and smoke test the MCPB bundle:
 
-    make mcpb-smoke VERSION=v0.15.1
+    make mcpb-smoke VERSION=v0.16.0
 
 ## Run
 
@@ -43,7 +43,7 @@ authentication, and write policy have different safety boundaries over HTTP.
 | --- | --- | --- |
 | `check_text` | none | Returns structured diagnostics for Markdown content. |
 | `fix_text` | none | Returns fixed content without writing files. |
-| `config_validate` | none | Validates markdownlint-compatible JSON config. |
+| `config_validate` | none | Validates markdownlint-compatible JSON config against the kml schema model. |
 | `rule_list` | none | Lists known rule metadata. |
 | `rule_get` | none | Returns metadata for one rule ID. |
 | `check_file` | read | Checks one Markdown file under the workspace root. |
@@ -64,6 +64,8 @@ values fall back to English instead of failing the tool call.
 
 Localized responses keep stable fields such as `message_id`, `message_params`,
 `kind`, `expected`, `actual`, `allowed`, rule IDs, and documentation URLs.
+`config_validate` uses the same schema-derived rule metadata as
+`kml config schema`.
 
 ### Workspace Tools
 
@@ -145,17 +147,17 @@ configuration. Add:
 From `v0.14.0`, the local stdio server is published as an MCPB bundle attached
 to each GitHub Release:
 
-    katana-markdown-linter-0.15.1.mcpb
-    katana-markdown-linter-0.15.1.mcpb.sha256
+    katana-markdown-linter-0.16.0.mcpb
+    katana-markdown-linter-0.16.0.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`make mcp-server-json VERSION=v0.15.1` renders `target/mcpb/server.json` with
+`make mcp-server-json VERSION=v0.16.0` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    make server-json-validate VERSION=v0.15.1
+    make server-json-validate VERSION=v0.16.0
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP
