@@ -16,6 +16,10 @@ DOGFOOD_REPORT ?= target/dogfood-report.json
 PUBLIC_CONFIDENCE_CONFIG ?= tests/fixtures/public-confidence/.markdownlint.json
 PUBLIC_CONFIDENCE_CORPUS ?= tests/fixtures/public-confidence/corpus
 PUBLIC_CONFIDENCE_REPORT ?= target/public-confidence-report.json
+DOCUMENT_ANSWER_FIX_CONFIG ?= tests/fixtures/document-answer-fix/.markdownlint.json
+DOCUMENT_ANSWER_FIX_MANIFEST ?= tests/fixtures/document-answer-fix/manifest.json
+DOCUMENT_ANSWER_FIX_REPORT ?= target/document-answer-fix-report.json
+DOCUMENT_ANSWER_FIX_KML ?= target/debug/kml
 KATANA_CHECKOUT ?=
 PERF_BASELINE ?= tests/fixtures/perf-baseline.json
 PERF_REPORT ?= target/perf-report.json
@@ -133,6 +137,11 @@ dogfood-archive: ## Explicitly check archived OpenSpec Markdown
 public-confidence: ## Run public confidence check/fix/fmt convergence evidence on curated Markdown
 	python3 scripts/ci/public-confidence.py --report $(PUBLIC_CONFIDENCE_REPORT) --corpus $(PUBLIC_CONFIDENCE_CORPUS) --config $(PUBLIC_CONFIDENCE_CONFIG) -- $(KML)
 
+.PHONY: document-answer-fix
+document-answer-fix: ## Compare document-level fix output with reviewed answer fixtures
+	cargo build --bin kml --locked
+	python3 scripts/ci/document-answer-fix.py --manifest $(DOCUMENT_ANSWER_FIX_MANIFEST) --config $(DOCUMENT_ANSWER_FIX_CONFIG) --report $(DOCUMENT_ANSWER_FIX_REPORT) -- $(DOCUMENT_ANSWER_FIX_KML)
+
 .PHONY: external-katana-dogfood
 external-katana-dogfood: ## Run optional KatanA docs/assets Markdown confidence dogfood (KATANA_CHECKOUT=/path)
 	@test -n "$(KATANA_CHECKOUT)" || (echo "KATANA_CHECKOUT is required" >&2; exit 2)
@@ -245,7 +254,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty

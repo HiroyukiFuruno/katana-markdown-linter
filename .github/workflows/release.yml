@@ -137,6 +137,9 @@ jobs:
       - name: Public confidence
         run: make public-confidence
 
+      - name: Document answer fix
+        run: make document-answer-fix
+
       - name: Clone upstream markdownlint
         run: git clone --depth 1 https://github.com/DavidAnson/markdownlint.git "${RUNNER_TEMP}/markdownlint"
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.16.2
+
+- Adds document-level answer fixture evaluation for `kml check --fix`,
+  comparing fixed output byte-for-byte against reviewed answer files and
+  rejecting answer fixtures with second-pass fix changes.
+- Locks the release gate to a 250-file corpus: 200 public repository Markdown
+  samples plus 50 original composite regression documents, using the default
+  rule set with line length disabled as non-fix noise.
+- Fixes `MD013` line-length evaluation so Unicode at the configured boundary
+  cannot panic during default-rule document evaluation.
+- Wires `make document-answer-fix` into local release checks and GitHub release
+  workflows while keeping the `v0.17.0` distribution expansion deferred.
+
 ## v0.16.1
 
 - Expands supported locales to match KatanA: English, Japanese, Simplified
