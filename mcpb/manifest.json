@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "katana-markdown-linter",
   "display_name": "KatanA Markdown Linter",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "Markdown lint diagnostics and workspace-scoped safe fixes through MCP stdio.",
   "author": {
     "name": "Hiroyuki Furuno",
