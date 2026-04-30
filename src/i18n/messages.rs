@@ -92,6 +92,9 @@ fn render_japanese_message(message_id: &str, params: &MessageParams, fallback: &
             param(params, "allowed", ""),
             param(params, "actual", "")
         ),
+        "config.fix_or_ignore_advice" => {
+            "markdownlint 設定を修正するか、無効な設定項目を無視して続行する場合は --ignore-config-errors を付けてください".to_string()
+        }
         "summary.no_files" => "Markdown ファイルが見つかりません".to_string(),
         "summary.statistics" => format!(
             "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
@@ -133,7 +136,7 @@ fn parse_heading_levels(message: &str) -> Option<(String, String)> {
     Some((expected.to_string(), actual.to_string()))
 }
 
-const CATALOG_KEYS: [&str; 15] = [
+const CATALOG_KEYS: [&str; 16] = [
     "rule.generic",
     "rule.MD001.heading_increment",
     "config.error",
@@ -142,6 +145,7 @@ const CATALOG_KEYS: [&str; 15] = [
     "config.unknown_property",
     "config.invalid_type",
     "config.invalid_enum_value",
+    "config.fix_or_ignore_advice",
     "filesystem.error",
     "glob.error",
     "rule.error",

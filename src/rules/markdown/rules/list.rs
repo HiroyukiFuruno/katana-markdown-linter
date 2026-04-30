@@ -77,6 +77,7 @@ impl MarkdownRule for OlPrefixRule {
             title: "ol-prefix",
             description: "Ordered list item prefix.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md029.md",
+            aliases: &["ol-prefix"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[crate::rule_prop_enum!(

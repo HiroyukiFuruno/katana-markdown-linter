@@ -1,7 +1,7 @@
 {
   "name": "katana-markdown-linter",
-  "version": "0.17.5",
-  "description": "Thin npm launcher for the kml Markdown linter binary.",
+  "version": "0.17.6",
+  "description": "Thin npm launcher for the kml Markdown linter binary with localized CLI help.",
   "keywords": [
     "markdown",
     "markdownlint",

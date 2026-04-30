@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.17.6
+
+- Treats bare `kml` as global help, keeping `kml help`, `kml --help`,
+  `kml -h`, command-specific help, and all version aliases on the help path.
+- Adds localized help output, including `--locale ja help`,
+  `kml check --help --locale ja`, and help text that explains `--locale`
+  changes diagnostic and help language.
+- Accepts official markdownlint config aliases such as `first-line-h1`,
+  `first-line-heading`, `no-duplicate-heading`, and `no-inline-html`, plus
+  `integer|integer[]` rule properties such as `MD022.lines_below`.
+- Stops before linting when configuration validation fails and reports how to
+  fix the config or explicitly continue with `--ignore-config-errors`.
+
 ## v0.17.5
 
 - Adds global and command-specific CLI help for `kml help`, `kml --help`,

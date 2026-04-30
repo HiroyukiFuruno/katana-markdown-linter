@@ -6,6 +6,7 @@ use std::path::Path;
 struct UpstreamRuleDocument {
     pub id: String,
     pub name: String,
+    pub aliases: Vec<String>,
     pub summary: String,
     pub properties: Vec<UpstreamRuleProperty>,
     pub fixable: bool,
@@ -61,6 +62,7 @@ fn parse_rule_document(source: &str) -> Result<UpstreamRuleDocument, String> {
     Ok(UpstreamRuleDocument {
         id,
         name,
+        aliases,
         summary,
         properties,
         fixable,
@@ -210,6 +212,14 @@ fn main() {
             escape_for_rust_str(&rule.summary)
         ));
         out.push_str(&format!("            docs_url: \"https://github.com/DavidAnson/markdownlint/blob/main/doc/{}.md\",\n", id_lower));
+        out.push_str("            aliases: &[\n");
+        for alias in &rule.aliases {
+            out.push_str(&format!(
+                "                \"{}\",\n",
+                escape_for_rust_str(alias)
+            ));
+        }
+        out.push_str("            ],\n");
         out.push_str("            parity: crate::rules::markdown::RuleParityStatus::Official,\n");
         out.push_str(&format!("            is_fixable: {},\n", rule.fixable));
 
@@ -246,6 +256,9 @@ fn main() {
                     "boolean" => "crate::rules::markdown::RulePropertyType::Boolean".to_string(),
                     "integer" => "crate::rules::markdown::RulePropertyType::Number".to_string(),
                     "array" => "crate::rules::markdown::RulePropertyType::StringArray".to_string(),
+                    "integer|integer[]" | "number|number[]" => {
+                        "crate::rules::markdown::RulePropertyType::NumberOrNumberArray".to_string()
+                    }
                     _ => "crate::rules::markdown::RulePropertyType::String".to_string(),
                 }
             };

@@ -109,7 +109,7 @@ kml version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.5 check README.md
+npx --yes katana-markdown-linter@0.17.6 check README.md
 ~~~
 
 ### PyPI
@@ -128,7 +128,7 @@ Use `uvx` for one-off runs without installing the launcher into your active
 environment:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.5 kml check README.md
+uvx --from katana-markdown-linter==0.17.6 kml check README.md
 ~~~
 
 ### GitHub Releases
@@ -137,10 +137,10 @@ Standalone `kml` archives are attached to GitHub Releases. Choose the archive
 that matches your Rust target triple:
 
 ~~~bash
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.5/kml-v0.17.5-aarch64-apple-darwin.tar.gz
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.5/kml-v0.17.5-aarch64-apple-darwin.tar.gz.sha256
-shasum -a 256 -c kml-v0.17.5-aarch64-apple-darwin.tar.gz.sha256
-tar -xzf kml-v0.17.5-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.6/kml-v0.17.6-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.6/kml-v0.17.6-aarch64-apple-darwin.tar.gz.sha256
+shasum -a 256 -c kml-v0.17.6-aarch64-apple-darwin.tar.gz.sha256
+tar -xzf kml-v0.17.6-aarch64-apple-darwin.tar.gz
 ~~~
 
 ### Homebrew
@@ -157,8 +157,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.5
-  with: { version: "0.17.5", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.6
+  with: { version: "0.17.6", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -174,6 +174,7 @@ separate lines.
 kml check
 kml check --locale en
 kml check -l ja
+kml --locale ja help
 kml fix
 kml fmt
 kml check --fix
@@ -182,6 +183,7 @@ kml check README.md
 kml check --file README.md
 kml check --output json "docs/**/*.md"
 kml check --format json "docs/**/*.md"
+kml check --ignore-config-errors README.md
 kml check --stdin
 kml fix --stdin
 kml check --include "**/*.md" --exclude "target/**"
@@ -235,7 +237,11 @@ with pre-fix diagnostics and rewritten file diffs.
 
 Directory scans respect gitignore files by default. Use `--no-ignore` to include ignored paths everywhere, or `--include-ignored` to include ignored paths only under explicit directory inputs such as `.agents`. Reserved directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `coverage` are skipped by default even without gitignore entries; use `--include-reserved` only when you intentionally want to scan them. Project-specific generated or agent directories should be covered by gitignore or `--exclude`. `--exclude` filters discovered files; explicit files are kept unless `--force-exclude` is also set.
 
-`--locale <locale>` and `-l <locale>` select user-facing CLI message locale.
+Invoking `kml` without a command prints global help. `kml help`, `kml --help`,
+`kml -h`, and `kml <command> --help` print help without scanning files.
+
+`--locale <locale>` and `-l <locale>` select user-facing CLI message and help
+text locale.
 Supported values resolve to `en`, `ja`, `zh-CN`, `zh-TW`, `ko`, `pt`, `fr`,
 `de`, `es`, and `it`, including common region forms such as `fr-FR`,
 `pt-BR`, or `ko-KR`. When omitted, `kml` reads OS locale environment variables
@@ -353,6 +359,12 @@ Use `kml config schema` to print the JSON Schema used by editor integration and
 configuration validation. The stable schema ID is
 `https://schemas.katana.tools/kml/markdownlint.schema.json`.
 
+Configuration errors stop `check`, `fix`, and `fmt` before file diagnostics are
+reported. Fix the config first, or pass `--ignore-config-errors` when you
+explicitly want invalid config entries ignored for that run. Official
+markdownlint aliases such as `first-line-h1`, `first-line-heading`,
+`no-duplicate-heading`, and `no-inline-html` are accepted.
+
 ## Editor Integration
 
 `kml lsp` starts a stdio Language Server Protocol server for Markdown
@@ -422,7 +434,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.17.5
+make mcpb-smoke VERSION=v0.17.6
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the

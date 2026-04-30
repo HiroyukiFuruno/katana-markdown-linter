@@ -4,7 +4,7 @@
 linter. The package does not contain independent lint logic. On first use, it
 downloads the matching `kml` binary archive from GitHub Releases, verifies the
 neighboring SHA-256 checksum, installs the binary into the wrapper cache, and
-then delegates all commands to that binary.
+then delegates all commands to that binary, including localized CLI help.
 
 ## Install
 
@@ -16,8 +16,8 @@ kml --version
 Use `uvx` for one-off runs:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.5 kml --version
-uvx --from katana-markdown-linter==0.17.5 kml check README.md
+uvx --from katana-markdown-linter==0.17.6 kml --version
+uvx --from katana-markdown-linter==0.17.6 kml check README.md
 ~~~
 
 ## Basic Usage
@@ -25,6 +25,7 @@ uvx --from katana-markdown-linter==0.17.5 kml check README.md
 ~~~bash
 kml check README.md
 kml check docs --config .markdownlint.json
+kml --locale ja help
 kml fix README.md
 ~~~
 

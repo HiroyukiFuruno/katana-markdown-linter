@@ -1212,12 +1212,12 @@
         },
         {
           "name": "lines_above_valid",
-          "source": "{ \"MD022\": { \"lines_above\": \"1\" } }",
+          "source": "{ \"MD022\": { \"lines_above\": 1 } }",
           "expected": null
         },
         {
           "name": "lines_below_valid",
-          "source": "{ \"MD022\": { \"lines_below\": \"1\" } }",
+          "source": "{ \"MD022\": { \"lines_below\": [1, 1] } }",
           "expected": null
         }
       ],

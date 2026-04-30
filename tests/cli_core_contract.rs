@@ -157,6 +157,25 @@ fn config_schema_outputs_json_schema_for_editor_completion() {
 }
 
 #[test]
+fn bare_command_prints_usage_without_linting_workspace() {
+    let dir = TestDir::new("bare-command-help");
+    let output = run_kml_in([], None, dir.path());
+
+    assert!(
+        output.status.success(),
+        "bare command should exit successfully\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_contains(&stdout, "Usage: kml <command> [options] [paths...]");
+    assert_contains(&stdout, "Commands:");
+    assert_contains(&stdout, "check");
+}
+
+#[test]
 fn help_commands_print_usage_without_linting_workspace() {
     for argument in ["--help", "-h", "help"] {
         let dir = TestDir::new("help-command");
@@ -206,6 +225,161 @@ fn command_help_flags_print_command_usage() {
             assert_contains(&stdout, &format!("Usage: kml {command_name}"));
         }
     }
+}
+
+#[test]
+fn help_uses_explicit_or_environment_japanese_locale() {
+    let explicit_dir = TestDir::new("explicit-japanese-help");
+    let explicit = run_kml_in(["--locale", "ja", "help"], None, explicit_dir.path());
+
+    assert!(
+        explicit.status.success(),
+        "explicit Japanese help should exit successfully\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&explicit.stdout),
+        String::from_utf8_lossy(&explicit.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&explicit.stdout);
+    assert_contains(&stdout, "使い方: kml <command> [options] [paths...]");
+    assert_contains(&stdout, "--locale <locale>, -l");
+    assert_contains(&stdout, "診断・ヘルプの表示言語を指定します");
+
+    let english_dir = TestDir::new("english-help-locale-option");
+    let english = run_kml_in(["help"], None, english_dir.path());
+
+    assert!(
+        english.status.success(),
+        "English help should exit successfully\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&english.stdout),
+        String::from_utf8_lossy(&english.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&english.stdout);
+    assert_contains(&stdout, "--locale <locale>, -l");
+    assert_contains(&stdout, "Use localized output and help text.");
+
+    let env_dir = TestDir::new("environment-japanese-help");
+    let environment = run_kml_in_with_env(
+        ["check", "--help"],
+        None,
+        env_dir.path(),
+        [("LC_ALL", "ja_JP.UTF-8"), ("LANG", "ja_JP.UTF-8")],
+    );
+
+    assert!(
+        environment.status.success(),
+        "environment Japanese help should exit successfully\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&environment.stdout),
+        String::from_utf8_lossy(&environment.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&environment.stdout);
+    assert_contains(&stdout, "使い方: kml check [options] [paths...]");
+    assert_contains(&stdout, "--locale <locale>, -l");
+    assert_contains(&stdout, "診断・ヘルプの表示言語を指定します");
+}
+
+#[test]
+fn check_accepts_official_alias_config_without_config_errors() {
+    let dir = TestDir::new("official-alias-config");
+    let file = dir.path().join("ok.md");
+    let config = dir.path().join(".markdownlint.json");
+    fs::write(&file, "# Title\n\nText\n").expect("fixture should be written");
+    fs::write(
+        &config,
+        r#"{
+  "default": false,
+  "first-line-h1": { "allow_preamble": true },
+  "first-line-heading": false,
+  "no-duplicate-heading": false,
+  "no-inline-html": false,
+  "MD022": {
+    "lines_above": [1, 1, 1, 1, 1, 1],
+    "lines_below": 1
+  }
+}"#,
+    )
+    .expect("config should be written");
+
+    let output = run_kml(
+        [
+            "check",
+            "--output",
+            "json",
+            "--config",
+            file_text(&config).as_str(),
+            file_text(&file).as_str(),
+        ],
+        None,
+    );
+
+    assert!(
+        output.status.success(),
+        "official alias config should not produce config errors\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(stdout_json(&output)["summary"]["total_issues"], 0);
+}
+
+#[test]
+fn invalid_config_stops_before_linting_and_guides_override() {
+    let dir = TestDir::new("invalid-config-stops");
+    let file = dir.path().join("bad.md");
+    let config = dir.path().join(".markdownlint.json");
+    fs::write(&file, "#Title\n").expect("fixture should be written");
+    fs::write(
+        &config,
+        r#"{ "default": false, "MD018": true, "MD003": { "style": "invalid" } }"#,
+    )
+    .expect("config should be written");
+
+    let output = run_kml(
+        [
+            "check",
+            "--config",
+            file_text(&config).as_str(),
+            file_text(&file).as_str(),
+        ],
+        None,
+    );
+
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_contains(&stderr, "config error:");
+    assert_contains(&stderr, "--ignore-config-errors");
+    assert!(
+        !stderr.contains("MD018"),
+        "lint diagnostics should not be emitted when config is invalid\nstderr:\n{stderr}"
+    );
+}
+
+#[test]
+fn ignore_config_errors_continues_with_invalid_entries_ignored() {
+    let dir = TestDir::new("ignore-config-errors");
+    let file = dir.path().join("bad.md");
+    let config = dir.path().join(".markdownlint.json");
+    fs::write(&file, "#Title\n").expect("fixture should be written");
+    fs::write(
+        &config,
+        r#"{ "default": false, "MD018": true, "MD003": { "style": "invalid" } }"#,
+    )
+    .expect("config should be written");
+
+    let output = run_kml(
+        [
+            "check",
+            "--ignore-config-errors",
+            "--output",
+            "json",
+            "--config",
+            file_text(&config).as_str(),
+            file_text(&file).as_str(),
+        ],
+        None,
+    );
+
+    assert_eq!(output.status.code(), Some(1));
+    let json = stdout_json(&output);
+    assert_eq!(json["errors"][0]["kind"], "config");
+    assert_eq!(json["files"][0]["diagnostics"][0]["rule_id"], "MD018");
 }
 
 #[test]
@@ -274,6 +448,34 @@ fn run_kml_in<const N: usize>(
     let mut command = Command::new(env!("CARGO_BIN_EXE_kml"));
     command.args(args);
     command.current_dir(current_dir);
+    if stdin.is_some() {
+        command.stdin(Stdio::piped());
+    }
+    command.stdout(Stdio::piped());
+    command.stderr(Stdio::piped());
+
+    let mut child = command.spawn().expect("kml should start");
+    if let Some(input) = stdin {
+        child
+            .stdin
+            .as_mut()
+            .expect("stdin should be piped")
+            .write_all(input.as_bytes())
+            .expect("stdin should be written");
+    }
+    child.wait_with_output().expect("kml should finish")
+}
+
+fn run_kml_in_with_env<const N: usize, const M: usize>(
+    args: [&str; N],
+    stdin: Option<&str>,
+    current_dir: &Path,
+    envs: [(&str, &str); M],
+) -> std::process::Output {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_kml"));
+    command.args(args);
+    command.current_dir(current_dir);
+    command.envs(envs);
     if stdin.is_some() {
         command.stdin(Stdio::piped());
     }
