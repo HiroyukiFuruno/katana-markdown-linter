@@ -33,9 +33,20 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.16.1`: KatanA 本体と同じ locale set に合わせ、description 系 API と rule document Markdown の i18n 欠落を閉じる。
 - `v0.16.2`: `v0.17.0` の配布拡張を凍結したまま、document answer fix evaluation で `kml check --fix` の byte-for-byte 正しさを固める。
 - `v0.17.0`: released distribution expansion with standalone binary artifacts, Homebrew formula generation, and deferred npm/pip wrapper publication gates.
+- `v0.17.1`: post-release distribution closeout として npm / PyPI wrapper を公式 install channel に昇格し、Homebrew tap 更新、npm trusted publishing 後始末、`release-verify` の wrapper / tap 検証拡張を扱う。
+- `v0.18.0`: config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
+- `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
+- `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
+- `v0.18.3`: editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
+| P0 | Distribution closeout for `v0.17.1` | `v0-17-1-distribution-closeout` | `v0.17.0` already published GitHub Release, crates.io, npm, and PyPI. The roadmap should now close the remaining operational gap: mark wrappers official, update `docs/distribution.md` and `docs/release-runbook.md`, update the Homebrew tap from generated formula output, configure npm trusted publishing, remove the temporary `NPM_TOKEN`, and teach `release-verify` to check npm / PyPI / Homebrew state. |
+| P1 | Schema publication for `v0.18.0` | `v0-18-0-schema-publication` | `kml config schema` already exists, but distribution docs still defer schema publication. The next durable step is a versioned schema contract, fixture-backed schema compatibility checks, and docs that editor integrations can rely on. |
+| P1 | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | The LSP entrypoint and schema command already exist. VS Code should become the first real editor target because the extension surface can stay thin: launch `kml lsp`, associate the config schema, and expose diagnostics / format / safe quick-fix without moving lint logic into the extension. |
+| P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
+| P2 | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | After both target editors have MVPs, harden install docs, smoke tests, release verification, marketplace packaging, and optional docs-only Neovim configuration without expanding the core engine. |
+| P2 | Release verification hardening | TBD: `release-verification-hardening` | `v0.17.0` exposed that external registry verification is broader than GitHub Release + crates.io. Add npm, PyPI, wrapper launch, and tap formula checks to the post-release verification path before the next distribution release. |
 | Done | Golden and edge coverage for `v0.4.0` | `golden-edge-coverage-expansion` | Completed for `v0.4.0`; dashboard now derives golden status from the locked baseline and records edge coverage. |
 | Done | Safe check/fix expansion for `v0.4.0` | `safe-fix-strategy-expansion` | Completed for `v0.4.0`; `MD005` and `MD030` safe subsets are locked, while `MD060` remains diagnostic/manual-required because official metadata marks it non-fixable. |
 | Done | Table strategy for `v0.5.0` | `v0-5-0-table-strategy-md060` | Completed for `v0.5.0`; `MD060` now has table-block parsing, official style checks, and safe fix subsets. |
@@ -115,7 +126,12 @@ Archived completed changes:
 
 ## Suggested Order
 
-No active release-train changes remain in this roadmap section.
+1. `v0-17-1-distribution-closeout`: close the published-channel gaps first because npm / PyPI are already public and Homebrew tap state is the remaining user-visible distribution gap.
+2. `v0-18-0-schema-publication`: make the existing config schema command a stable published contract before more editor polish depends on it.
+3. `v0-18-1-vscode-extension-mvp`: build the first thin editor wrapper on the stable schema and existing LSP entrypoint.
+4. `v0-18-2-zed-extension-mvp`: reuse the shared LSP contract and validate the Zed-specific extension boundary.
+5. `v0-18-3-editor-extension-hardening`: harden docs, smoke tests, release checks, and packaging after both target editor MVPs exist.
+6. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Makefile`, and release docs.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
