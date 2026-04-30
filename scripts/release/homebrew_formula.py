@@ -74,7 +74,6 @@ class HomebrewFormulaTool:
             "class Kml < Formula",
             "  desc \"Markdownlint-compatible Markdown linter library and CLI\"",
             "  homepage \"https://github.com/HiroyukiFuruno/katana-markdown-linter\"",
-            f"  version \"{self.version.removeprefix('v')}\"",
             "  license \"MIT\"",
             "",
         ]
@@ -106,25 +105,27 @@ class HomebrewFormulaTool:
     def _render_linux(self, asset: FormulaAsset) -> list[str]:
         return [
             "  on_linux do",
-            f"    url \"{asset.url(self.repo, self.version)}\"",
-            f"    sha256 \"{asset.checksum}\"",
+            "    on_intel do",
+            f"      url \"{asset.url(self.repo, self.version)}\"",
+            f"      sha256 \"{asset.checksum}\"",
+            "    end",
             "  end",
             "",
         ]
 
     def _render_macos(self, assets: list[FormulaAsset]) -> list[str]:
         lines = ["  on_macos do"]
-        for index, asset in enumerate(assets):
-            condition = "Hardware::CPU.arm?" if asset.target.startswith("aarch64") else "Hardware::CPU.intel?"
-            keyword = "if" if index == 0 else "elsif"
+        for asset in assets:
+            cpu_block = "on_arm" if asset.target.startswith("aarch64") else "on_intel"
             lines.extend(
                 [
-                    f"    {keyword} {condition}",
+                    f"    {cpu_block} do",
                     f"      url \"{asset.url(self.repo, self.version)}\"",
                     f"      sha256 \"{asset.checksum}\"",
+                    "    end",
                 ]
             )
-        lines.extend(["    end", "  end", ""])
+        lines.extend(["  end", ""])
         return lines
 
     def _normalize_version(self, version: str) -> str:
