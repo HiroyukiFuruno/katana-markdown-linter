@@ -357,3 +357,16 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 - **THEN** `cargo install katana-markdown-linter` で `kml` を導入できる状態を維持する
 - **AND** existing GitHub Action install-source behavior を維持する
 - **AND** binary artifact support のために crate metadata を弱めない
+
+### Requirement: v0.17.4 release readiness SHALL close wrapper stale-cache regression
+
+`v0.17.4` の release readiness は、npm / PyPI wrapper が過去 version の unversioned binary cache を再利用しないことを release blocker として扱わなければならない（SHALL）。
+
+#### Scenario: stale wrapper cache is present
+
+- **WHEN** developer prepares `v0.17.4`
+- **THEN** system creates a stale `bin/kml` cache that returns a mismatched version
+- **AND** system runs the npm wrapper with `KML_WRAPPER_INSTALL_DIR` pointing at that stale cache
+- **AND** system runs the PyPI wrapper with `KML_WRAPPER_INSTALL_DIR` pointing at that stale cache
+- **AND** both wrappers return `0.17.4`
+- **AND** release check fails before publication if either wrapper returns the stale binary version

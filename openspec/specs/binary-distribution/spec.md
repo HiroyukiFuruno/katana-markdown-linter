@@ -142,3 +142,15 @@ PyPI wrapper package は、thin wrapper に不要な runtime dependency を追�
 - **THEN** system は package name ownership と trusted publishing 設定を確認する
 - **AND** system は clean environment で wrapper install と `kml --version` を検証する
 - **AND** 条件を満たさない場合、system は wrapper を公式導線として公開しない
+
+### Requirement: npm and PyPI wrappers SHALL scope binary caches by version and target
+
+npm / PyPI wrapper は、download 済み `kml` binary cache を package version と target platform ごとに分離しなければならない（SHALL）。
+
+#### Scenario: wrapper upgrades from an older cached binary
+
+- **WHEN** user runs a newer npm or PyPI wrapper version
+- **AND** an older unversioned `bin/kml` cache exists under the wrapper install directory
+- **THEN** wrapper does not reuse the older unversioned binary
+- **AND** wrapper installs or reuses a binary under a version-specific and target-specific cache path
+- **AND** `kml --version` returns the wrapper package version

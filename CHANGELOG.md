@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.17.4
+
+- Fixes npm and PyPI wrapper binary caches so cached `kml` binaries are scoped
+  by package version and target platform.
+- Extends wrapper smoke coverage with stale-cache regression checks.
+- Hardens post-release verification so it fetches a missing local release tag
+  and checks release asset names without a pipe that can stall.
+
 ## v0.17.3
 
 - Adds a full PyPI wrapper README and project metadata so the PyPI project page
