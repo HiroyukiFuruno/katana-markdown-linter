@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
   },
   "bin": {
     "kml": "bin/kml.js"
