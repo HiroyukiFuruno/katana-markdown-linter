@@ -286,6 +286,7 @@ jobs:
           SERVER_JSON_PATH: ${{ steps.mcpb.outputs.server_json_path }}
         run: |
           shopt -s nullglob
+          tag_target="$(git rev-list -n 1 "$TAG")"
           binary_assets=(target/binary/kml-${TAG}-*.tar.gz target/binary/kml-${TAG}-*.tar.gz.sha256 target/binary/kml-${TAG}-*.zip target/binary/kml-${TAG}-*.zip.sha256)
           if [[ "${#binary_assets[@]}" -ne 8 ]]; then
             echo "Expected 8 binary assets, found ${#binary_assets[@]}." >&2
@@ -296,12 +297,12 @@ jobs:
             gh release edit "$TAG" \
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md \
-              --target "$(git rev-parse HEAD)"
+              --target "$tag_target"
             gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" --clobber
           else
             gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" \
               --verify-tag \
-              --target "$(git rev-parse HEAD)" \
+              --target "$tag_target" \
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md
           fi
