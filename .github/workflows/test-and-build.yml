@@ -17,6 +17,7 @@ on:
       - 'openspec/**'
       - 'scripts/**'
       - 'tests/**'
+      - 'wrappers/**'
   pull_request:
     branches: [main, master]
     paths:
@@ -33,6 +34,7 @@ on:
       - 'openspec/**'
       - 'scripts/**'
       - 'tests/**'
+      - 'wrappers/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

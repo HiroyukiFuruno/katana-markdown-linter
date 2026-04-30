@@ -16,6 +16,7 @@ on:
       - 'scripts/**'
       - 'server.json'
       - 'tests/**'
+      - 'wrappers/**'
   workflow_dispatch:
 
 jobs:
