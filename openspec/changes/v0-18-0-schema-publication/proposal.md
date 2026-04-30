@@ -20,6 +20,7 @@ VS Code / Zed extension を作る前に、editor が依存できる設定スキ�
 - `.markdownlint.json` / `.markdownlint.jsonc` の editor validation docs を更新する
 - release workflow と local release gate に schema publication check を追加する
 - schema の compatibility policy を docs に明記する
+- npm / PyPI の registry-visible README と package description に `help` / `version` 導線を反映する
 
 ## Capabilities
 
@@ -43,6 +44,10 @@ VS Code / Zed extension を作る前に、editor が依存できる設定スキ�
 - `.github/workflows/release-preflight.yml`
 - `Makefile`
 - `scripts/release/**`
+- `wrappers/npm/README.md`
+- `wrappers/npm/package.json`
+- `wrappers/python/README.md`
+- `wrappers/python/pyproject.toml`
 - `README.md`
 - `docs/editor-integration.md`
 - `docs/distribution.md`

@@ -70,6 +70,8 @@ Homebrew 定義ファイル（formula）は、検証済みの GitHub Release art
 - **WHEN** system が Homebrew 更新を準備する
 - **THEN** system は formula 生成結果と checksum を検証する
 - **AND** system は tap repository への変更を review 可能な差分として作る
+- **AND** formula URLs point to GitHub Release binary archives for `vX.Y.Z`
+- **AND** formula checksum values match the release checksum files
 - **AND** system は検証前に remote tap branch へ push しない
 
 ### Requirement: npm and pip wrappers SHALL be thin launchers
@@ -142,6 +144,17 @@ PyPI wrapper package は、thin wrapper に不要な runtime dependency を追�
 - **THEN** system は package name ownership と trusted publishing 設定を確認する
 - **AND** system は clean environment で wrapper install と `kml --version` を検証する
 - **AND** 条件を満たさない場合、system は wrapper を公式導線として公開しない
+
+### Requirement: npm and PyPI wrappers SHALL be official only after registry verification
+
+npm / PyPI wrapper は、registry 公開状態と wrapper 起動検証が揃った場合だけ公式 install channel として扱わなければならない（SHALL）。
+
+#### Scenario: wrapper channel is documented as official
+
+- **WHEN** repository docs list npm or PyPI as an official install channel
+- **THEN** system verifies the registry package version matches the release version
+- **AND** system verifies the wrapper launches `kml --version` for that release
+- **AND** system does not describe unpublished or unverified wrapper paths as official
 
 ### Requirement: npm and PyPI wrappers SHALL scope binary caches by version and target
 
