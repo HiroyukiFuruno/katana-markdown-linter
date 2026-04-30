@@ -311,6 +311,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "MCP Registry metadata"),
         (".github/workflows/release.yml", &workflow, "run: make document-answer-fix"),
         (".github/workflows/release.yml", &workflow, "Binary artifact (${{ matrix.target }})"),
+        (".github/workflows/release.yml", &workflow, "macos-15-intel"),
         (".github/workflows/release.yml", &workflow, "Generate Homebrew formula"),
         (".github/workflows/release.yml", &workflow, "Publish npm wrapper"),
         (".github/workflows/release.yml", &workflow, "node-version: \"24\""),
