@@ -105,6 +105,9 @@ The workflow creates or updates:
 - `.mcpb.sha256` checksum
 - rendered MCP Registry `server.json`
 
+The `x86_64-apple-darwin` artifact uses GitHub Actions `macos-15-intel`
+because the older `macos-13` image is no longer supported.
+
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
 Release preflight must keep `make action-smoke` passing before publishing a tag.
 
