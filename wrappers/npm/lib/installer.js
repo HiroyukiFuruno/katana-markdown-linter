@@ -15,7 +15,7 @@ class KmlInstaller {
   }
 
   ensureBinary() {
-    const binaryPath = path.join(this.installRoot, "bin", this.binaryName());
+    const binaryPath = path.join(this.installRoot, this.version, this.target, "bin", this.binaryName());
     if (fs.existsSync(binaryPath)) {
       return binaryPath;
     }

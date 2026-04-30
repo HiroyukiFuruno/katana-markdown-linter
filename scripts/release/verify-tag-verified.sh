@@ -6,6 +6,18 @@ REPO="${2:-${GH_REPO:-HiroyukiFuruno/katana-markdown-linter}}"
 ATTEMPTS="${KML_TAG_VERIFICATION_ATTEMPTS:-12}"
 SLEEP_SECONDS="${KML_TAG_VERIFICATION_SLEEP_SECONDS:-5}"
 
+ensure_local_tag() {
+  git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null && return
+  if git remote get-url origin >/dev/null 2>&1; then
+    git fetch --quiet origin "refs/tags/${TAG}:refs/tags/${TAG}" || true
+  fi
+  git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null && return
+  echo "${TAG} is not available locally and could not be fetched from origin." >&2
+  exit 1
+}
+
+ensure_local_tag
+
 if [[ "$(git cat-file -t "${TAG}" 2>/dev/null || true)" != "tag" ]]; then
   echo "${TAG} must be an annotated signed tag." >&2
   exit 1

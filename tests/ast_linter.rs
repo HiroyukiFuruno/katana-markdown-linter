@@ -280,7 +280,12 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let quality = read_workspace_file("docs/quality-gates.md");
     let release_notes = read_workspace_file("scripts/release/release-notes.sh");
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
+    let tag_verifier = read_workspace_file("scripts/release/verify-tag-verified.sh");
     let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
+    let wrapper_smoke = read_workspace_file("scripts/release/smoke-wrappers.sh");
+    let npm_installer = read_workspace_file("wrappers/npm/lib/installer.js");
+    let python_installer =
+        read_workspace_file("wrappers/python/src/katana_markdown_linter/installer.py");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
@@ -393,6 +398,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/release-notes.sh", &release_notes, "CHANGELOG.md is missing a non-empty section"),
         ("scripts/release/assert-crate-not-published.sh", &crate_guard, "Bump Cargo.toml before dispatching"),
         ("scripts/release/verify-release-published.sh", &published_verifier, "assert_equal \"GitHub Release title\""),
+        ("scripts/release/verify-tag-verified.sh", &tag_verifier, "git fetch --quiet origin \"refs/tags/${TAG}:refs/tags/${TAG}\""),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "release_asset_exists"),
+        ("scripts/release/smoke-wrappers.sh", &wrapper_smoke, "reused an unversioned stale cache"),
+        ("wrappers/npm/lib/installer.js", &npm_installer, "this.version, this.target"),
+        ("wrappers/python/src/katana_markdown_linter/installer.py", &python_installer, "self.version / self.target"),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_title="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release is missing binary archive"),

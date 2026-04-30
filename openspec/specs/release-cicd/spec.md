@@ -190,3 +190,25 @@ npm wrapper retry は、trusted publishing で実行し、長期 token fallback 
 - **THEN** workflow uses GitHub Actions OIDC trusted publishing
 - **AND** workflow does not require `NPM_TOKEN` or `NODE_AUTH_TOKEN`
 - **AND** workflow records a clear failure when npm rejects the trusted publisher context
+
+### Requirement: release verification SHALL tolerate fresh local clones after publication
+
+release verification は、publication 後の fresh local clone でも release tag を明示取得して検証を継続できなければならない（SHALL）。
+
+#### Scenario: local release tag is missing
+
+- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **AND** the local repository does not yet have tag `vX.Y.Z`
+- **THEN** system fetches the tag from `origin`
+- **AND** system verifies that the fetched tag is an annotated signed tag
+- **AND** system continues to GitHub Verified signature verification
+
+### Requirement: release verification SHALL not stall while checking release asset names
+
+release verification は、GitHub Release asset 名の存在確認で pipe / early-exit command による停止を起こしてはならない（SHALL NOT）。
+
+#### Scenario: release assets are listed
+
+- **WHEN** system fetches GitHub Release asset names
+- **THEN** system checks required archive and checksum names without `grep -q` over a here-string or equivalent early-exit pipe
+- **AND** system reports the missing asset name directly when an archive or checksum is absent

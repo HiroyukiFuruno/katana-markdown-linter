@@ -28,6 +28,11 @@ assert_equal() {
   exit 1
 }
 
+release_asset_exists() {
+  asset_name="$1"
+  [[ $'\n'"${asset_names}"$'\n' == *$'\n'"${asset_name}"$'\n'* ]]
+}
+
 verify_github_release() {
   local_target="$(git rev-parse "${TAG}^{}")"
   release_tag="$(gh release view "${TAG}" --repo "${REPO}" --json tagName --jq '.tagName')"
@@ -61,11 +66,11 @@ verify_binary_assets() {
       extension="zip"
     fi
     archive="kml-${TAG}-${target}.${extension}"
-    if ! grep -Fxq "${archive}" <<< "${asset_names}"; then
+    if ! release_asset_exists "${archive}"; then
       echo "GitHub Release is missing binary archive: ${archive}" >&2
       exit 1
     fi
-    if ! grep -Fxq "${archive}.sha256" <<< "${asset_names}"; then
+    if ! release_asset_exists "${archive}.sha256"; then
       echo "GitHub Release is missing binary checksum: ${archive}.sha256" >&2
       exit 1
     fi

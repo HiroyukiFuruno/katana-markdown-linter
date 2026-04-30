@@ -36,6 +36,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.17.1`: post-release distribution closeout として npm / PyPI wrapper を公式 install channel に昇格し、Homebrew tap 更新、npm trusted publishing 後始末、`release-verify` の wrapper / tap 検証拡張を扱う。
 - `v0.17.2`: npm package page polish と npm publish closeout を行う。`wrappers/npm/README.md`、keywords / homepage / bugs metadata、npm tarball verification、trusted publishing retry を `v0.18.0` より前に閉じる。
 - `v0.17.3`: `v0.17.2` が GitHub Release / crates.io だけ先行公開されたため、PyPI page polish と release workflow の partial publish 防止を加え、npm / PyPI publish closeout を整合版で完了する。
+- `v0.17.4`: PyPI wrapper が過去の unversioned cache を再利用して `0.17.0` を返したため、wrapper cache を version / target 別に分離し、release verification の停止箇所も修正する。
 - `v0.18.0`: config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
 - `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
@@ -87,6 +88,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Binary distribution expansion for `v0.17.0` | `archive/2026-04-30-v0-17-0-binary-distribution-expansion` | Adds release binary archives, Homebrew formula generation, wrapper smoke coverage, and explicit wrapper publish deferral. |
 | Done | npm package polish for `v0.17.2` | `archive/2026-04-30-v0-17-2-npm-package-polish` | Adds npm README / metadata / tarball verification and prepares trusted publishing retry before schema/editor work resumes. |
 | Done | Release flow recovery for `v0.17.3` | `archive/2026-04-30-v0-17-3-release-flow-recovery` | Adds PyPI page README / metadata verification and prevents tag-push partial release before npm / PyPI wrapper jobs run. |
+| Done | Wrapper cache and verification recovery for `v0.17.4` | `archive/2026-04-30-v0-17-4-wrapper-cache-and-verification-recovery` | Separates wrapper binary caches by version / target and hardens release verification after the v0.17.3 PyPI stale-cache failure. |
 
 Archived completed changes:
 

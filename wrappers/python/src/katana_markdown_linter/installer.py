@@ -21,7 +21,7 @@ class KmlInstaller:
         )
 
     def ensure_binary(self) -> Path:
-        binary_path = self.install_root / "bin" / self._binary_name()
+        binary_path = self.install_root / self.version / self.target / "bin" / self._binary_name()
         if binary_path.is_file():
             return binary_path
         with tempfile.TemporaryDirectory(prefix="kml-python-wrapper-") as temp_dir:
@@ -95,7 +95,7 @@ class KmlInstaller:
         try:
             package_version = version("katana-markdown-linter")
         except PackageNotFoundError:
-            package_version = "0.17.3"
+            package_version = "0.17.4"
         return f"v{package_version}"
 
     def _verify_checksum(self, archive_path: Path) -> None:
