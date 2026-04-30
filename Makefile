@@ -41,6 +41,7 @@ MCP_SERVER_JSON ?= $(MCPB_DIST_DIR)/server.json
 BINARY_DIST_DIR ?= target/binary
 BINARY_TARGET ?=
 HOMEBREW_FORMULA ?= target/homebrew/kml.rb
+HOMEBREW_VERSIONED_FORMULA ?= target/homebrew/kml@$(VERSION_BARE).rb
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -213,11 +214,13 @@ binary-smoke: binary-package ## Exercise the standalone binary archive after ext
 
 .PHONY: homebrew-formula
 homebrew-formula: binary-package ## Render Homebrew formula from binary archive checksums
-	python3 scripts/release/homebrew_formula.py generate --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" --output "$(HOMEBREW_FORMULA)"
+	python3 scripts/release/homebrew_formula.py generate --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" --formula-name kml --output "$(HOMEBREW_FORMULA)"
+	python3 scripts/release/homebrew_formula.py generate --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" --formula-name "kml@$(VERSION_BARE)" --output "$(HOMEBREW_VERSIONED_FORMULA)"
 
 .PHONY: homebrew-formula-check
 homebrew-formula-check: homebrew-formula ## Validate generated Homebrew formula output
-	python3 scripts/release/homebrew_formula.py check --version "$(VERSION)" --output "$(HOMEBREW_FORMULA)"
+	python3 scripts/release/homebrew_formula.py check --version "$(VERSION)" --formula-name kml --output "$(HOMEBREW_FORMULA)"
+	python3 scripts/release/homebrew_formula.py check --version "$(VERSION)" --formula-name "kml@$(VERSION_BARE)" --output "$(HOMEBREW_VERSIONED_FORMULA)"
 
 .PHONY: wrapper-smoke
 wrapper-smoke: binary-package ## Exercise npm and Python wrapper launchers against local binary archive

@@ -37,6 +37,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.17.2`: npm package page polish と npm publish closeout を行う。`wrappers/npm/README.md`、keywords / homepage / bugs metadata、npm tarball verification、trusted publishing retry を `v0.18.0` より前に閉じる。
 - `v0.17.3`: `v0.17.2` が GitHub Release / crates.io だけ先行公開されたため、PyPI page polish と release workflow の partial publish 防止を加え、npm / PyPI publish closeout を整合版で完了する。
 - `v0.17.4`: PyPI wrapper が過去の unversioned cache を再利用して `0.17.0` を返したため、wrapper cache を version / target 別に分離し、release verification の停止箇所も修正する。
+- `v0.17.5`: CLI help / version alias の入口を修正し、Homebrew tap が古い version のまま残らないように release workflow と post-release verification を修正する。
 - `v0.18.0`: config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
 - `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
@@ -89,6 +90,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | npm package polish for `v0.17.2` | `archive/2026-04-30-v0-17-2-npm-package-polish` | Adds npm README / metadata / tarball verification and prepares trusted publishing retry before schema/editor work resumes. |
 | Done | Release flow recovery for `v0.17.3` | `archive/2026-04-30-v0-17-3-release-flow-recovery` | Adds PyPI page README / metadata verification and prevents tag-push partial release before npm / PyPI wrapper jobs run. |
 | Done | Wrapper cache and verification recovery for `v0.17.4` | `archive/2026-04-30-v0-17-4-wrapper-cache-and-verification-recovery` | Separates wrapper binary caches by version / target and hardens release verification after the v0.17.3 PyPI stale-cache failure. |
+| In Progress | CLI help and Homebrew tap recovery for `v0.17.5` | `v0-17-5-cli-help-and-version-aliases` | Adds CLI help/version aliases and closes the Homebrew tap update gap that left `brew install HiroyukiFuruno/katana/kml` on v0.17.1. |
 
 Archived completed changes:
 

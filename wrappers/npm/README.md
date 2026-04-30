@@ -16,8 +16,8 @@ kml --version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.4 --version
-npx --yes katana-markdown-linter@0.17.4 check README.md
+npx --yes katana-markdown-linter@0.17.5 --version
+npx --yes katana-markdown-linter@0.17.5 check README.md
 ~~~
 
 ## Basic Usage

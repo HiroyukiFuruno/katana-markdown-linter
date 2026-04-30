@@ -6,6 +6,8 @@ REPO="${2:-${GH_REPO:-HiroyukiFuruno/katana-markdown-linter}}"
 PACKAGE="${3:-katana-markdown-linter}"
 TAG="v${VERSION_BARE}"
 VERIFY_OUTPUT_DIR="${VERIFY_OUTPUT_DIR:-target/release-verify/${TAG}}"
+HOMEBREW_TAP_REPO="${HOMEBREW_TAP_REPO:-HiroyukiFuruno/homebrew-katana}"
+HOMEBREW_TAP_BRANCH="${HOMEBREW_TAP_BRANCH:-master}"
 TMP_ROOT=""
 
 cleanup() {
@@ -151,6 +153,7 @@ smoke_pypi_wrapper() {
 verify_homebrew_formula() {
   formula_dist_dir="${TMP_ROOT}/homebrew-assets"
   formula_path="${VERIFY_OUTPUT_DIR}/homebrew/kml.rb"
+  versioned_formula_path="${VERIFY_OUTPUT_DIR}/homebrew/kml@${VERSION_BARE}.rb"
   mkdir -p "${formula_dist_dir}" "$(dirname "${formula_path}")"
   for target in \
     x86_64-unknown-linux-gnu \
@@ -165,14 +168,53 @@ verify_homebrew_formula() {
   done
   python3 scripts/release/homebrew_formula.py generate \
     --version "${TAG}" \
+    --formula-name kml \
     --repo "${REPO}" \
     --dist-dir "${formula_dist_dir}" \
     --output "${formula_path}" >/dev/null
   python3 scripts/release/homebrew_formula.py check \
     --version "${TAG}" \
+    --formula-name kml \
     --repo "${REPO}" \
     --dist-dir "${formula_dist_dir}" \
     --output "${formula_path}" >/dev/null
+  python3 scripts/release/homebrew_formula.py generate \
+    --version "${TAG}" \
+    --formula-name "kml@${VERSION_BARE}" \
+    --repo "${REPO}" \
+    --dist-dir "${formula_dist_dir}" \
+    --output "${versioned_formula_path}" >/dev/null
+  python3 scripts/release/homebrew_formula.py check \
+    --version "${TAG}" \
+    --formula-name "kml@${VERSION_BARE}" \
+    --repo "${REPO}" \
+    --dist-dir "${formula_dist_dir}" \
+    --output "${versioned_formula_path}" >/dev/null
+  verify_homebrew_tap_formula "Formula/kml.rb" "${formula_path}"
+  verify_homebrew_tap_formula "Formula/kml@${VERSION_BARE}.rb" "${versioned_formula_path}"
+}
+
+verify_homebrew_tap_formula() {
+  tap_path="$1"
+  expected_path="$2"
+  actual_path="${TMP_ROOT}/$(basename "${tap_path}")"
+  raw_url="https://raw.githubusercontent.com/${HOMEBREW_TAP_REPO}/${HOMEBREW_TAP_BRANCH}/${tap_path}"
+  python3 - "${raw_url}" "${actual_path}" <<'PY'
+import sys
+import urllib.request
+
+url, output = sys.argv[1:3]
+with urllib.request.urlopen(url, timeout=30) as response:
+    content = response.read()
+with open(output, "wb") as file:
+    file.write(content)
+PY
+  if ! cmp -s "${expected_path}" "${actual_path}"; then
+    echo "Homebrew tap formula mismatch: ${tap_path} does not match ${TAG}." >&2
+    echo "tap:      ${raw_url}" >&2
+    echo "expected: ${expected_path}" >&2
+    exit 1
+  fi
 }
 
 require_command gh
@@ -201,3 +243,4 @@ echo "pypi_registry_version=${pypi_registry_version}"
 echo "npm_wrapper_version=${npm_wrapper_version}"
 echo "pypi_wrapper_version=${pypi_wrapper_version}"
 echo "homebrew_formula_path=${formula_path}"
+echo "homebrew_versioned_formula_path=${versioned_formula_path}"

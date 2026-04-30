@@ -2,6 +2,7 @@ mod check;
 mod common;
 mod config_cmd;
 mod fmt;
+mod help;
 
 use super::args::{Cli, Command};
 use crate::i18n::Locale;
@@ -37,6 +38,7 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(exit)
         }
         Command::Fmt => fmt::run_fmt(&cli, locale),
+        Command::Help(topic) => Ok(help::run_help(topic)),
         Command::Lsp => {
             crate::lsp::run_stdio()?;
             Ok(0)

@@ -274,8 +274,22 @@ jobs:
 
       - name: Generate Homebrew formula
         run: |
-          python3 scripts/release/homebrew_formula.py generate --version "${{ steps.version.outputs.version }}"
-          python3 scripts/release/homebrew_formula.py check --version "${{ steps.version.outputs.version }}"
+          python3 scripts/release/homebrew_formula.py generate \
+            --version "${{ steps.version.outputs.version }}" \
+            --formula-name kml \
+            --output target/homebrew/kml.rb
+          python3 scripts/release/homebrew_formula.py check \
+            --version "${{ steps.version.outputs.version }}" \
+            --formula-name kml \
+            --output target/homebrew/kml.rb
+          python3 scripts/release/homebrew_formula.py generate \
+            --version "${{ steps.version.outputs.version }}" \
+            --formula-name "kml@${{ steps.version.outputs.version_bare }}" \
+            --output "target/homebrew/kml@${{ steps.version.outputs.version_bare }}.rb"
+          python3 scripts/release/homebrew_formula.py check \
+            --version "${{ steps.version.outputs.version }}" \
+            --formula-name "kml@${{ steps.version.outputs.version_bare }}" \
+            --output "target/homebrew/kml@${{ steps.version.outputs.version_bare }}.rb"
 
       - name: Build release notes
         run: scripts/release/release-notes.sh "${{ steps.version.outputs.version_bare }}" > RELEASE_NOTES.md
@@ -310,6 +324,15 @@ jobs:
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md
           fi
+
+      - name: Update Homebrew tap
+        env:
+          HOMEBREW_KATANA_GIT_TOKEN: ${{ secrets.HOMEBREW_KATANA_GIT_TOKEN }}
+        run: |
+          python3 scripts/release/update_homebrew_tap.py \
+            --version "${{ steps.version.outputs.version }}" \
+            --current-formula target/homebrew/kml.rb \
+            --versioned-formula "target/homebrew/kml@${{ steps.version.outputs.version_bare }}.rb"
 
       - name: Publish MCP Registry metadata
         if: >

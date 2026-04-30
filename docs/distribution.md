@@ -8,7 +8,7 @@
 | Standalone binary artifacts | Official from `v0.17.1` | `make binary-smoke`, release asset checksum, `make release-verify` asset check | Rust-toolchain-free CLI installs from GitHub Releases |
 | npm wrapper | Official from `v0.17.3` | npm registry version, `npx` launch smoke, package README / metadata check, `make release-verify` | Thin launcher over GitHub Release binary archives |
 | PyPI wrapper | Official from `v0.17.1` | PyPI JSON version, `uvx` launch smoke, package README / metadata check, `make release-verify` | Thin launcher over GitHub Release binary archives |
-| Homebrew formula | Official from `v0.17.1` | `make homebrew-formula-check`, release archive checksum, formula test block, tap review | Tap update is reviewed separately in `homebrew-katana` after release assets exist |
+| Homebrew formula | Official from `v0.17.1` | `make homebrew-formula-check`, release archive checksum, formula test block, actual tap check in `make release-verify` | Release workflow updates latest and versioned formulae in `homebrew-katana` after release assets exist |
 | GitHub Action | Official from `v0.11.0` | `make action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
 | MCPB bundle | Official from `v0.14.0` | `make mcpb-smoke`, `make server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
 | MCP Registry metadata | Official from `v0.14.0` | rendered `server.json`, MCPB checksum, registry publish verification | Discovery metadata for the MCPB bundle |
@@ -19,8 +19,8 @@ use the release tag directly:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.4
-  with: { version: "0.17.4", command: check, paths: "README.md\ndocs" }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.5
+  with: { version: "0.17.5", command: check, paths: "README.md\ndocs" }
 ~~~
 
 Pin both the action tag and the crate `version` input. The action installs the
@@ -37,9 +37,11 @@ waiting for crates.io publication.
 | editor/LSP entrypoint | Deferred | `kml fmt --stdin` is editor-friendly, but a dedicated editor entrypoint should follow after distribution smoke coverage remains stable. |
 
 Standalone release archives use stable names such as
-`kml-v0.17.4-aarch64-apple-darwin.tar.gz` and always ship a neighboring
+`kml-v0.17.5-aarch64-apple-darwin.tar.gz` and always ship a neighboring
 `.sha256` file. The Homebrew formula is generated from the same release assets
-and must keep tap mutation separate from this repository's release workflow.
+and is published to `HiroyukiFuruno/homebrew-katana` by the release workflow
+with `HOMEBREW_KATANA_GIT_TOKEN`. Each release updates the latest `kml`
+formula and adds a versioned `kml@X.Y.Z` formula.
 
 The npm and PyPI packages do not contain independent lint logic. They download
 the matching GitHub Release archive for the package version, verify the archive

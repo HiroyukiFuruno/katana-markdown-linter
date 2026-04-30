@@ -12,6 +12,9 @@ struct WorkflowPortabilityGuard {
     attributes: String,
     preflight: String,
     release: String,
+    homebrew_formula: String,
+    homebrew_tap_updater: String,
+    release_verifier: String,
 }
 
 impl WorkflowPortabilityGuard {
@@ -21,6 +24,9 @@ impl WorkflowPortabilityGuard {
             attributes: read_workspace_file(".gitattributes"),
             preflight: read_workspace_file(".github/workflows/release-preflight.yml"),
             release: read_workspace_file(".github/workflows/release.yml"),
+            homebrew_formula: read_workspace_file("scripts/release/homebrew_formula.py"),
+            homebrew_tap_updater: read_workspace_file("scripts/release/update_homebrew_tap.py"),
+            release_verifier: read_workspace_file("scripts/release/verify-release-published.sh"),
         }
     }
 
@@ -30,6 +36,7 @@ impl WorkflowPortabilityGuard {
         self.require_cross_platform_commands(&mut violations);
         self.require_windows_line_ending_guard(&mut violations);
         self.require_unified_rust_cache(&mut violations);
+        self.require_homebrew_tap_update(&mut violations);
         violations
     }
 
@@ -105,6 +112,58 @@ impl WorkflowPortabilityGuard {
             require_contains(violations, path, content, "uses: Swatinem/rust-cache@v2");
             require_contains(violations, path, content, "shared-key:");
             require_contains(violations, path, content, shared_key);
+        }
+    }
+
+    fn require_homebrew_tap_update(&self, violations: &mut Vec<String>) {
+        for required in [
+            "HOMEBREW_KATANA_GIT_TOKEN: ${{ secrets.HOMEBREW_KATANA_GIT_TOKEN }}",
+            "scripts/release/update_homebrew_tap.py",
+            "target/homebrew/kml@${{ steps.version.outputs.version_bare }}.rb",
+        ] {
+            require_contains(
+                violations,
+                ".github/workflows/release.yml",
+                &self.release,
+                required,
+            );
+        }
+        for required in [
+            "versioned_formula = \"@\" in self.formula_name",
+            "keg_only :versioned_formula",
+        ] {
+            require_contains(
+                violations,
+                "scripts/release/homebrew_formula.py",
+                &self.homebrew_formula,
+                required,
+            );
+        }
+        for required in [
+            "HOMEBREW_KATANA_GIT_TOKEN",
+            "HiroyukiFuruno/homebrew-katana",
+            "path=f\"{self.formula_dir}/kml.rb\"",
+            "versioned_name = f\"kml@{self.version_bare}.rb\"",
+        ] {
+            require_contains(
+                violations,
+                "scripts/release/update_homebrew_tap.py",
+                &self.homebrew_tap_updater,
+                required,
+            );
+        }
+        for required in [
+            "HOMEBREW_TAP_REPO",
+            "raw.githubusercontent.com",
+            "Formula/kml@${VERSION_BARE}.rb",
+            "Homebrew tap formula mismatch",
+        ] {
+            require_contains(
+                violations,
+                "scripts/release/verify-release-published.sh",
+                &self.release_verifier,
+                required,
+            );
         }
     }
 }
