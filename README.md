@@ -124,6 +124,13 @@ kml version
 
 If you do not use `pipx`, install with your normal Python environment manager.
 
+Use `uvx` for one-off runs without installing the launcher into your active
+environment:
+
+~~~bash
+uvx --from katana-markdown-linter==0.17.0 kml check README.md
+~~~
+
 ### GitHub Releases
 
 Standalone `kml` archives are attached to GitHub Releases. Choose the archive
