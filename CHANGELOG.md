@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.17.3
+
+- Adds a full PyPI wrapper README and project metadata so the PyPI project page
+  shows install, `uvx`, supported platform, and wrapper contract details.
+- Adds `make pypi-package-check` to verify the PyPI README, metadata, source
+  distribution, wheel, and wheel long description before publication.
+- Fixes the Release workflow so merging a `release/vX.Y.Z` pull request
+  publishes GitHub Release, crates.io, npm, and PyPI from the same run.
+- Removes tag-push release execution to prevent partial publication before npm
+  and PyPI wrapper jobs run.
+- Carries the npm README and metadata closeout into a fresh patch version after
+  `v0.17.2` was already published to GitHub Releases and crates.io.
+
 ## v0.17.2
 
 - Adds an npm package README so the registry page shows install, `npx`, and

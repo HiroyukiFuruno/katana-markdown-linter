@@ -95,8 +95,11 @@ the same archive checksums and confirms generated URLs and checksums match the
 formula content. `make wrapper-smoke` verifies the npm and Python launchers
 through the local archive. `make npm-package-check` verifies the npm registry
 README, support metadata, dependency surface, and packed file list before
-publication. Wrapper publication uses registry trusted publishing from dedicated
-release workflow jobs instead of long-lived registry tokens.
+publication. `make pypi-package-check` verifies the PyPI wrapper README,
+support metadata, dependency surface, source distribution, wheel, and wheel
+metadata before publication. Wrapper publication uses registry trusted
+publishing from dedicated release workflow jobs instead of long-lived registry
+tokens.
 
 The release workflows run the same smoke targets so the action scripts, binary
 archives, Homebrew formula, wrapper launchers, MCPB manifest, and MCP Registry

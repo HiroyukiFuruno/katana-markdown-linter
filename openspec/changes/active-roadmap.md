@@ -35,6 +35,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.17.0`: released distribution expansion with standalone binary artifacts, Homebrew formula generation, and deferred npm/pip wrapper publication gates.
 - `v0.17.1`: post-release distribution closeout として npm / PyPI wrapper を公式 install channel に昇格し、Homebrew tap 更新、npm trusted publishing 後始末、`release-verify` の wrapper / tap 検証拡張を扱う。
 - `v0.17.2`: npm package page polish と npm publish closeout を行う。`wrappers/npm/README.md`、keywords / homepage / bugs metadata、npm tarball verification、trusted publishing retry を `v0.18.0` より前に閉じる。
+- `v0.17.3`: `v0.17.2` が GitHub Release / crates.io だけ先行公開されたため、PyPI page polish と release workflow の partial publish 防止を加え、npm / PyPI publish closeout を整合版で完了する。
 - `v0.18.0`: config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
 - `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
@@ -42,7 +43,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
-| P0 | Distribution closeout for `v0.17.1` | `v0-17-1-distribution-closeout` | `v0.17.0` already published GitHub Release, crates.io, and the initial npm wrapper source. `v0.17.1` closed GitHub Release / crates.io / PyPI / Homebrew work, while npm publication is handed to `v0.17.2` after package README and metadata polish. |
+| P0 | Distribution closeout for `v0.17.1` | `v0-17-1-distribution-closeout` | `v0.17.0` already published GitHub Release, crates.io, and the initial npm wrapper source. `v0.17.1` closed GitHub Release / crates.io / PyPI / Homebrew work, while npm publication is handed to `v0.17.3` after package README, PyPI README, metadata polish, and workflow hardening. |
 | P1 | Schema publication for `v0.18.0` | `v0-18-0-schema-publication` | `kml config schema` already exists, but distribution docs still defer schema publication. The next durable step is a versioned schema contract, fixture-backed schema compatibility checks, and docs that editor integrations can rely on. |
 | P1 | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | The LSP entrypoint and schema command already exist. VS Code should become the first real editor target because the extension surface can stay thin: launch `kml lsp`, associate the config schema, and expose diagnostics / format / safe quick-fix without moving lint logic into the extension. |
 | P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
@@ -85,6 +86,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Document answer fix regressions for `v0.16.2` | `archive/2026-04-29-v0-16-2-document-answer-fix-regressions` | Freezes `v0.17.0` distribution work and verifies 250 document-level `check --fix` answer fixtures before the next distribution expansion. |
 | Done | Binary distribution expansion for `v0.17.0` | `archive/2026-04-30-v0-17-0-binary-distribution-expansion` | Adds release binary archives, Homebrew formula generation, wrapper smoke coverage, and explicit wrapper publish deferral. |
 | Done | npm package polish for `v0.17.2` | `archive/2026-04-30-v0-17-2-npm-package-polish` | Adds npm README / metadata / tarball verification and prepares trusted publishing retry before schema/editor work resumes. |
+| Done | Release flow recovery for `v0.17.3` | `archive/2026-04-30-v0-17-3-release-flow-recovery` | Adds PyPI page README / metadata verification and prevents tag-push partial release before npm / PyPI wrapper jobs run. |
 
 Archived completed changes:
 

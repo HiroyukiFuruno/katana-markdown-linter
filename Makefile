@@ -227,6 +227,10 @@ wrapper-smoke: binary-package ## Exercise npm and Python wrapper launchers again
 npm-package-check: ## Verify npm wrapper package README, metadata, and tarball contents
 	node scripts/release/verify-npm-package.js wrappers/npm
 
+.PHONY: pypi-package-check
+pypi-package-check: ## Verify PyPI wrapper README, metadata, and distributions
+	python3 scripts/release/verify-pypi-package.py wrappers/python
+
 .PHONY: wrapper-publish-gate
 wrapper-publish-gate: ## Verify wrapper publish flags stay deferred outside trusted publishing
 	scripts/release/wrapper-publish-gate.sh
@@ -290,7 +294,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty

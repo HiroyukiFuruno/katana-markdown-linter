@@ -244,28 +244,40 @@ KatanA feedback sweep で見つかった `check` の誤検知と `fix` の誤修
 - **THEN** system は `v0.13.0` の配布計画に影響するものと影響しないものを分ける
 - **THEN** system は follow-up を by-design 宣言と混同しない
 
-### Requirement: v0.17.2 release readiness SHALL close the npm package visibility gap
+### Requirement: v0.17.3 release readiness SHALL close the npm package visibility gap
 
-`v0.17.2` の release readiness は、npm package page の README / metadata 不足を release blocker として扱わなければならない（SHALL）。
+`v0.17.3` の release readiness は、npm package page の README / metadata 不足を release blocker として扱わなければならない（SHALL）。
 
-#### Scenario: v0.17.2 release is prepared
+#### Scenario: v0.17.3 release is prepared
 
-- **WHEN** developer prepares `v0.17.2`
+- **WHEN** developer prepares `v0.17.3`
 - **THEN** system confirms `wrappers/npm/README.md` exists and is included in the npm tarball
 - **AND** system confirms npm package metadata has search and support fields
 - **AND** system confirms trusted publisher configuration is present for `HiroyukiFuruno/katana-markdown-linter` and `release.yml`
 - **AND** system keeps the npm package as a thin wrapper with no independent lint logic
 
-### Requirement: v0.17.2 post-release verification SHALL prove npm publication
+### Requirement: v0.17.3 release readiness SHALL close the PyPI package visibility gap
 
-`v0.17.2` の公開後検証は、npm registry と npm wrapper 起動を確認しなければならない（SHALL）。
+`v0.17.3` の release readiness は、PyPI project page の README / metadata 不足を release blocker として扱わなければならない（SHALL）。
 
-#### Scenario: v0.17.2 npm publication is verified
+#### Scenario: v0.17.3 release is prepared
 
-- **WHEN** npm wrapper publication for `v0.17.2` completes
-- **THEN** system verifies npm contains `katana-markdown-linter` version `0.17.2`
-- **AND** system runs `npx --yes katana-markdown-linter@0.17.2 --version`
-- **AND** command output is `0.17.2`
+- **WHEN** developer prepares `v0.17.3`
+- **THEN** system confirms `wrappers/python/README.md` explains install, usage, supported platforms, and wrapper contract
+- **AND** system confirms PyPI metadata has search and support fields
+- **AND** system confirms the built wheel metadata contains the Markdown long description
+- **AND** system keeps the PyPI package as a thin wrapper with no independent lint logic
+
+### Requirement: v0.17.3 post-release verification SHALL prove npm publication
+
+`v0.17.3` の公開後検証は、npm registry と npm wrapper 起動を確認しなければならない（SHALL）。
+
+#### Scenario: v0.17.3 npm publication is verified
+
+- **WHEN** npm wrapper publication for `v0.17.3` completes
+- **THEN** system verifies npm contains `katana-markdown-linter` version `0.17.3`
+- **AND** system runs `npx --yes katana-markdown-linter@0.17.3 --version`
+- **AND** command output is `0.17.3`
 - **AND** verification result is recorded before `v0.18.0` work resumes
 
 ### Requirement: Release readiness SHALL include document answer fix evaluation

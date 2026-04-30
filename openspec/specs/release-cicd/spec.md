@@ -35,13 +35,13 @@
 - **THEN** system は GitHub Release を作成または更新する
 - **THEN** system は `.crate` package と checksum を添付する
 
-### Requirement: release workflow SHALL publish to crates.io only when explicitly enabled
+### Requirement: release workflow SHALL publish to crates.io only when a release path enables publication
 
-システムは、crates.io publish を明示的に有効化した場合にのみ実行しなければならない（SHALL）。
+システムは、crates.io publish を release PR merge または明示的な manual dispatch が有効化した場合にのみ実行しなければならない（SHALL）。
 
 #### Scenario: crate を publish する
 
-- **WHEN** release workflow が publish enabled で実行される
+- **WHEN** release workflow が `release/vX.Y.Z` の merge、または publish enabled の manual dispatch で実行される
 - **THEN** system は `CARGO_REGISTRY_TOKEN` が存在することを確認する
 - **THEN** system は `cargo publish` を実行する
 - **THEN** system は token がない場合に明示的なエラーで停止する
@@ -131,16 +131,28 @@ release verification は、tag、GitHub Release、crates.io に加えて binary 
 - **AND** system は各 archive の checksum file が存在することを確認する
 - **AND** system は少なくとも current platform の archive を取得して `kml --version` を検証する
 
-### Requirement: release workflow SHALL not publish wrappers without explicit enablement
+### Requirement: release workflow SHALL publish official registries together from release PR merge
 
-release workflow は、npm / PyPI wrapper を明示的な enablement なしに publish してはならない（SHALL NOT）。
+release workflow は、`release/vX.Y.Z` pull request が merge されたとき、GitHub Release、crates.io、npm、PyPI を同じ release run で公開しなければならない（SHALL）。
+
+#### Scenario: release PR is merged
+
+- **WHEN** `release/vX.Y.Z` pull request is merged into `main`
+- **THEN** system creates or verifies the signed `vX.Y.Z` tag
+- **AND** system creates or updates the GitHub Release
+- **AND** system publishes crates.io, npm, and PyPI after release gates pass
+- **AND** system does not require a second manual workflow run for wrappers
+
+### Requirement: release workflow SHALL not publish wrappers without release-path enablement
+
+release workflow は、npm / PyPI wrapper を release PR merge または明示的な enablement なしに publish してはならない（SHALL NOT）。
 
 #### Scenario: wrapper trusted publishing is absent
 
 - **WHEN** release workflow が wrapper publish step に到達する
-- **THEN** system は publish enable flag と trusted publishing job を確認する
-- **AND** enable flag がない場合、system は wrapper publish を skip する
-- **AND** enable flag がある場合、system は長期 token ではなく trusted publishing で registry に publish する
+- **THEN** system は release PR merge または publish enable flag と trusted publishing job を確認する
+- **AND** release PR merge でも enable flag 付き manual dispatch でもない場合、system は wrapper publish を skip する
+- **AND** wrapper publication が有効な場合、system は長期 token ではなく trusted publishing で registry に publish する
 - **AND** skip した wrapper を release note で公式公開済みとして扱わない
 
 ### Requirement: release gates SHALL validate npm package page artifacts before publish
@@ -153,6 +165,19 @@ release gate は、npm publish 前に registry page に表示される package a
 - **THEN** system runs `npm pack --dry-run --json` for `wrappers/npm`
 - **AND** system verifies the packed file list contains `README.md`, `package.json`, `bin/kml.js`, and `lib/installer.js`
 - **AND** system verifies npm package metadata includes non-empty `description`, `keywords`, `repository`, `homepage`, `bugs`, `license`, and `bin`
+- **AND** system stops before publish if README or required metadata is missing
+
+### Requirement: release gates SHALL validate PyPI package page artifacts before publish
+
+release gate は、PyPI publish 前に project page に表示される package artifact を検証しなければならない（SHALL）。
+
+#### Scenario: PyPI wrapper publish is enabled
+
+- **WHEN** release workflow is dispatched with PyPI wrapper publication enabled or triggered by a merged `release/vX.Y.Z` pull request
+- **THEN** system builds the Python source distribution and wheel for `wrappers/python`
+- **AND** system verifies `README.md` is the configured project readme
+- **AND** system verifies the wheel metadata contains the Markdown long description
+- **AND** system verifies PyPI package metadata includes non-empty `description`, `keywords`, project URLs, `license`, and supported classifiers
 - **AND** system stops before publish if README or required metadata is missing
 
 ### Requirement: npm wrapper retry SHALL use trusted publishing without token fallback
