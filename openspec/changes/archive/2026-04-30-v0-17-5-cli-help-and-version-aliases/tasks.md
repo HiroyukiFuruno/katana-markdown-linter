@@ -10,6 +10,7 @@
 - 2026-05-01: npm は `0.17.0` / `0.17.3` / `0.17.4`、PyPI は `0.17.0` / `0.17.1` / `0.17.3` / `0.17.4` を公開済みであることを確認した。
 - 2026-05-01: Homebrew の過去 version 登録は、npm / PyPI に合わせて `v0.17.1` 以降の `0.17.1` / `0.17.3` / `0.17.4` を対象とし、npm / PyPI に存在しない `0.17.2` は対象外とする。
 - 2026-05-01: Homebrew tap 更新 token は `HOMEBREW_KATANA_GIT_TOKEN` に固定する。
+- 2026-05-01: `release/v0.17.5` PR #76 は merge 済みで、GitHub Release / crates.io / npm / PyPI / wrapper launch / Homebrew tap の公開後検証も成功した。
 
 ## Tasks
 
@@ -30,11 +31,11 @@
 - [x] 4.4 `make ast-lint`
 - [x] 4.5 `make dogfood`
 - [x] 4.6 `scripts/openspec validate release-readiness --strict`
-- [ ] 4.7 `make release-task-ledger-check VERSION=v0.17.5`
+- [x] 4.7 `make release-task-ledger-check VERSION=v0.17.5`
 - [x] 4.8 `make release-check VERSION=v0.17.5`
-- [ ] 5.1 `release/v0.17.5` PR を作成し、CI と signed commit verification を確認する
-- [ ] 5.2 merge 後に `make release VERSION=v0.17.5` を実行する
-- [ ] 5.3 `make release-verify VERSION=v0.17.5` で GitHub Release / crates.io / npm / PyPI / wrapper launch / Homebrew tap を確認する
+- [x] 5.1 `release/v0.17.5` PR を作成し、CI と signed commit verification を確認する
+- [x] 5.2 merge 後に `make release VERSION=v0.17.5` を実行する
+- [x] 5.3 `make release-verify VERSION=v0.17.5` で GitHub Release / crates.io / npm / PyPI / wrapper launch / Homebrew tap を確認する
 
 ## Quality Score
 
@@ -44,6 +45,6 @@
 | version alias | 20 | 20 | `version` / `--version` / `-V` / `-v` を同じ出力として検証済み。 |
 | Homebrew tap | 20 | 20 | workflow / verification / 過去 versioned formula 登録を実装済み。 |
 | release metadata | 15 | 15 | Cargo / wrappers / MCP / README / docs / CHANGELOG を `0.17.5` へ更新済み。 |
-| verification | 10 | 9 | CLI tests、Homebrew formula check、ast-lint、dogfood、OpenSpec validation、release-check が成功。 |
-| release execution | 5 | 0 | PR / merge / publish / post-release verification 待ち。 |
-| 合計 | 100 | 94 | task ledger check と公開処理が未完了。 |
+| verification | 10 | 10 | CLI tests、Homebrew formula check、ast-lint、dogfood、OpenSpec validation、release-check、release-task-ledger-check が成功。 |
+| release execution | 5 | 5 | PR #76 merge、publish、post-release verification が完了。 |
+| 合計 | 100 | 100 | 完了。 |
