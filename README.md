@@ -109,7 +109,7 @@ kml version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.2 check README.md
+npx --yes katana-markdown-linter@0.17.3 check README.md
 ~~~
 
 ### PyPI
@@ -128,7 +128,7 @@ Use `uvx` for one-off runs without installing the launcher into your active
 environment:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.2 kml check README.md
+uvx --from katana-markdown-linter==0.17.3 kml check README.md
 ~~~
 
 ### GitHub Releases
@@ -137,10 +137,10 @@ Standalone `kml` archives are attached to GitHub Releases. Choose the archive
 that matches your Rust target triple:
 
 ~~~bash
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.2/kml-v0.17.2-aarch64-apple-darwin.tar.gz
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.2/kml-v0.17.2-aarch64-apple-darwin.tar.gz.sha256
-shasum -a 256 -c kml-v0.17.2-aarch64-apple-darwin.tar.gz.sha256
-tar -xzf kml-v0.17.2-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.3/kml-v0.17.3-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.3/kml-v0.17.3-aarch64-apple-darwin.tar.gz.sha256
+shasum -a 256 -c kml-v0.17.3-aarch64-apple-darwin.tar.gz.sha256
+tar -xzf kml-v0.17.3-aarch64-apple-darwin.tar.gz
 ~~~
 
 ### Homebrew
@@ -158,8 +158,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.2
-  with: { version: "0.17.2", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.3
+  with: { version: "0.17.3", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -416,7 +416,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.17.2
+make mcpb-smoke VERSION=v0.17.3
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the

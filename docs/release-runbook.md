@@ -33,6 +33,7 @@ For binary distribution changes, the release check includes:
 - `make homebrew-formula-check VERSION=vX.Y.Z`
 - `make wrapper-smoke VERSION=vX.Y.Z`
 - `make npm-package-check`
+- `make pypi-package-check`
 - `make wrapper-publish-gate`
 
 If validating upstream drift locally, clone upstream docs and run:
@@ -55,14 +56,19 @@ Required sequence:
 
 - Confirm `Cargo.toml` `package.version` is the intended version.
 - Confirm `CHANGELOG.md` has a `## vX.Y.Z` section.
-- Create and push a GitHub-verified signed annotated tag with `make release-tag VERSION=vX.Y.Z`.
-- Dispatch the intended release command.
+- Merge a release PR from `release/vX.Y.Z`, or dispatch the intended local release command.
 - Verify GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state after publication with `make release-verify VERSION=vX.Y.Z`.
 
 Release command responsibilities:
 
 - `make release-github VERSION=vX.Y.Z` creates or updates the GitHub Release only.
 - `make release VERSION=vX.Y.Z` creates or updates the GitHub Release and publishes to crates.io, npm, and PyPI.
+
+Release PR merge responsibilities:
+
+- A merged `release/vX.Y.Z` pull request creates the signed release tag.
+- The same workflow run creates or updates the GitHub Release.
+- The same workflow run publishes crates.io, npm, and PyPI so wrapper packages do not lag behind the crate.
 
 The workflow validates:
 
@@ -78,6 +84,7 @@ The workflow validates:
 - `make server-json-validate`
 - `make action-smoke`
 - `make npm-package-check`
+- `make pypi-package-check`
 - standalone `kml` archive build and archive smoke for each supported target
 - Homebrew formula rendering from release archive checksums
 - upstream markdownlint drift gate
@@ -113,7 +120,9 @@ because the older `macos-13` image is no longer supported.
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
 Release preflight must keep `make action-smoke` passing before publishing a tag.
 
-Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and creates or updates the GitHub Release, but it does not publish to crates.io, npm, or PyPI. Use `make release VERSION=vX.Y.Z` when registry publication is intended.
+Tag push does not drive release publication. Use a `release/vX.Y.Z` pull
+request for automatic release, or use `make release-github VERSION=vX.Y.Z` /
+`make release VERSION=vX.Y.Z` for manual dispatch.
 
 Manual GitHub Actions dispatch is still available, but the local `make`
 targets are preferred because they create or verify the signed tag and check the
@@ -179,9 +188,10 @@ Keep these conditions true before publishing a wrapper version:
 - The GitHub repository has a `pypi` environment for PyPI publication.
 - npm trusted publishing is configured for `release.yml`.
 - PyPI trusted publishing is configured for `release.yml` with the `pypi` environment.
-- The release workflow is dispatched with wrapper publish flags enabled.
+- The release workflow is either triggered by a merged `release/vX.Y.Z` pull request or dispatched with wrapper publish flags enabled.
 - `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
 - `make npm-package-check` confirms the npm README, metadata, and tarball file list.
+- `make pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
 
 Use these trusted publisher settings:
 

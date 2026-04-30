@@ -108,6 +108,30 @@ npm wrapper package は、thin wrapper に不要な runtime dependency を追加
 - **AND** package metadata includes search and support fields such as `keywords`, `homepage`, and `bugs`
 - **AND** package keeps `bin.kml` pointing to the launcher script
 
+### Requirement: PyPI wrapper package SHALL include registry-visible usage documentation
+
+PyPI wrapper package は、PyPI project page 上で導入方法と thin wrapper の責務を説明できなければならない（SHALL）。
+
+#### Scenario: PyPI package is built
+
+- **WHEN** system builds the PyPI source distribution and wheel for `vX.Y.Z`
+- **THEN** project metadata points `readme` at `README.md`
+- **AND** README includes install and `uvx` examples for `katana-markdown-linter`
+- **AND** README states that the PyPI package is a thin launcher over GitHub Release binary archives
+- **AND** README lists supported platforms or points to the supported platform contract
+- **AND** README does not imply Python contains independent lint logic
+
+### Requirement: PyPI wrapper package SHALL keep dependency surface minimal
+
+PyPI wrapper package は、thin wrapper に不要な runtime dependency を追加してはならない（SHALL NOT）。
+
+#### Scenario: project metadata is inspected
+
+- **WHEN** developer reviews `wrappers/python/pyproject.toml`
+- **THEN** package keeps runtime dependencies empty unless a specific dependency is justified by wrapper behavior
+- **AND** package metadata includes search and support fields such as `keywords` and project URLs
+- **AND** package keeps the `kml` console script pointing to the launcher module
+
 ### Requirement: Wrapper publication SHALL be gated by ownership and smoke tests
 
 システムは、package ownership と smoke test が揃うまで npm / PyPI package を公式公開してはならない（SHALL NOT）。

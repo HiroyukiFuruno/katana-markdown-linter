@@ -4,11 +4,32 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "katana-markdown-linter"
-version = "0.17.2"
+version = "0.17.3"
 description = "Thin Python launcher for the kml Markdown linter binary."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+keywords = ["markdown", "markdownlint", "linter", "cli", "kml"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+[project.urls]
+Homepage = "https://github.com/HiroyukiFuruno/katana-markdown-linter"
+Repository = "https://github.com/HiroyukiFuruno/katana-markdown-linter"
+Issues = "https://github.com/HiroyukiFuruno/katana-markdown-linter/issues"
+Changelog = "https://github.com/HiroyukiFuruno/katana-markdown-linter/blob/main/CHANGELOG.md"
 
 [project.scripts]
 kml = "katana_markdown_linter.cli:main"

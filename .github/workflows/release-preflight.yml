@@ -79,6 +79,9 @@ jobs:
       - name: npm package check
         run: make npm-package-check
 
+      - name: PyPI package check
+        run: make pypi-package-check
+
       - name: Wrapper publish gate
         run: make wrapper-publish-gate
 

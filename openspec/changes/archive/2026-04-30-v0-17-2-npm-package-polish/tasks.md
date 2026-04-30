@@ -7,6 +7,8 @@
 - 2026-04-30: `v0.17.1` は GitHub Release / crates.io / PyPI / Homebrew が完了し、npm は README / metadata polish 後の `v0.17.2` へ引き継ぐ。
 - 2026-04-30: `v0.17.2` は npm package page / npm publish closeout に限定し、schema / editor extension work は含めない。
 - 2026-04-30: `npm pack --dry-run --json` で tarball に `README.md`、`package.json`、`bin/kml.js`、`lib/installer.js` が含まれることを確認済み。
+- 2026-04-30: user feedback により PyPI project description も release blocker に昇格。`wrappers/python/README.md` と `make pypi-package-check` を追加する。
+- 2026-04-30: PR merge trigger の Release workflow が crates.io だけ先行公開し得る分岐を確認。`release/vX.Y.Z` merge では crates.io / npm / PyPI を同一 run で公開し、tag push trigger は release publication から外す。
 
 ## Definition of Ready
 
@@ -29,6 +31,9 @@
 - [x] 2.2 npm metadata の必須項目を検証する script または AST lint を追加する
 - [x] 2.3 release workflow の npm publish 前に tarball / metadata check が実行されることを確認する
 - [x] 2.4 wrapper smoke test で fresh install directory を使い、cache 済み binary による誤判定を避ける
+- [x] 2.5 PyPI package の README / metadata / sdist / wheel metadata check を release gate に追加する
+- [x] 2.6 `release/vX.Y.Z` PR merge で crates.io / npm / PyPI が同じ Release run から publish されるよう workflow を修正する
+- [x] 2.7 tag push trigger を release publication path から外し、manual dispatch との二重実行を避ける
 
 ## 3. Version and Documentation
 
@@ -37,6 +42,7 @@
 - [x] 3.3 `docs/distribution.md` と `docs/release-runbook.md` に npm README / metadata check を追加する
 - [x] 3.4 `openspec/changes/active-roadmap.md` で `v0.17.2` を `v0.18.0` より前の npm closeout patch として扱う
 - [x] 3.5 `v0-17-1-distribution-closeout/tasks.md` の npm 未完了状態を `v0.17.2` へ引き継いだことを記録する
+- [x] 3.6 `docs/distribution.md`、`docs/release-runbook.md`、`docs/quality-gates.md` に PyPI package page check と release PR 自動公開 flow を追加する
 
 ## 4. Verification
 
@@ -59,6 +65,7 @@ post-release verification、branch hygiene は `impl-release` workflow の実行
 - `release/v0.17.2` PR を作成し、CI と signed commit verification を確認する
 - PR merge 後、`make release VERSION=v0.17.2` を正規手順で実行する
 - npm publish job が trusted publishing で成功したことを確認する
+- PyPI project page に README、keywords、project URLs、runtime dependency 0 件が反映されることを確認する
 - `make release-verify VERSION=v0.17.2` を実行する
 - `npm view katana-markdown-linter@0.17.2 version` と `npx --yes katana-markdown-linter@0.17.2 --version` の結果を記録する
 - npm package page に README、keywords、homepage、bugs が反映され、runtime dependency が 0 件であることを確認する

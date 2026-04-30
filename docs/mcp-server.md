@@ -22,7 +22,7 @@ Run the local stdio smoke test:
 
 Build and smoke test the MCPB bundle:
 
-    make mcpb-smoke VERSION=v0.17.2
+    make mcpb-smoke VERSION=v0.17.3
 
 ## Run
 
@@ -152,17 +152,17 @@ configuration. Add:
 From `v0.14.0`, the local stdio server is published as an MCPB bundle attached
 to each GitHub Release:
 
-    katana-markdown-linter-0.17.2.mcpb
-    katana-markdown-linter-0.17.2.mcpb.sha256
+    katana-markdown-linter-0.17.3.mcpb
+    katana-markdown-linter-0.17.3.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`make mcp-server-json VERSION=v0.17.2` renders `target/mcpb/server.json` with
+`make mcp-server-json VERSION=v0.17.3` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    make server-json-validate VERSION=v0.17.2
+    make server-json-validate VERSION=v0.17.3
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP
