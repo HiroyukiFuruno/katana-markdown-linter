@@ -1,5 +1,14 @@
 # Tasks
 
+## Release Execution Notes
+
+- 2026-04-30: `release/v0.17.1` は PR #70 で `main` に merge 済み。
+- 2026-04-30: `make release VERSION=v0.17.1` は GitHub Release / crates.io / PyPI publish まで成功。
+- 2026-04-30: npm wrapper publish は Release run `25162643530` の npm job で `E404 Not Found` になり未完了。npm package 側の trusted publishing / publish 権限確認が blocker。
+- 2026-04-30: PyPI wrapper は fresh `KML_WRAPPER_INSTALL_DIR` で `uvx --from katana-markdown-linter==0.17.1 kml --version` が `0.17.1` を返すことを確認済み。
+- 2026-04-30: Homebrew formula generator の DSL 修正は PR #71 で `main` に merge 済み。
+- 2026-04-30: `homebrew-katana` の `Formula/kml.rb` は PR #1 で `master` に merge 済み。
+
 ## Definition of Ready
 
 - [ ] 0.1 npm package `katana-markdown-linter` の trusted publishing 設定を確認する
@@ -35,9 +44,9 @@
 ## 4. Homebrew Tap Update
 
 - [x] 4.1 `make homebrew-formula VERSION=v0.17.1` で生成される formula を確認する
-- [ ] 4.2 `homebrew-katana` tap に `Formula/kml.rb` 差分を作る
-- [ ] 4.3 tap 側で `brew audit` / `brew test` 相当の確認を行う
-- [ ] 4.4 tap 更新の commit / push / PR 方針を branch protection に合わせて実行する
+- [x] 4.2 `homebrew-katana` tap に `Formula/kml.rb` 差分を作る
+- [x] 4.3 tap 側で `brew audit` / `brew test` 相当の確認を行う
+- [x] 4.4 tap 更新の commit / push / PR 方針を branch protection に合わせて実行する
 - [ ] 4.5 tap 更新結果を release runbook に追記する
 
 ## 5. Documentation and Release Metadata
@@ -64,5 +73,5 @@
 - [x] 7.1 npm / PyPI wrapper が README と docs で公式 install channel として扱われている
 - [x] 7.2 npm publish job が通常 release path で `NPM_TOKEN` を要求しない
 - [x] 7.3 `make release-verify` が npm / PyPI / wrapper launch / Homebrew formula を確認する
-- [ ] 7.4 Homebrew tap 更新が review 可能な差分として完了している
+- [x] 7.4 Homebrew tap 更新が review 可能な差分として完了している
 - [ ] 7.5 `v0.17.1` release 後の public registry state が verification で確認できる
