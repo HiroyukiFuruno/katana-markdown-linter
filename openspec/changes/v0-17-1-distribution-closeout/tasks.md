@@ -5,17 +5,19 @@
 - 2026-04-30: `release/v0.17.1` は PR #70 で `main` に merge 済み。
 - 2026-04-30: `make release VERSION=v0.17.1` は GitHub Release / crates.io / PyPI publish まで成功。
 - 2026-04-30: npm wrapper publish は Release run `25162643530` の npm job で `E404 Not Found` になり未完了。npm package 側の trusted publishing / publish 権限確認が blocker。
+- 2026-04-30: npm package 側の trusted publisher は user が npm UI で `HiroyukiFuruno/katana-markdown-linter` / `release.yml` として設定済み。
+- 2026-04-30: npm package page の README / keywords 不足を確認したため、npm publish closeout は `v0.17.2` の `v0-17-2-npm-package-polish` へ引き継ぐ。
 - 2026-04-30: PyPI wrapper は fresh `KML_WRAPPER_INSTALL_DIR` で `uvx --from katana-markdown-linter==0.17.1 kml --version` が `0.17.1` を返すことを確認済み。
 - 2026-04-30: Homebrew formula generator の DSL 修正は PR #71 で `main` に merge 済み。
 - 2026-04-30: `homebrew-katana` の `Formula/kml.rb` は PR #1 で `master` に merge 済み。
 
 ## Definition of Ready
 
-- [ ] 0.1 npm package `katana-markdown-linter` の trusted publishing 設定を確認する
+- [x] 0.1 npm package `katana-markdown-linter` の trusted publishing 設定を確認する
 - [x] 0.2 PyPI project `katana-markdown-linter` の trusted publisher と `pypi` environment を確認する
 - [x] 0.3 `homebrew-katana` tap の local checkout と branch protection を確認する
 - [x] 0.4 `v0.17.0` の npm / PyPI / GitHub Release / crates.io 公開状態を再確認する
-- [ ] 0.5 `NPM_TOKEN` を次回 release の通常手順から外せることを確認する
+- [x] 0.5 `NPM_TOKEN` を次回 release の通常手順から外せることを確認する
 
 ## 1. npm / PyPI Wrapper Officialization
 
@@ -47,7 +49,7 @@
 - [x] 4.2 `homebrew-katana` tap に `Formula/kml.rb` 差分を作る
 - [x] 4.3 tap 側で `brew audit` / `brew test` 相当の確認を行う
 - [x] 4.4 tap 更新の commit / push / PR 方針を branch protection に合わせて実行する
-- [ ] 4.5 tap 更新結果を release runbook に追記する
+- [x] 4.5 tap 更新結果を release runbook に追記する
 
 ## 5. Documentation and Release Metadata
 

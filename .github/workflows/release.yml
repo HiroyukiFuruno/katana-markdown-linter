@@ -220,6 +220,9 @@ jobs:
       - name: Action smoke
         run: make action-smoke
 
+      - name: npm package check
+        run: make npm-package-check
+
       - name: Dogfood
         run: make dogfood
 
@@ -362,6 +365,9 @@ jobs:
             echo "npm trusted publishing is unavailable. Configure npm trusted publisher for HiroyukiFuruno/katana-markdown-linter with workflow release.yml and keep id-token: write." >&2
             exit 1
           fi
+
+      - name: Verify npm package
+        run: make npm-package-check
 
       - name: Publish npm wrapper
         run: npm publish --access public --provenance

@@ -23,6 +23,7 @@
 | `make binary-smoke` | Build a standalone `kml` archive, verify checksum, extract it, and run CLI smoke checks | Yes for release gates |
 | `make homebrew-formula-check` | Render and validate the Homebrew formula from binary archive checksums | Yes for release gates |
 | `make wrapper-smoke` | Run npm and Python wrapper launchers against the local binary archive | Yes for release gates |
+| `make npm-package-check` | Verify the npm wrapper README, registry metadata, and tarball file list | Yes for release gates |
 | `make wrapper-publish-gate` | Ensure wrapper publication is skipped unless explicit trusted-publishing flags are present | Yes for release gates |
 | `make mcp-stdio-smoke` | Install `kml-mcp` and exercise the local stdio server through JSON-RPC | Yes for release gates |
 | `make mcp-remote-smoke` | Install `kml-mcp-remote` and exercise Streamable HTTP auth, tools, diagnostics, and size limits | Yes for release gates |
@@ -45,7 +46,7 @@
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - public confidence evidence must stay wired into release preflight and release workflows
 - the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
-- binary artifact, Homebrew formula, and wrapper smoke gates must stay wired into release checks
+- binary artifact, Homebrew formula, npm package, and wrapper smoke gates must stay wired into release checks
 - MCPB packaging and MCP Registry metadata validation must stay wired into local and release gates
 - CI workflows must keep Windows workspace verification and Rust cache strategy explicit
 - public Markdown docs must stay English-only
@@ -92,8 +93,10 @@ extracts the archive, checks `kml --version`, and runs a small `kml check`
 fixture. `make homebrew-formula-check` renders `target/homebrew/kml.rb` from
 the same archive checksums and confirms generated URLs and checksums match the
 formula content. `make wrapper-smoke` verifies the npm and Python launchers
-through the local archive. Wrapper publication uses registry trusted publishing
-from dedicated release workflow jobs instead of long-lived registry tokens.
+through the local archive. `make npm-package-check` verifies the npm registry
+README, support metadata, dependency surface, and packed file list before
+publication. Wrapper publication uses registry trusted publishing from dedicated
+release workflow jobs instead of long-lived registry tokens.
 
 The release workflows run the same smoke targets so the action scripts, binary
 archives, Homebrew formula, wrapper launchers, MCPB manifest, and MCP Registry
@@ -136,9 +139,10 @@ The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 public confidence, coverage regression, example builds, optional MCP build,
 MCP stdio smoke, MCP remote smoke, MCPB smoke, Registry metadata validation,
 action smoke, binary smoke, Homebrew formula validation, wrapper smoke, wrapper
-publish gating, version verification, dry-run publish, and install smoke
-checks. The GitHub release workflows additionally clone upstream markdownlint
-and run `make upstream-drift` against the default branch docs.
+package validation, wrapper publish gating, version verification, dry-run
+publish, and install smoke checks. The GitHub release workflows additionally
+clone upstream markdownlint and run `make upstream-drift` against the default
+branch docs.
 
 Use `make release-tag VERSION=vX.Y.Z` before dispatching a release. It creates
 or verifies a signed annotated tag and then requires GitHub to report the tag as
