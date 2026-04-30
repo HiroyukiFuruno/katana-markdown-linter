@@ -197,6 +197,12 @@ wrapper metadata first if the package name is changed before publication.
 GitHub OIDC Registry authentication does not require a dedicated secret, but the
 Release workflow must keep `id-token: write`.
 
+For the first npm wrapper publication, npm can require a traditional publish
+token because trusted publishing is configured from an existing package. If the
+package does not exist yet, create a short-lived granular token with publish
+permission, store it as `NPM_TOKEN`, publish the first wrapper version, then
+configure npm trusted publishing and revoke the token.
+
 ## Quality Gates and Branch Protection
 
 See `docs/quality-gates.md` for the authoritative mapping between local `make` targets, CI required checks, and branch protection.

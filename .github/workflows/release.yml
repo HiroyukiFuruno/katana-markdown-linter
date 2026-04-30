@@ -356,6 +356,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Publish npm wrapper
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
         working-directory: wrappers/npm
 
