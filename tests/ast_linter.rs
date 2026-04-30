@@ -285,10 +285,12 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke wrapper-publish-gate document-answer-fix"),
+        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check wrapper-publish-gate document-answer-fix"),
         ("Makefile", &makefile, "binary-smoke: binary-package"),
         ("Makefile", &makefile, "homebrew-formula-check: homebrew-formula"),
         ("Makefile", &makefile, "wrapper-smoke: binary-package"),
+        ("Makefile", &makefile, "npm-package-check:"),
+        ("Makefile", &makefile, "scripts/release/verify-npm-package.js"),
         ("Makefile", &makefile, "document-answer-fix:"),
         ("Makefile", &makefile, "mcp-release-build:"),
         ("Makefile", &makefile, "mcp-remote-build:"),
@@ -325,6 +327,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (
             ".github/workflows/release.yml",
             &workflow,
+            "run: make npm-package-check",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
             "npm publish --access public --provenance",
         ),
         (".github/workflows/release.yml", &workflow, "Publish PyPI wrapper"),
@@ -345,6 +352,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release-preflight.yml", &preflight, "run: make binary-smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make homebrew-formula-check"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make wrapper-smoke"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: make npm-package-check"),
         ("scripts/ci/document_answer_fix_runner.py", &answer_runner, "AnswerValidationRunner"),
         (
             "scripts/ci/document_answer_validator.py",

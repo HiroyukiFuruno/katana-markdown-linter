@@ -32,6 +32,7 @@ For binary distribution changes, the release check includes:
 - `make binary-smoke VERSION=vX.Y.Z`
 - `make homebrew-formula-check VERSION=vX.Y.Z`
 - `make wrapper-smoke VERSION=vX.Y.Z`
+- `make npm-package-check`
 - `make wrapper-publish-gate`
 
 If validating upstream drift locally, clone upstream docs and run:
@@ -76,6 +77,7 @@ The workflow validates:
 - `make mcpb-smoke`
 - `make server-json-validate`
 - `make action-smoke`
+- `make npm-package-check`
 - standalone `kml` archive build and archive smoke for each supported target
 - Homebrew formula rendering from release archive checksums
 - upstream markdownlint drift gate
@@ -179,6 +181,7 @@ Keep these conditions true before publishing a wrapper version:
 - PyPI trusted publishing is configured for `release.yml` with the `pypi` environment.
 - The release workflow is dispatched with wrapper publish flags enabled.
 - `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
+- `make npm-package-check` confirms the npm README, metadata, and tarball file list.
 
 Use these trusted publisher settings:
 
@@ -297,6 +300,14 @@ If workflow job names are changed, update branch protection in the same change. 
 - Re-run `make action-smoke`.
 - Inspect `action.yml`, `scripts/action/install-kml.sh`, and `scripts/action/run-kml.sh`.
 - Keep the action scripts generic; do not add repository-specific lint policy outside action inputs.
+
+### npm package check fails
+
+- Re-run `make npm-package-check`.
+- Inspect `wrappers/npm/package.json`, `wrappers/npm/README.md`, and
+  `scripts/release/verify-npm-package.js`.
+- Keep the npm wrapper dependency-free unless a runtime dependency is justified
+  by launcher behavior.
 
 ### Incorrect files were packaged
 

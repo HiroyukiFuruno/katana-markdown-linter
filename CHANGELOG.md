@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.2
+
+- Adds an npm package README so the registry page shows install, `npx`, and
+  basic `kml check` examples.
+- Adds npm search and support metadata while keeping the wrapper dependency
+  surface empty.
+- Adds an npm package check that verifies required metadata and tarball contents
+  before release publication.
+- Carries the `v0.17.1` npm trusted publishing closeout into a fresh patch
+  release so npm publication can be verified with `npm view` and `npx`.
+
 ## v0.17.1
 
 - Promotes the npm and PyPI wrappers to official install channels after public

@@ -76,6 +76,9 @@ jobs:
       - name: Wrapper smoke
         run: make wrapper-smoke
 
+      - name: npm package check
+        run: make npm-package-check
+
       - name: Wrapper publish gate
         run: make wrapper-publish-gate
 
