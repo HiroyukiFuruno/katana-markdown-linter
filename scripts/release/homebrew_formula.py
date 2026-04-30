@@ -32,6 +32,7 @@ class HomebrewFormulaTool:
         formula = self.output.read_text(encoding="utf-8")
         required = ["class Kml < Formula", "bin.install \"kml\"", "kml --version"]
         missing = [item for item in required if item not in formula]
+        missing.extend(self._missing_asset_content(formula))
         if missing:
             raise SystemExit(f"Formula is missing required content: {', '.join(missing)}")
         print(f"Formula check passed for {self.output}")
@@ -58,6 +59,14 @@ class HomebrewFormulaTool:
         if not assets:
             raise SystemExit("No Homebrew-compatible binary assets were found")
         return assets
+
+    def _missing_asset_content(self, formula: str) -> list[str]:
+        missing: list[str] = []
+        for asset in self._load_assets():
+            for item in [asset.url(self.repo, self.version), asset.checksum]:
+                if item not in formula:
+                    missing.append(item)
+        return missing
 
     def _render_formula(self, assets: list[FormulaAsset]) -> str:
         by_target = {asset.target: asset for asset in assets}

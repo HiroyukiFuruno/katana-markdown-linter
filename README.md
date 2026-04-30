@@ -46,7 +46,7 @@ Desktop.
 - **`kml` CLI** with JSON output, stdin support, ignore handling, and statistics
 - **Editor integration** through a stdio Language Server Protocol server
 - **MCP server** for agents and tools that need structured lint access
-- **Multi-channel distribution** through Cargo, GitHub Releases, npm, and PyPI
+- **Multi-channel distribution** through Cargo, GitHub Releases, npm, PyPI, and Homebrew
 
 ## Library API
 
@@ -109,7 +109,7 @@ kml version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.0 check README.md
+npx --yes katana-markdown-linter@0.17.1 check README.md
 ~~~
 
 ### PyPI
@@ -128,7 +128,7 @@ Use `uvx` for one-off runs without installing the launcher into your active
 environment:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.0 kml check README.md
+uvx --from katana-markdown-linter==0.17.1 kml check README.md
 ~~~
 
 ### GitHub Releases
@@ -137,10 +137,10 @@ Standalone `kml` archives are attached to GitHub Releases. Choose the archive
 that matches your Rust target triple:
 
 ~~~bash
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.0/kml-v0.17.0-aarch64-apple-darwin.tar.gz
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.0/kml-v0.17.0-aarch64-apple-darwin.tar.gz.sha256
-shasum -a 256 -c kml-v0.17.0-aarch64-apple-darwin.tar.gz.sha256
-tar -xzf kml-v0.17.0-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.1/kml-v0.17.1-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.1/kml-v0.17.1-aarch64-apple-darwin.tar.gz.sha256
+shasum -a 256 -c kml-v0.17.1-aarch64-apple-darwin.tar.gz.sha256
+tar -xzf kml-v0.17.1-aarch64-apple-darwin.tar.gz
 ~~~
 
 ### Homebrew
@@ -158,8 +158,8 @@ Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.0
-  with: { version: "0.17.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.1
+  with: { version: "0.17.1", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -416,7 +416,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.17.0
+make mcpb-smoke VERSION=v0.17.1
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the
@@ -431,8 +431,8 @@ See [MCP server documentation](docs/mcp-server.md), the
 - `Cargo.toml` package version is the release version source of truth.
 - Run `make release-check VERSION=vX.Y.Z` before publication.
 - Run `make release-github VERSION=vX.Y.Z` to create or update only the GitHub Release.
-- Run `make release VERSION=vX.Y.Z` only when crates.io publication is intended.
-- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, crates.io version, and binary release assets.
+- Run `make release VERSION=vX.Y.Z` only when registry publication is intended.
+- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, crates.io, npm, PyPI, wrapper launch, Homebrew formula, and binary release assets.
 - GitHub Releases require a signed annotated `vX.Y.Z` tag that GitHub reports as `Verified`.
 - `make release` stops before dispatch when the requested version already exists on crates.io.
 - crates.io publication requires the `CARGO_REGISTRY_TOKEN` GitHub secret.

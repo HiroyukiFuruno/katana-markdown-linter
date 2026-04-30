@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.1
+
+- Promotes the npm and PyPI wrappers to official install channels after public
+  registry and wrapper launch verification.
+- Removes npm wrapper publication from the temporary token path and relies on
+  GitHub Actions trusted publishing for the normal release workflow.
+- Extends `make release-verify` to check npm, PyPI, wrapper launch output, and
+  Homebrew formula evidence in addition to GitHub Release and crates.io state.
+- Updates distribution docs, release runbook, and quality gate docs to match the
+  published wrapper and Homebrew closeout flow.
+
 ## v0.17.0
 
 - Adds standalone `kml` binary archives for Linux x86_64, macOS x86_64,
@@ -8,8 +19,8 @@
   packaging, archive extraction smoke tests, Homebrew formula rendering, and
   post-release binary asset verification.
 - Adds thin npm and Python wrapper sources plus local wrapper smoke coverage.
-  Wrapper publication remains deferred until `NPM_TOKEN` and `PYPI_API_TOKEN`
-  are registered and explicit workflow publish flags are enabled.
+  Wrapper publication remained deferred until registry publisher setup and
+  explicit workflow publish flags were ready.
 - Documents the binary archive install path, the separated Homebrew tap update
   flow, and the wrapper publication state without listing unpublished wrappers
   as official install channels.

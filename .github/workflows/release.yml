@@ -355,10 +355,16 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Verify npm trusted publishing context
+        shell: bash
+        run: |
+          if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" || -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]]; then
+            echo "npm trusted publishing is unavailable. Configure npm trusted publisher for HiroyukiFuruno/katana-markdown-linter with workflow release.yml and keep id-token: write." >&2
+            exit 1
+          fi
+
       - name: Publish npm wrapper
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: npm publish --access public --provenance
         working-directory: wrappers/npm
 
   publish-pypi-wrapper:
