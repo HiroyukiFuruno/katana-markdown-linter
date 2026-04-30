@@ -2,7 +2,8 @@
 
 ## Purpose
 
-This runbook covers the release checks needed before publishing `katana-markdown-linter` to crates.io.
+This runbook covers the release checks needed before publishing
+`katana-markdown-linter` to crates.io and GitHub Releases.
 
 ## Preflight Checklist
 
@@ -25,6 +26,13 @@ For MCP distribution changes, the release check includes:
 
 - `make mcpb-smoke VERSION=vX.Y.Z`
 - `make server-json-validate VERSION=vX.Y.Z`
+
+For binary distribution changes, the release check includes:
+
+- `make binary-smoke VERSION=vX.Y.Z`
+- `make homebrew-formula-check VERSION=vX.Y.Z`
+- `make wrapper-smoke VERSION=vX.Y.Z`
+- `make wrapper-publish-gate`
 
 If validating upstream drift locally, clone upstream docs and run:
 
@@ -68,6 +76,8 @@ The workflow validates:
 - `make mcpb-smoke`
 - `make server-json-validate`
 - `make action-smoke`
+- standalone `kml` archive build and archive smoke for each supported target
+- Homebrew formula rendering from release archive checksums
 - upstream markdownlint drift gate
 - `make lint`
 - `cargo publish --dry-run --locked --allow-dirty`
@@ -87,6 +97,10 @@ The workflow creates or updates:
 - GitHub Release
 - `.crate` package artifact
 - `.sha256` checksum
+- `kml-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz` and checksum
+- `kml-vX.Y.Z-x86_64-apple-darwin.tar.gz` and checksum
+- `kml-vX.Y.Z-aarch64-apple-darwin.tar.gz` and checksum
+- `kml-vX.Y.Z-x86_64-pc-windows-msvc.zip` and checksum
 - `.mcpb` package artifact for `kml-mcp`
 - `.mcpb.sha256` checksum
 - rendered MCP Registry `server.json`
@@ -129,6 +143,49 @@ mcp-publisher publish target/mcpb/server.json
 The MCP Registry version and MCPB artifact are immutable release outputs. If a
 published artifact or checksum is wrong, bump to the next patch version instead
 of replacing the published meaning of the same version.
+
+## Homebrew Tap Update
+
+The release workflow generates `target/homebrew/kml.rb` from the verified
+binary assets. Apply that file to the `homebrew-katana` tap in a separate
+branch after the GitHub Release exists:
+
+~~~bash
+cd /Users/hiroyuki_furuno/works/private/homebrew-katana
+git switch -c release/kml-vX.Y.Z
+mkdir -p Formula
+cp /Users/hiroyuki_furuno/works/private/katana-markdown-linter/target/homebrew/kml.rb Formula/kml.rb
+brew audit --strict --online Formula/kml.rb
+brew test Formula/kml.rb
+~~~
+
+Push and review the tap change separately from the core release PR. Do not push
+a tap update before the referenced release assets and checksums exist.
+
+## Wrapper Publication
+
+The npm and Python wrappers are thin launchers over GitHub Release binary
+archives. They are not official install channels until all of these are true:
+
+- npm and PyPI maintainer accounts exist for the package owner.
+- The GitHub repository has a `pypi` environment for PyPI publication.
+- npm trusted publishing is configured for `release.yml`.
+- PyPI trusted publishing is configured for `release.yml` with the `pypi` environment.
+- The release workflow is manually dispatched with wrapper publish flags enabled.
+- `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
+
+Current `v0.17.0` release notes and public documentation keep wrapper
+publication deferred when these trusted publisher settings are absent.
+
+Use these trusted publisher settings:
+
+| Registry | Project or package | Owner | Repository | Workflow filename | Environment |
+| --- | --- | --- | --- | --- | --- |
+| npm | `katana-markdown-linter` | `HiroyukiFuruno` | `katana-markdown-linter` | `release.yml` | Leave empty unless npm is configured with a GitHub environment |
+| PyPI | `katana-markdown-linter` | `HiroyukiFuruno` | `katana-markdown-linter` | `release.yml` | `pypi` |
+
+The PyPI project name must match `wrappers/python/pyproject.toml`. Change the
+wrapper metadata first if the package name is changed before publication.
 
 ## Required Secrets
 

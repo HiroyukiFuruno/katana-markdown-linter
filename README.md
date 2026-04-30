@@ -49,14 +49,31 @@ cargo install katana-markdown-linter
 
 The binary target is `kml`.
 
+Standalone `kml` archives are attached to GitHub Releases from `v0.17.0`.
+Choose the archive that matches your Rust target triple:
+
+~~~bash
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.0/kml-v0.17.0-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.0/kml-v0.17.0-aarch64-apple-darwin.tar.gz.sha256
+shasum -a 256 -c kml-v0.17.0-aarch64-apple-darwin.tar.gz.sha256
+tar -xzf kml-v0.17.0-aarch64-apple-darwin.tar.gz
+~~~
+
+Homebrew formula generation is part of the release flow. After the tap update is
+published, install with:
+
+~~~bash
+brew install HiroyukiFuruno/katana/kml
+~~~
+
 ## GitHub Actions
 
 Use the repository action to run `kml` in CI without writing install steps:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.16.2
-  with: { version: "0.16.2", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.0
+  with: { version: "0.17.0", command: check, paths: "README.md\ndocs", config: .markdownlint.json }
 ~~~
 
 Pin the action tag and `version` together for reproducible runs. The action
@@ -313,7 +330,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.16.2
+make mcpb-smoke VERSION=v0.17.0
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the
@@ -329,7 +346,7 @@ See [MCP server documentation](docs/mcp-server.md), the
 - Run `make release-check VERSION=vX.Y.Z` before publication.
 - Run `make release-github VERSION=vX.Y.Z` to create or update only the GitHub Release.
 - Run `make release VERSION=vX.Y.Z` only when crates.io publication is intended.
-- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, and crates.io version.
+- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, crates.io version, and binary release assets.
 - GitHub Releases require a signed annotated `vX.Y.Z` tag that GitHub reports as `Verified`.
 - `make release` stops before dispatch when the requested version already exists on crates.io.
 - crates.io publication requires the `CARGO_REGISTRY_TOKEN` GitHub secret.

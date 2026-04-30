@@ -5,6 +5,8 @@
 | Channel | Status | Verification | Policy |
 | --- | --- | --- | --- |
 | Cargo crate | Official | `make release-check`, install smoke test, crates.io publish verification | Primary library and CLI package |
+| Standalone binary artifacts | Official from `v0.17.0` | `make binary-smoke`, release asset checksum, `make release-verify` asset check | Rust-toolchain-free CLI installs from GitHub Releases |
+| Homebrew formula | Release-prepared from `v0.17.0` | `make homebrew-formula-check`, release archive checksum, formula test block | Tap update is reviewed separately in `homebrew-katana` after release assets exist |
 | GitHub Action | Official from `v0.11.0` | `make action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
 | MCPB bundle | Official from `v0.14.0` | `make mcpb-smoke`, `make server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
 | MCP Registry metadata | Official from `v0.14.0` | rendered `server.json`, MCPB checksum, registry publish verification | Discovery metadata for the MCPB bundle |
@@ -15,8 +17,8 @@ use the release tag directly:
 
 ~~~yaml
 - uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.12.1
-  with: { version: "0.12.1", command: check, paths: "README.md\ndocs" }
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.0
+  with: { version: "0.17.0", command: check, paths: "README.md\ndocs" }
 ~~~
 
 Pin both the action tag and the crate `version` input. The action installs the
@@ -29,16 +31,15 @@ waiting for crates.io publication.
 | Channel | Decision | Reason |
 | --- | --- | --- |
 | pre-commit hook repository | Deferred | A dedicated hook repository adds release ownership. Local hooks can call `kml` or the GitHub Action can protect CI first. |
-| Homebrew | Deferred | A tap needs stable binary archive naming or a crate-install formula policy. Current release artifacts are crate package and checksum only. |
-| standalone binary artifacts | Deferred | General CLI binary archives need platform matrix ownership and checksum verification before becoming official. |
-| npm wrapper | Deferred | A Node wrapper would add another release surface before binary artifact naming is stable. |
-| pip/uv wrapper | Deferred | A Python wrapper has the same binary artifact dependency as npm. |
+| npm wrapper | Deferred | Source and local smoke are present, but npm trusted publishing and explicit publish enablement are required before this becomes an official install channel. |
+| pip/uv wrapper | Deferred | Source and local smoke are present, but PyPI trusted publishing and explicit publish enablement are required before this becomes an official install channel. |
 | config schema publication | Deferred | Schema output needs versioned config metadata and editor validation tests before it can be treated as stable. |
 | editor/LSP entrypoint | Deferred | `kml fmt --stdin` is editor-friendly, but a dedicated editor entrypoint should follow after distribution smoke coverage remains stable. |
 
-The first MCPB bundle is a Linux release-runner artifact for the local stdio
-server. Wider platform-specific MCPB or standalone binary artifacts belong to
-the binary distribution expansion track.
+Standalone release archives use stable names such as
+`kml-v0.17.0-aarch64-apple-darwin.tar.gz` and always ship a neighboring
+`.sha256` file. The Homebrew formula is generated from the same release assets
+and must keep tap mutation separate from this repository's release workflow.
 
 `kml-mcp-remote` is not a hosted service and is not described by the MCPB
 Registry metadata. Operators deploy it themselves, keep bearer authentication

@@ -30,7 +30,7 @@ release readiness は、npm / pip wrapper の公開状態を明示しなけれ�
 
 #### Scenario: wrapper publication is deferred
 
-- **WHEN** package ownership または publish credential が未確定である
+- **WHEN** package ownership または trusted publishing 設定が未確定である
 - **THEN** tasks ledger は wrapper publication を deferred として記録する
 - **AND** README と docs は wrapper を公式 install 導線として表示しない
 - **AND** release note は wrapper source / smoke test の準備状態と publish 状態を分けて説明する

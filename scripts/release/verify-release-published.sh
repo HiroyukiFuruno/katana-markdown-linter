@@ -40,6 +40,47 @@ if [[ "${release_target}" != "${local_target}" ]]; then
   exit 1
 fi
 
+asset_names="$(gh release view "${TAG}" --repo "${REPO}" --json assets --jq '.assets[].name')"
+for target in \
+  x86_64-unknown-linux-gnu \
+  x86_64-apple-darwin \
+  aarch64-apple-darwin \
+  x86_64-pc-windows-msvc; do
+  extension="tar.gz"
+  if [[ "${target}" == x86_64-pc-windows-msvc ]]; then
+    extension="zip"
+  fi
+  archive="kml-${TAG}-${target}.${extension}"
+  if ! grep -Fxq "${archive}" <<< "${asset_names}"; then
+    echo "GitHub Release is missing binary archive: ${archive}" >&2
+    exit 1
+  fi
+  if ! grep -Fxq "${archive}.sha256" <<< "${asset_names}"; then
+    echo "GitHub Release is missing binary checksum: ${archive}.sha256" >&2
+    exit 1
+  fi
+done
+
+case "$(uname -s)/$(uname -m)" in
+  Linux/x86_64) smoke_target="x86_64-unknown-linux-gnu" ;;
+  Darwin/x86_64) smoke_target="x86_64-apple-darwin" ;;
+  Darwin/arm64) smoke_target="aarch64-apple-darwin" ;;
+  *) smoke_target="" ;;
+esac
+
+if [[ -n "${smoke_target}" ]]; then
+  smoke_extension="tar.gz"
+  smoke_archive="kml-${TAG}-${smoke_target}.${smoke_extension}"
+  smoke_dir="$(mktemp -d)"
+  trap 'rm -rf "${smoke_dir}"' EXIT
+  gh release download "${TAG}" --repo "${REPO}" --dir "${smoke_dir}" --pattern "${smoke_archive}" --pattern "${smoke_archive}.sha256"
+  python3 scripts/release/binary_artifacts.py smoke \
+    --version "${TAG}" \
+    --target "${smoke_target}" \
+    --archive "${smoke_dir}/${smoke_archive}" \
+    --checksum "${smoke_dir}/${smoke_archive}.sha256"
+fi
+
 cargo_info="$(cargo info "${PACKAGE}@${VERSION_BARE}" --registry crates-io)"
 crate_version="$(printf '%s\n' "${cargo_info}" | sed -n 's/^version: //p')"
 if [[ "${crate_version}" != "${VERSION_BARE}" ]]; then

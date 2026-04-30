@@ -49,9 +49,10 @@ release verification は、tag、GitHub Release、crates.io に加えて binary 
 
 release workflow は、npm / PyPI wrapper を明示的な enablement なしに publish してはならない（SHALL NOT）。
 
-#### Scenario: wrapper credentials are absent
+#### Scenario: wrapper trusted publishing is absent
 
 - **WHEN** release workflow が wrapper publish step に到達する
-- **THEN** system は publish enable flag と credential を確認する
-- **AND** enable flag または credential がない場合、system は wrapper publish を skip する
+- **THEN** system は publish enable flag と trusted publishing job を確認する
+- **AND** enable flag がない場合、system は wrapper publish を skip する
+- **AND** enable flag がある場合、system は長期 token ではなく trusted publishing で registry に publish する
 - **AND** skip した wrapper を release note で公式公開済みとして扱わない

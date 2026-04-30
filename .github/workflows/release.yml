@@ -15,6 +15,16 @@ on:
         required: false
         default: false
         type: boolean
+      publish_npm_wrapper:
+        description: "Publish the npm wrapper after binary assets are uploaded"
+        required: false
+        default: false
+        type: boolean
+      publish_pypi_wrapper:
+        description: "Publish the PyPI wrapper after binary assets are uploaded"
+        required: false
+        default: false
+        type: boolean
   push:
     tags:
       - "v*"
@@ -32,8 +42,87 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  binary-artifacts:
+    name: Binary artifact (${{ matrix.target }})
+    if: >
+      github.event_name != 'pull_request' || (
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        startsWith(github.event.pull_request.head.ref, 'release/v')
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-13
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-binary-${{ matrix.target }}
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            release_branch="${{ github.event.pull_request.head.ref }}"
+            scripts/release/verify-version.sh "${release_branch#release/}"
+          else
+            scripts/release/verify-version.sh "${{ inputs.version }}"
+          fi
+
+      - name: Package binary artifact
+        shell: bash
+        run: |
+          python scripts/release/binary_artifacts.py package \
+            --version "${{ steps.version.outputs.version }}" \
+            --target "${{ matrix.target }}"
+
+      - name: Smoke binary artifact
+        shell: bash
+        run: |
+          python scripts/release/binary_artifacts.py smoke \
+            --version "${{ steps.version.outputs.version }}" \
+            --target "${{ matrix.target }}"
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: |
+            target/binary/kml-${{ steps.version.outputs.version }}-${{ matrix.target }}.*
+
   release:
     name: Release
+    needs: binary-artifacts
     if: >
       github.event_name != 'pull_request' || (
         github.event.pull_request.merged == true &&
@@ -173,6 +262,18 @@ jobs:
           echo "mcpb_checksum_path=${mcpb_checksum_path}" >> "$GITHUB_OUTPUT"
           echo "server_json_path=target/mcpb/server.json" >> "$GITHUB_OUTPUT"
 
+      - name: Download binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: target/binary
+          merge-multiple: true
+
+      - name: Generate Homebrew formula
+        run: |
+          python3 scripts/release/homebrew_formula.py generate --version "${{ steps.version.outputs.version }}"
+          python3 scripts/release/homebrew_formula.py check --version "${{ steps.version.outputs.version }}"
+
       - name: Build release notes
         run: scripts/release/release-notes.sh "${{ steps.version.outputs.version_bare }}" > RELEASE_NOTES.md
 
@@ -186,14 +287,21 @@ jobs:
           MCPB_CHECKSUM_PATH: ${{ steps.mcpb.outputs.mcpb_checksum_path }}
           SERVER_JSON_PATH: ${{ steps.mcpb.outputs.server_json_path }}
         run: |
+          shopt -s nullglob
+          binary_assets=(target/binary/kml-${TAG}-*.tar.gz target/binary/kml-${TAG}-*.tar.gz.sha256 target/binary/kml-${TAG}-*.zip target/binary/kml-${TAG}-*.zip.sha256)
+          if [[ "${#binary_assets[@]}" -ne 8 ]]; then
+            echo "Expected 8 binary assets, found ${#binary_assets[@]}." >&2
+            printf '%s\n' "${binary_assets[@]}" >&2
+            exit 1
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" \
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md \
               --target "$(git rev-parse HEAD)"
-            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" --clobber
+            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" --clobber
           else
-            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" \
+            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" \
               --verify-tag \
               --target "$(git rev-parse HEAD)" \
               --title "$TAG" \
@@ -220,3 +328,55 @@ jobs:
           fi
           scripts/release/assert-crate-not-published.sh "${{ steps.version.outputs.version_bare }}"
           cargo publish --locked --allow-dirty --token "$CARGO_REGISTRY_TOKEN"
+
+  publish-npm-wrapper:
+    name: Publish npm wrapper
+    needs: release
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_npm_wrapper
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish npm wrapper
+        run: npm publish --access public
+        working-directory: wrappers/npm
+
+  publish-pypi-wrapper:
+    name: Publish PyPI wrapper
+    needs: release
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pypi_wrapper
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build PyPI wrapper
+        run: |
+          python3 -m pip install --upgrade build
+          python3 -m build wrappers/python
+
+      - name: Publish PyPI wrapper
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wrappers/python/dist/

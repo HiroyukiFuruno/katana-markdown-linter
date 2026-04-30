@@ -2,7 +2,7 @@
 
 ## Context
 
-`v0.16.1` 時点の公式導線は Cargo crate、GitHub Action、MCPB、Remote MCP、editor / LSP である。
+`v0.16.2` 時点の公式導線は Cargo crate、GitHub Action、MCPB、Remote MCP、editor / LSP である。
 一方、`docs/distribution.md` では Homebrew、単体バイナリ配布物（standalone binary artifact）、npm ラッパー（npm wrapper）、pip / uv ラッパー（pip/uv wrapper）が deferred になっている。
 
 この change は、Rust toolchain を直接使わない利用者向けに `kml` を配るための release contract を作る。
@@ -45,7 +45,7 @@ Homebrew と npm / pip wrapper は、この archive と checksum を参照する
 - `aarch64-apple-darwin`
 - `x86_64-pc-windows-msvc`
 
-各 archive は `katana-markdown-linter-vX.Y.Z-<target>.tar.gz` を基本形にし、Windows だけ `.zip` を使う。
+各 archive は `kml-vX.Y.Z-<target>.tar.gz` を基本形にし、Windows だけ `.zip` を使う。
 archive には `kml` binary、`LICENSE`、短い install note を含める。
 
 Linux の musl static build、Windows arm64、Apple notarization はこの change では要求しない。
@@ -108,5 +108,5 @@ local で再現できない外部 publish は、release 前に metadata / checks
 
 ## Open Questions
 
-- npm / PyPI の package name と publish credential は implementation 前に確定する必要がある
+- npm / PyPI の package name と trusted publishing 設定は implementation 前に確定する必要がある
 - Homebrew tap は既存 `homebrew-katana` に `kml` formula を追加するか、別 tap を作るかを implementation 前に確定する必要がある

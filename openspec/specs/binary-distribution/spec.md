@@ -1,6 +1,10 @@
 # binary-distribution Specification
 
-## ADDED Requirements
+## Purpose
+
+`kml` の standalone binary archive、checksum、Homebrew formula、npm / pip wrapper の配布契約を定義する。
+
+## Requirements
 
 ### Requirement: Release SHALL publish standalone kml binary archives
 
@@ -20,8 +24,8 @@
 #### Scenario: archive names are generated
 
 - **WHEN** system が `vX.Y.Z` の binary archive を作成する
-- **THEN** Unix archive 名は `katana-markdown-linter-vX.Y.Z-<target>.tar.gz` になる
-- **AND** Windows archive 名は `katana-markdown-linter-vX.Y.Z-<target>.zip` になる
+- **THEN** Unix archive 名は `kml-vX.Y.Z-<target>.tar.gz` になる
+- **AND** Windows archive 名は `kml-vX.Y.Z-<target>.zip` になる
 - **AND** `<target>` は Rust target triple と一致する
 
 ### Requirement: Binary archives SHALL have checksum files
@@ -87,6 +91,6 @@ npm / pip の薄いラッパー（wrapper）は、`kml` の独自実装を持っ
 #### Scenario: wrapper publish is attempted
 
 - **WHEN** release flow が wrapper publish を実行しようとする
-- **THEN** system は package name ownership と publish credential を確認する
+- **THEN** system は package name ownership と trusted publishing 設定を確認する
 - **AND** system は clean environment で wrapper install と `kml --version` を検証する
 - **AND** 条件を満たさない場合、system は wrapper を公式導線として公開しない

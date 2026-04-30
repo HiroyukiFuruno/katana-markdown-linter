@@ -32,7 +32,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.16.0`: Introduce JSON schema and LSP entrypoint to enable editor auto-completion and real-time diagnostics.
 - `v0.16.1`: KatanA 本体と同じ locale set に合わせ、description 系 API と rule document Markdown の i18n 欠落を閉じる。
 - `v0.16.2`: `v0.17.0` の配布拡張を凍結したまま、document answer fix evaluation で `kml check --fix` の byte-for-byte 正しさを固める。
-- `v0.17.0`: Expand distribution channels including Homebrew, standalone binary artifacts, and language wrappers (npm/pip).
+- `v0.17.0`: released distribution expansion with standalone binary artifacts, Homebrew formula generation, and deferred npm/pip wrapper publication gates.
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Config schema and editor integration for `v0.16.0` | `archive/2026-04-29-v0-16-0-config-schema-and-editor-integration` | Enables editor auto-completion and standardized LSP diagnostics. |
 | Done | Full locale i18n for `v0.16.1` | `archive/2026-04-29-v0-16-1-full-locale-i18n` | Matches KatanA supported locales and localizes both rule descriptions and rule Markdown documentation. |
 | Done | Document answer fix regressions for `v0.16.2` | `archive/2026-04-29-v0-16-2-document-answer-fix-regressions` | Freezes `v0.17.0` distribution work and verifies 250 document-level `check --fix` answer fixtures before the next distribution expansion. |
-| Frozen | Binary distribution expansion for `v0.17.0` | `v0-17-0-binary-distribution-expansion` | Expands beyond Cargo/GitHub Actions to Homebrew and standalone artifacts. |
+| Done | Binary distribution expansion for `v0.17.0` | `archive/2026-04-30-v0-17-0-binary-distribution-expansion` | Adds release binary archives, Homebrew formula generation, wrapper smoke coverage, and explicit wrapper publish deferral. |
 
 Archived completed changes:
 
@@ -111,10 +111,11 @@ Archived completed changes:
 - `v0-16-0-config-schema-and-editor-integration` -> `openspec/changes/archive/2026-04-29-v0-16-0-config-schema-and-editor-integration`
 - `v0-16-1-full-locale-i18n` -> `openspec/changes/archive/2026-04-29-v0-16-1-full-locale-i18n`
 - `v0-16-2-document-answer-fix-regressions` -> `openspec/changes/archive/2026-04-29-v0-16-2-document-answer-fix-regressions`
+- `v0-17-0-binary-distribution-expansion` -> `openspec/changes/archive/2026-04-30-v0-17-0-binary-distribution-expansion`
 
 ## Suggested Order
 
-1. Apply `v0-17-0-binary-distribution-expansion` after the core and editor tools are well-established.
+No active release-train changes remain in this roadmap section.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
