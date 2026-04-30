@@ -1,6 +1,52 @@
-# katana-markdown-linter
+<p align="center">
+  <img src="assets/kml-icon.png" width="128" alt="katana-markdown-linter icon">
+</p>
 
-`katana-markdown-linter` is a Rust library-first Markdown lint engine with an optional `kml` CLI.
+<h1 align="center">katana-markdown-linter</h1>
+
+<p align="center">
+  A markdownlint-compatible Rust engine, <code>kml</code> CLI, formatter,
+  safe fixer, editor server, and agent-ready MCP server.
+</p>
+
+<p align="center">
+  <strong><a href="#installation">Installation</a></strong> |
+  <strong><a href="#cli-usage">CLI Usage</a></strong> |
+  <strong><a href="#library-api">Library API</a></strong> |
+  <strong><a href="docs/editor-integration.md">Editor Integration</a></strong> |
+  <strong><a href="docs/mcp-server.md">MCP Server</a></strong>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/HiroyukiFuruno/katana-markdown-linter/actions/workflows/test-and-build.yml"><img src="https://github.com/HiroyukiFuruno/katana-markdown-linter/actions/workflows/test-and-build.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/latest"><img src="https://img.shields.io/github/v/release/HiroyukiFuruno/katana-markdown-linter" alt="Latest Release"></a>
+  <a href="https://crates.io/crates/katana-markdown-linter"><img src="https://img.shields.io/crates/v/katana-markdown-linter.svg" alt="crates.io"></a>
+  <a href="https://www.npmjs.com/package/katana-markdown-linter"><img src="https://img.shields.io/npm/v/katana-markdown-linter.svg" alt="npm"></a>
+  <a href="https://pypi.org/project/katana-markdown-linter/"><img src="https://img.shields.io/pypi/v/katana-markdown-linter.svg" alt="PyPI"></a>
+</p>
+
+---
+
+## What is kml
+
+`katana-markdown-linter` is a fast Markdown lint engine for technical writing,
+specification documents, and AI-agent-assisted documentation workflows.
+
+The project shares the KatanA visual identity, but keeps a standalone boundary:
+the crate, CLI, wrappers, editor server, and MCP server do not depend on KatanA
+Desktop.
+
+## Features
+
+- **markdownlint-compatible checks** for the active upstream rule catalog
+- **Safe fixes** for low-risk rule violations and explicit opt-in unsafe fixes
+- **Formatter mode** for layout normalization without changing author intent
+- **Embeddable Rust API** for applications that need linting or fixing in-process
+- **`kml` CLI** with JSON output, stdin support, ignore handling, and statistics
+- **Editor integration** through a stdio Language Server Protocol server
+- **MCP server** for agents and tools that need structured lint access
+- **Multi-channel distribution** through Cargo, GitHub Releases, npm, and PyPI
 
 ## Library API
 
@@ -39,18 +85,49 @@ Minimal embedding examples are available under [`examples/`](examples/):
 
 - `embedding.rs`: string checks, file tree checks, string fixes, config loading and config-to-options conversion
 
-## CLI Install
+## Installation
 
-Install the bundled CLI with Cargo:
+### Cargo
 
 ~~~bash
 cargo install katana-markdown-linter
 ~~~
 
-The binary target is `kml`.
+The binary target is `kml`. Use Cargo when you want the Rust crate and CLI from
+the same channel.
 
-Standalone `kml` archives are attached to GitHub Releases from `v0.17.0`.
-Choose the archive that matches your Rust target triple:
+### npm
+
+The npm package is a thin launcher that downloads the matching `kml` release
+archive on first use:
+
+~~~bash
+npm install -g katana-markdown-linter
+kml version
+~~~
+
+Use `npx` for one-off runs:
+
+~~~bash
+npx --yes katana-markdown-linter@0.17.0 check README.md
+~~~
+
+### PyPI
+
+The PyPI package is a thin Python launcher that downloads the matching `kml`
+release archive on first use:
+
+~~~bash
+pipx install katana-markdown-linter
+kml version
+~~~
+
+If you do not use `pipx`, install with your normal Python environment manager.
+
+### GitHub Releases
+
+Standalone `kml` archives are attached to GitHub Releases. Choose the archive
+that matches your Rust target triple:
 
 ~~~bash
 curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.17.0/kml-v0.17.0-aarch64-apple-darwin.tar.gz
@@ -58,6 +135,8 @@ curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/downl
 shasum -a 256 -c kml-v0.17.0-aarch64-apple-darwin.tar.gz.sha256
 tar -xzf kml-v0.17.0-aarch64-apple-darwin.tar.gz
 ~~~
+
+### Homebrew
 
 Homebrew formula generation is part of the release flow. After the tap update is
 published, install with:
