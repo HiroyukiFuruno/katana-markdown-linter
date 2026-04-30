@@ -29,7 +29,7 @@
 | `make mcpb-smoke` | Build the MCPB bundle and run the bundled `kml-mcp` binary through stdio smoke | Yes for release gates |
 | `make server-json-validate` | Render and validate MCP Registry metadata for the release MCPB artifact | Yes for release gates |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
-| `make release-verify` | Verify published tag, GitHub Release, and crates.io state | Yes after publication |
+| `make release-verify` | Verify published tag, GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state | Yes after publication |
 
 `make lint` is intentionally limited to Clippy. Repository-specific checks belong in `make ast-lint` so Rust style warnings and project invariants can be triaged independently.
 
@@ -90,10 +90,10 @@ without declaring remote MCP transport.
 `make binary-smoke` builds the current platform archive, verifies the checksum,
 extracts the archive, checks `kml --version`, and runs a small `kml check`
 fixture. `make homebrew-formula-check` renders `target/homebrew/kml.rb` from
-the same archive checksums. `make wrapper-smoke` verifies the npm and Python
-launchers through the local archive without treating those wrappers as
-published channels. Wrapper publication uses registry trusted publishing from
-dedicated release workflow jobs instead of long-lived registry tokens.
+the same archive checksums and confirms generated URLs and checksums match the
+formula content. `make wrapper-smoke` verifies the npm and Python launchers
+through the local archive. Wrapper publication uses registry trusted publishing
+from dedicated release workflow jobs instead of long-lived registry tokens.
 
 The release workflows run the same smoke targets so the action scripts, binary
 archives, Homebrew formula, wrapper launchers, MCPB manifest, and MCP Registry
@@ -155,7 +155,8 @@ make release-verify VERSION=vX.Y.Z
 ~~~
 
 That command compares the local tag target, GitHub Release title and target,
-GitHub tag verification state, required binary assets, and crates.io version.
+GitHub tag verification state, required binary assets, crates.io version, npm
+version, PyPI version, wrapper launch output, and Homebrew formula evidence.
 
 Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 

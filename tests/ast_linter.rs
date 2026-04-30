@@ -303,6 +303,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("Makefile", &makefile, "scripts/release/verify-task-ledger.py"),
         ("Makefile", &makefile, "release-verify:"),
         ("Makefile", &makefile, "scripts/release/verify-release-published.sh"),
+        ("Makefile", &makefile, "publish_npm_wrapper=true"),
+        ("Makefile", &makefile, "publish_pypi_wrapper=true"),
         (".github/workflows/release.yml", &workflow, "run: make lint"),
         (".github/workflows/release.yml", &workflow, "run: make examples"),
         (".github/workflows/release.yml", &workflow, "run: make mcp-build"),
@@ -315,6 +317,16 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "Generate Homebrew formula"),
         (".github/workflows/release.yml", &workflow, "Publish npm wrapper"),
         (".github/workflows/release.yml", &workflow, "node-version: \"24\""),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "Verify npm trusted publishing context",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "npm publish --access public --provenance",
+        ),
         (".github/workflows/release.yml", &workflow, "Publish PyPI wrapper"),
         (".github/workflows/release.yml", &workflow, "environment: pypi"),
         (".github/workflows/release.yml", &workflow, "pypa/gh-action-pypi-publish@release/v1"),
@@ -354,11 +366,16 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("docs/quality-gates.md", &quality, "already exists on crates.io"),
         ("scripts/release/release-notes.sh", &release_notes, "CHANGELOG.md is missing a non-empty section"),
         ("scripts/release/assert-crate-not-published.sh", &crate_guard, "Bump Cargo.toml before dispatching"),
-        ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release title mismatch"),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "assert_equal \"GitHub Release title\""),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_title="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release is missing binary archive"),
         ("scripts/release/verify-release-published.sh", &published_verifier, "crates_io_version="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "npm_registry_version="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "pypi_registry_version="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "npm_wrapper_version="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "pypi_wrapper_version="),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "homebrew_formula_path="),
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Verify that the OpenSpec task ledger is release-ready."),
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Release task ledger is not ready"),
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "品質評価スコア table is missing a 合計 row"),
@@ -370,6 +387,20 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         .collect();
 
     assert_no_violations("release-local-ci-parity-and-retry-safety", violations);
+}
+
+#[test]
+fn ast_linter_npm_wrapper_publish_is_tokenless() {
+    let workflow = read_workspace_file(".github/workflows/release.yml");
+    let violations = ["NPM_TOKEN", "NODE_AUTH_TOKEN"]
+        .into_iter()
+        .filter(|forbidden| workflow.contains(forbidden))
+        .map(|forbidden| {
+            format!(".github/workflows/release.yml: remove `{forbidden}` from npm wrapper publish")
+        })
+        .collect();
+
+    assert_no_violations("npm-wrapper-tokenless-publish", violations);
 }
 
 #[test]

@@ -312,7 +312,11 @@ release-publish: release-tag ## Dispatch GitHub Release workflow with crates.io 
 	scripts/release/verify-version.sh "$(VERSION)"
 	scripts/release/assert-crate-not-published.sh "$(VERSION_BARE)"
 	gh secret list --repo $(RELEASE_REPO) | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || (echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1)
-	gh workflow run release.yml --repo $(RELEASE_REPO) --ref main -f version="$(TAG)" -f publish_crate=true
+	gh workflow run release.yml --repo $(RELEASE_REPO) --ref main \
+		-f version="$(TAG)" \
+		-f publish_crate=true \
+		-f publish_npm_wrapper=true \
+		-f publish_pypi_wrapper=true
 
 .PHONY: release
 release: release-publish ## Dispatch the full release workflow (GitHub Release + crates.io, VERSION=vX.Y.Z)

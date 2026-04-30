@@ -56,12 +56,12 @@ Required sequence:
 - Confirm `CHANGELOG.md` has a `## vX.Y.Z` section.
 - Create and push a GitHub-verified signed annotated tag with `make release-tag VERSION=vX.Y.Z`.
 - Dispatch the intended release command.
-- Verify external state after publication with `make release-verify VERSION=vX.Y.Z`.
+- Verify GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state after publication with `make release-verify VERSION=vX.Y.Z`.
 
 Release command responsibilities:
 
 - `make release-github VERSION=vX.Y.Z` creates or updates the GitHub Release only.
-- `make release VERSION=vX.Y.Z` creates or updates the GitHub Release and publishes to crates.io.
+- `make release VERSION=vX.Y.Z` creates or updates the GitHub Release and publishes to crates.io, npm, and PyPI.
 
 The workflow validates:
 
@@ -111,7 +111,7 @@ because the older `macos-13` image is no longer supported.
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
 Release preflight must keep `make action-smoke` passing before publishing a tag.
 
-Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and creates or updates the GitHub Release, but it does not publish to crates.io. Use manual dispatch with `publish_crate: true` when crates.io publication is intended.
+Tag push flow is also supported. Pushing `vX.Y.Z` runs the same gates and creates or updates the GitHub Release, but it does not publish to crates.io, npm, or PyPI. Use `make release VERSION=vX.Y.Z` when registry publication is intended.
 
 Manual GitHub Actions dispatch is still available, but the local `make`
 targets are preferred because they create or verify the signed tag and check the
@@ -168,17 +168,17 @@ a tap update before the referenced release assets and checksums exist.
 ## Wrapper Publication
 
 The npm and Python wrappers are thin launchers over GitHub Release binary
-archives. They are not official install channels until all of these are true:
+archives. They are official install channels only when registry state and
+wrapper launch verification pass for the release version.
+
+Keep these conditions true before publishing a wrapper version:
 
 - npm and PyPI maintainer accounts exist for the package owner.
 - The GitHub repository has a `pypi` environment for PyPI publication.
 - npm trusted publishing is configured for `release.yml`.
 - PyPI trusted publishing is configured for `release.yml` with the `pypi` environment.
-- The release workflow is manually dispatched with wrapper publish flags enabled.
+- The release workflow is dispatched with wrapper publish flags enabled.
 - `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
-
-Current `v0.17.0` release notes and public documentation keep wrapper
-publication deferred when these trusted publisher settings are absent.
 
 Use these trusted publisher settings:
 
@@ -189,6 +189,9 @@ Use these trusted publisher settings:
 
 The PyPI project name must match `wrappers/python/pyproject.toml`. Change the
 wrapper metadata first if the package name is changed before publication.
+After wrapper publication, `make release-verify VERSION=vX.Y.Z` checks the npm
+registry version, PyPI JSON version, `npx` launcher output, and `uvx` launcher
+output.
 
 ## Required Secrets
 
@@ -196,12 +199,6 @@ wrapper metadata first if the package name is changed before publication.
 
 GitHub OIDC Registry authentication does not require a dedicated secret, but the
 Release workflow must keep `id-token: write`.
-
-For the first npm wrapper publication, npm can require a traditional publish
-token because trusted publishing is configured from an existing package. If the
-package does not exist yet, create a short-lived granular token with publish
-permission, store it as `NPM_TOKEN`, publish the first wrapper version, then
-configure npm trusted publishing and revoke the token.
 
 ## Quality Gates and Branch Protection
 
@@ -256,7 +253,7 @@ If workflow job names are changed, update branch protection in the same change. 
 - If it was not published, fix the token or package issue and re-run with the same version.
 - If it was partially published, do not reuse the same version for changed content; bump `Cargo.toml` version.
 - `make release` fails fast when the requested version already exists on crates.io.
-- Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, and crates.io version after retry.
+- Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, crates.io version, npm version, PyPI version, wrapper launch output, and Homebrew formula evidence after retry.
 
 ### MCP Registry publish failed
 
