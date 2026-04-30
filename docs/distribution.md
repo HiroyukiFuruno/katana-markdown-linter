@@ -18,7 +18,7 @@ The GitHub Action lives at the repository root as `action.yml`, so consumers can
 use the release tag directly:
 
 ~~~yaml
-- uses: actions/checkout@v5
+- uses: actions/checkout@v6
 - uses: HiroyukiFuruno/katana-markdown-linter@v0.17.5
   with: { version: "0.17.5", command: check, paths: "README.md\ndocs" }
 ~~~

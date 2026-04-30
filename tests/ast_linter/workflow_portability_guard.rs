@@ -10,6 +10,7 @@ fn ci_workflows_keep_windows_and_cache_strategy_explicit() {
 struct WorkflowPortabilityGuard {
     ci: String,
     attributes: String,
+    dependabot: String,
     preflight: String,
     release: String,
     homebrew_formula: String,
@@ -22,6 +23,7 @@ impl WorkflowPortabilityGuard {
         Self {
             ci: read_workspace_file(".github/workflows/test-and-build.yml"),
             attributes: read_workspace_file(".gitattributes"),
+            dependabot: read_workspace_file(".github/dependabot.yml"),
             preflight: read_workspace_file(".github/workflows/release-preflight.yml"),
             release: read_workspace_file(".github/workflows/release.yml"),
             homebrew_formula: read_workspace_file("scripts/release/homebrew_formula.py"),
@@ -37,6 +39,8 @@ impl WorkflowPortabilityGuard {
         self.require_windows_line_ending_guard(&mut violations);
         self.require_unified_rust_cache(&mut violations);
         self.require_homebrew_tap_update(&mut violations);
+        self.require_dependency_update_bot(&mut violations);
+        self.require_node24_artifact_actions(&mut violations);
         violations
     }
 
@@ -162,6 +166,45 @@ impl WorkflowPortabilityGuard {
                 violations,
                 "scripts/release/verify-release-published.sh",
                 &self.release_verifier,
+                required,
+            );
+        }
+    }
+
+    fn require_dependency_update_bot(&self, violations: &mut Vec<String>) {
+        for required in [
+            r#"package-ecosystem: "github-actions""#,
+            r#"package-ecosystem: "cargo""#,
+            "interval: \"weekly\"",
+            "github-actions:",
+            "rust-dependencies:",
+        ] {
+            require_contains(
+                violations,
+                ".github/dependabot.yml",
+                &self.dependabot,
+                required,
+            );
+        }
+    }
+
+    fn require_node24_artifact_actions(&self, violations: &mut Vec<String>) {
+        for forbidden in ["actions/upload-artifact@v4", "actions/download-artifact@v4"] {
+            require_absent(
+                violations,
+                ".github/workflows/release.yml",
+                &self.release,
+                forbidden,
+            );
+        }
+        for required in [
+            "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1",
+            "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1",
+        ] {
+            require_contains(
+                violations,
+                ".github/workflows/release.yml",
+                &self.release,
                 required,
             );
         }
