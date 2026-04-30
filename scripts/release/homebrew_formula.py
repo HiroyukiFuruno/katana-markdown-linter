@@ -17,6 +17,10 @@ class FormulaAsset:
 class HomebrewFormulaTool:
     def __init__(self, args: argparse.Namespace) -> None:
         self.version = self._normalize_version(args.version)
+        self.version_bare = self.version.removeprefix("v")
+        self.formula_name = args.formula_name
+        self.versioned_formula = "@" in self.formula_name
+        self.class_name = self._formula_class_name(args.formula_name)
         self.repo = args.repo
         self.dist_dir = Path(args.dist_dir)
         self.output = Path(args.output)
@@ -30,7 +34,14 @@ class HomebrewFormulaTool:
 
     def check(self) -> None:
         formula = self.output.read_text(encoding="utf-8")
-        required = ["class Kml < Formula", "bin.install \"kml\"", "kml --version"]
+        required = [
+            f"class {self.class_name} < Formula",
+            f"version \"{self.version_bare}\"",
+            "bin.install \"kml\"",
+            "kml --version",
+        ]
+        if self.versioned_formula:
+            required.append("keg_only :versioned_formula")
         missing = [item for item in required if item not in formula]
         missing.extend(self._missing_asset_content(formula))
         if missing:
@@ -71,12 +82,15 @@ class HomebrewFormulaTool:
     def _render_formula(self, assets: list[FormulaAsset]) -> str:
         by_target = {asset.target: asset for asset in assets}
         lines = [
-            "class Kml < Formula",
+            f"class {self.class_name} < Formula",
             "  desc \"Markdownlint-compatible Markdown linter library and CLI\"",
             "  homepage \"https://github.com/HiroyukiFuruno/katana-markdown-linter\"",
+            f"  version \"{self.version_bare}\"",
             "  license \"MIT\"",
             "",
         ]
+        if self.versioned_formula:
+            lines.extend(["  keg_only :versioned_formula", ""])
         mac_assets = [
             by_target.get("aarch64-apple-darwin"),
             by_target.get("x86_64-apple-darwin"),
@@ -131,11 +145,19 @@ class HomebrewFormulaTool:
     def _normalize_version(self, version: str) -> str:
         return version if version.startswith("v") else f"v{version}"
 
+    def _formula_class_name(self, name: str) -> str:
+        base, _, suffix = name.partition("@")
+        class_name = "".join(part.capitalize() for part in base.split("-"))
+        if suffix:
+            class_name += f"AT{''.join(char for char in suffix if char.isalnum())}"
+        return class_name
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=("generate", "check"))
     parser.add_argument("--version", required=True)
+    parser.add_argument("--formula-name", default="kml")
     parser.add_argument("--repo", default="HiroyukiFuruno/katana-markdown-linter")
     parser.add_argument("--dist-dir", default="target/binary")
     parser.add_argument("--output", default="target/homebrew/kml.rb")

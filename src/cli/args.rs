@@ -11,11 +11,40 @@ pub enum Command {
     Check,
     Fix,
     Fmt,
+    Help(Option<HelpTopic>),
     InitConfig,
     Lsp,
     Rule(Option<String>),
     Config(ConfigCommand),
     Version,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelpTopic {
+    Check,
+    Config,
+    Fix,
+    Fmt,
+    InitConfig,
+    Lsp,
+    Rule,
+    Version,
+}
+
+impl HelpTopic {
+    fn from_command(value: &str) -> Option<Self> {
+        match value {
+            "check" => Some(Self::Check),
+            "config" => Some(Self::Config),
+            "fix" => Some(Self::Fix),
+            "fmt" => Some(Self::Fmt),
+            "init" | "init-config" => Some(Self::InitConfig),
+            "lsp" => Some(Self::Lsp),
+            "rule" => Some(Self::Rule),
+            "version" => Some(Self::Version),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -75,6 +104,20 @@ impl Default for Cli {
 }
 
 pub fn parse_args(args: Vec<String>) -> Cli {
+    if requests_help(&args) {
+        return Cli {
+            command: Command::Help(help_topic(&args)),
+            ..Cli::default()
+        };
+    }
+
+    if requests_version(&args) {
+        return Cli {
+            command: Command::Version,
+            ..Cli::default()
+        };
+    }
+
     let mut command = Command::Check;
     let mut config = None;
     let mut format = OutputFormat::Text;
@@ -102,7 +145,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             "fix" => command = Command::Fix,
             "fmt" => command = Command::Fmt,
             "lsp" => command = Command::Lsp,
-            "version" | "--version" | "-V" => command = Command::Version,
+            "version" | "--version" | "-V" | "-v" => command = Command::Version,
             "rule" => {
                 let rule_id = iter
                     .next_if(|value| !value.starts_with('-'))
@@ -202,6 +245,30 @@ pub fn parse_args(args: Vec<String>) -> Cli {
     }
 }
 
+fn requests_help(args: &[String]) -> bool {
+    matches!(args.first().map(String::as_str), Some("help"))
+        || args
+            .iter()
+            .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+}
+
+fn help_topic(args: &[String]) -> Option<HelpTopic> {
+    if matches!(args.first().map(String::as_str), Some("help")) {
+        return args.get(1).and_then(|value| HelpTopic::from_command(value));
+    }
+
+    args.iter()
+        .find(|value| !value.starts_with('-'))
+        .and_then(|value| HelpTopic::from_command(value))
+}
+
+fn requests_version(args: &[String]) -> bool {
+    matches!(args.first().map(String::as_str), Some("version"))
+        || args
+            .iter()
+            .any(|arg| matches!(arg.as_str(), "--version" | "-V" | "-v"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -276,6 +343,26 @@ mod tests {
         assert_eq!(parse_args(vec!["fmt".to_string()]).command, Command::Fmt);
         assert_eq!(parse_args(vec!["lsp".to_string()]).command, Command::Lsp);
         assert_eq!(
+            parse_args(vec!["help".to_string()]).command,
+            Command::Help(None)
+        );
+        assert_eq!(
+            parse_args(vec!["--help".to_string()]).command,
+            Command::Help(None)
+        );
+        assert_eq!(
+            parse_args(vec!["-h".to_string()]).command,
+            Command::Help(None)
+        );
+        assert_eq!(
+            parse_args(vec!["check".to_string(), "--help".to_string()]).command,
+            Command::Help(Some(HelpTopic::Check))
+        );
+        assert_eq!(
+            parse_args(vec!["help".to_string(), "fmt".to_string()]).command,
+            Command::Help(Some(HelpTopic::Fmt))
+        );
+        assert_eq!(
             parse_args(vec!["rule".to_string(), "MD013".to_string()]).command,
             Command::Rule(Some("MD013".to_string()))
         );
@@ -300,6 +387,7 @@ mod tests {
             parse_args(vec!["version".to_string()]).command,
             Command::Version
         );
+        assert_eq!(parse_args(vec!["-v".to_string()]).command, Command::Version);
     }
 
     #[test]

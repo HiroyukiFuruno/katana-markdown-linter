@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.17.5
+
+- Adds global and command-specific CLI help for `kml help`, `kml --help`,
+  `kml -h`, and `kml <command> --help`.
+- Adds the `kml -v` version alias alongside `kml version`, `kml --version`,
+  and `kml -V`.
+- Updates the release flow so Homebrew tap formulae are published from verified
+  release assets and checked during post-release verification.
+
 ## v0.17.4
 
 - Fixes npm and PyPI wrapper binary caches so cached `kml` binaries are scoped

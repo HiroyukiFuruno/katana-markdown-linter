@@ -160,21 +160,25 @@ of replacing the published meaning of the same version.
 
 ## Homebrew Tap Update
 
-The release workflow generates `target/homebrew/kml.rb` from the verified
-binary assets. Apply that file to the `homebrew-katana` tap in a separate
-branch after the GitHub Release exists:
+The release workflow generates both `target/homebrew/kml.rb` and
+`target/homebrew/kml@X.Y.Z.rb` from the verified binary assets. After the
+GitHub Release exists, the workflow updates `HiroyukiFuruno/homebrew-katana`
+with `HOMEBREW_KATANA_GIT_TOKEN`.
+
+Configure this repository secret before publishing:
 
 ~~~bash
-cd /Users/hiroyuki_furuno/works/private/homebrew-katana
-git switch -c release/kml-vX.Y.Z
-mkdir -p Formula
-cp /Users/hiroyuki_furuno/works/private/katana-markdown-linter/target/homebrew/kml.rb Formula/kml.rb
-brew audit --strict --online Formula/kml.rb
-brew test Formula/kml.rb
+gh secret set HOMEBREW_KATANA_GIT_TOKEN --body "<token-with-homebrew-katana-write-access>"
 ~~~
 
-Push and review the tap change separately from the core release PR. Do not push
-a tap update before the referenced release assets and checksums exist.
+Do not add a `github.token` fallback. The tap update must fail when the
+dedicated token is missing. `make release-verify VERSION=vX.Y.Z` compares the
+generated formulae with the actual tap files:
+
+- `Formula/kml.rb`
+- `Formula/kml@X.Y.Z.rb`
+
+If either file still points at an older release, verification fails.
 
 ## Wrapper Publication
 

@@ -16,8 +16,8 @@ kml --version
 Use `uvx` for one-off runs:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.4 kml --version
-uvx --from katana-markdown-linter==0.17.4 kml check README.md
+uvx --from katana-markdown-linter==0.17.5 kml --version
+uvx --from katana-markdown-linter==0.17.5 kml check README.md
 ~~~
 
 ## Basic Usage

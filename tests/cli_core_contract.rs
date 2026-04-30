@@ -157,6 +157,77 @@ fn config_schema_outputs_json_schema_for_editor_completion() {
 }
 
 #[test]
+fn help_commands_print_usage_without_linting_workspace() {
+    for argument in ["--help", "-h", "help"] {
+        let dir = TestDir::new("help-command");
+        let output = run_kml_in([argument], None, dir.path());
+
+        assert!(
+            output.status.success(),
+            "{argument} should exit successfully\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert_contains(&stdout, "Usage: kml <command> [options] [paths...]");
+        assert_contains(&stdout, "Commands:");
+        assert_contains(&stdout, "check");
+        assert_contains(&stdout, "version");
+    }
+}
+
+#[test]
+fn command_help_flags_print_command_usage() {
+    for command_name in [
+        "check",
+        "fix",
+        "fmt",
+        "rule",
+        "config",
+        "init-config",
+        "lsp",
+        "version",
+    ] {
+        for help_flag in ["--help", "-h"] {
+            let dir = TestDir::new("command-help");
+            let output = run_kml_in([command_name, help_flag], None, dir.path());
+
+            assert!(
+                output.status.success(),
+                "{command_name} {help_flag} should exit successfully\nstdout:\n{}\nstderr:\n{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            assert_contains(&stdout, &format!("Usage: kml {command_name}"));
+        }
+    }
+}
+
+#[test]
+fn version_aliases_print_package_version() {
+    for argument in ["version", "--version", "-V", "-v"] {
+        let dir = TestDir::new("version-command");
+        let output = run_kml_in([argument], None, dir.path());
+
+        assert!(
+            output.status.success(),
+            "{argument} should exit successfully\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert_eq!(stdout.trim(), env!("CARGO_PKG_VERSION"));
+    }
+}
+
+#[test]
 fn config_validation_reports_schema_property_errors() {
     let dir = TestDir::new("config-schema-validation");
     let file = dir.path().join("bad.md");
@@ -191,8 +262,18 @@ fn config_validation_reports_schema_property_errors() {
 }
 
 fn run_kml<const N: usize>(args: [&str; N], stdin: Option<&str>) -> std::process::Output {
+    let current_dir = std::env::current_dir().expect("current dir should be available");
+    run_kml_in(args, stdin, &current_dir)
+}
+
+fn run_kml_in<const N: usize>(
+    args: [&str; N],
+    stdin: Option<&str>,
+    current_dir: &Path,
+) -> std::process::Output {
     let mut command = Command::new(env!("CARGO_BIN_EXE_kml"));
     command.args(args);
+    command.current_dir(current_dir);
     if stdin.is_some() {
         command.stdin(Stdio::piped());
     }
@@ -223,6 +304,13 @@ fn stdout_json(output: &std::process::Output) -> Value {
 
 fn file_text(path: &Path) -> String {
     path.display().to_string()
+}
+
+fn assert_contains(text: &str, expected: &str) {
+    assert!(
+        text.contains(expected),
+        "expected output to contain {expected:?}\noutput:\n{text}"
+    );
 }
 
 struct TestDir {

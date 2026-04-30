@@ -30,7 +30,7 @@
 | `make mcpb-smoke` | Build the MCPB bundle and run the bundled `kml-mcp` binary through stdio smoke | Yes for release gates |
 | `make server-json-validate` | Render and validate MCP Registry metadata for the release MCPB artifact | Yes for release gates |
 | `make release-check` | Run local release preflight gates except live upstream clone | Yes |
-| `make release-verify` | Verify published tag, GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state | Yes after publication |
+| `make release-verify` | Verify published tag, GitHub Release, crates.io, npm, PyPI, wrapper launch, and actual Homebrew tap formula state | Yes after publication |
 
 `make lint` is intentionally limited to Clippy. Repository-specific checks belong in `make ast-lint` so Rust style warnings and project invariants can be triaged independently.
 
@@ -163,7 +163,8 @@ make release-verify VERSION=vX.Y.Z
 
 That command compares the local tag target, GitHub Release title and target,
 GitHub tag verification state, required binary assets, crates.io version, npm
-version, PyPI version, wrapper launch output, and Homebrew formula evidence.
+version, PyPI version, wrapper launch output, and Homebrew tap formula
+evidence.
 
 Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 
