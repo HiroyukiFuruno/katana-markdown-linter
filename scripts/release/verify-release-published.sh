@@ -41,7 +41,7 @@ if [[ "${release_target}" != "${local_target}" ]]; then
 fi
 
 cargo_info="$(cargo info "${PACKAGE}@${VERSION_BARE}" --registry crates-io)"
-crate_version="$(awk -F ': ' '/^version:/ { print $2; exit }' <<< "${cargo_info}")"
+crate_version="$(printf '%s\n' "${cargo_info}" | sed -n 's/^version: //p')"
 if [[ "${crate_version}" != "${VERSION_BARE}" ]]; then
   echo "crates.io version mismatch: expected ${VERSION_BARE}, got ${crate_version:-missing}" >&2
   exit 1
