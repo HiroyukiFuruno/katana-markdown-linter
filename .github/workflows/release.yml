@@ -309,6 +309,13 @@ jobs:
           fi
 
       - name: Publish MCP Registry metadata
+        if: >
+          github.event_name != 'workflow_dispatch' ||
+          inputs.publish_crate == true ||
+          (
+            inputs.publish_npm_wrapper != true &&
+            inputs.publish_pypi_wrapper != true
+          )
         run: |
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar -xz -f - mcp-publisher
           ./mcp-publisher login github-oidc
