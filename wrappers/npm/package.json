@@ -1,0 +1,23 @@
+{
+  "name": "katana-markdown-linter",
+  "version": "0.17.0",
+  "description": "Thin npm launcher for the kml Markdown linter binary.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
+  },
+  "bin": {
+    "kml": "bin/kml.js"
+  },
+  "scripts": {
+    "postinstall": "node lib/installer.js"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.17.0
+
+- Adds standalone `kml` binary archives for Linux x86_64, macOS x86_64,
+  macOS arm64, and Windows x86_64, each with a neighboring SHA-256 checksum.
+- Extends local release checks and the Release workflow with shared binary
+  packaging, archive extraction smoke tests, Homebrew formula rendering, and
+  post-release binary asset verification.
+- Adds thin npm and Python wrapper sources plus local wrapper smoke coverage.
+  Wrapper publication remains deferred until `NPM_TOKEN` and `PYPI_API_TOKEN`
+  are registered and explicit workflow publish flags are enabled.
+- Documents the binary archive install path, the separated Homebrew tap update
+  flow, and the wrapper publication state without listing unpublished wrappers
+  as official install channels.
+
 ## v0.16.2
 
 - Adds document-level answer fixture evaluation for `kml check --fix`,

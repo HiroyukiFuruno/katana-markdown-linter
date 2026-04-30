@@ -38,6 +38,9 @@ MCP_REMOTE_INSTALL_SMOKE_DIR ?= target/mcp-remote-install-smoke
 MCPB_DIST_DIR ?= target/mcpb
 MCPB_PACKAGE ?= $(MCPB_DIST_DIR)/katana-markdown-linter-$(VERSION_BARE).mcpb
 MCP_SERVER_JSON ?= $(MCPB_DIST_DIR)/server.json
+BINARY_DIST_DIR ?= target/binary
+BINARY_TARGET ?=
+HOMEBREW_FORMULA ?= target/homebrew/kml.rb
 export RUSTFLAGS=-D warnings
 
 # AI context-aware CLI proxy (mandatory for agents)
@@ -195,6 +198,35 @@ action-smoke: ## Smoke test the repository GitHub Action through shared action s
 	KML_ACTION_INSTALL_SOURCE=path KML_ACTION_PATH=. KML_ACTION_INSTALL_ROOT="$(ACTION_SMOKE_DIR)/install" bash scripts/action/install-kml.sh
 	PATH="$(CURDIR)/$(ACTION_SMOKE_DIR)/install/bin:$$PATH" KML_ACTION_COMMAND=check KML_ACTION_PATHS="$(ACTION_SMOKE_DIR)/README.md" KML_ACTION_CONFIG="$(ACTION_SMOKE_DIR)/.markdownlint.json" KML_ACTION_LOCALE=en KML_ACTION_OUTPUT=text bash scripts/action/run-kml.sh
 
+.PHONY: binary-package
+binary-package: ## Build standalone kml binary archive and checksum for VERSION
+	scripts/release/verify-version.sh "$(VERSION)"
+	target_arg=""; \
+	if [ -n "$(BINARY_TARGET)" ]; then target_arg="--target $(BINARY_TARGET)"; fi; \
+	python3 scripts/release/binary_artifacts.py package --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" $$target_arg
+
+.PHONY: binary-smoke
+binary-smoke: binary-package ## Exercise the standalone binary archive after extraction
+	target_arg=""; \
+	if [ -n "$(BINARY_TARGET)" ]; then target_arg="--target $(BINARY_TARGET)"; fi; \
+	python3 scripts/release/binary_artifacts.py smoke --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" $$target_arg
+
+.PHONY: homebrew-formula
+homebrew-formula: binary-package ## Render Homebrew formula from binary archive checksums
+	python3 scripts/release/homebrew_formula.py generate --version "$(VERSION)" --dist-dir "$(BINARY_DIST_DIR)" --output "$(HOMEBREW_FORMULA)"
+
+.PHONY: homebrew-formula-check
+homebrew-formula-check: homebrew-formula ## Validate generated Homebrew formula output
+	python3 scripts/release/homebrew_formula.py check --version "$(VERSION)" --output "$(HOMEBREW_FORMULA)"
+
+.PHONY: wrapper-smoke
+wrapper-smoke: binary-package ## Exercise npm and Python wrapper launchers against local binary archive
+	scripts/release/smoke-wrappers.sh "$(VERSION)" "$(BINARY_DIST_DIR)"
+
+.PHONY: wrapper-publish-gate
+wrapper-publish-gate: ## Verify wrapper publish flags stay deferred outside trusted publishing
+	scripts/release/wrapper-publish-gate.sh
+
 .PHONY: mcp-build
 mcp-build: ## Build optional experimental MCP server
 	cargo build --bin kml-mcp --features mcp --locked
@@ -254,7 +286,7 @@ release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
 .PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	scripts/release/verify-version.sh "$(VERSION)"
 	cargo publish --dry-run --locked --allow-dirty

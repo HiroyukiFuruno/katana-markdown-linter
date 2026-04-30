@@ -20,6 +20,10 @@
 | `make rule-dashboard` | Regenerate `docs/rule-coverage-dashboard.md` | No, generation helper |
 | `make bench-cross-tools` | Compare `kml` CLI timing with optional `mado` and `rumdl` binaries | No, manual performance probe |
 | `make action-smoke` | Install through the shared GitHub Action scripts and run a CLI smoke check | Yes for release gates |
+| `make binary-smoke` | Build a standalone `kml` archive, verify checksum, extract it, and run CLI smoke checks | Yes for release gates |
+| `make homebrew-formula-check` | Render and validate the Homebrew formula from binary archive checksums | Yes for release gates |
+| `make wrapper-smoke` | Run npm and Python wrapper launchers against the local binary archive | Yes for release gates |
+| `make wrapper-publish-gate` | Ensure wrapper publication is skipped unless explicit trusted-publishing flags are present | Yes for release gates |
 | `make mcp-stdio-smoke` | Install `kml-mcp` and exercise the local stdio server through JSON-RPC | Yes for release gates |
 | `make mcp-remote-smoke` | Install `kml-mcp-remote` and exercise Streamable HTTP auth, tools, diagnostics, and size limits | Yes for release gates |
 | `make mcpb-smoke` | Build the MCPB bundle and run the bundled `kml-mcp` binary through stdio smoke | Yes for release gates |
@@ -41,6 +45,7 @@
 - upstream drift checking must be wired through `make upstream-drift` and release workflows
 - public confidence evidence must stay wired into release preflight and release workflows
 - the GitHub Action channel must stay wired through `action.yml`, shared scripts, and release smoke checks
+- binary artifact, Homebrew formula, and wrapper smoke gates must stay wired into release checks
 - MCPB packaging and MCP Registry metadata validation must stay wired into local and release gates
 - CI workflows must keep Windows workspace verification and Rust cache strategy explicit
 - public Markdown docs must stay English-only
@@ -82,8 +87,17 @@ checks the request body limit.
 checksum and verifies that the metadata points at the GitHub Release artifact
 without declaring remote MCP transport.
 
-The release workflows run the same smoke targets so the action scripts, MCPB
-manifest, and MCP Registry metadata are tested before publication.
+`make binary-smoke` builds the current platform archive, verifies the checksum,
+extracts the archive, checks `kml --version`, and runs a small `kml check`
+fixture. `make homebrew-formula-check` renders `target/homebrew/kml.rb` from
+the same archive checksums. `make wrapper-smoke` verifies the npm and Python
+launchers through the local archive without treating those wrappers as
+published channels. Wrapper publication uses registry trusted publishing from
+dedicated release workflow jobs instead of long-lived registry tokens.
+
+The release workflows run the same smoke targets so the action scripts, binary
+archives, Homebrew formula, wrapper launchers, MCPB manifest, and MCP Registry
+metadata are tested before publication.
 
 ## CI Required Checks
 
@@ -120,10 +134,11 @@ make release-check VERSION=vX.Y.Z
 
 The local release check runs formatting, Clippy, AST lint, tests, dogfood,
 public confidence, coverage regression, example builds, optional MCP build,
-MCP stdio smoke, MCP remote smoke, MCPB smoke, Registry metadata validation, version
-verification, dry-run publish, action smoke, and install smoke checks. The
-GitHub release workflows additionally clone upstream markdownlint and run
-`make upstream-drift` against the default branch docs.
+MCP stdio smoke, MCP remote smoke, MCPB smoke, Registry metadata validation,
+action smoke, binary smoke, Homebrew formula validation, wrapper smoke, wrapper
+publish gating, version verification, dry-run publish, and install smoke
+checks. The GitHub release workflows additionally clone upstream markdownlint
+and run `make upstream-drift` against the default branch docs.
 
 Use `make release-tag VERSION=vX.Y.Z` before dispatching a release. It creates
 or verifies a signed annotated tag and then requires GitHub to report the tag as
@@ -140,7 +155,7 @@ make release-verify VERSION=vX.Y.Z
 ~~~
 
 That command compares the local tag target, GitHub Release title and target,
-GitHub tag verification state, and crates.io version.
+GitHub tag verification state, required binary assets, and crates.io version.
 
 Run `make upstream-golden` before changing rule behavior or fix behavior. It is deterministic and does not require network access. Run `make upstream-golden-live` only when refreshing the upstream oracle or investigating compatibility drift.
 

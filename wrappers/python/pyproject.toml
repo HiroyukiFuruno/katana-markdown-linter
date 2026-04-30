@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "katana-markdown-linter"
+version = "0.17.0"
+description = "Thin Python launcher for the kml Markdown linter binary."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+
+[project.scripts]
+kml = "katana_markdown_linter.cli:main"

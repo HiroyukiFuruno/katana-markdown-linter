@@ -66,6 +66,18 @@ jobs:
       - name: Action smoke
         run: make action-smoke
 
+      - name: Binary artifact smoke
+        run: make binary-smoke
+
+      - name: Homebrew formula check
+        run: make homebrew-formula-check
+
+      - name: Wrapper smoke
+        run: make wrapper-smoke
+
+      - name: Wrapper publish gate
+        run: make wrapper-publish-gate
+
       - name: Dogfood
         run: make dogfood
 
