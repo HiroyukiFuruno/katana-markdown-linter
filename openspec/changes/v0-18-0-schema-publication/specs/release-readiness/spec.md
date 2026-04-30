@@ -21,3 +21,15 @@ schema が変更される release note は、互換性の扱いを説明しな�
 - **THEN** release metadata records whether the change is additive or breaking
 - **AND** breaking schema changes include migration notes
 - **AND** additive schema changes can be released without migration notes
+
+### Requirement: wrapper package metadata SHALL expose help and version usage
+
+npm / PyPI の registry-visible metadata は、thin launcher の説明だけでなく、CLI の help と version 導線を説明しなければならない（SHALL）。
+
+#### Scenario: wrapper package metadata is prepared
+
+- **WHEN** system builds npm and PyPI wrapper packages for `vX.Y.Z`
+- **THEN** npm README includes `kml help`, `kml --help`, `kml -h`, and `kml <command> --help` examples
+- **AND** PyPI README includes `kml help`, `kml --help`, `kml -h`, and `kml <command> --help` examples
+- **AND** npm `description` and PyPI `summary` mention that the package launches the `kml` CLI with check, fix, help, and version commands
+- **AND** package metadata does not imply npm or Python contains independent lint logic

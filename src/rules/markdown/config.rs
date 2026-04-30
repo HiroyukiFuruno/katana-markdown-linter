@@ -59,6 +59,7 @@ impl MarkdownLintConfig {
 
     pub fn to_lint_options(&self) -> LintOptions {
         let mut options = LintOptions::default();
+        let rule_map = crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
         let default_enabled = self
             .raw
             .as_object()
@@ -86,6 +87,9 @@ impl MarkdownLintConfig {
             if key == "default" {
                 continue;
             }
+            let Some((rule_id, meta)) = resolve_rule_key(key, rule_map) else {
+                continue;
+            };
             let enabled = match value {
                 Value::Bool(enabled) => *enabled,
                 Value::Object(properties) => properties
@@ -94,12 +98,20 @@ impl MarkdownLintConfig {
                     .unwrap_or(default_enabled),
                 _ => default_enabled,
             };
-            let entry = options.rules.entry(key.clone()).or_default();
+            let entry = options.rules.entry(rule_id.to_string()).or_default();
             entry.enabled = enabled;
             if let Value::Object(properties) = value {
                 entry.properties = properties
                     .iter()
                     .filter(|(property, _)| property.as_str() != "enabled")
+                    .filter(|(property, value)| {
+                        meta.properties
+                            .iter()
+                            .find(|meta| meta.key == property.as_str())
+                            .is_some_and(|property_meta| {
+                                validate_property_value(property_meta.prop_type, value).is_none()
+                            })
+                    })
                     .map(|(property, value)| {
                         let value = value
                             .as_str()
@@ -192,7 +204,7 @@ impl MarkdownLintConfig {
                 continue;
             }
 
-            let Some(meta) = rule_map.get(rule_id.as_str()) else {
+            let Some((canonical_rule_id, meta)) = resolve_rule_key(rule_id, rule_map) else {
                 errors.push(ConfigError::new(
                     Some(rule_id.clone()),
                     None,
@@ -209,7 +221,7 @@ impl MarkdownLintConfig {
                         let Some(prop_meta) = meta.properties.iter().find(|p| p.key == prop_key)
                         else {
                             errors.push(ConfigError::new(
-                                Some(rule_id.clone()),
+                                Some(canonical_rule_id.to_string()),
                                 Some(prop_key.clone()),
                                 ConfigErrorKind::UnknownProperty,
                                 "unknown rule property",
@@ -221,7 +233,7 @@ impl MarkdownLintConfig {
                             validate_property_value(prop_meta.prop_type, prop_value)
                         {
                             errors.push(ConfigError::new(
-                                Some(rule_id.clone()),
+                                Some(canonical_rule_id.to_string()),
                                 Some(prop_key.clone()),
                                 kind_err,
                                 "invalid rule property value",
@@ -269,6 +281,21 @@ fn validate_property_value(prop_type: RulePropertyType, value: &Value) -> Option
                 })
             }
         }
+        RulePropertyType::NumberOrNumberArray => {
+            if value.is_number()
+                || value
+                    .as_array()
+                    .map(|items| items.iter().all(Value::is_number))
+                    .unwrap_or(false)
+            {
+                None
+            } else {
+                Some(ConfigErrorKind::InvalidType {
+                    expected: "number or number array",
+                    actual: value_kind(value),
+                })
+            }
+        }
         RulePropertyType::String => {
             if value.is_string() {
                 None
@@ -311,6 +338,19 @@ fn validate_property_value(prop_type: RulePropertyType, value: &Value) -> Option
             }
         }
     }
+}
+
+fn resolve_rule_key<'a>(
+    rule_id: &str,
+    rule_map: &'a HashMap<&'static str, crate::rules::markdown::OfficialRuleMeta>,
+) -> Option<(&'static str, &'a crate::rules::markdown::OfficialRuleMeta)> {
+    if let Some(meta) = rule_map.get(rule_id) {
+        return Some((meta.code, meta));
+    }
+    rule_map
+        .values()
+        .find(|meta| meta.aliases.contains(&rule_id))
+        .map(|meta| (meta.code, meta))
 }
 
 fn value_kind(value: &Value) -> &'static str {
@@ -651,6 +691,49 @@ mod tests {
                 && error.property.as_deref() == Some("front_matter_title")
                 && matches!(error.kind, ConfigErrorKind::InvalidType { .. })
         }));
+    }
+
+    #[test]
+    fn validate_accepts_official_aliases_and_number_or_array_properties() {
+        let config = MarkdownLintConfig {
+            raw: json!({
+                "default": false,
+                "heading-increment": true,
+                "first-line-h1": { "allow_preamble": true },
+                "first-line-heading": false,
+                "no-duplicate-heading": false,
+                "no-inline-html": false,
+                "MD022": {
+                    "lines_above": [1, 1, 1, 1, 1, 1],
+                    "lines_below": 1
+                }
+            }),
+        };
+
+        let rules = crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
+        let errors = config.validate(&rules);
+        assert_eq!(errors, Vec::new());
+
+        let options = config.to_lint_options();
+        assert_eq!(
+            options.rules.get("MD001").map(|rule| rule.enabled),
+            Some(true)
+        );
+        assert_eq!(
+            options
+                .rules
+                .get("MD041")
+                .and_then(|rule| rule.properties.get("allow_preamble")),
+            Some(&"true".to_string())
+        );
+        assert_eq!(
+            options.rules.get("MD024").map(|rule| rule.enabled),
+            Some(false)
+        );
+        assert_eq!(
+            options.rules.get("MD033").map(|rule| rule.enabled),
+            Some(false)
+        );
     }
 
     #[test]

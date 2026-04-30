@@ -1,3 +1,5 @@
+## ADDED Requirements
+
 ### Requirement: v0.17.5 release readiness SHALL restore CLI help entrypoints
 
 `v0.17.5` の release readiness は、CLI help entrypoint が lint 対象探索に流れないことを release blocker として扱わなければならない（SHALL）。

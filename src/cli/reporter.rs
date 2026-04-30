@@ -282,7 +282,25 @@ pub(crate) fn print_text_report(report: &CliReport, fix_mode: bool, cli: &Cli, l
             eprintln!("{} error: {}", error.kind, error.localized_message(locale));
         }
     }
+    if has_config_validation_errors(report) && !cli.ignore_config_errors {
+        eprintln!(
+            "{}",
+            crate::i18n::render_message(
+                locale,
+                "config.fix_or_ignore_advice",
+                &MessageParams::new(),
+                "Fix the markdownlint config, or rerun with --ignore-config-errors to ignore invalid config entries."
+            )
+        );
+    }
     print!("{}", render_text_report(report, fix_mode, cli, locale));
+}
+
+fn has_config_validation_errors(report: &CliReport) -> bool {
+    report
+        .errors
+        .iter()
+        .any(|error| error.kind == "config" && error.message_id != "config.error")
 }
 
 pub(crate) fn output_report(

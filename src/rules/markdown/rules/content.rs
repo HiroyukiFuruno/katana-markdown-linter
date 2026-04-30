@@ -22,6 +22,7 @@ impl MarkdownRule for FencedCodeLanguageRule {
             title: "fenced-code-language",
             description: "Fenced code blocks should have a language specified.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md040.md",
+            aliases: &["fenced-code-language"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[
@@ -92,6 +93,7 @@ impl MarkdownRule for FirstLineHeadingRule {
             title: "first-line-heading",
             description: "First line in a file should be a top-level heading.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md041.md",
+            aliases: &["first-line-h1", "first-line-heading"],
             parity: RuleParityStatus::Official,
             is_fixable: false,
             properties: &[

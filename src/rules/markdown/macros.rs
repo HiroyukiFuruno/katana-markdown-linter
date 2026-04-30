@@ -18,6 +18,7 @@ macro_rules! regex_rule {
                         $id,
                         ".md"
                     ),
+                    aliases: &[],
                     parity: crate::rules::markdown::RuleParityStatus::Experimental,
                     is_fixable: false,
                     properties: $properties,
@@ -77,6 +78,7 @@ macro_rules! official_rule {
                     title: $title,
                     description: $desc,
                     docs_url: $docs_url,
+                    aliases: &[],
                     parity: $crate::rules::markdown::RuleParityStatus::Official,
                     is_fixable: false,
                     properties: $properties,

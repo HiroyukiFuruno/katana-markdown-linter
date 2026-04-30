@@ -46,7 +46,11 @@ impl ConfigSchemaGenerator {
         );
 
         for rule in &self.rules {
-            properties.insert(rule.code.to_string(), self.rule_schema(rule));
+            let schema = self.rule_schema(rule);
+            properties.insert(rule.code.to_string(), schema.clone());
+            for alias in rule.aliases {
+                properties.insert((*alias).to_string(), schema.clone());
+            }
         }
 
         json!({
@@ -109,6 +113,15 @@ fn property_schema(property: &RuleProperty) -> Value {
         RulePropertyType::Number => {
             schema.insert("type".to_string(), Value::String("number".to_string()));
         }
+        RulePropertyType::NumberOrNumberArray => {
+            schema.insert(
+                "anyOf".to_string(),
+                json!([
+                    { "type": "number" },
+                    { "type": "array", "items": { "type": "number" } }
+                ]),
+            );
+        }
         RulePropertyType::String => {
             schema.insert("type".to_string(), Value::String("string".to_string()));
         }
@@ -128,7 +141,7 @@ fn property_schema(property: &RuleProperty) -> Value {
 fn default_value(property: &RuleProperty) -> Value {
     match property.prop_type {
         RulePropertyType::Boolean => Value::Bool(property.default_value == "true"),
-        RulePropertyType::Number => property
+        RulePropertyType::Number | RulePropertyType::NumberOrNumberArray => property
             .default_value
             .parse::<i64>()
             .map(|value| json!(value))

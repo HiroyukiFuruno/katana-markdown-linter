@@ -4,7 +4,7 @@
 The package does not contain independent lint logic. On first use, it downloads
 the matching `kml` binary archive from GitHub Releases, verifies the neighboring
 SHA-256 checksum, installs the binary into the wrapper cache, and then delegates
-all commands to that binary.
+all commands to that binary, including localized CLI help.
 
 ## Install
 
@@ -16,8 +16,8 @@ kml --version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.5 --version
-npx --yes katana-markdown-linter@0.17.5 check README.md
+npx --yes katana-markdown-linter@0.17.6 --version
+npx --yes katana-markdown-linter@0.17.6 check README.md
 ~~~
 
 ## Basic Usage
@@ -25,6 +25,7 @@ npx --yes katana-markdown-linter@0.17.5 check README.md
 ~~~bash
 kml check README.md
 kml check docs --config .markdownlint.json
+kml --locale ja help
 kml fix README.md
 ~~~
 

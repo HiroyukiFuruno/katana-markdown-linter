@@ -18,9 +18,9 @@ The GitHub Action lives at the repository root as `action.yml`, so consumers can
 use the release tag directly:
 
 ~~~yaml
-- uses: actions/checkout@v5
-- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.5
-  with: { version: "0.17.5", command: check, paths: "README.md\ndocs" }
+- uses: actions/checkout@v6
+- uses: HiroyukiFuruno/katana-markdown-linter@v0.17.6
+  with: { version: "0.17.6", command: check, paths: "README.md\ndocs" }
 ~~~
 
 Pin both the action tag and the crate `version` input. The action installs the
@@ -37,7 +37,7 @@ waiting for crates.io publication.
 | editor/LSP entrypoint | Deferred | `kml fmt --stdin` is editor-friendly, but a dedicated editor entrypoint should follow after distribution smoke coverage remains stable. |
 
 Standalone release archives use stable names such as
-`kml-v0.17.5-aarch64-apple-darwin.tar.gz` and always ship a neighboring
+`kml-v0.17.6-aarch64-apple-darwin.tar.gz` and always ship a neighboring
 `.sha256` file. The Homebrew formula is generated from the same release assets
 and is published to `HiroyukiFuruno/homebrew-katana` by the release workflow
 with `HOMEBREW_KATANA_GIT_TOKEN`. Each release updates the latest `kml`

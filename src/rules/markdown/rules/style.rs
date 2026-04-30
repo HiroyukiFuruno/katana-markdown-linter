@@ -85,6 +85,7 @@ impl MarkdownRule for HrStyleRule {
             title: "hr-style",
             description: "Horizontal rule style.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md035.md",
+            aliases: &["hr-style"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[crate::rule_prop!(

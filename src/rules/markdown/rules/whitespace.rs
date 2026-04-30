@@ -98,6 +98,7 @@ impl MarkdownRule for NoMultipleSpaceBlockquoteRule {
             title: "no-multiple-space-blockquote",
             description: "Multiple spaces after blockquote symbol.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md027.md",
+            aliases: &["no-multiple-space-blockquote"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[crate::rule_prop!(
@@ -193,6 +194,7 @@ impl MarkdownRule for SingleTrailingNewlineRule {
             title: "single-trailing-newline",
             description: "Files should end with a single newline character.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md047.md",
+            aliases: &["single-trailing-newline"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[],

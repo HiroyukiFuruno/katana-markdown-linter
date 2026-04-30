@@ -37,6 +37,9 @@
 - [ ] 4.3 `docs/editor-integration.md` の Zed schema mapping を更新する
 - [ ] 4.4 local schema file を使う fallback 手順を更新する
 - [ ] 4.5 editor extension 実装予定は後続 change への参照に留める
+- [ ] 4.6 npm package README に `kml help` / `kml --help` / `kml -h` と command help の例を追加する
+- [ ] 4.7 PyPI package README に `kml help` / `kml --help` / `kml -h` と command help の例を追加する
+- [ ] 4.8 npm `description` と PyPI `summary` を help / version 対応後の CLI 導線が伝わる文言へ更新する
 
 ## 5. Verification
 
@@ -56,3 +59,4 @@
 - [ ] 6.3 release gate が schema publication を検証する
 - [ ] 6.4 editor integration docs が extension なしの config validation を説明している
 - [ ] 6.5 `v0.18.1` の VS Code extension が依存できる schema contract が固定されている
+- [ ] 6.6 npm / PyPI の README と package description が help / version 導線を説明している

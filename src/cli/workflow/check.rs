@@ -3,13 +3,15 @@ use super::super::reporter::{
     output_report, plural, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
 use super::common::{
-    apply_fixes_until_stable, load_effective_config, FixedContent, UnsafeFixPolicy,
+    apply_fixes_until_stable, load_effective_config, load_effective_config_with_source,
+    FixedContent, UnsafeFixPolicy,
 };
 use crate::i18n::Locale;
 use crate::{lint, lint_for_path, FixSafety};
+use std::collections::HashSet;
 use std::fs;
 use std::io::{self, IsTerminal, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub(super) fn run_check_like(
     command: &'static str,
@@ -48,6 +50,16 @@ pub(super) fn run_check_like(
         return Ok(1);
     }
 
+    let config_errors = collect_config_validation_errors(&files, cli.config.as_deref());
+    if !config_errors.is_empty() {
+        report.errors.extend(config_errors);
+        if !cli.ignore_config_errors {
+            report.recompute_summary();
+            output_report(&report, fix_mode, cli, locale)?;
+            return Ok(2);
+        }
+    }
+
     for path in files {
         let content = match fs::read_to_string(&path) {
             Ok(content) => content,
@@ -64,15 +76,6 @@ pub(super) fn run_check_like(
                 continue;
             }
         };
-        let config_errors = config.validate_against_schema();
-        if !config_errors.is_empty() {
-            for error in config_errors {
-                report
-                    .errors
-                    .push(CliError::config_validation(&path, error));
-            }
-            continue;
-        }
 
         let options = config.to_lint_options();
         let results = match lint_for_path(&path, &content, &options) {
@@ -126,7 +129,7 @@ pub(super) fn run_check_like(
     }
 
     report.recompute_summary();
-    let exit_code = if !report.errors.is_empty() {
+    let exit_code = if has_blocking_errors(&report, cli.ignore_config_errors) {
         2
     } else if report.summary.total_issues > 0 {
         1
@@ -137,6 +140,54 @@ pub(super) fn run_check_like(
     output_report(&report, fix_mode, cli, locale)?;
 
     Ok(exit_code)
+}
+
+fn collect_config_validation_errors(files: &[PathBuf], explicit: Option<&Path>) -> Vec<CliError> {
+    if let Some(path) = explicit {
+        let config = match load_effective_config(path, Some(path)) {
+            Ok(config) => config,
+            Err(err) => return vec![CliError::config(path, err)],
+        };
+        return config
+            .validate_against_schema()
+            .into_iter()
+            .map(|error| CliError::config_validation(path, error))
+            .collect();
+    }
+
+    let mut seen = HashSet::new();
+    let mut errors = Vec::new();
+    for file in files {
+        let effective = match load_effective_config_with_source(file, None) {
+            Ok(effective) => effective,
+            Err(err) => {
+                errors.push(CliError::config(file, err));
+                continue;
+            }
+        };
+        let Some(source) = effective.source else {
+            continue;
+        };
+        if !seen.insert(source.clone()) {
+            continue;
+        }
+        errors.extend(
+            effective
+                .config
+                .validate_against_schema()
+                .into_iter()
+                .map(|error| CliError::config_validation(&source, error)),
+        );
+    }
+    errors
+}
+
+fn has_blocking_errors(report: &CliReport, ignore_config_errors: bool) -> bool {
+    report.errors.iter().any(|error| {
+        !ignore_config_errors
+            || error.kind != "config"
+            || error.message_id.as_str() == "config.error"
+    })
 }
 
 fn run_stdin_check_like(

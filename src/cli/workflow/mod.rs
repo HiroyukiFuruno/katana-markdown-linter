@@ -38,7 +38,7 @@ pub fn run(cli: Cli) -> Result<i32, String> {
             Ok(exit)
         }
         Command::Fmt => fmt::run_fmt(&cli, locale),
-        Command::Help(topic) => Ok(help::run_help(topic)),
+        Command::Help(topic) => Ok(help::run_help(topic, locale)),
         Command::Lsp => {
             crate::lsp::run_stdio()?;
             Ok(0)

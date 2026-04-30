@@ -28,6 +28,8 @@ pub struct OfficialRuleMeta {
     pub description: &'static str,
     /// Official documentation URL at markdownlint GitHub.
     pub docs_url: &'static str,
+    /// Official markdownlint aliases accepted in configuration.
+    pub aliases: &'static [&'static str],
     /// Parity status of this rule.
     pub parity: RuleParityStatus,
     /// Indicates if this rule can be automatically fixed.
@@ -114,6 +116,7 @@ impl std::fmt::Display for MarkdownDiagnostic {
 pub enum RulePropertyType {
     Boolean,
     Number,
+    NumberOrNumberArray,
     String,
     StringArray,
     Enum(&'static [&'static str]),

@@ -273,7 +273,13 @@ fn config_alias_and_lifecycle_behavior_is_fixed() {
         raw: serde_json::json!({ "heading-increment": true }),
     };
     let alias_errors = alias_config.validate(&rules);
-    assert!(alias_errors
+    assert!(alias_errors.is_empty());
+
+    let unknown_config = MarkdownLintConfig {
+        raw: serde_json::json!({ "not-a-real-rule": true }),
+    };
+    let unknown_errors = unknown_config.validate(&rules);
+    assert!(unknown_errors
         .iter()
         .any(|error| matches!(error.kind, ConfigErrorKind::UnknownRule)));
 

@@ -75,6 +75,7 @@ pub struct Cli {
     pub locale: Option<String>,
     pub unsafe_fixes: bool,
     pub yes: bool,
+    pub ignore_config_errors: bool,
 }
 
 impl Default for Cli {
@@ -99,14 +100,24 @@ impl Default for Cli {
             locale: None,
             unsafe_fixes: false,
             yes: false,
+            ignore_config_errors: false,
         }
     }
 }
 
 pub fn parse_args(args: Vec<String>) -> Cli {
+    if args.is_empty() {
+        return Cli {
+            command: Command::Help(None),
+            ..Cli::default()
+        };
+    }
+
+    let early_locale = locale_arg(&args);
     if requests_help(&args) {
         return Cli {
             command: Command::Help(help_topic(&args)),
+            locale: early_locale,
             ..Cli::default()
         };
     }
@@ -137,6 +148,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
     let mut locale = None;
     let mut unsafe_fixes = false;
     let mut yes = false;
+    let mut ignore_config_errors = false;
     let mut iter = args.into_iter().peekable();
 
     while let Some(arg) = iter.next() {
@@ -217,6 +229,7 @@ pub fn parse_args(args: Vec<String>) -> Cli {
             "--diff" => diff = true,
             "--unsafe" => unsafe_fixes = true,
             "--yes" | "-y" => yes = true,
+            "--ignore-config-errors" => ignore_config_errors = true,
             other if other.starts_with('-') => {}
             other => inputs.push(other.to_string()),
         }
@@ -242,31 +255,80 @@ pub fn parse_args(args: Vec<String>) -> Cli {
         locale,
         unsafe_fixes,
         yes,
+        ignore_config_errors,
     }
 }
 
 fn requests_help(args: &[String]) -> bool {
-    matches!(args.first().map(String::as_str), Some("help"))
-        || args
-            .iter()
-            .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    matches!(
+        command_tokens(args).first().map(String::as_str),
+        Some("help")
+    ) || args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
 }
 
 fn help_topic(args: &[String]) -> Option<HelpTopic> {
-    if matches!(args.first().map(String::as_str), Some("help")) {
-        return args.get(1).and_then(|value| HelpTopic::from_command(value));
+    let tokens = command_tokens(args);
+    if matches!(tokens.first().map(String::as_str), Some("help")) {
+        return tokens
+            .get(1)
+            .and_then(|value| HelpTopic::from_command(value));
     }
 
-    args.iter()
-        .find(|value| !value.starts_with('-'))
-        .and_then(|value| HelpTopic::from_command(value))
+    tokens
+        .iter()
+        .find_map(|value| HelpTopic::from_command(value))
 }
 
 fn requests_version(args: &[String]) -> bool {
-    matches!(args.first().map(String::as_str), Some("version"))
-        || args
-            .iter()
-            .any(|arg| matches!(arg.as_str(), "--version" | "-V" | "-v"))
+    matches!(
+        command_tokens(args).first().map(String::as_str),
+        Some("version")
+    ) || args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--version" | "-V" | "-v"))
+}
+
+fn locale_arg(args: &[String]) -> Option<String> {
+    args.windows(2).find_map(|window| {
+        matches!(window[0].as_str(), "--locale" | "--local" | "-l").then(|| window[1].clone())
+    })
+}
+
+fn command_tokens(args: &[String]) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut skip_next = false;
+    for arg in args {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if option_takes_value(arg) {
+            skip_next = true;
+            continue;
+        }
+        if arg.starts_with('-') {
+            continue;
+        }
+        tokens.push(arg.clone());
+    }
+    tokens
+}
+
+fn option_takes_value(arg: &str) -> bool {
+    matches!(
+        arg,
+        "--config"
+            | "--file"
+            | "--format"
+            | "--output"
+            | "--locale"
+            | "--local"
+            | "-l"
+            | "--include"
+            | "--exclude"
+    )
 }
 
 #[cfg(test)]
@@ -354,6 +416,25 @@ mod tests {
             parse_args(vec!["-h".to_string()]).command,
             Command::Help(None)
         );
+        let localized_global_help = parse_args(vec![
+            "--locale".to_string(),
+            "ja".to_string(),
+            "help".to_string(),
+        ]);
+        assert_eq!(localized_global_help.command, Command::Help(None));
+        assert_eq!(localized_global_help.locale.as_deref(), Some("ja"));
+
+        let localized_command_help = parse_args(vec![
+            "check".to_string(),
+            "--help".to_string(),
+            "--locale".to_string(),
+            "ja".to_string(),
+        ]);
+        assert_eq!(
+            localized_command_help.command,
+            Command::Help(Some(HelpTopic::Check))
+        );
+        assert_eq!(localized_command_help.locale.as_deref(), Some("ja"));
         assert_eq!(
             parse_args(vec!["check".to_string(), "--help".to_string()]).command,
             Command::Help(Some(HelpTopic::Check))

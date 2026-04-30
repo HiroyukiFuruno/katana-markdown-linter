@@ -70,6 +70,7 @@ impl MarkdownRule for NoTrailingPunctuationRule {
             title: "no-trailing-punctuation",
             description: "Trailing punctuation in heading.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md026.md",
+            aliases: &["no-trailing-punctuation"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[crate::rule_prop!(

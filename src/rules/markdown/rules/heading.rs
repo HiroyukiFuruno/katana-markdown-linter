@@ -90,6 +90,7 @@ impl MarkdownRule for HeadingStartLeftRule {
             title: "heading-start-left",
             description: "Headings must start at the beginning of the line.",
             docs_url: "https://github.com/DavidAnson/markdownlint/blob/main/doc/md023.md",
+            aliases: &["heading-start-left"],
             parity: RuleParityStatus::Official,
             is_fixable: true,
             properties: &[],

@@ -336,6 +336,7 @@ fn property_type_name(prop_type: RulePropertyType) -> &'static str {
     match prop_type {
         RulePropertyType::Boolean => "boolean",
         RulePropertyType::Number => "integer",
+        RulePropertyType::NumberOrNumberArray => "integer|integer[]",
         RulePropertyType::String => "string",
         RulePropertyType::StringArray => "array",
         RulePropertyType::Enum(_) => "string",

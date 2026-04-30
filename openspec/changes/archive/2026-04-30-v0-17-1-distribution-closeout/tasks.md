@@ -68,7 +68,7 @@
 - [x] 6.5 `make dogfood`
 - [x] 6.6 `git diff --check`
 - [x] 6.7 `make release-check VERSION=v0.17.1`
-- [ ] 6.8 `make release-task-ledger-check VERSION=v0.17.1`
+- [x] 6.8 `make release-task-ledger-check VERSION=v0.17.1`
 
 ## Definition of Done
 
@@ -76,4 +76,16 @@
 - [x] 7.2 npm publish job が通常 release path で `NPM_TOKEN` を要求しない
 - [x] 7.3 `make release-verify` が npm / PyPI / wrapper launch / Homebrew formula を確認する
 - [x] 7.4 Homebrew tap 更新が review 可能な差分として完了している
-- [ ] 7.5 `v0.17.1` release 後の public registry state が verification で確認できる
+- [x] 7.5 `v0.17.1` release 後の public registry state が verification で確認できる
+
+## 品質評価スコア
+
+| 項目 | 最大 | 現在 | 根拠 |
+| --- | ---: | ---: | --- |
+| wrapper officialization | 25 | 25 | npm / PyPI wrapper を公式導線として README / docs / verification に反映済み。 |
+| trusted publishing | 20 | 20 | npm は trusted publishing 前提へ整理し、PyPI は `pypi` environment と OIDC publish を維持済み。 |
+| release verification | 25 | 25 | npm / PyPI registry、wrapper smoke、Homebrew formula evidence を `make release-verify` に追加済み。 |
+| Homebrew tap | 15 | 15 | formula 生成、tap 更新、release runbook 追記を完了済み。 |
+| documentation | 10 | 10 | README、distribution、release runbook、quality gates、CHANGELOG を更新済み。 |
+| ledger | 5 | 5 | `make release-task-ledger-check VERSION=v0.17.1` の対象形式へ補正済み。 |
+| 合計 | 100 | 100 | release closeout 完了。 |
