@@ -288,6 +288,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         read_workspace_file("wrappers/python/src/katana_markdown_linter/installer.py");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
     let release_target_verifier = read_workspace_file("scripts/release/verify-release-target.py");
+    let npm_publish_target_verifier =
+        read_workspace_file("scripts/release/verify-npm-publish-target.js");
     let release_recovery = read_workspace_file("scripts/release/recover-accidental-release.py");
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
@@ -297,12 +299,14 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("Makefile", &makefile, "release-recovery-plan:"),
         ("Makefile", &makefile, "release-recover:"),
         ("Makefile", &makefile, "scripts/release/recover-accidental-release.py"),
-        ("Makefile", &makefile, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix"),
+        ("Makefile", &makefile, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate document-answer-fix"),
         ("Makefile", &makefile, "binary-smoke: binary-package"),
         ("Makefile", &makefile, "homebrew-formula-check: homebrew-formula"),
         ("Makefile", &makefile, "wrapper-smoke: binary-package"),
         ("Makefile", &makefile, "npm-package-check:"),
         ("Makefile", &makefile, "scripts/release/verify-npm-package.js"),
+        ("Makefile", &makefile, "npm-publish-target-check:"),
+        ("Makefile", &makefile, "scripts/release/verify-npm-publish-target.js"),
         ("Makefile", &makefile, "pypi-package-check:"),
         ("Makefile", &makefile, "scripts/release/verify-pypi-package.py"),
         ("Makefile", &makefile, "document-answer-fix:"),
@@ -342,6 +346,16 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
             ".github/workflows/release.yml",
             &workflow,
             "run: make npm-package-check",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "Verify npm publish target",
+        ),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "run: make npm-publish-target-check",
         ),
         (
             ".github/workflows/release.yml",
@@ -440,6 +454,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/verify-release-target.py", &release_target_verifier, "api.github.com/repos"),
         ("scripts/release/verify-release-target.py", &release_target_verifier, "prerelease"),
         ("scripts/release/verify-release-target.py", &release_target_verifier, "draft"),
+        ("scripts/release/verify-npm-publish-target.js", &npm_publish_target_verifier, "Unpublished on"),
+        ("scripts/release/verify-npm-publish-target.js", &npm_publish_target_verifier, "is already published on npm"),
         ("scripts/release/recover-accidental-release.py", &release_recovery, "KML_RELEASE_RECOVERY_CONFIRM"),
         ("scripts/release/recover-accidental-release.py", &release_recovery, "\"dist-tag\""),
         ("scripts/release/recover-accidental-release.py", &release_recovery, "Yank PyPI release"),

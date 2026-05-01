@@ -43,6 +43,7 @@ For binary distribution changes, the release check includes:
 - `make homebrew-formula-check VERSION=vX.Y.Z`
 - `make wrapper-smoke VERSION=vX.Y.Z`
 - `make npm-package-check`
+- `make npm-publish-target-check`
 - `make pypi-package-check`
 - `make wrapper-publish-gate`
 
@@ -95,6 +96,7 @@ The workflow validates:
 - `make server-json-validate`
 - `make action-smoke`
 - `make npm-package-check`
+- `make npm-publish-target-check`
 - `make pypi-package-check`
 - standalone `kml` archive build and archive smoke for each supported target
 - Homebrew formula rendering from release archive checksums
@@ -206,6 +208,7 @@ Keep these conditions true before publishing a wrapper version:
 - The release workflow is either triggered by a merged `release/vX.Y.Z` pull request or dispatched with wrapper publish flags enabled.
 - `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
 - `make npm-package-check` confirms the npm README, metadata, and tarball file list.
+- `make npm-publish-target-check` confirms the npm version is not already published and is not blocked by npm unpublish state.
 - `make pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
 
 Use these trusted publisher settings:
@@ -361,6 +364,13 @@ preserve evidence and publish a corrected version instead.
   `scripts/release/verify-npm-package.js`.
 - Keep the npm wrapper dependency-free unless a runtime dependency is justified
   by launcher behavior.
+
+### npm publish target check fails
+
+- Re-run `make npm-publish-target-check`.
+- If the version is already published, do not publish the same npm version again.
+- If npm reports `Unpublished on`, wait for npm's republish window before retrying the npm-only wrapper publication.
+- If the registry check fails for another reason, fix registry access before running `npm publish`.
 
 ### Incorrect files were packaged
 

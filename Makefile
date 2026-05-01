@@ -232,6 +232,10 @@ wrapper-smoke: binary-package ## Exercise npm and Python wrapper launchers again
 npm-package-check: ## Verify npm wrapper package README, metadata, and tarball contents
 	node scripts/release/verify-npm-package.js wrappers/npm
 
+.PHONY: npm-publish-target-check
+npm-publish-target-check: ## Verify npm wrapper version can be published before npm publish
+	node scripts/release/verify-npm-publish-target.js wrappers/npm
+
 .PHONY: pypi-package-check
 pypi-package-check: ## Verify PyPI wrapper README, metadata, and distributions
 	python3 scripts/release/verify-pypi-package.py wrappers/python
@@ -318,7 +322,7 @@ release-recover: ## Run non-destructive accidental release recovery after explic
 	python3 scripts/release/recover-accidental-release.py --bad-version "$(BAD_VERSION)" $$replacement_arg --execute
 
 .PHONY: release-check
-release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
 	$(MAKE) public-confidence
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml

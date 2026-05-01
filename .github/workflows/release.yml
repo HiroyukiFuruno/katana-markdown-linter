@@ -210,6 +210,12 @@ jobs:
       - name: npm package check
         run: make npm-package-check
 
+      - name: npm publish target check
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          inputs.publish_npm_wrapper == true
+        run: make npm-publish-target-check
+
       - name: PyPI package check
         run: make pypi-package-check
 
@@ -400,6 +406,9 @@ jobs:
 
       - name: Verify npm package
         run: make npm-package-check
+
+      - name: Verify npm publish target
+        run: make npm-publish-target-check
 
       - name: Publish npm wrapper
         run: npm publish --tag latest --access public --provenance
