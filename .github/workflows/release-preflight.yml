@@ -19,6 +19,9 @@ on:
       - 'wrappers/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -40,6 +43,8 @@ jobs:
 
       - name: Release target check
         if: startsWith(github.head_ref, 'release/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: make release-target-check VERSION="${GITHUB_HEAD_REF#release/}"
 
       - name: Format check
