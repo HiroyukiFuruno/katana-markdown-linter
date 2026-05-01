@@ -283,6 +283,34 @@ If workflow job names are changed, update branch protection in the same change. 
 - `make release` fails fast when the requested version already exists on crates.io.
 - Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, crates.io version, npm version, PyPI version, wrapper launch output, and Homebrew formula evidence after retry.
 
+### Accidental version was published
+
+Use the accidental release recovery plan before changing package metadata by
+hand:
+
+~~~bash
+make release-recovery-plan BAD_VERSION=v0.18.7
+~~~
+
+The plan only uses non-destructive registry actions by default:
+
+- yank the crates.io version
+- deprecate the npm version
+- move the npm `latest` dist-tag back to the replacement version
+- mark the GitHub Release as an accidental prerelease
+- list the PyPI yank and Homebrew tap rollback steps that still require manual review
+
+To run the executable steps, set the confirmation environment variable to the
+bad tag:
+
+~~~bash
+KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 make release-recover BAD_VERSION=v0.18.7
+~~~
+
+Do not unpublish npm, delete PyPI files, delete GitHub assets, or remove tags as
+the first recovery action. Published versions are already observable by users;
+preserve evidence and publish a corrected version instead.
+
 ### MCP Registry publish failed
 
 - Verify the GitHub Release contains the `.mcpb`, `.mcpb.sha256`, and rendered

@@ -288,11 +288,15 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         read_workspace_file("wrappers/python/src/katana_markdown_linter/installer.py");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
     let release_target_verifier = read_workspace_file("scripts/release/verify-release-target.py");
+    let release_recovery = read_workspace_file("scripts/release/recover-accidental-release.py");
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
     let required = [
         ("Makefile", &makefile, "release-target-check:"),
         ("Makefile", &makefile, "scripts/release/verify-release-target.py"),
+        ("Makefile", &makefile, "release-recovery-plan:"),
+        ("Makefile", &makefile, "release-recover:"),
+        ("Makefile", &makefile, "scripts/release/recover-accidental-release.py"),
         ("Makefile", &makefile, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix"),
         ("Makefile", &makefile, "binary-smoke: binary-package"),
         ("Makefile", &makefile, "homebrew-formula-check: homebrew-formula"),
@@ -397,6 +401,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ),
         ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "make release-target-check VERSION=vX.Y.Z"),
+        ("docs/release-runbook.md", &runbook, "make release-recovery-plan BAD_VERSION=v0.18.7"),
+        ("docs/release-runbook.md", &runbook, "KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 make release-recover BAD_VERSION=v0.18.7"),
         ("docs/release-runbook.md", &runbook, "release target follows the published stable release line"),
         ("docs/release-runbook.md", &runbook, "make mcpb-smoke VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "make binary-smoke VERSION=vX.Y.Z"),
@@ -427,6 +433,9 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "品質評価スコア table is missing a 合計 row"),
         ("scripts/release/verify-release-target.py", &release_target_verifier, "a new minor line must start"),
         ("scripts/release/verify-release-target.py", &release_target_verifier, "KML_RELEASE_ALLOW_VERSION_LINE_OVERRIDE"),
+        ("scripts/release/recover-accidental-release.py", &release_recovery, "KML_RELEASE_RECOVERY_CONFIRM"),
+        ("scripts/release/recover-accidental-release.py", &release_recovery, "\"dist-tag\""),
+        ("scripts/release/recover-accidental-release.py", &release_recovery, "Yank PyPI release"),
     ];
     let violations = required
         .iter()

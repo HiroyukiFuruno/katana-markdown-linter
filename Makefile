@@ -3,6 +3,8 @@ JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
 VERSION_BARE := $(patsubst v%,%,$(VERSION))
 TAG := v$(VERSION_BARE)
+BAD_VERSION ?=
+REPLACEMENT_VERSION ?=
 RELEASE_REPO ?= HiroyukiFuruno/katana-markdown-linter
 RELEASE_TAGGER_NAME ?= HiroyukiFuruno
 RELEASE_TAGGER_EMAIL ?= hfuruno0114@gmail.com
@@ -300,6 +302,20 @@ release-test: ## Run release-equivalent tests with all optional features
 release-target-check: ## Verify VERSION follows the published release line
 	scripts/release/verify-version.sh "$(VERSION)"
 	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)"
+
+.PHONY: release-recovery-plan
+release-recovery-plan: ## Plan non-destructive recovery for an accidental release (BAD_VERSION=vX.Y.Z)
+	@test -n "$(BAD_VERSION)" || (echo "BAD_VERSION is required" >&2; exit 2)
+	replacement_arg=""; \
+	if [ -n "$(REPLACEMENT_VERSION)" ]; then replacement_arg="--replacement-version $(REPLACEMENT_VERSION)"; fi; \
+	python3 scripts/release/recover-accidental-release.py --bad-version "$(BAD_VERSION)" $$replacement_arg
+
+.PHONY: release-recover
+release-recover: ## Run non-destructive accidental release recovery after explicit confirmation
+	@test -n "$(BAD_VERSION)" || (echo "BAD_VERSION is required" >&2; exit 2)
+	replacement_arg=""; \
+	if [ -n "$(REPLACEMENT_VERSION)" ]; then replacement_arg="--replacement-version $(REPLACEMENT_VERSION)"; fi; \
+	python3 scripts/release/recover-accidental-release.py --bad-version "$(BAD_VERSION)" $$replacement_arg --execute
 
 .PHONY: release-check
 release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
