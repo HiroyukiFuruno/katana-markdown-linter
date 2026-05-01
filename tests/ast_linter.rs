@@ -287,10 +287,13 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let python_installer =
         read_workspace_file("wrappers/python/src/katana_markdown_linter/installer.py");
     let task_ledger_verifier = read_workspace_file("scripts/release/verify-task-ledger.py");
+    let release_target_verifier = read_workspace_file("scripts/release/verify-release-target.py");
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
     let required = [
-        ("Makefile", &makefile, "release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix"),
+        ("Makefile", &makefile, "release-target-check:"),
+        ("Makefile", &makefile, "scripts/release/verify-release-target.py"),
+        ("Makefile", &makefile, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix"),
         ("Makefile", &makefile, "binary-smoke: binary-package"),
         ("Makefile", &makefile, "homebrew-formula-check: homebrew-formula"),
         ("Makefile", &makefile, "wrapper-smoke: binary-package"),
@@ -364,6 +367,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "gh release upload \"$TAG\" \"$PACKAGE_PATH\" \"$CHECKSUM_PATH\" \"$MCPB_PATH\" \"$MCPB_CHECKSUM_PATH\" \"$SERVER_JSON_PATH\" \"${binary_assets[@]}\" --clobber"),
         (".github/workflows/release.yml", &workflow, "scripts/release/assert-crate-not-published.sh"),
         (".github/workflows/release.yml", &workflow, "--title \"$TAG\""),
+        (".github/workflows/release.yml", &workflow, "Release target check"),
+        (".github/workflows/release.yml", &workflow, "make release-target-check VERSION=\"${{ steps.version.outputs.version }}\""),
+        (".github/workflows/release-preflight.yml", &preflight, "Release target check"),
+        (".github/workflows/release-preflight.yml", &preflight, "startsWith(github.head_ref, 'release/v')"),
+        (".github/workflows/release-preflight.yml", &preflight, "make release-target-check VERSION=\"${GITHUB_HEAD_REF#release/}\""),
         (".github/workflows/release-preflight.yml", &preflight, "run: make lint"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make examples"),
         (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-build"),
@@ -388,6 +396,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
             "answer fixture changes when fixed again",
         ),
         ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),
+        ("docs/release-runbook.md", &runbook, "make release-target-check VERSION=vX.Y.Z"),
+        ("docs/release-runbook.md", &runbook, "release target follows the published stable release line"),
         ("docs/release-runbook.md", &runbook, "make mcpb-smoke VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "make binary-smoke VERSION=vX.Y.Z"),
         ("docs/release-runbook.md", &runbook, "make homebrew-formula-check VERSION=vX.Y.Z"),
@@ -415,6 +425,8 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Verify that the OpenSpec task ledger is release-ready."),
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "Release task ledger is not ready"),
         ("scripts/release/verify-task-ledger.py", &task_ledger_verifier, "品質評価スコア table is missing a 合計 row"),
+        ("scripts/release/verify-release-target.py", &release_target_verifier, "a new minor line must start"),
+        ("scripts/release/verify-release-target.py", &release_target_verifier, "KML_RELEASE_ALLOW_VERSION_LINE_OVERRIDE"),
     ];
     let violations = required
         .iter()

@@ -296,10 +296,14 @@ internal-quality-check: ## Capture internal code quality evidence for src, tests
 release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
-.PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
-	$(MAKE) public-confidence
+.PHONY: release-target-check
+release-target-check: ## Verify VERSION follows the published release line
 	scripts/release/verify-version.sh "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)"
+
+.PHONY: release-check
+release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+	$(MAKE) public-confidence
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
 	"$${TMPDIR:-/tmp}/kml-release-install-check/bin/kml" init-config --config "$${TMPDIR:-/tmp}/kml-release-install-check/.markdownlint.json"
@@ -335,6 +339,7 @@ release: release-publish ## Dispatch the full release workflow (GitHub Release +
 .PHONY: release-tag
 release-tag: ## Create and push a signed annotated tag for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)"
 	scripts/release/assert-tag-safe.sh "$(TAG)"
 	@if git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null; then \
 		if [ "$$(git cat-file -t "$(TAG)")" != "tag" ]; then \

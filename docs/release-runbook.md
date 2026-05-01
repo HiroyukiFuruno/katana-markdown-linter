@@ -16,6 +16,16 @@ Confirm `Cargo.toml` metadata is still correct:
 
 Confirm package contents are limited to source, manifest, README, license, and other intentional files.
 
+Confirm the requested version follows the published release line:
+
+~~~bash
+make release-target-check VERSION=vX.Y.Z
+~~~
+
+The check rejects suspicious jumps such as releasing `v0.18.7` when the latest
+stable release is `v0.17.6`. Continue the patch line with `v0.17.7`, or start
+the new minor line with `v0.18.0`.
+
 Run local validation:
 
 ~~~bash
@@ -73,6 +83,7 @@ Release PR merge responsibilities:
 The workflow validates:
 
 - Cargo version equals release version.
+- release target follows the published stable release line.
 - Existing tag is an annotated signed tag that GitHub reports as `Verified`.
 - `make fmt-check`
 - `cargo test --all-features --locked`

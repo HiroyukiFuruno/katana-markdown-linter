@@ -22,6 +22,9 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 
 - OpenSpec tasks に記載がない不足や想定外が進行中に露見した
 - その不足を Codex の判断だけで補うと、公開物、API、互換性、release 成果物、または既存作業を壊すリスクが高い
+- 指定 version が公開済み release line から見て不自然に飛んでいる
+  - 例: 最新 stable が `v0.17.6` なのに `v0.18.7` を指定している
+  - この場合は `v0.17.7` の patch 継続か、`v0.18.0` の minor 開始かをユーザーに確認する
 
 それ以外では「進めてもよいか」の確認で止めない。commit、push、PR 作成、CI 失敗の修正、merge、release、release verification、branch hygiene は、既存の安全ルールと検証結果に従って継続する。
 
@@ -49,10 +52,13 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 1. `git status --short --branch` を実行し、既存差分を確認する。
 2. `git fetch origin --prune --tags` を実行する。
 3. `Cargo.toml` の現在 version、最新 tag、最新 GitHub Release、crates.io 最新 version を確認する。
-4. 対象 version の active OpenSpec change を特定する。
+4. `make release-target-check VERSION=vX.Y.Z` を実行し、指定 version が公開済み release line の自然な次版であることを確認する。
+   - 失敗した場合は、ユーザー指定を正しい前提にせず停止する。
+   - `KML_RELEASE_ALLOW_VERSION_LINE_OVERRIDE=1` は、修正リリースなどの理由をユーザーが明示承認した場合だけ使う。
+5. 対象 version の active OpenSpec change を特定する。
    - 例: `v0.12.2` -> `openspec/changes/v0-12-2-*`
    - 見つからない場合は `openspec/changes/active-roadmap.md` を確認する。
-5. 対象 change の `proposal.md`、`design.md`、`tasks.md`、`specs/**/spec.md` を読む。
+6. 対象 change の `proposal.md`、`design.md`、`tasks.md`、`specs/**/spec.md` を読む。
 
 ## Phase 1: 実装
 
@@ -82,6 +88,7 @@ git diff --check
 release 前 gate:
 
 ```bash
+make release-target-check VERSION=vX.Y.Z
 make release-check VERSION=vX.Y.Z
 ```
 
@@ -165,6 +172,7 @@ make release-verify VERSION=vX.Y.Z
 ## 完了条件
 
 - [ ] 対象 OpenSpec change の全 task が完了している
+- [ ] `make release-target-check VERSION=vX.Y.Z` が成功している
 - [ ] `make release-check VERSION=vX.Y.Z` が成功している
 - [ ] release PR が `main` に merge されている
 - [ ] `make release VERSION=vX.Y.Z` が成功している
