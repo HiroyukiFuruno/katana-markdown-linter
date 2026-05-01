@@ -1,4 +1,4 @@
-# v0.18.7 CLI unsafe fix help proposal
+# v0.17.7 CLI unsafe fix help proposal
 
 ## 目的
 
@@ -17,7 +17,7 @@
 - global help の説明を `fix` と `check --fix` の両方に合わせる
 - `check --fix --unsafe --yes` が unsafe fix を適用する CLI 回帰テストを追加する
 - README の CLI usage に `check --fix --unsafe --yes` の例を追加する
-- `0.18.7` の release metadata と release notes を更新する
+- `0.17.7` の release metadata と release notes を更新する
 
 ## 範囲外
 

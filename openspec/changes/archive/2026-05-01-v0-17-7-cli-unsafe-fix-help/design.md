@@ -1,4 +1,4 @@
-# v0.18.7 CLI unsafe fix help design
+# v0.17.7 CLI unsafe fix help design
 
 ## 方針
 
@@ -29,4 +29,4 @@ global help は `fix command` 限定の表現をやめ、`fix or check --fix` �
 ## リリース判断
 
 これは既存機能の入口説明と契約テストの欠落修正であり、挙動追加ではない。
-ただし CLI の安全性に関わる help 契約のため、`v0.18.7` の通常リリースとして扱う。
+ただし CLI の安全性に関わる help 契約のため、`v0.17.7` の通常リリースとして扱う。

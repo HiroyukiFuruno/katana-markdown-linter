@@ -38,6 +38,10 @@ jobs:
         with:
           shared-key: release-preflight-ubuntu-stable-all-features
 
+      - name: Release target check
+        if: startsWith(github.head_ref, 'release/v')
+        run: make release-target-check VERSION="${GITHUB_HEAD_REF#release/}"
+
       - name: Format check
         run: make fmt-check
 

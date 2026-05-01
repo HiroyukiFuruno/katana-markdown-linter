@@ -3,6 +3,8 @@ JOBS ?= 2
 VERSION ?= $(shell awk -F '"' '/^version = / { print $$2; exit }' Cargo.toml)
 VERSION_BARE := $(patsubst v%,%,$(VERSION))
 TAG := v$(VERSION_BARE)
+BAD_VERSION ?=
+REPLACEMENT_VERSION ?=
 RELEASE_REPO ?= HiroyukiFuruno/katana-markdown-linter
 RELEASE_TAGGER_NAME ?= HiroyukiFuruno
 RELEASE_TAGGER_EMAIL ?= hfuruno0114@gmail.com
@@ -296,10 +298,28 @@ internal-quality-check: ## Capture internal code quality evidence for src, tests
 release-test: ## Run release-equivalent tests with all optional features
 	cargo test --all-features --locked
 
-.PHONY: release-check
-release-check: fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
-	$(MAKE) public-confidence
+.PHONY: release-target-check
+release-target-check: ## Verify VERSION follows the published release line
 	scripts/release/verify-version.sh "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)" --repo "$(RELEASE_REPO)"
+
+.PHONY: release-recovery-plan
+release-recovery-plan: ## Plan non-destructive recovery for an accidental release (BAD_VERSION=vX.Y.Z)
+	@test -n "$(BAD_VERSION)" || (echo "BAD_VERSION is required" >&2; exit 2)
+	replacement_arg=""; \
+	if [ -n "$(REPLACEMENT_VERSION)" ]; then replacement_arg="--replacement-version $(REPLACEMENT_VERSION)"; fi; \
+	python3 scripts/release/recover-accidental-release.py --bad-version "$(BAD_VERSION)" $$replacement_arg
+
+.PHONY: release-recover
+release-recover: ## Run non-destructive accidental release recovery after explicit confirmation
+	@test -n "$(BAD_VERSION)" || (echo "BAD_VERSION is required" >&2; exit 2)
+	replacement_arg=""; \
+	if [ -n "$(REPLACEMENT_VERSION)" ]; then replacement_arg="--replacement-version $(REPLACEMENT_VERSION)"; fi; \
+	python3 scripts/release/recover-accidental-release.py --bad-version "$(BAD_VERSION)" $$replacement_arg --execute
+
+.PHONY: release-check
+release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check pypi-package-check wrapper-publish-gate document-answer-fix ## Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
+	$(MAKE) public-confidence
 	cargo publish --dry-run --locked --allow-dirty
 	cargo install --path . --locked --force --root "$${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
 	"$${TMPDIR:-/tmp}/kml-release-install-check/bin/kml" init-config --config "$${TMPDIR:-/tmp}/kml-release-install-check/.markdownlint.json"
@@ -335,6 +355,7 @@ release: release-publish ## Dispatch the full release workflow (GitHub Release +
 .PHONY: release-tag
 release-tag: ## Create and push a signed annotated tag for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)" --repo "$(RELEASE_REPO)"
 	scripts/release/assert-tag-safe.sh "$(TAG)"
 	@if git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null; then \
 		if [ "$$(git cat-file -t "$(TAG)")" != "tag" ]; then \

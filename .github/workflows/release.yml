@@ -97,6 +97,9 @@ jobs:
             scripts/release/verify-version.sh "${{ inputs.version }}"
           fi
 
+      - name: Release target check
+        run: make release-target-check VERSION="${{ steps.version.outputs.version }}"
+
       - name: Package binary artifact
         shell: bash
         run: |
@@ -158,6 +161,9 @@ jobs:
           else
             scripts/release/verify-version.sh "${{ inputs.version }}"
           fi
+
+      - name: Release target check
+        run: make release-target-check VERSION="${{ steps.version.outputs.version }}"
 
       - name: Verify release tag is GitHub Verified
         env:
