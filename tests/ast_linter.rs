@@ -361,7 +361,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (
             ".github/workflows/release.yml",
             &workflow,
-            "npm publish --access public --provenance",
+            "npm publish --tag latest --access public --provenance",
         ),
         (".github/workflows/release.yml", &workflow, "Publish PyPI wrapper"),
         (".github/workflows/release.yml", &workflow, "environment: pypi"),

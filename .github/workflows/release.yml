@@ -398,7 +398,7 @@ jobs:
         run: make npm-package-check
 
       - name: Publish npm wrapper
-        run: npm publish --access public --provenance
+        run: npm publish --tag latest --access public --provenance
         working-directory: wrappers/npm
 
   publish-pypi-wrapper:
