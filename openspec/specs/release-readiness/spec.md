@@ -540,13 +540,13 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 - **AND** each versioned formula is `keg_only :versioned_formula`
 - **AND** `homebrew-katana` does not add `Formula/kml@0.17.2.rb`
 
-### Requirement: v0.18.7 release readiness SHALL document unsafe fix opt-in for check --fix
+### Requirement: v0.17.7 release readiness SHALL document unsafe fix opt-in for check --fix
 
-`v0.18.7` の release readiness は、`check --fix` でも unsafe fix の明示 opt-in が使えることを CLI help と公開 README で説明しなければならない（SHALL）。
+`v0.17.7` の release readiness は、`check --fix` でも unsafe fix の明示 opt-in が使えることを CLI help と公開 README で説明しなければならない（SHALL）。
 
 #### Scenario: command help documents unsafe fix opt-in
 
-- **WHEN** developer prepares `v0.18.7`
+- **WHEN** developer prepares `v0.17.7`
 - **THEN** system runs `kml check --help`
 - **AND** command exits with code `0`
 - **AND** command help includes `--unsafe --yes`
@@ -554,7 +554,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: check fix applies unsafe fixes with explicit approval
 
-- **WHEN** developer prepares `v0.18.7`
+- **WHEN** developer prepares `v0.17.7`
 - **THEN** system runs `kml check --fix --unsafe --yes` against an unsafe-fixable `MD036` fixture
 - **AND** command exits with code `0`
 - **AND** command applies the unsafe fix
@@ -563,7 +563,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: public CLI usage documents both fix entrypoints
 
-- **WHEN** developer prepares `v0.18.7`
+- **WHEN** developer prepares `v0.17.7`
 - **THEN** README includes `kml fix --unsafe --yes`
 - **AND** README includes `kml check --fix --unsafe --yes`
 - **AND** README explains that unsafe fixes require explicit opt-in for both `fix` and `check --fix`

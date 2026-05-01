@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
+from urllib import error, request
 
 
 @dataclass(frozen=True, order=True)
@@ -32,6 +35,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target-version", required=True, help="Release version such as v0.17.7")
     parser.add_argument("--latest-version", help="Override latest stable version for tests")
+    parser.add_argument(
+        "--repo",
+        default="HiroyukiFuruno/katana-markdown-linter",
+        help="GitHub repository used to resolve published stable releases",
+    )
+    parser.add_argument(
+        "--github-releases-json",
+        help="Read a GitHub Releases API JSON fixture instead of calling GitHub",
+    )
     parser.add_argument("--remote", default="origin", help="Git remote used when fetching tags")
     return parser.parse_args()
 
@@ -52,12 +64,66 @@ def git_tags(remote: str) -> list[str]:
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
-def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> StableVersion | None:
-    if args.latest_version:
-        return StableVersion.parse(args.latest_version)
+def github_request_headers() -> dict[str, str]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "katana-markdown-linter-release-target-check",
+    }
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
+
+def github_release_payload(args: argparse.Namespace) -> list[object]:
+    if args.github_releases_json:
+        payload = json.loads(Path(args.github_releases_json).read_text(encoding="utf-8"))
+        if not isinstance(payload, list):
+            raise ValueError("GitHub Releases JSON fixture must be an array")
+        return payload
+
+    releases: list[object] = []
+    for page in range(1, 11):
+        url = f"https://api.github.com/repos/{args.repo}/releases?per_page=100&page={page}"
+        api_request = request.Request(url, headers=github_request_headers())
+        try:
+            with request.urlopen(api_request, timeout=20) as response:
+                page_payload = json.loads(response.read().decode("utf-8"))
+        except error.URLError as release_error:
+            raise RuntimeError(
+                f"could not read latest stable GitHub Release from {args.repo}: {release_error}"
+            ) from release_error
+        if not isinstance(page_payload, list):
+            raise ValueError("GitHub Releases API response must be an array")
+        releases.extend(page_payload)
+        if len(page_payload) < 100:
+            break
+    return releases
+
+
+def github_stable_versions(target: StableVersion, args: argparse.Namespace) -> list[StableVersion]:
+    versions: list[StableVersion] = []
+    for release in github_release_payload(args):
+        if not isinstance(release, dict):
+            continue
+        if release.get("draft") or release.get("prerelease"):
+            continue
+        tag_name = release.get("tag_name")
+        if not isinstance(tag_name, str):
+            continue
+        try:
+            version = StableVersion.parse(tag_name)
+        except ValueError:
+            continue
+        if version != target:
+            versions.append(version)
+    return versions
+
+
+def latest_tag_version(target: StableVersion, remote: str) -> StableVersion | None:
     versions = []
-    for tag in git_tags(args.remote):
+    for tag in git_tags(remote):
         try:
             version = StableVersion.parse(tag)
         except ValueError:
@@ -65,6 +131,16 @@ def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> St
         if version != target:
             versions.append(version)
     return max(versions) if versions else None
+
+
+def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> StableVersion | None:
+    if args.latest_version:
+        return StableVersion.parse(args.latest_version)
+
+    github_versions = github_stable_versions(target, args)
+    if github_versions:
+        return max(github_versions)
+    return latest_tag_version(target, args.remote)
 
 
 def fail(message: str) -> int:
@@ -121,7 +197,7 @@ def main() -> int:
     try:
         target = StableVersion.parse(args.target_version)
         latest = latest_stable_version(target, args)
-    except (ValueError, subprocess.CalledProcessError) as error:
+    except (RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         print(f"Release target sanity check failed: {error}", file=sys.stderr)
         return 1
     return verify(target, latest)

@@ -301,7 +301,7 @@ release-test: ## Run release-equivalent tests with all optional features
 .PHONY: release-target-check
 release-target-check: ## Verify VERSION follows the published release line
 	scripts/release/verify-version.sh "$(VERSION)"
-	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)" --repo "$(RELEASE_REPO)"
 
 .PHONY: release-recovery-plan
 release-recovery-plan: ## Plan non-destructive recovery for an accidental release (BAD_VERSION=vX.Y.Z)
@@ -355,7 +355,7 @@ release: release-publish ## Dispatch the full release workflow (GitHub Release +
 .PHONY: release-tag
 release-tag: ## Create and push a signed annotated tag for VERSION
 	scripts/release/verify-version.sh "$(VERSION)"
-	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)"
+	python3 scripts/release/verify-release-target.py --target-version "$(VERSION)" --repo "$(RELEASE_REPO)"
 	scripts/release/assert-tag-safe.sh "$(TAG)"
 	@if git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null; then \
 		if [ "$$(git cat-file -t "$(TAG)")" != "tag" ]; then \

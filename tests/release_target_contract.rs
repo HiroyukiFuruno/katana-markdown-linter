@@ -1,8 +1,11 @@
+use std::fs;
+use std::path::PathBuf;
 use std::process::{Command, Output};
 
 struct ReleaseTargetCommand {
     target_version: &'static str,
-    latest_version: &'static str,
+    latest_version: Option<&'static str>,
+    github_releases_json: Option<PathBuf>,
     override_enabled: bool,
 }
 
@@ -10,7 +13,17 @@ impl ReleaseTargetCommand {
     fn new(target_version: &'static str, latest_version: &'static str) -> Self {
         Self {
             target_version,
-            latest_version,
+            latest_version: Some(latest_version),
+            github_releases_json: None,
+            override_enabled: false,
+        }
+    }
+
+    fn with_github_releases_json(target_version: &'static str, path: PathBuf) -> Self {
+        Self {
+            target_version,
+            latest_version: None,
+            github_releases_json: Some(path),
             override_enabled: false,
         }
     }
@@ -26,9 +39,13 @@ impl ReleaseTargetCommand {
             .current_dir(env!("CARGO_MANIFEST_DIR"))
             .arg("scripts/release/verify-release-target.py")
             .arg("--target-version")
-            .arg(self.target_version)
-            .arg("--latest-version")
-            .arg(self.latest_version);
+            .arg(self.target_version);
+        if let Some(latest_version) = self.latest_version {
+            command.arg("--latest-version").arg(latest_version);
+        }
+        if let Some(path) = &self.github_releases_json {
+            command.arg("--github-releases-json").arg(path);
+        }
         if self.override_enabled {
             command.env("KML_RELEASE_ALLOW_VERSION_LINE_OVERRIDE", "1");
         }
@@ -38,6 +55,15 @@ impl ReleaseTargetCommand {
     }
 }
 
+fn write_github_releases_fixture(name: &str, content: &str) -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "kml-release-target-{name}-{}.json",
+        std::process::id()
+    ));
+    fs::write(&path, content).expect("release fixture should be writable");
+    path
+}
+
 #[test]
 fn patch_release_after_latest_patch_is_accepted() {
     let output = ReleaseTargetCommand::new("v0.17.7", "v0.17.6").run();
@@ -45,6 +71,24 @@ fn patch_release_after_latest_patch_is_accepted() {
     assert!(
         output.status.success(),
         "expected consecutive patch release to pass, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn accidental_prerelease_is_ignored_when_resolving_latest_stable_release() {
+    let fixture = write_github_releases_fixture(
+        "accidental-prerelease",
+        r#"[
+            {"tag_name": "v0.18.7", "draft": false, "prerelease": true},
+            {"tag_name": "v0.17.6", "draft": false, "prerelease": false}
+        ]"#,
+    );
+    let output = ReleaseTargetCommand::with_github_releases_json("v0.17.7", fixture).run();
+
+    assert!(
+        output.status.success(),
+        "expected accidental prerelease to be ignored, stderr: {}",
         String::from_utf8_lossy(&output.stderr)
     );
 }

@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.18.7
+## v0.17.7
 
 - Clarifies that unsafe fixes can be used with both `kml fix` and
   `kml check --fix` through explicit `--unsafe --yes` opt-in.
