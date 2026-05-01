@@ -28,7 +28,7 @@ Options:
   --stdin                   Read Markdown from standard input.
   --fix                     Apply safe fixes during check.
   --ignore-config-errors    Continue after ignoring invalid config entries.
-  --unsafe --yes            Allow unsafe fixes for the fix command.
+  --unsafe --yes            Allow unsafe fixes for fix or check --fix.
   --include <glob>          Include paths matching a glob.
   --exclude <glob>          Exclude paths matching a glob.
   --no-ignore               Ignore .gitignore filtering.
@@ -68,7 +68,7 @@ katana-markdown-linter (kml)
   --stdin                   標準入力から Markdown を読みます。
   --fix                     check 中に安全な修正を適用します。
   --ignore-config-errors    不正な設定項目を無視して続行します。
-  --unsafe --yes            fix コマンドで unsafe fix を許可します。
+  --unsafe --yes            fix または check --fix で unsafe fix を許可します。
   --include <glob>          指定 glob に一致する path を含めます。
   --exclude <glob>          指定 glob に一致する path を除外します。
   --no-ignore               .gitignore の絞り込みを無視します。
@@ -88,6 +88,7 @@ Report Markdown lint diagnostics.
 
 Options:
   --fix                     Apply safe fixes before reporting.
+  --unsafe --yes            Allow unsafe fixes when used with --fix.
   --config <path>           Use a specific markdownlint config file.
   --ignore-config-errors    Continue after ignoring invalid config entries.
   --file <path>             Add one explicit input file.
@@ -114,6 +115,7 @@ Markdown の lint 診断を表示します。
 
 オプション:
   --fix                     報告前に安全な修正を適用します。
+  --unsafe --yes            --fix と併用して unsafe fix を許可します。
   --config <path>           指定した markdownlint 設定ファイルを使います。
   --ignore-config-errors    不正な設定項目を無視して続行します。
   --file <path>             入力ファイルを明示的に追加します。

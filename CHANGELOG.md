@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.18.7
+
+- Clarifies that unsafe fixes can be used with both `kml fix` and
+  `kml check --fix` through explicit `--unsafe --yes` opt-in.
+- Adds `kml check --fix --unsafe --yes` to the README CLI examples.
+- Adds CLI contract coverage proving `check --fix --unsafe --yes` applies an
+  unsafe `MD036` fix while keeping JSON command identity as `check`.
+- Updates `kml check --help` so the unsafe fix opt-in is discoverable from the
+  command-specific help.
+
 ## v0.17.6
 
 - Treats bare `kml` as global help, keeping `kml help`, `kml --help`,

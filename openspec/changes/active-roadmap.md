@@ -42,6 +42,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
 - `v0.18.3`: editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
+- `v0.18.7`: `check --fix --unsafe --yes` の既存挙動を CLI help と README で発見できるようにし、unsafe fix opt-in の契約を回帰テストで固定する。
 
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
@@ -50,6 +51,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | P1 | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | The LSP entrypoint and schema command already exist. VS Code should become the first real editor target because the extension surface can stay thin: launch `kml lsp`, associate the config schema, and expose diagnostics / format / safe quick-fix without moving lint logic into the extension. |
 | P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
 | P2 | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | After both target editors have MVPs, harden install docs, smoke tests, release verification, marketplace packaging, and optional docs-only Neovim configuration without expanding the core engine. |
+| P0 | CLI unsafe fix help for `v0.18.7` | `v0-18-7-cli-unsafe-fix-help` | `check --fix --unsafe --yes` already works but was not discoverable from `kml check --help`; release this help contract fix before further schema/editor work. |
 | P2 | Release verification hardening | TBD: `release-verification-hardening` | `v0.17.0` exposed that external registry verification is broader than GitHub Release + crates.io. Add npm, PyPI, wrapper launch, and tap formula checks to the post-release verification path before the next distribution release. |
 | Done | Golden and edge coverage for `v0.4.0` | `golden-edge-coverage-expansion` | Completed for `v0.4.0`; dashboard now derives golden status from the locked baseline and records edge coverage. |
 | Done | Safe check/fix expansion for `v0.4.0` | `safe-fix-strategy-expansion` | Completed for `v0.4.0`; `MD005` and `MD030` safe subsets are locked, while `MD060` remains diagnostic/manual-required because official metadata marks it non-fixable. |
