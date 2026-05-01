@@ -114,6 +114,48 @@ fn fix_json_reports_remaining_unsafe_diagnostics_without_applying_them() {
 }
 
 #[test]
+fn check_fix_unsafe_yes_applies_unsafe_fixes() {
+    let dir = TestDir::new("check-fix-unsafe-yes");
+    let file = dir.path().join("bad.md");
+    let config = dir.path().join(".markdownlint.json");
+    fs::write(&file, "**Important**\n\nText\n").expect("fixture should be written");
+    fs::write(&config, "{ \"default\": false, \"MD036\": true }\n")
+        .expect("config should be written");
+
+    let output = run_kml(
+        [
+            "check",
+            "--fix",
+            "--unsafe",
+            "--yes",
+            "--output",
+            "json",
+            "--config",
+            file_text(&config).as_str(),
+            file_text(&file).as_str(),
+        ],
+        None,
+    );
+
+    assert!(
+        output.status.success(),
+        "check --fix --unsafe --yes should apply unsafe fixes\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(&file).expect("fixture should be readable"),
+        "# Important\n\nText\n"
+    );
+    let json = stdout_json(&output);
+    assert_eq!(json["command"], "check");
+    assert_eq!(json["files"][0]["changed"], true);
+    assert_eq!(json["files"][0]["applied_fixes"], 1);
+    assert_eq!(json["files"][0]["fix_details"][0]["rule_id"], "MD036");
+    assert_eq!(json["summary"]["total_issues"], 0);
+}
+
+#[test]
 fn fmt_json_uses_formatter_contract_without_lint_fixing_heading_text() {
     let dir = TestDir::new("fmt-json-contract");
     let file = dir.path().join("bad.md");
@@ -195,6 +237,22 @@ fn help_commands_print_usage_without_linting_workspace() {
         assert_contains(&stdout, "check");
         assert_contains(&stdout, "version");
     }
+}
+
+#[test]
+fn check_help_documents_unsafe_fix_opt_in() {
+    let dir = TestDir::new("check-help-unsafe-fix");
+    let output = run_kml_in(["check", "--help"], None, dir.path());
+
+    assert!(
+        output.status.success(),
+        "check --help should exit successfully\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_contains(&stdout, "--unsafe --yes");
+    assert_contains(&stdout, "Allow unsafe fixes when used with --fix.");
 }
 
 #[test]
