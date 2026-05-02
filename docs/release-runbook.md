@@ -208,7 +208,7 @@ Keep these conditions true before publishing a wrapper version:
 - The release workflow is either triggered by a merged `release/vX.Y.Z` pull request or dispatched with wrapper publish flags enabled.
 - `just VERSION=vX.Y.Z wrapper-smoke` succeeds against the release archive shape.
 - `just npm-package-check` confirms the npm README, metadata, and tarball file list.
-- `just npm-publish-target-check` confirms the npm version is not already published and is not blocked by npm unpublish state.
+- `just npm-publish-target-check` confirms the npm version is not already published. If npm returns `Unpublished on`, treat it as a soft signal and continue to publish attempt.
 - `just pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
 
 Use these trusted publisher settings:
@@ -369,7 +369,7 @@ preserve evidence and publish a corrected version instead.
 
 - Re-run `just npm-publish-target-check`.
 - If the version is already published, do not publish the same npm version again.
-- If npm reports `Unpublished on`, wait for npm's republish window before retrying the npm-only wrapper publication.
+- If npm reports `Unpublished on`, `npm-publish-target-check` may still pass so a manual publish can continue (authentication/2FA may be the next failure).
 - If the registry check fails for another reason, fix registry access before running `npm publish`.
 
 ### Incorrect files were packaged

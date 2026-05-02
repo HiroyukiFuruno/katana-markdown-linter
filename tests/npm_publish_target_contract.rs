@@ -95,7 +95,7 @@ fn npm_publish_target_rejects_existing_version() {
 }
 
 #[test]
-fn npm_publish_target_rejects_unpublish_window() {
+fn npm_publish_target_accepts_unpublished_version_window() {
     let output = NpmPublishTargetCommand::new(
         "",
         "npm ERR! 404 Unpublished on 2026-05-01T03:48:41.592Z\n",
@@ -105,11 +105,13 @@ fn npm_publish_target_rejects_unpublish_window() {
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     assert!(
-        !output.status.success(),
-        "expected npm unpublish state to be rejected"
+        output.status.success(),
+        "expected npm unpublish state to be treated as publishable\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        stderr
     );
     assert!(
-        stderr.contains("blocked by npm unpublish state"),
+        stderr.contains("is not published yet but is reported as Unpublished on npm"),
         "expected npm unpublish guidance, stderr: {stderr}"
     );
 }

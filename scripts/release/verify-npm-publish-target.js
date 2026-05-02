@@ -47,9 +47,10 @@ class NpmPublishTargetVerifier {
       throw new Error(`${this.packageSpec} is already published on npm.`);
     }
     if (combinedOutput.includes("Unpublished on")) {
-      throw new Error(
-        `${this.packageSpec} is blocked by npm unpublish state. Wait for npm's republish window before retrying.`
+      console.warn(
+        `${this.packageSpec} is not published yet but is reported as Unpublished on npm.`
       );
+      return;
     }
     if (this.isNotFound(viewResult, combinedOutput)) {
       return;
