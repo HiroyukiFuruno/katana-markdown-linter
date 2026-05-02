@@ -430,8 +430,6 @@ jobs:
           fi
 
       - name: Publish npm wrapper
-        env:
-          NODE_AUTH_TOKEN: ""
         run: npm publish --tag latest --access public --provenance
         working-directory: wrappers/npm
 
