@@ -419,7 +419,19 @@ jobs:
       - name: Verify npm publish target
         run: just npm-publish-target-check
 
+      - name: Enforce trusted publishing for npm publish
+        shell: bash
+        run: |
+          if [ -f "$NPM_CONFIG_USERCONFIG" ]; then
+            sed -i.bak '/registry\.npmjs\.org.*:_authToken/d' "$NPM_CONFIG_USERCONFIG"
+          fi
+          if [ -f "$NPM_CONFIG_USERCONFIG.bak" ]; then
+            rm -f "$NPM_CONFIG_USERCONFIG.bak"
+          fi
+
       - name: Publish npm wrapper
+        env:
+          NODE_AUTH_TOKEN: ""
         run: npm publish --tag latest --access public --provenance
         working-directory: wrappers/npm
 
