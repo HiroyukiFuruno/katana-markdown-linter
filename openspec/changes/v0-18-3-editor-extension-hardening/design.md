@@ -79,7 +79,7 @@ docs は次を分ける。
 
 1. VS Code / Zed extension metadata を release-ready に整える
 2. compatibility check を extension startup と tests に追加する
-3. package validation target を Makefile と CI に固定する
+3. package validation target を Justfile と CI に固定する
 4. release verification script に extension package / LSP launch check を追加する
 5. README / editor docs / release runbook を更新する
 6. Marketplace / registry publish 手順を manual-ready runbook として残す

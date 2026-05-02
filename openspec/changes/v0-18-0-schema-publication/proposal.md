@@ -42,7 +42,7 @@ VS Code / Zed extension を作る前に、editor が依存できる設定スキ�
 - `tests/ast_linter.rs`
 - `.github/workflows/release.yml`
 - `.github/workflows/release-preflight.yml`
-- `Makefile`
+- `Justfile`
 - `scripts/release/**`
 - `wrappers/npm/README.md`
 - `wrappers/npm/package.json`

@@ -10,7 +10,7 @@
 ## 1. Schema Generation and Regression
 
 - [ ] 1.1 schema generation / comparison script を追加する
-- [ ] 1.2 `make schema-check` を追加する
+- [ ] 1.2 `just schema-check` を追加する
 - [ ] 1.3 `kml config schema --output json` と `schema/markdownlint.schema.json` の一致テストを追加する
 - [ ] 1.4 schema compatibility fixture を追加する
 - [ ] 1.5 rule metadata 変更時に schema fixture 更新漏れで失敗する test を追加する
@@ -24,7 +24,7 @@
 
 ## 3. Release Gate
 
-- [ ] 3.1 `make release-check VERSION=v0.18.0` に schema check を追加する
+- [ ] 3.1 `just VERSION=v0.18.0 release-check` に schema check を追加する
 - [ ] 3.2 release workflow に schema artifact upload または publication step を追加する
 - [ ] 3.3 release preflight workflow に schema check を追加する
 - [ ] 3.4 AST lint で release gate から schema check が外れないことを検証する
@@ -43,14 +43,14 @@
 
 ## 5. Verification
 
-- [ ] 5.1 `make fmt-check`
-- [ ] 5.2 `make lint`
-- [ ] 5.3 `make ast-lint`
+- [ ] 5.1 `just fmt-check`
+- [ ] 5.2 `just lint`
+- [ ] 5.3 `just ast-lint`
 - [ ] 5.4 `cargo test --workspace --locked`
-- [ ] 5.5 `make dogfood`
+- [ ] 5.5 `just dogfood`
 - [ ] 5.6 `git diff --check`
-- [ ] 5.7 `make schema-check`
-- [ ] 5.8 `make release-check VERSION=v0.18.0`
+- [ ] 5.7 `just schema-check`
+- [ ] 5.8 `just VERSION=v0.18.0 release-check`
 
 ## Definition of Done
 

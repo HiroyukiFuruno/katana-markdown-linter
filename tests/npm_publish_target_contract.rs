@@ -4,7 +4,10 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Output};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static NEXT_TEST_DIR_ID: AtomicU64 = AtomicU64::new(0);
 
 struct NpmPublishTargetCommand {
     mock_npm: MockNpm,
@@ -136,9 +139,10 @@ impl TestDir {
             .duration_since(UNIX_EPOCH)
             .expect("time should be available")
             .as_nanos();
+        let sequence = NEXT_TEST_DIR_ID.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "katana-markdown-linter-{name}-{}-{nanos}",
-            std::process::id()
+            "katana-markdown-linter-{name}-{}-{nanos}-{sequence}",
+            std::process::id(),
         ));
         fs::create_dir_all(&path).expect("test dir should be created");
         Self { path }

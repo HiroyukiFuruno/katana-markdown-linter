@@ -7,7 +7,8 @@ on:
       - '**.rs'
       - 'Cargo.toml'
       - 'Cargo.lock'
-      - 'Makefile'
+      - 'Justfile'
+      - 'just/**'
       - 'action.yml'
       - '.markdownlint-dogfood.json'
       - '.codex/**'
@@ -24,7 +25,8 @@ on:
       - '**.rs'
       - 'Cargo.toml'
       - 'Cargo.lock'
-      - 'Makefile'
+      - 'Justfile'
+      - 'just/**'
       - 'action.yml'
       - '.markdownlint-dogfood.json'
       - '.codex/**'
@@ -79,12 +81,15 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Check types
         run: cargo check --workspace --locked
 
       - name: Check formatting
         if: matrix.os != 'windows-latest'
-        run: make fmt-check
+        run: just fmt-check
 
       - name: Run Windows format check
         if: matrix.os == 'windows-latest'
@@ -92,11 +97,11 @@ jobs:
 
       - name: Run linter
         if: matrix.os != 'windows-latest'
-        run: make lint
+        run: just lint
 
       - name: Run AST linter
         if: matrix.os != 'windows-latest'
-        run: make ast-lint
+        run: just ast-lint
 
       - name: Run tests
         if: matrix.os != 'windows-latest'
@@ -108,25 +113,25 @@ jobs:
 
       - name: Run dogfood
         if: matrix.os != 'windows-latest'
-        run: make dogfood
+        run: just dogfood
 
       - name: Run public confidence
         if: matrix.os != 'windows-latest'
-        run: make public-confidence
+        run: just public-confidence
 
       - name: Run action smoke
         if: matrix.os == 'ubuntu-latest'
-        run: make action-smoke
+        run: just action-smoke
 
       - name: Run MCP stdio smoke
         if: matrix.os == 'ubuntu-latest'
-        run: make mcp-stdio-smoke
+        run: just mcp-stdio-smoke
 
       - name: Run MCP remote smoke
         if: matrix.os == 'ubuntu-latest'
-        run: make mcp-remote-smoke
+        run: just mcp-remote-smoke
 
       - name: Run coverage
         if: matrix.os == 'ubuntu-latest'
         continue-on-error: true
-        run: make coverage
+        run: just coverage

@@ -92,7 +92,7 @@ def baseline_payload(
     ]
     return {
         "schema_version": SCHEMA_VERSION,
-        "description": "Known kml dogfood diagnostics. New diagnostics fail make dogfood.",
+        "description": "Known kml dogfood diagnostics. New diagnostics fail just dogfood.",
         "total_diagnostics": sum(counter.values()),
         "diagnostics": diagnostics,
     }
@@ -156,7 +156,7 @@ def main() -> int:
         if resolved:
             print_counter("Resolved diagnostics not yet reflected in baseline", resolved)
         print(f"Raw report: {report_path}")
-        print("Run `make dogfood-refresh-baseline` only after intentional cleanup.")
+        print("Run `just dogfood-refresh-baseline` only after intentional cleanup.")
         return 1
 
     print(

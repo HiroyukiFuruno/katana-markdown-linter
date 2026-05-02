@@ -39,7 +39,7 @@
 - VS Code extension source and tests
 - `src/lsp/**`
 - `tests/cli_lsp_contract.rs`
-- `Makefile`
+- `Justfile`
 - `.github/workflows/**`
 - `README.md`
 - `docs/editor-integration.md`

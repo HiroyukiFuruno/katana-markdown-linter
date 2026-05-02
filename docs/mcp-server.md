@@ -18,11 +18,11 @@ After publication, install from crates.io:
 
 Run the local stdio smoke test:
 
-    make mcp-stdio-smoke
+    just mcp-stdio-smoke
 
 Build and smoke test the MCPB bundle:
 
-    make mcpb-smoke VERSION=v0.17.7
+    just VERSION=v0.17.7 mcpb-smoke
 
 ## Run
 
@@ -156,13 +156,13 @@ to each GitHub Release:
     katana-markdown-linter-0.17.7.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`make mcp-server-json VERSION=v0.17.7` renders `target/mcpb/server.json` with
+`just VERSION=v0.17.7 mcp-server-json` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    make server-json-validate VERSION=v0.17.7
+    just VERSION=v0.17.7 server-json-validate
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP

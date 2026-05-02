@@ -74,7 +74,7 @@ context migration は、performance baseline と behavior gates を通して評�
 
 #### Scenario: migration performance を検証する
 
-- **WHEN** developer が `make perf-check` を実行する
+- **WHEN** developer が `just perf-check` を実行する
 - **THEN** system は context migration 後の report を baseline と比較する
 - **THEN** system は unexplained regression を failure または documented blocker として扱う
 - **THEN** system は large document API lint、large document API fix、CLI many-small-files path を確認対象に含める

@@ -17,7 +17,7 @@ Install after publication:
 
 Run the smoke test:
 
-    make mcp-remote-smoke
+    just mcp-remote-smoke
 
 ## Run
 

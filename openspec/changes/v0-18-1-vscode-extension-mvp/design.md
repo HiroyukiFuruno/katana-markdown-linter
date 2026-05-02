@@ -71,7 +71,7 @@ MVP の test は次を確認する。
 - `kml` が未 install の場合に extension が無言で動かない
   - 明示的な error message と binary path setting を用意する
 - extension package manager が Rust release flow とずれる
-  - `Makefile` に editor-specific check target を追加し、release gate に含める
+  - `Justfile` に editor-specific check target を追加し、release gate に含める
 - schema association が user settings と競合する
   - extension の既定値は上書きしすぎず、manual setting を docs に残す
 - marketplace 公開まで含めると scope が広がる
@@ -83,7 +83,7 @@ MVP の test は次を確認する。
 2. TypeScript test を先に追加し、binary missing / binary path / LSP launch の期待を固定する
 3. Language Client 起動 logic を実装する
 4. schema association と configuration を追加する
-5. Makefile / CI に extension build と smoke target を追加する
+5. Justfile / CI に extension build と smoke target を追加する
 6. README / editor integration docs を更新する
 
 ## Open Questions

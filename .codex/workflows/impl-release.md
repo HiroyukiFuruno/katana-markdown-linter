@@ -12,9 +12,9 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 - 作業対象 repository は `katana-markdown-linter`
 - default branch は `main`
 - `main` は GitHub branch protection で signed commits を必須にし、admin にも保護を適用する
-- release は `make release VERSION=vX.Y.Z` を正とする
-- publish 後 verification は `make release-verify VERSION=vX.Y.Z` を正とする
-- `make release` が失敗した場合、手動 tag 作成や `cargo publish` 直叩きで迂回しない
+- release は `just VERSION=vX.Y.Z release` を正とする
+- publish 後 verification は `just VERSION=vX.Y.Z release-verify` を正とする
+- `just VERSION=vX.Y.Z release` が失敗した場合、手動 tag 作成や `cargo publish` 直叩きで迂回しない
 
 ## 停止ルール
 
@@ -52,7 +52,7 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 1. `git status --short --branch` を実行し、既存差分を確認する。
 2. `git fetch origin --prune --tags` を実行する。
 3. `Cargo.toml` の現在 version、最新 tag、最新 GitHub Release、crates.io 最新 version を確認する。
-4. `make release-target-check VERSION=vX.Y.Z` を実行し、指定 version が公開済み release line の自然な次版であることを確認する。
+4. `just VERSION=vX.Y.Z release-target-check` を実行し、指定 version が公開済み release line の自然な次版であることを確認する。
    - 失敗した場合は、ユーザー指定を正しい前提にせず停止する。
    - `KML_RELEASE_ALLOW_VERSION_LINE_OVERRIDE=1` は、修正リリースなどの理由をユーザーが明示承認した場合だけ使う。
 5. 対象 version の active OpenSpec change を特定する。
@@ -77,19 +77,19 @@ description: 指定バージョンのOpenSpec実装、品質確認、リリー�
 基本 gate:
 
 ```bash
-make fmt-check
-make lint
-make ast-lint
+just fmt-check
+just lint
+just ast-lint
 cargo test --workspace --locked
-make dogfood
+just dogfood
 git diff --check
 ```
 
 release 前 gate:
 
 ```bash
-make release-target-check VERSION=vX.Y.Z
-make release-check VERSION=vX.Y.Z
+just VERSION=vX.Y.Z release-target-check
+just VERSION=vX.Y.Z release-check
 ```
 
 対象 change の `tasks.md` に追加 verification がある場合は、それも実行する。
@@ -97,7 +97,7 @@ make release-check VERSION=vX.Y.Z
 ## Phase 3: リリース準備 PR
 
 1. `Cargo.toml` / `Cargo.lock` / README / docs / CHANGELOG / OpenSpec archive を対象 version に合わせる。
-2. public docs は英語で書く。`README.md` または `docs/**` を変更した場合は `make ast-lint` を実行する。
+2. public docs は英語で書く。`README.md` または `docs/**` を変更した場合は `just ast-lint` を実行する。
 3. 対象 OpenSpec change の全 task が完了したら、`openspec-archive-change` skill に従って archive する。
 4. commit 前に `git status --short --branch` と `git diff --cached --stat` を確認する。
 5. commit 作成後、GitHub 上の head commit が `verified=true` / `reason=valid` であることを確認する。
@@ -118,7 +118,7 @@ gh pr create --title "Prepare vX.Y.Z release" --base main --body-file <pr-body-f
 - Archive completed OpenSpec change
 
 ## Verification
-- make release-check VERSION=vX.Y.Z
+- just VERSION=vX.Y.Z release-check
 ```
 
 ## Phase 4: PR merge
@@ -134,19 +134,19 @@ gh pr create --title "Prepare vX.Y.Z release" --base main --body-file <pr-body-f
 ## Phase 5: 公開
 
 1. `main` が対象 version の commit を含むことを確認する。
-2. `make release VERSION=vX.Y.Z` を実行する。
+2. `just VERSION=vX.Y.Z release` を実行する。
    - この target が signed annotated tag 作成、GitHub Verified 確認、Release workflow dispatch、crates.io publish dispatch を担当する。
 3. Release workflow を監視する。
 
 ```bash
-make release-status
+just release-status
 gh run list --repo HiroyukiFuruno/katana-markdown-linter --workflow Release --limit 5
 ```
 
 4. workflow 成功後、公開状態を検証する。
 
 ```bash
-make release-verify VERSION=vX.Y.Z
+just VERSION=vX.Y.Z release-verify
 ```
 
 ## Phase 6: 事後整理
@@ -172,10 +172,10 @@ make release-verify VERSION=vX.Y.Z
 ## 完了条件
 
 - [ ] 対象 OpenSpec change の全 task が完了している
-- [ ] `make release-target-check VERSION=vX.Y.Z` が成功している
-- [ ] `make release-check VERSION=vX.Y.Z` が成功している
+- [ ] `just VERSION=vX.Y.Z release-target-check` が成功している
+- [ ] `just VERSION=vX.Y.Z release-check` が成功している
 - [ ] release PR が `main` に merge されている
-- [ ] `make release VERSION=vX.Y.Z` が成功している
-- [ ] `make release-verify VERSION=vX.Y.Z` が成功している
+- [ ] `just VERSION=vX.Y.Z release` が成功している
+- [ ] `just VERSION=vX.Y.Z release-verify` が成功している
 - [ ] branch hygiene が完了している
 - [ ] 次 patch / minor に回す課題が roadmap または OpenSpec change に残っている

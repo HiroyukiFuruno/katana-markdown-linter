@@ -40,9 +40,9 @@ repositoryは、localとCIで実行するquality gateの責務を明確に定義
 
 #### Scenario: local gate を実行する
 
-- **WHEN** developer が `make lint` を実行する
+- **WHEN** developer が `just lint` を実行する
 - **THEN** system は Clippy zero warning を検証する
-- **WHEN** developer が `make ast-lint` を実行する
+- **WHEN** developer が `just ast-lint` を実行する
 - **THEN** system は repository 固有の不変条件を検証する
 
 ### Requirement: repository SHALL protect release-critical invariants with AST lint
@@ -51,7 +51,7 @@ repositoryは、release と rule 互換性に関わる不変条件を AST lint �
 
 #### Scenario: release-critical invariant を検証する
 
-- **WHEN** developer が `make ast-lint` を実行する
+- **WHEN** developer が `just ast-lint` を実行する
 - **THEN** system は fixture coverage、upstream drift、CLI traversal、signed release tag workflow を検証する
 - **THEN** system は破壊的変更または未反映変更を失敗として報告する
 
@@ -72,7 +72,7 @@ repositoryは、release と rule 互換性に関わる不変条件を AST lint �
 
 #### Scenario: performance gate を実行する
 
-- **WHEN** developer が `make perf-check` を実行する
+- **WHEN** developer が `just perf-check` を実行する
 - **THEN** system は基準値比較（baseline comparison）を表示する
 - **THEN** system は required benchmark case と report schema を検証する
 - **THEN** system は CI の時計時間ゆらぎ（wall-clock fluctuation）だけで release を止めない
@@ -175,7 +175,7 @@ repositoryは、release と rule 互換性に関わる不変条件を AST lint �
 
 - **WHEN** quality score を計算する
 - **THEN** 各カテゴリは `score` / `max` / `evidence` を持つ
-- **THEN** evidence には `make public-confidence`、`make perf-check`、収束実行、`release-check` の結果を含める
+- **THEN** evidence には `just public-confidence`、`just perf-check`、収束実行、`release-check` の結果を含める
 - **THEN** `v0.12.9` の配点（30 / 25 / 20 / 15 / 10）を採用し、`v0.12.11` でもカテゴリ合計が 100 点になる
 
 ### Requirement: システムは release 進行条件として score を機械的に利用する
@@ -196,8 +196,8 @@ repositoryは、release と rule 互換性に関わる不変条件を AST lint �
 #### Scenario: performance release gate を通す
 
 - **WHEN** developer が `v0.12.20` の release check を行う
-- **THEN** system は `make perf-check` または `make perf-check-strict` の結果を記録する
-- **THEN** system は `make test`、`make ast-lint`、`make dogfood` の結果を記録する
+- **THEN** system は `just perf-check` または `just perf-check-strict` の結果を記録する
+- **THEN** system は `just test`、`just ast-lint`、`just dogfood` の結果を記録する
 - **THEN** system は説明不能な重大性能退行がある場合、`v0.12.21` へ進まない
 
 ### Requirement: v0.12.20 SHALL prepare the handoff to KatanA feedback sweep
@@ -286,7 +286,7 @@ Release readiness SHALL include document-level answer fixture evaluation before 
 
 #### Scenario: release check runs document answer evaluation
 
-- **WHEN** developer runs `make release-check VERSION=v0.16.2`
+- **WHEN** developer runs `just VERSION=v0.16.2 release-check`
 - **THEN** system runs the document answer fix evaluation
 - **AND** release check fails if any fixed output differs from its answer fixture
 - **AND** release check fails if the public corpus has fewer than 200 valid public GitHub samples
@@ -309,7 +309,7 @@ release readiness は、Cargo package だけでなく binary distribution artifa
 
 #### Scenario: release check validates binary artifacts
 
-- **WHEN** developer が `make release-check VERSION=vX.Y.Z` を実行する
+- **WHEN** developer が `just VERSION=vX.Y.Z release-check` を実行する
 - **THEN** system は binary archive と checksum を local で作成する
 - **AND** system は archive 展開後の `kml --version` を検証する
 - **AND** system は小さな Markdown fixture に対して `kml check` を実行する
@@ -320,7 +320,7 @@ release readiness は、Homebrew 定義ファイル（formula）の出力を検�
 
 #### Scenario: release check validates formula
 
-- **WHEN** developer が `make release-check VERSION=vX.Y.Z` を実行する
+- **WHEN** developer が `just VERSION=vX.Y.Z release-check` を実行する
 - **THEN** system は release archive URL と checksum を使って formula を生成する
 - **AND** system は formula が `kml --version` を test block に含むことを検証する
 - **AND** system は formula が存在しない asset や checksum を参照する場合に失敗する
@@ -345,7 +345,7 @@ release readiness は、公開済みの install 導線だけを README と docs 
 - **WHEN** release preparation updates README or docs
 - **THEN** documentation は Cargo、GitHub Release binary、Homebrew、公開済み wrapper の状態を分けて説明する
 - **AND** documentation は未公開 wrapper を公式導線として扱わない
-- **AND** documentation 変更後に `make ast-lint` が成功する
+- **AND** documentation 変更後に `just ast-lint` が成功する
 
 ### Requirement: release readiness SHALL preserve existing crate install contract
 
@@ -377,7 +377,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: release verification checks registry versions
 
-- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-verify`
 - **THEN** system verifies crates.io contains `katana-markdown-linter` version `X.Y.Z`
 - **AND** system verifies npm contains `katana-markdown-linter` version `X.Y.Z`
 - **AND** system verifies PyPI contains `katana-markdown-linter` version `X.Y.Z`
@@ -389,7 +389,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: release verification launches wrappers
 
-- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-verify`
 - **THEN** system runs the npm wrapper through `npx --yes katana-markdown-linter@X.Y.Z --version`
 - **AND** system runs the PyPI wrapper through `uvx --from katana-markdown-linter==X.Y.Z kml --version`
 - **AND** both commands must print `X.Y.Z`
@@ -400,7 +400,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: release verification checks formula output
 
-- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-verify`
 - **THEN** system renders or reads the Homebrew formula for `vX.Y.Z`
 - **AND** system verifies formula URL values reference the expected release archives
 - **AND** system verifies formula checksum values match generated checksum files
@@ -521,7 +521,7 @@ release readiness は、Cargo install の既存導入契約を壊してはなら
 
 #### Scenario: post-release verification checks actual tap content
 
-- **WHEN** developer runs `make release-verify VERSION=v0.17.5`
+- **WHEN** developer runs `just VERSION=v0.17.5 release-verify`
 - **THEN** system renders the expected Homebrew formula from GitHub Release assets
 - **AND** system reads `Formula/kml.rb` from `HiroyukiFuruno/homebrew-katana`
 - **AND** system reads `Formula/kml@0.17.5.rb` from `HiroyukiFuruno/homebrew-katana`

@@ -21,13 +21,13 @@
 - [ ] 2.1 VS Code extension package の content check を追加する
 - [ ] 2.2 Zed extension package の content check を追加する
 - [ ] 2.3 package に local-only files が入らないことを検証する
-- [ ] 2.4 package validation target を `make editor-extension-check` にまとめる
+- [ ] 2.4 package validation target を `just editor-extension-check` にまとめる
 - [ ] 2.5 CI と release preflight に editor extension check を追加する
 
 ## 3. Release and Publish Runbook
 
 - [ ] 3.1 `scripts/release` に editor extension verification を追加する
-- [ ] 3.2 `make release-verify` が published / deferred の状態を説明できるようにする
+- [ ] 3.2 `just release-verify` が published / deferred の状態を説明できるようにする
 - [ ] 3.3 VS Code Marketplace publish 手順を runbook に追加する
 - [ ] 3.4 Zed extension publish 手順を runbook に追加する
 - [ ] 3.5 account 未設定時は publish を止める gate を追加する
@@ -43,14 +43,14 @@
 
 ## 5. Verification
 
-- [ ] 5.1 `make fmt-check`
-- [ ] 5.2 `make lint`
-- [ ] 5.3 `make ast-lint`
+- [ ] 5.1 `just fmt-check`
+- [ ] 5.2 `just lint`
+- [ ] 5.3 `just ast-lint`
 - [ ] 5.4 `cargo test --workspace --locked`
-- [ ] 5.5 `make dogfood`
+- [ ] 5.5 `just dogfood`
 - [ ] 5.6 `git diff --check`
-- [ ] 5.7 `make editor-extension-check`
-- [ ] 5.8 `make release-check VERSION=v0.18.3`
+- [ ] 5.7 `just editor-extension-check`
+- [ ] 5.8 `just VERSION=v0.18.3 release-check`
 
 ## Definition of Done
 

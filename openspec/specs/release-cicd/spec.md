@@ -85,8 +85,8 @@ local と CI の release gate は、意図しない乖離を起こしてはな�
 #### Scenario: release gate を変更する
 
 - **WHEN** developer が workflow の release-critical step を変更する
-- **THEN** system は対応する Makefile target または AST lint の更新を要求する
-- **THEN** system は local `make release-check` と CI release gate の差分を可視化する
+- **THEN** system は対応する Justfile recipe または AST lint の更新を要求する
+- **THEN** system は local `just release-check` と CI release gate の差分を可視化する
 
 ### Requirement: release workflow SHALL build binary artifacts for supported targets
 
@@ -117,7 +117,7 @@ release workflow は、local release gate と同じ packaging script を使わ�
 #### Scenario: packaging script is changed
 
 - **WHEN** developer が binary packaging logic を変更する
-- **THEN** system は local `make release-check` から同じ script を実行する
+- **THEN** system は local `just release-check` から同じ script を実行する
 - **AND** system は GitHub Actions 専用の未検証 shell logic だけで release artifact を作らない
 
 ### Requirement: release verification SHALL include binary assets
@@ -126,7 +126,7 @@ release verification は、tag、GitHub Release、crates.io に加えて binary 
 
 #### Scenario: release verify runs after publication
 
-- **WHEN** developer が `make release-verify VERSION=vX.Y.Z` を実行する
+- **WHEN** developer が `just VERSION=vX.Y.Z release-verify` を実行する
 - **THEN** system は GitHub Release に必要な binary archive が存在することを確認する
 - **AND** system は各 archive の checksum file が存在することを確認する
 - **AND** system は少なくとも current platform の archive を取得して `kml --version` を検証する
@@ -230,7 +230,7 @@ release verification は、publication 後の fresh local clone でも release t
 
 #### Scenario: local release tag is missing
 
-- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-verify`
 - **AND** the local repository does not yet have tag `vX.Y.Z`
 - **THEN** system fetches the tag from `origin`
 - **AND** system verifies that the fetched tag is an annotated signed tag

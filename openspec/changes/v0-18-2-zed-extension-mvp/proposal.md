@@ -35,7 +35,7 @@ Zed 側でも lint logic は持たず、`kml lsp` を共有エンジンとして
 - Zed extension manifest and source
 - `src/lsp/**`
 - `tests/cli_lsp_contract.rs`
-- `Makefile`
+- `Justfile`
 - `.github/workflows/**`
 - `README.md`
 - `docs/editor-integration.md`

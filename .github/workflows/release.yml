@@ -84,6 +84,9 @@ jobs:
         with:
           shared-key: release-binary-${{ matrix.target }}
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Resolve version
         id: version
         shell: bash
@@ -100,7 +103,7 @@ jobs:
       - name: Release target check
         env:
           GH_TOKEN: ${{ github.token }}
-        run: make release-target-check VERSION="${{ steps.version.outputs.version }}"
+        run: just VERSION="${{ steps.version.outputs.version }}" release-target-check
 
       - name: Package binary artifact
         shell: bash
@@ -152,6 +155,9 @@ jobs:
         with:
           shared-key: release-ubuntu-stable-publish
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Resolve version
         id: version
         run: |
@@ -167,7 +173,7 @@ jobs:
       - name: Release target check
         env:
           GH_TOKEN: ${{ github.token }}
-        run: make release-target-check VERSION="${{ steps.version.outputs.version }}"
+        run: just VERSION="${{ steps.version.outputs.version }}" release-target-check
 
       - name: Verify release tag is GitHub Verified
         env:
@@ -178,55 +184,55 @@ jobs:
           scripts/release/verify-tag-verified.sh "${tag}" "${GITHUB_REPOSITORY}"
 
       - name: Format check
-        run: make fmt-check
+        run: just fmt-check
 
       - name: Test
         run: cargo test --all-features --locked
 
       - name: Examples
-        run: make examples
+        run: just examples
 
       - name: MCP build
-        run: make mcp-build
+        run: just mcp-build
 
       - name: MCP stdio smoke
-        run: make mcp-stdio-smoke
+        run: just mcp-stdio-smoke
 
       - name: MCP remote build
-        run: make mcp-remote-build
+        run: just mcp-remote-build
 
       - name: MCP remote smoke
-        run: make mcp-remote-smoke
+        run: just mcp-remote-smoke
 
       - name: MCPB smoke
-        run: make mcpb-smoke VERSION="${{ steps.version.outputs.version }}"
+        run: just VERSION="${{ steps.version.outputs.version }}" mcpb-smoke
 
       - name: MCP Registry metadata
-        run: make server-json-validate VERSION="${{ steps.version.outputs.version }}"
+        run: just VERSION="${{ steps.version.outputs.version }}" server-json-validate
 
       - name: Action smoke
-        run: make action-smoke
+        run: just action-smoke
 
       - name: npm package check
-        run: make npm-package-check
+        run: just npm-package-check
 
       - name: npm publish target check
         if: >
           github.event_name == 'workflow_dispatch' &&
           inputs.publish_npm_wrapper == true
-        run: make npm-publish-target-check
+        run: just npm-publish-target-check
 
       - name: PyPI package check
-        run: make pypi-package-check
+        run: just pypi-package-check
 
       - name: Dogfood
-        run: make dogfood
+        run: just dogfood
 
       - name: Public confidence
-        run: make public-confidence
+        run: just public-confidence
 
       - name: Document answer fix
-        run: make document-answer-fix
+        run: just document-answer-fix
 
       - name: Clone upstream markdownlint
         run: git clone --depth 1 https://github.com/DavidAnson/markdownlint.git "${RUNNER_TEMP}/markdownlint"
@@ -234,10 +240,10 @@ jobs:
       - name: Upstream drift check
         env:
           KML_UPSTREAM_MARKDOWNLINT_DOC_DIR: ${{ runner.temp }}/markdownlint/doc
-        run: make upstream-drift
+        run: just upstream-drift
 
       - name: Clippy
-        run: make lint
+        run: just lint
 
       - name: Publish dry-run
         run: cargo publish --dry-run --locked --allow-dirty
@@ -254,7 +260,7 @@ jobs:
       - name: Package MCPB
         id: mcpb
         run: |
-          make mcp-server-json VERSION="${{ steps.version.outputs.version }}"
+          just VERSION="${{ steps.version.outputs.version }}" mcp-server-json
           mcpb_path="target/mcpb/katana-markdown-linter-${{ steps.version.outputs.version_bare }}.mcpb"
           mcpb_checksum_path="${mcpb_path}.sha256"
           echo "mcpb_path=${mcpb_path}" >> "$GITHUB_OUTPUT"
@@ -396,6 +402,9 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Verify npm trusted publishing context
         shell: bash
         run: |
@@ -405,10 +414,10 @@ jobs:
           fi
 
       - name: Verify npm package
-        run: make npm-package-check
+        run: just npm-package-check
 
       - name: Verify npm publish target
-        run: make npm-publish-target-check
+        run: just npm-publish-target-check
 
       - name: Publish npm wrapper
         run: npm publish --tag latest --access public --provenance
@@ -437,13 +446,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Build PyPI wrapper
         run: |
           python3 -m pip install --upgrade build
           python3 -m build wrappers/python
 
       - name: Verify PyPI package
-        run: make pypi-package-check
+        run: just pypi-package-check
 
       - name: Publish PyPI wrapper
         uses: pypa/gh-action-pypi-publish@release/v1

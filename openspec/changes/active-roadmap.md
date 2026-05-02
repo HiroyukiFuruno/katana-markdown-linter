@@ -142,13 +142,13 @@ Archived completed changes:
 3. `v0-18-1-vscode-extension-mvp`: build the first thin editor wrapper on the stable schema and existing LSP entrypoint.
 4. `v0-18-2-zed-extension-mvp`: reuse the shared LSP contract and validate the Zed-specific extension boundary.
 5. `v0-18-3-editor-extension-hardening`: harden docs, smoke tests, release checks, and packaging after both target editor MVPs exist.
-6. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Makefile`, and release docs.
+6. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Justfile`, and release docs.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
 - `distribution`: MCP Registry / Hub 公開、MCP package artifact、遠隔 MCP 接続（remote MCP transport）は、`v0.12.8` の stable score 90 点以上、hard blocker 0 件、ユーザー受け入れ完了まで凍結する。
 - `design-debt`: Markdown token parser の共有化、nested bracket/link title を含む link parser 化、inline code span parser の rule 間共通化は、`v0.12.5` から `v0.12.6` の安定版準備として扱う。
-- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`make action-smoke` と `make mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分け、安定版 score の release reproducibility に影響する場合だけ `v0.12.x` に含める。
+- `ci-gap`: Windows では `cargo check`、`cargo fmt`、`cargo test` までを release 前 CI の責務にする。`just action-smoke` と `just mcp-stdio-smoke` の Windows 移植は、shell / path / `.exe` suffix の差分を切り分け、安定版 score の release reproducibility に影響する場合だけ `v0.12.x` に含める。
 - `unsafe-fix`: `MD013` の line-length wrap fix は list / table / code 文脈ガードが必須で、デフォルトの safe-fix contract に組み込めない。`v0.13.x` 以降に独立 change として切り出し、`unsafe-fix` mode の opt-in 設定下でのみ有効化する。
 
 ## Repository Guardrails

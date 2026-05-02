@@ -94,7 +94,7 @@ public confidence は、外部文書に近い構造を含む最小代表 corpus 
 
 ### Requirement: system SHALL classify public confidence diagnostics before release discussion
 
-`make public-confidence` の結果は、release 前に診断分類を明示し、未分類結果を放置しない運用を守らなければならない（SHALL）。
+`just public-confidence` の結果は、release 前に診断分類を明示し、未分類結果を放置しない運用を守らなければならない（SHALL）。
 
 #### Scenario: finding 分類を付与する
 
@@ -109,7 +109,7 @@ public confidence は、外部文書に近い構造を含む最小代表 corpus 
 
 #### Scenario: corpus 拡張後に収束を確認する
 
-- **WHEN** external corpus で `make public-confidence` を再実行する
+- **WHEN** external corpus で `just public-confidence` を再実行する
 - **THEN** `check` は `source_unchanged` を維持する
 - **THEN** `fix` と `fmt` は 2回実行で `changed_files == 0` を満たす
 - **THEN** `final_check` は収束後の状態で実行される

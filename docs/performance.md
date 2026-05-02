@@ -9,19 +9,19 @@ wall-clock gate.
 Run the benchmark runner and write `target/perf-report.json`:
 
 ~~~sh
-make bench
+just bench
 ~~~
 
 Compare the current report with the committed baseline:
 
 ~~~sh
-make perf-check
+just perf-check
 ~~~
 
 Refresh the baseline after an intentional optimization:
 
 ~~~sh
-make perf-refresh-baseline
+just perf-refresh-baseline
 ~~~
 
 ## Report Schema
@@ -40,7 +40,7 @@ The default command runs one warmup round and five measured samples. Override
 the local run shape when needed:
 
 ~~~sh
-make bench PERF_ITERATIONS=30 PERF_SAMPLES=7 PERF_WARMUP=2
+just bench PERF_ITERATIONS=30 PERF_SAMPLES=7 PERF_WARMUP=2
 ~~~
 
 ## Benchmark Cases
@@ -64,7 +64,7 @@ is reproducible and does not depend on local repository content.
 
 ## Baseline Policy
 
-`make perf-check` validates the schema version, required cases, and statistic
+`just perf-check` validates the schema version, required cases, and statistic
 fields. Timing deltas are printed as information, not as a hard failure. The
 comparison summary uses `median_ms` because it is less sensitive to short CPU
 spikes than a single sample.
@@ -72,7 +72,7 @@ spikes than a single sample.
 When changing benchmark shape, update the baseline in the same change:
 
 ~~~sh
-make perf-refresh-baseline
+just perf-refresh-baseline
 ~~~
 
 ## Cross-Tool CLI Benchmark
@@ -84,15 +84,15 @@ timing are not stable enough for required CI.
 Run all available cross-tool cases:
 
 ~~~sh
-make bench-cross-tools
+just bench-cross-tools
 ~~~
 
 Run a narrower comparison:
 
 ~~~sh
-make bench-cross-tools-default
-make bench-cross-tools-common
-make bench-cross-tools-fix
+just bench-cross-tools-default
+just bench-cross-tools-common
+just bench-cross-tools-fix
 ~~~
 
 The harness always builds `target/release/kml` first. `mado` and `rumdl` are
@@ -101,7 +101,7 @@ discovered from `PATH` unless explicit paths are supplied through
 than failures:
 
 ~~~sh
-make bench-cross-tools CROSS_TOOL_ARGS="--mado /path/to/mado --rumdl /path/to/rumdl"
+just bench-cross-tools CROSS_TOOL_ARGS="--mado /path/to/mado --rumdl /path/to/rumdl"
 ~~~
 
 Reports are written to:
@@ -125,11 +125,11 @@ never mutated by benchmark execution.
 
 ## Public Confidence Timing
 
-`make public-confidence` records check, fix, fmt, and final check elapsed time
+`just public-confidence` records check, fix, fmt, and final check elapsed time
 in `target/public-confidence-report.json`. This timing is evidence for
 real-document-like Markdown, not a wall-clock failure threshold.
 
-The optional `make external-katana-dogfood` target records the same timings for
+The optional `just external-katana-dogfood` target records the same timings for
 KatanA `docs/**/*.md` and `assets/**/*.md` when `KATANA_CHECKOUT` is set.
 Because that checkout is not part of this repository, required CI uses the
 curated public fixture instead.
@@ -155,7 +155,7 @@ The optimization is intentionally narrow:
 line-only paths do not pay for heading or table extraction unless a migrated rule
 needs them.
 
-Local `make perf-check` snapshot after the migration:
+Local `just perf-check` snapshot after the migration:
 
 | Case | Median |
 | --- | ---: |
@@ -220,7 +220,7 @@ The fix keeps the public owned `Vec<RuleMeta>` contract and caches the exported
 metadata vector internally. Callers still receive an owned vector, but the
 library no longer repeats the catalog-to-metadata conversion for every call.
 
-Local snapshot after `make perf-refresh-baseline`:
+Local snapshot after `just perf-refresh-baseline`:
 
 | Case | Median |
 | --- | ---: |
@@ -238,7 +238,7 @@ Local snapshot after `make perf-refresh-baseline`:
 
 Validation evidence:
 
-- `make test` passed after the metadata cache change.
-- `make perf-check-strict` passed; `api_rule_catalog` measured 0.007 ms, or 0.74x against the previous baseline.
-- `make public-confidence` passed and recorded check/fix/fmt convergence in `target/public-confidence-report.json`.
+- `just test` passed after the metadata cache change.
+- `just perf-check-strict` passed; `api_rule_catalog` measured 0.007 ms, or 0.74x against the previous baseline.
+- `just public-confidence` passed and recorded check/fix/fmt convergence in `target/public-confidence-report.json`.
 - The cross-tool targets passed; `mado` and `rumdl` were not installed locally, so their cases were recorded as skipped evidence.

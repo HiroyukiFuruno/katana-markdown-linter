@@ -37,7 +37,7 @@ package、docs、smoke tests、release verification をまとめて固める。
 - `editors/zed/**` or `extensions/zed/**`
 - `src/lsp/**`
 - `tests/cli_lsp_contract.rs`
-- `Makefile`
+- `Justfile`
 - `.github/workflows/**`
 - `scripts/release/**`
 - `README.md`

@@ -6,7 +6,7 @@ release readiness は、schema publication の検証を含まなければなら�
 
 #### Scenario: release check validates schema publication
 
-- **WHEN** developer runs `make release-check VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-check`
 - **THEN** system verifies canonical schema file and CLI schema output match
 - **AND** system verifies schema regression fixtures are current
 - **AND** system verifies release workflow includes the versioned schema artifact step

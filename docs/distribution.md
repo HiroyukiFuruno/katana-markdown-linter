@@ -4,15 +4,15 @@
 
 | Channel | Status | Verification | Policy |
 | --- | --- | --- | --- |
-| Cargo crate | Official | `make release-check`, install smoke test, crates.io publish verification | Primary library and CLI package |
-| Standalone binary artifacts | Official from `v0.17.1` | `make binary-smoke`, release asset checksum, `make release-verify` asset check | Rust-toolchain-free CLI installs from GitHub Releases |
-| npm wrapper | Official from `v0.17.3` | npm registry version, `npx` launch smoke, package README / metadata check, `make release-verify` | Thin launcher over GitHub Release binary archives |
-| PyPI wrapper | Official from `v0.17.1` | PyPI JSON version, `uvx` launch smoke, package README / metadata check, `make release-verify` | Thin launcher over GitHub Release binary archives |
-| Homebrew formula | Official from `v0.17.1` | `make homebrew-formula-check`, release archive checksum, formula test block, actual tap check in `make release-verify` | Release workflow updates latest and versioned formulae in `homebrew-katana` after release assets exist |
-| GitHub Action | Official from `v0.11.0` | `make action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
-| MCPB bundle | Official from `v0.14.0` | `make mcpb-smoke`, `make server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
+| Cargo crate | Official | `just release-check`, install smoke test, crates.io publish verification | Primary library and CLI package |
+| Standalone binary artifacts | Official from `v0.17.1` | `just binary-smoke`, release asset checksum, `just release-verify` asset check | Rust-toolchain-free CLI installs from GitHub Releases |
+| npm wrapper | Official from `v0.17.3` | npm registry version, `npx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
+| PyPI wrapper | Official from `v0.17.1` | PyPI JSON version, `uvx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
+| Homebrew formula | Official from `v0.17.1` | `just homebrew-formula-check`, release archive checksum, formula test block, actual tap check in `just release-verify` | Release workflow updates latest and versioned formulae in `homebrew-katana` after release assets exist |
+| GitHub Action | Official from `v0.11.0` | `just action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
+| MCPB bundle | Official from `v0.14.0` | `just mcpb-smoke`, `just server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
 | MCP Registry metadata | Official from `v0.14.0` | rendered `server.json`, MCPB checksum, registry publish verification | Discovery metadata for the MCPB bundle |
-| Remote MCP server | Official from `v0.15.0` for self-hosted text-only use | `make mcp-remote-smoke`, release remote smoke | Streamable HTTP server for clients that cannot launch stdio |
+| Remote MCP server | Official from `v0.15.0` for self-hosted text-only use | `just mcp-remote-smoke`, release remote smoke | Streamable HTTP server for clients that cannot launch stdio |
 
 The GitHub Action lives at the repository root as `action.yml`, so consumers can
 use the release tag directly:
@@ -46,8 +46,8 @@ formula and adds a versioned `kml@X.Y.Z` formula.
 The npm and PyPI packages do not contain independent lint logic. They download
 the matching GitHub Release archive for the package version, verify the archive
 checksum, and launch the bundled `kml` binary. Both wrapper packages ship
-registry README and metadata that are verified by `make npm-package-check` and
-`make pypi-package-check` before publication.
+registry README and metadata that are verified by `just npm-package-check` and
+`just pypi-package-check` before publication.
 
 `kml-mcp-remote` is not a hosted service and is not described by the MCPB
 Registry metadata. Operators deploy it themselves, keep bearer authentication

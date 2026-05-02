@@ -8,10 +8,10 @@ pre-commit:
   commands:
     formatting:
       glob: "*.rs"
-      run: make fmt
+      run: just fmt
 
 pre-push:
   commands:
     check-strict:
-      run: make -j 2 check
+      run: just JOBS=2 check
       glob: "*.{rs,toml,lock}"

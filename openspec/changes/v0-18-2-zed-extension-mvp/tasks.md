@@ -32,22 +32,22 @@
 
 ## 4. Build and CI
 
-- [ ] 4.1 `make zed-extension-check` を追加する
+- [ ] 4.1 `just zed-extension-check` を追加する
 - [ ] 4.2 Zed extension manifest validation を追加する
 - [ ] 4.3 package / build check を local で実行できるようにする
 - [ ] 4.4 release preflight または CI に Zed extension check を追加する
-- [ ] 4.5 `make release-check VERSION=v0.18.2` に Zed extension check を組み込む
+- [ ] 4.5 `just VERSION=v0.18.2 release-check` に Zed extension check を組み込む
 
 ## 5. Verification
 
-- [ ] 5.1 `make fmt-check`
-- [ ] 5.2 `make lint`
-- [ ] 5.3 `make ast-lint`
+- [ ] 5.1 `just fmt-check`
+- [ ] 5.2 `just lint`
+- [ ] 5.3 `just ast-lint`
 - [ ] 5.4 `cargo test --workspace --locked`
-- [ ] 5.5 `make dogfood`
+- [ ] 5.5 `just dogfood`
 - [ ] 5.6 `git diff --check`
-- [ ] 5.7 `make zed-extension-check`
-- [ ] 5.8 `make release-check VERSION=v0.18.2`
+- [ ] 5.7 `just zed-extension-check`
+- [ ] 5.8 `just VERSION=v0.18.2 release-check`
 
 ## Definition of Done
 

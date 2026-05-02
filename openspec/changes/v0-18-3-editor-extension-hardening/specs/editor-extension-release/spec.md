@@ -17,7 +17,7 @@ editor extension package は、release 前に機械的に検証できなけれ�
 
 #### Scenario: release check validates extension packages
 
-- **WHEN** developer runs `make release-check VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-check`
 - **THEN** system validates the VS Code extension package
 - **AND** system validates the Zed extension package
 - **AND** system verifies package contents exclude generated junk and local-only files

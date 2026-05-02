@@ -162,18 +162,18 @@ fn ast_linter_fixture_matrix_covers_active_rule_catalog() {
 }
 
 #[test]
-fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
-    let makefile = read_workspace_file("Makefile");
+fn ast_linter_upstream_drift_gate_is_wired_to_just_and_release_workflows() {
+    let quality_just = read_workspace_file("just/quality.just");
     let release = read_workspace_file(".github/workflows/release.yml");
     let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
     let upstream_drift = read_workspace_file("src/upstream/drift.rs");
     let required = [
         (
-            "Makefile",
-            &makefile,
+            "just/quality.just",
+            &quality_just,
             "upstream_default_branch_drift_has_no_unknown_items",
         ),
-        ("Makefile", &makefile, "-- --ignored"),
+        ("just/quality.just", &quality_just, "-- --ignored"),
         (
             ".github/workflows/release.yml",
             &release,
@@ -182,7 +182,7 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
         (
             ".github/workflows/release.yml",
             &release,
-            "make upstream-drift",
+            "just upstream-drift",
         ),
         (
             ".github/workflows/release-preflight.yml",
@@ -192,7 +192,7 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
         (
             ".github/workflows/release-preflight.yml",
             &preflight,
-            "make upstream-drift",
+            "just upstream-drift",
         ),
         (
             "src/upstream/drift.rs",
@@ -216,7 +216,8 @@ fn ast_linter_upstream_drift_gate_is_wired_to_make_and_release_workflows() {
 
 #[test]
 fn ast_linter_release_workflow_requires_github_verified_signed_tag() {
-    let makefile = read_workspace_file("Makefile");
+    let justfile = read_workspace_file("Justfile");
+    let release_just = read_workspace_file("just/release.just");
     let workflow = read_workspace_file(".github/workflows/release.yml");
     let verifier = read_workspace_file("scripts/release/verify-tag-verified.sh");
     let tag_guard = read_workspace_file("scripts/release/assert-tag-safe.sh");
@@ -232,9 +233,9 @@ fn ast_linter_release_workflow_requires_github_verified_signed_tag() {
             "scripts/release/verify-tag-verified.sh",
         ),
         (".github/workflows/release.yml", &workflow, "--verify-tag"),
-        ("Makefile", &makefile, "RELEASE_TAGGER_NAME"),
-        ("Makefile", &makefile, "RELEASE_TAGGER_EMAIL"),
-        ("Makefile", &makefile, "GIT_COMMITTER_NAME"),
+        ("Justfile", &justfile, "RELEASE_TAGGER_NAME"),
+        ("Justfile", &justfile, "RELEASE_TAGGER_EMAIL"),
+        ("just/release.just", &release_just, "GIT_COMMITTER_NAME"),
         (
             "scripts/release/verify-tag-verified.sh",
             &verifier,
@@ -255,7 +256,11 @@ fn ast_linter_release_workflow_requires_github_verified_signed_tag() {
             &verifier,
             "Use a tagger identity that GitHub can associate with the signing key.",
         ),
-        ("Makefile", &makefile, "scripts/release/assert-tag-safe.sh"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/assert-tag-safe.sh",
+        ),
         (
             "scripts/release/assert-tag-safe.sh",
             &tag_guard,
@@ -273,7 +278,9 @@ fn ast_linter_release_workflow_requires_github_verified_signed_tag() {
 
 #[test]
 fn ast_linter_release_local_ci_parity_and_retry_safety() {
-    let makefile = read_workspace_file("Makefile");
+    let release_just = read_workspace_file("just/release.just");
+    let dogfood_just = read_workspace_file("just/dogfood.just");
+    let mcp_just = read_workspace_file("just/mcp.just");
     let workflow = read_workspace_file(".github/workflows/release.yml");
     let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
     let runbook = read_workspace_file("docs/release-runbook.md");
@@ -294,44 +301,88 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let answer_runner = read_workspace_file("scripts/ci/document_answer_fix_runner.py");
     let answer_validator = read_workspace_file("scripts/ci/document_answer_validator.py");
     let required = [
-        ("Makefile", &makefile, "release-target-check:"),
-        ("Makefile", &makefile, "scripts/release/verify-release-target.py"),
-        ("Makefile", &makefile, "release-recovery-plan:"),
-        ("Makefile", &makefile, "release-recover:"),
-        ("Makefile", &makefile, "scripts/release/recover-accidental-release.py"),
-        ("Makefile", &makefile, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate document-answer-fix"),
-        ("Makefile", &makefile, "binary-smoke: binary-package"),
-        ("Makefile", &makefile, "homebrew-formula-check: homebrew-formula"),
-        ("Makefile", &makefile, "wrapper-smoke: binary-package"),
-        ("Makefile", &makefile, "npm-package-check:"),
-        ("Makefile", &makefile, "scripts/release/verify-npm-package.js"),
-        ("Makefile", &makefile, "npm-publish-target-check:"),
-        ("Makefile", &makefile, "scripts/release/verify-npm-publish-target.js"),
-        ("Makefile", &makefile, "pypi-package-check:"),
-        ("Makefile", &makefile, "scripts/release/verify-pypi-package.py"),
-        ("Makefile", &makefile, "document-answer-fix:"),
-        ("Makefile", &makefile, "mcp-release-build:"),
-        ("Makefile", &makefile, "mcp-remote-build:"),
-        ("Makefile", &makefile, "mcp-remote-smoke:"),
-        ("Makefile", &makefile, "mcpb-package: mcp-release-build"),
-        ("Makefile", &makefile, "mcpb-smoke: mcpb-package"),
-        ("Makefile", &makefile, "server-json-validate: mcp-server-json"),
-        ("Makefile", &makefile, "release-task-ledger-check:"),
-        ("Makefile", &makefile, "release-test:"),
-        ("Makefile", &makefile, "cargo test --all-features --locked"),
-        ("Makefile", &makefile, "scripts/release/assert-crate-not-published.sh"),
-        ("Makefile", &makefile, "scripts/release/verify-task-ledger.py"),
-        ("Makefile", &makefile, "release-verify:"),
-        ("Makefile", &makefile, "scripts/release/verify-release-published.sh"),
-        ("Makefile", &makefile, "publish_npm_wrapper=true"),
-        ("Makefile", &makefile, "publish_pypi_wrapper=true"),
-        (".github/workflows/release.yml", &workflow, "run: make lint"),
-        (".github/workflows/release.yml", &workflow, "run: make examples"),
-        (".github/workflows/release.yml", &workflow, "run: make mcp-build"),
-        (".github/workflows/release.yml", &workflow, "run: make mcp-remote-smoke"),
+        ("just/release.just", &release_just, "release-target-check:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-release-target.py",
+        ),
+        ("just/release.just", &release_just, "release-recovery-plan:"),
+        ("just/release.just", &release_just, "release-recover:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/recover-accidental-release.py",
+        ),
+        ("just/release.just", &release_just, "release-check: release-target-check fmt-check lint ast-lint release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate document-answer-fix public-confidence"),
+        ("just/release.just", &release_just, "binary-smoke: binary-package"),
+        (
+            "just/release.just",
+            &release_just,
+            "homebrew-formula-check: homebrew-formula",
+        ),
+        ("just/release.just", &release_just, "wrapper-smoke: binary-package"),
+        ("just/release.just", &release_just, "npm-package-check:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-npm-package.js",
+        ),
+        ("just/release.just", &release_just, "npm-publish-target-check:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-npm-publish-target.js",
+        ),
+        ("just/release.just", &release_just, "pypi-package-check:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-pypi-package.py",
+        ),
+        ("just/dogfood.just", &dogfood_just, "document-answer-fix:"),
+        ("just/mcp.just", &mcp_just, "mcp-release-build:"),
+        ("just/mcp.just", &mcp_just, "mcp-remote-build:"),
+        ("just/mcp.just", &mcp_just, "mcp-remote-smoke:"),
+        ("just/mcp.just", &mcp_just, "mcpb-package: mcp-release-build"),
+        ("just/mcp.just", &mcp_just, "mcpb-smoke: mcpb-package"),
+        ("just/mcp.just", &mcp_just, "server-json-validate: mcp-server-json"),
+        ("just/release.just", &release_just, "release-task-ledger-check:"),
+        ("just/release.just", &release_just, "release-test:"),
+        (
+            "just/release.just",
+            &release_just,
+            "cargo test --all-features --locked",
+        ),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/assert-crate-not-published.sh",
+        ),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-task-ledger.py",
+        ),
+        ("just/release.just", &release_just, "release-verify:"),
+        (
+            "just/release.just",
+            &release_just,
+            "scripts/release/verify-release-published.sh",
+        ),
+        ("just/release.just", &release_just, "publish_npm_wrapper=true"),
+        ("just/release.just", &release_just, "publish_pypi_wrapper=true"),
+        (".github/workflows/release.yml", &workflow, "run: just lint"),
+        (".github/workflows/release.yml", &workflow, "run: just examples"),
+        (".github/workflows/release.yml", &workflow, "run: just mcp-build"),
+        (".github/workflows/release.yml", &workflow, "run: just mcp-remote-smoke"),
         (".github/workflows/release.yml", &workflow, "MCPB smoke"),
         (".github/workflows/release.yml", &workflow, "MCP Registry metadata"),
-        (".github/workflows/release.yml", &workflow, "run: make document-answer-fix"),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "run: just document-answer-fix",
+        ),
         (".github/workflows/release.yml", &workflow, "Binary artifact (${{ matrix.target }})"),
         (".github/workflows/release.yml", &workflow, "macos-15-intel"),
         (".github/workflows/release.yml", &workflow, "Generate Homebrew formula"),
@@ -345,7 +396,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (
             ".github/workflows/release.yml",
             &workflow,
-            "run: make npm-package-check",
+            "run: just npm-package-check",
         ),
         (
             ".github/workflows/release.yml",
@@ -355,12 +406,12 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (
             ".github/workflows/release.yml",
             &workflow,
-            "run: make npm-publish-target-check",
+            "run: just npm-publish-target-check",
         ),
         (
             ".github/workflows/release.yml",
             &workflow,
-            "run: make pypi-package-check",
+            "run: just pypi-package-check",
         ),
         (
             ".github/workflows/release.yml",
@@ -387,25 +438,25 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "--title \"$TAG\""),
         (".github/workflows/release.yml", &workflow, "Release target check"),
         (".github/workflows/release.yml", &workflow, "GH_TOKEN: ${{ github.token }}"),
-        (".github/workflows/release.yml", &workflow, "make release-target-check VERSION=\"${{ steps.version.outputs.version }}\""),
+        (".github/workflows/release.yml", &workflow, "just VERSION=\"${{ steps.version.outputs.version }}\" release-target-check"),
         (".github/workflows/release-preflight.yml", &preflight, "Release target check"),
         (".github/workflows/release-preflight.yml", &preflight, "permissions:"),
         (".github/workflows/release-preflight.yml", &preflight, "contents: read"),
         (".github/workflows/release-preflight.yml", &preflight, "GH_TOKEN: ${{ github.token }}"),
         (".github/workflows/release-preflight.yml", &preflight, "startsWith(github.head_ref, 'release/v')"),
-        (".github/workflows/release-preflight.yml", &preflight, "make release-target-check VERSION=\"${GITHUB_HEAD_REF#release/}\""),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make lint"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make examples"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-build"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make mcp-remote-smoke"),
+        (".github/workflows/release-preflight.yml", &preflight, "just VERSION=\"${GITHUB_HEAD_REF#release/}\" release-target-check"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just lint"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just examples"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just mcp-build"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just mcp-remote-smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCPB smoke"),
         (".github/workflows/release-preflight.yml", &preflight, "MCP Registry metadata"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make document-answer-fix"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make binary-smoke"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make homebrew-formula-check"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make wrapper-smoke"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make npm-package-check"),
-        (".github/workflows/release-preflight.yml", &preflight, "run: make pypi-package-check"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just document-answer-fix"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just binary-smoke"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just homebrew-formula-check"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just wrapper-smoke"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just npm-package-check"),
+        (".github/workflows/release-preflight.yml", &preflight, "run: just pypi-package-check"),
         ("scripts/ci/document_answer_fix_runner.py", &answer_runner, "AnswerValidationRunner"),
         (
             "scripts/ci/document_answer_validator.py",
@@ -417,14 +468,42 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
             &answer_validator,
             "answer fixture changes when fixed again",
         ),
-        ("docs/release-runbook.md", &runbook, "make release-verify VERSION=vX.Y.Z"),
-        ("docs/release-runbook.md", &runbook, "make release-target-check VERSION=vX.Y.Z"),
-        ("docs/release-runbook.md", &runbook, "make release-recovery-plan BAD_VERSION=v0.18.7"),
-        ("docs/release-runbook.md", &runbook, "KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 make release-recover BAD_VERSION=v0.18.7"),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just VERSION=vX.Y.Z release-verify",
+        ),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just VERSION=vX.Y.Z release-target-check",
+        ),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just BAD_VERSION=v0.18.7 release-recovery-plan",
+        ),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 just BAD_VERSION=v0.18.7 release-recover",
+        ),
         ("docs/release-runbook.md", &runbook, "release target follows the published stable release line"),
-        ("docs/release-runbook.md", &runbook, "make mcpb-smoke VERSION=vX.Y.Z"),
-        ("docs/release-runbook.md", &runbook, "make binary-smoke VERSION=vX.Y.Z"),
-        ("docs/release-runbook.md", &runbook, "make homebrew-formula-check VERSION=vX.Y.Z"),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just VERSION=vX.Y.Z mcpb-smoke",
+        ),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just VERSION=vX.Y.Z binary-smoke",
+        ),
+        (
+            "docs/release-runbook.md",
+            &runbook,
+            "just VERSION=vX.Y.Z homebrew-formula-check",
+        ),
         ("docs/release-runbook.md", &runbook, "mcp-publisher login github-oidc"),
         ("docs/release-runbook.md", &runbook, "Do not rewrite a tag unless no GitHub Release exists"),
         ("docs/quality-gates.md", &quality, "release retry helpers must refuse remote tag overwrites"),
@@ -510,7 +589,7 @@ fn ast_linter_coverage_gate_counts_integration_tests() {
 #[test]
 fn ast_linter_github_action_channel_is_wired() {
     let action = read_workspace_file("action.yml");
-    let makefile = read_workspace_file("Makefile");
+    let release_just = read_workspace_file("just/release.just");
     let workflow = read_workspace_file(".github/workflows/test-and-build.yml");
     let preflight = read_workspace_file(".github/workflows/release-preflight.yml");
     let release = read_workspace_file(".github/workflows/release.yml");
@@ -537,8 +616,12 @@ fn ast_linter_github_action_channel_is_wired() {
             &runner,
             "append_multiline_args",
         ),
-        ("Makefile", &makefile, "action-smoke:"),
-        ("Makefile", &makefile, "KML_ACTION_INSTALL_SOURCE=path"),
+        ("just/release.just", &release_just, "action-smoke:"),
+        (
+            "just/release.just",
+            &release_just,
+            "KML_ACTION_INSTALL_SOURCE=path",
+        ),
         (
             ".github/workflows/test-and-build.yml",
             &workflow,

@@ -124,7 +124,7 @@ CLI は config validation error を text と JSON の両方で localized metadat
 
 #### Scenario: 1回目の内部品質計測を保存する
 
-- **WHEN** developer が `make internal-quality-check`（新規）を実行する
+- **WHEN** developer が `just internal-quality-check`（新規）を実行する
 - **THEN** システムは `target/internal-quality-report.json` を出力する
 - **THEN** レポートは `src` の上位 LOC ファイル、実行時長い hot path、主要 CLI ファイル分割候補を含める
 - **THEN** report 形式が欠落していない場合のみ次工程へ進める

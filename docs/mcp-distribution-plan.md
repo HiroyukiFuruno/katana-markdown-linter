@@ -55,7 +55,7 @@ Release artifact URL and SHA-256 checksum before publication.
 Registry or hub publication remains blocked until:
 
 - the MCPB artifact is built by the release workflow
-- `make mcp-stdio-smoke` passes against the installable binary
+- `just mcp-stdio-smoke` passes against the installable binary
 - workspace root enforcement and explicit file apply behavior are documented
 - the rendered metadata passes repository validation
 - `v0.14.0` explicitly performs the publish step

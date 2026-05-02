@@ -12,7 +12,7 @@ thresholds.
 
 #### Scenario: benchmark report を生成する
 
-- **WHEN** developer が `make bench` を実行する
+- **WHEN** developer が `just bench` を実行する
 - **THEN** system は release profile で benchmark runner を実行する
 - **THEN** system は `target/perf-report.json` を生成する
 - **THEN** report は case name、iterations、samples、total milliseconds、mean milliseconds、median milliseconds、min milliseconds、max milliseconds、standard deviation milliseconds を含む
@@ -23,7 +23,7 @@ thresholds.
 
 #### Scenario: performance baseline を確認する
 
-- **WHEN** developer が `make perf-check` を実行する
+- **WHEN** developer が `just perf-check` を実行する
 - **THEN** system は `tests/fixtures/perf-baseline.json` を読み込む
 - **THEN** system は current report に required benchmark case が存在することを検証する
 - **THEN** system は required statistic fields が存在することを検証する
@@ -46,7 +46,7 @@ thresholds.
 
 #### Scenario: benchmark case coverage を確認する
 
-- **WHEN** developer が `make bench` を実行する
+- **WHEN** developer が `just bench` を実行する
 - **THEN** report は diagnostics-heavy large document lint case を含む
 - **THEN** report は clean large document lint case を含む
 - **THEN** report は large document fix case を含む
@@ -111,7 +111,7 @@ thresholds.
 
 #### Scenario: required cases を比較する
 
-- **WHEN** developer が `make perf-check` を実行する
+- **WHEN** developer が `just perf-check` を実行する
 - **THEN** system は required cases の現行値と baseline 比較を必ず出力する
 - **THEN** report/ baseline に含まれない case がないことを確認する
 - **THEN** 現行レポートは必要項目（iterations/samples/median_ms 等）を必ず保持する
@@ -144,7 +144,7 @@ thresholds.
 
 #### Scenario: inline-code-heavy sentinel を測る
 
-- **WHEN** baseline を更新または変更前後で `make perf-check` が実行される
+- **WHEN** baseline を更新または変更前後で `just perf-check` が実行される
 - **THEN** `api_lint_inline_code_heavy_document` の median 比率が記録される
 - **THEN** 退行理由が説明できる場合のみ次の baseline refresh を許可する
 - **THEN** 説明不能な 2 倍近い退行は hard blocker 扱いする
@@ -179,7 +179,7 @@ thresholds.
 #### Scenario: public confidence performance を確認する
 
 - **WHEN** developer が `v0.12.9` の performance check を実行する
-- **THEN** system は既存 `make perf-check` の benchmark result を記録する
+- **THEN** system は既存 `just perf-check` の benchmark result を記録する
 - **THEN** system は KatanA corpus または curated public confidence fixture の check / fix / fmt timing を記録する
 - **THEN** system は regression が synthetic corpus 由来か real-document corpus 由来かを分けて説明する
 - **THEN** system は benchmark 数値だけを目的に rule semantics を弱めない
@@ -201,7 +201,7 @@ thresholds.
 
 #### Scenario: required CI を実行する
 
-- **WHEN** GitHub Actions required CI または `make check` が実行される
+- **WHEN** GitHub Actions required CI または `just check` が実行される
 - **THEN** system は `mado`、`rumdl`、または `hyperfine` の installation を required step としない
 - **THEN** system は cross-tool benchmark を required merge gate として実行しない
 
@@ -229,7 +229,7 @@ v0.7.0 performance work は、変更前後の計測結果と解釈を documentat
 #### Scenario: performance change を完了する
 
 - **WHEN** developer が v0.7.0 performance change を完了する
-- **THEN** system は `make perf-check` または同等の local benchmark 結果を記録する
+- **THEN** system は `just perf-check` または同等の local benchmark 結果を記録する
 - **THEN** system は intentional baseline refresh を行う
 - **THEN** system は benchmark numbers を correctness gate ではなく local snapshot として扱う
 
@@ -240,7 +240,7 @@ v0.7.0 performance work は、変更前後の計測結果と解釈を documentat
 #### Scenario: hot path を選ぶ
 
 - **WHEN** developer が performance 改善に着手する
-- **THEN** system は `make bench` または `make perf-check` の結果を記録する
+- **THEN** system は `just bench` または `just perf-check` の結果を記録する
 - **THEN** system は対象の高負荷経路（hot path）と改善仮説を tasks に残す
 - **THEN** system は測定不能な体感速度だけを根拠に実装しない
 
@@ -287,7 +287,7 @@ parser readiness work は、構文密度の高い Markdown document で性能影
 
 #### Scenario: syntax-heavy benchmark を実行する
 
-- **WHEN** developer が `make perf-check` を実行する
+- **WHEN** developer が `just perf-check` を実行する
 - **THEN** report は link-heavy document case を含む
 - **THEN** report は inline-code-heavy document case を含む
 - **THEN** report は reference-heavy document case を含む
@@ -334,7 +334,7 @@ stable scoring は、performance stability を評価しなければならない�
 #### Scenario: post-v0.12.19 baseline を測る
 
 - **WHEN** developer が `v0.12.20` に着手する
-- **THEN** system は `make bench` または `make perf-check` の結果を記録する
+- **THEN** system は `just bench` または `just perf-check` の結果を記録する
 - **THEN** system は `api_lint_*`、`api_fix_*`、`api_rule_catalog`、`context_*`、`cli_*` のどこが変化したかを case 単位で分類する
 - **THEN** system は測定結果なしに最適化を始めない
 
@@ -358,4 +358,4 @@ cross-tool timing は有用な比較資料として扱い、required CI gate に
 - **WHEN** developer が cross-tool benchmark を実行する
 - **THEN** system は `mado`、`rumdl`、`hyperfine` がない場合に skipped として記録する
 - **THEN** system は skipped を release-blocking failure として扱わない
-- **THEN** system は required validation を `make` の通常 gate で完結させる
+- **THEN** system は required validation を `just` の通常 gate で完結させる

@@ -62,7 +62,7 @@ VS Code / Zed extension の起動や marketplace packaging は後続 change に�
 ### D-5: release gate は local と CI で同じ script を使う
 
 schema generation / comparison / validation は script 化し、
-`make schema-check` と release workflow の両方から呼ぶ。
+`just schema-check` と release workflow の両方から呼ぶ。
 AST lint には、release gate から schema check が外れないことを確認する guard を追加する。
 
 ## Risks / Trade-offs
@@ -83,7 +83,7 @@ AST lint には、release gate から schema check が外れないことを確�
 3. schema compatibility fixture を追加する
 4. release workflow に schema artifact と schema check を追加する
 5. README / editor integration docs / distribution docs を更新する
-6. `make release-check VERSION=v0.18.0` に schema gate を通す
+6. `just VERSION=v0.18.0 release-check` に schema gate を通す
 
 ## Open Questions
 

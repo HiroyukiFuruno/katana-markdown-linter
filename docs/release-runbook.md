@@ -19,7 +19,7 @@ Confirm package contents are limited to source, manifest, README, license, and o
 Confirm the requested version follows the published release line:
 
 ~~~bash
-make release-target-check VERSION=vX.Y.Z
+just VERSION=vX.Y.Z release-target-check
 ~~~
 
 The check rejects suspicious jumps such as releasing `v0.18.7` when the latest
@@ -29,28 +29,28 @@ the new minor line with `v0.18.0`.
 Run local validation:
 
 ~~~bash
-make release-check VERSION=vX.Y.Z
+just VERSION=vX.Y.Z release-check
 ~~~
 
 For MCP distribution changes, the release check includes:
 
-- `make mcpb-smoke VERSION=vX.Y.Z`
-- `make server-json-validate VERSION=vX.Y.Z`
+- `just VERSION=vX.Y.Z mcpb-smoke`
+- `just VERSION=vX.Y.Z server-json-validate`
 
 For binary distribution changes, the release check includes:
 
-- `make binary-smoke VERSION=vX.Y.Z`
-- `make homebrew-formula-check VERSION=vX.Y.Z`
-- `make wrapper-smoke VERSION=vX.Y.Z`
-- `make npm-package-check`
-- `make npm-publish-target-check`
-- `make pypi-package-check`
-- `make wrapper-publish-gate`
+- `just VERSION=vX.Y.Z binary-smoke`
+- `just VERSION=vX.Y.Z homebrew-formula-check`
+- `just VERSION=vX.Y.Z wrapper-smoke`
+- `just npm-package-check`
+- `just npm-publish-target-check`
+- `just pypi-package-check`
+- `just wrapper-publish-gate`
 
 If validating upstream drift locally, clone upstream docs and run:
 
 ~~~bash
-KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc make upstream-drift
+KML_UPSTREAM_MARKDOWNLINT_DOC_DIR=/path/to/markdownlint/doc just upstream-drift
 ~~~
 
 Confirm the installed binary path:
@@ -68,12 +68,12 @@ Required sequence:
 - Confirm `Cargo.toml` `package.version` is the intended version.
 - Confirm `CHANGELOG.md` has a `## vX.Y.Z` section.
 - Merge a release PR from `release/vX.Y.Z`, or dispatch the intended local release command.
-- Verify GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state after publication with `make release-verify VERSION=vX.Y.Z`.
+- Verify GitHub Release, crates.io, npm, PyPI, wrapper launch, and Homebrew formula state after publication with `just VERSION=vX.Y.Z release-verify`.
 
 Release command responsibilities:
 
-- `make release-github VERSION=vX.Y.Z` creates or updates the GitHub Release only.
-- `make release VERSION=vX.Y.Z` creates or updates the GitHub Release and publishes to crates.io, npm, and PyPI.
+- `just VERSION=vX.Y.Z release-github` creates or updates the GitHub Release only.
+- `just VERSION=vX.Y.Z release` creates or updates the GitHub Release and publishes to crates.io, npm, and PyPI.
 
 Release PR merge responsibilities:
 
@@ -86,22 +86,22 @@ The workflow validates:
 - Cargo version equals release version.
 - release target follows the published stable release line.
 - Existing tag is an annotated signed tag that GitHub reports as `Verified`.
-- `make fmt-check`
+- `just fmt-check`
 - `cargo test --all-features --locked`
-- `make examples`
-- `make mcp-build`
-- `make mcp-remote-build`
-- `make mcp-remote-smoke`
-- `make mcpb-smoke`
-- `make server-json-validate`
-- `make action-smoke`
-- `make npm-package-check`
-- `make npm-publish-target-check`
-- `make pypi-package-check`
+- `just examples`
+- `just mcp-build`
+- `just mcp-remote-build`
+- `just mcp-remote-smoke`
+- `just mcpb-smoke`
+- `just server-json-validate`
+- `just action-smoke`
+- `just npm-package-check`
+- `just npm-publish-target-check`
+- `just pypi-package-check`
 - standalone `kml` archive build and archive smoke for each supported target
 - Homebrew formula rendering from release archive checksums
 - upstream markdownlint drift gate
-- `make lint`
+- `just lint`
 - `cargo publish --dry-run --locked --allow-dirty`
 - `cargo install --path . --locked --bin kml`
 
@@ -131,14 +131,14 @@ The `x86_64-apple-darwin` artifact uses GitHub Actions `macos-15-intel`
 because the older `macos-13` image is no longer supported.
 
 The root `action.yml` is the official GitHub Action channel from `v0.11.0`.
-Release preflight must keep `make action-smoke` passing before publishing a tag.
+Release preflight must keep `just action-smoke` passing before publishing a tag.
 
 Tag push does not drive release publication. Use a `release/vX.Y.Z` pull
-request for automatic release, or use `make release-github VERSION=vX.Y.Z` /
-`make release VERSION=vX.Y.Z` for manual dispatch.
+request for automatic release, or use `just VERSION=vX.Y.Z release-github` /
+`just VERSION=vX.Y.Z release` for manual dispatch.
 
-Manual GitHub Actions dispatch is still available, but the local `make`
-targets are preferred because they create or verify the signed tag and check the
+Manual GitHub Actions dispatch is still available, but the local `just`
+recipes are preferred because they create or verify the signed tag and check the
 `CARGO_REGISTRY_TOKEN` secret before dispatch.
 
 ## MCPB And Registry Publication
@@ -146,15 +146,15 @@ targets are preferred because they create or verify the signed tag and check the
 Build and validate the MCPB artifact locally:
 
 ~~~bash
-make mcpb-smoke VERSION=vX.Y.Z
-make server-json-validate VERSION=vX.Y.Z
+just VERSION=vX.Y.Z mcpb-smoke
+just VERSION=vX.Y.Z server-json-validate
 ~~~
 
-`make mcpb-smoke` builds `target/mcpb/katana-markdown-linter-X.Y.Z.mcpb`,
+`just mcpb-smoke` builds `target/mcpb/katana-markdown-linter-X.Y.Z.mcpb`,
 writes a SHA-256 checksum beside it, extracts the bundle, and runs the bundled
 `kml-mcp` binary through the stdio smoke test.
 
-`make server-json-validate` renders `target/mcpb/server.json` from the
+`just server-json-validate` renders `target/mcpb/server.json` from the
 repository `server.json` and the computed MCPB checksum. Publish the rendered
 file, not the source template.
 
@@ -185,7 +185,7 @@ gh secret set HOMEBREW_KATANA_GIT_TOKEN --body "<token-with-homebrew-katana-writ
 ~~~
 
 Do not add a `github.token` fallback. The tap update must fail when the
-dedicated token is missing. `make release-verify VERSION=vX.Y.Z` compares the
+dedicated token is missing. `just VERSION=vX.Y.Z release-verify` compares the
 generated formulae with the actual tap files:
 
 - `Formula/kml.rb`
@@ -206,10 +206,10 @@ Keep these conditions true before publishing a wrapper version:
 - npm trusted publishing is configured for `release.yml`.
 - PyPI trusted publishing is configured for `release.yml` with the `pypi` environment.
 - The release workflow is either triggered by a merged `release/vX.Y.Z` pull request or dispatched with wrapper publish flags enabled.
-- `make wrapper-smoke VERSION=vX.Y.Z` succeeds against the release archive shape.
-- `make npm-package-check` confirms the npm README, metadata, and tarball file list.
-- `make npm-publish-target-check` confirms the npm version is not already published and is not blocked by npm unpublish state.
-- `make pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
+- `just VERSION=vX.Y.Z wrapper-smoke` succeeds against the release archive shape.
+- `just npm-package-check` confirms the npm README, metadata, and tarball file list.
+- `just npm-publish-target-check` confirms the npm version is not already published and is not blocked by npm unpublish state.
+- `just pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
 
 Use these trusted publisher settings:
 
@@ -220,7 +220,7 @@ Use these trusted publisher settings:
 
 The PyPI project name must match `wrappers/python/pyproject.toml`. Change the
 wrapper metadata first if the package name is changed before publication.
-After wrapper publication, `make release-verify VERSION=vX.Y.Z` checks the npm
+After wrapper publication, `just VERSION=vX.Y.Z release-verify` checks the npm
 registry version, PyPI JSON version, `npx` launcher output, and `uvx` launcher
 output.
 
@@ -233,7 +233,7 @@ Release workflow must keep `id-token: write`.
 
 ## Quality Gates and Branch Protection
 
-See `docs/quality-gates.md` for the authoritative mapping between local `make` targets, CI required checks, and branch protection.
+See `docs/quality-gates.md` for the authoritative mapping between local `just` recipes, CI required checks, and branch protection.
 
 Current `main` branch protection requires:
 
@@ -265,13 +265,13 @@ If workflow job names are changed, update branch protection in the same change. 
 - Fix the failed quality gate.
 - Re-run the workflow with the same version.
 - Do not rewrite a tag unless no GitHub Release exists, the version is not published on crates.io, and the only failure is the workflow run itself.
-- `make release-tag` refuses to overwrite a remote tag whose target differs from the local tag.
+- `just release-tag` refuses to overwrite a remote tag whose target differs from the local tag.
 
 ### Upstream drift gate fails
 
 - Inspect the reported markdownlint rule drift.
 - Update local rule metadata, config properties, fixture matrix, or allowlist intentionally.
-- Re-run `make upstream-drift` with the same upstream docs checkout.
+- Re-run `just upstream-drift` with the same upstream docs checkout.
 
 ### Coverage blocking gate fails
 
@@ -283,8 +283,8 @@ If workflow job names are changed, update branch protection in the same change. 
 - Check whether the version exists on crates.io.
 - If it was not published, fix the token or package issue and re-run with the same version.
 - If it was partially published, do not reuse the same version for changed content; bump `Cargo.toml` version.
-- `make release` fails fast when the requested version already exists on crates.io.
-- Use `make release-verify VERSION=vX.Y.Z` to compare the local tag target, GitHub Release title and target, crates.io version, npm version, PyPI version, wrapper launch output, and Homebrew formula evidence after retry.
+- `just release` fails fast when the requested version already exists on crates.io.
+- Use `just VERSION=vX.Y.Z release-verify` to compare the local tag target, GitHub Release title and target, crates.io version, npm version, PyPI version, wrapper launch output, and Homebrew formula evidence after retry.
 
 ### Accidental version was published
 
@@ -292,7 +292,7 @@ Use the accidental release recovery plan before changing package metadata by
 hand:
 
 ~~~bash
-make release-recovery-plan BAD_VERSION=v0.18.7
+just BAD_VERSION=v0.18.7 release-recovery-plan
 ~~~
 
 The plan only uses non-destructive registry actions by default:
@@ -307,7 +307,7 @@ To run the executable steps, set the confirmation environment variable to the
 bad tag:
 
 ~~~bash
-KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 make release-recover BAD_VERSION=v0.18.7
+KML_RELEASE_RECOVERY_CONFIRM=v0.18.7 just BAD_VERSION=v0.18.7 release-recover
 ~~~
 
 Do not unpublish npm, delete PyPI files, delete GitHub assets, or remove tags as
@@ -318,7 +318,7 @@ preserve evidence and publish a corrected version instead.
 
 - Verify the GitHub Release contains the `.mcpb`, `.mcpb.sha256`, and rendered
   `server.json` assets.
-- Re-run `make server-json-validate VERSION=vX.Y.Z` and inspect the rendered
+- Re-run `just VERSION=vX.Y.Z server-json-validate` and inspect the rendered
   `fileSha256`.
 - If the Registry version was not accepted, fix authentication or metadata and
   rerun the workflow with the same version.
@@ -327,7 +327,7 @@ preserve evidence and publish a corrected version instead.
 
 ### MCPB smoke fails
 
-- Re-run `make mcpb-smoke VERSION=vX.Y.Z`.
+- Re-run `just VERSION=vX.Y.Z mcpb-smoke`.
 - Inspect `mcpb/manifest.json`, `scripts/release/package-mcpb.sh`, and
   `scripts/ci/mcpb-smoke.py`.
 - Keep the manifest aligned with local stdio execution; do not claim remote MCP
@@ -335,7 +335,7 @@ preserve evidence and publish a corrected version instead.
 
 ### MCP remote smoke fails
 
-- Re-run `make mcp-remote-smoke`.
+- Re-run `just mcp-remote-smoke`.
 - Inspect `src/bin/kml-mcp-remote.rs`, `src/bin/kml_mcp/remote/`, and
   `scripts/ci/mcp-remote-smoke.py`.
 - Keep remote `tools/list` text-only unless workspace authentication, tenant
@@ -353,13 +353,13 @@ preserve evidence and publish a corrected version instead.
 
 ### GitHub Action smoke fails
 
-- Re-run `make action-smoke`.
+- Re-run `just action-smoke`.
 - Inspect `action.yml`, `scripts/action/install-kml.sh`, and `scripts/action/run-kml.sh`.
 - Keep the action scripts generic; do not add repository-specific lint policy outside action inputs.
 
 ### npm package check fails
 
-- Re-run `make npm-package-check`.
+- Re-run `just npm-package-check`.
 - Inspect `wrappers/npm/package.json`, `wrappers/npm/README.md`, and
   `scripts/release/verify-npm-package.js`.
 - Keep the npm wrapper dependency-free unless a runtime dependency is justified
@@ -367,7 +367,7 @@ preserve evidence and publish a corrected version instead.
 
 ### npm publish target check fails
 
-- Re-run `make npm-publish-target-check`.
+- Re-run `just npm-publish-target-check`.
 - If the version is already published, do not publish the same npm version again.
 - If npm reports `Unpublished on`, wait for npm's republish window before retrying the npm-only wrapper publication.
 - If the registry check fails for another reason, fix registry access before running `npm publish`.

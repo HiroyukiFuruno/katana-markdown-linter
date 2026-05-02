@@ -7,57 +7,57 @@ This document records how this repository uses `kml` against its own Markdown fi
 Check-only:
 
 ~~~bash
-make dogfood
+just dogfood
 ~~~
 
 Apply safe fixes:
 
 ~~~bash
-make dogfood-fix
+just dogfood-fix
 ~~~
 
 Machine-readable report:
 
 ~~~bash
-make dogfood-json
+just dogfood-json
 ~~~
 
 Refresh the committed baseline after intentional cleanup:
 
 ~~~bash
-make dogfood-refresh-baseline
+just dogfood-refresh-baseline
 ~~~
 
 Archived OpenSpec documents are checked only when explicitly requested:
 
 ~~~bash
-make dogfood-archive
+just dogfood-archive
 ~~~
 
 Curated public confidence corpus:
 
 ~~~bash
-make public-confidence
+just public-confidence
 ~~~
 
 Optional KatanA external corpus:
 
 ~~~bash
-KATANA_CHECKOUT=/path/to/katana make external-katana-dogfood
+KATANA_CHECKOUT=/path/to/katana just external-katana-dogfood
 ~~~
 
 ## Gate Model
 
-`make dogfood` is a regression gate. It runs `kml` against maintained Markdown
+`just dogfood` is a regression gate. It runs `kml` against maintained Markdown
 and compares the current diagnostics with `tests/fixtures/dogfood-baseline.json`.
-It is included in `make check` and the GitHub CI workflow.
+It is included in `just check` and the GitHub CI workflow.
 
 The gate fails when a diagnostic fingerprint exceeds the committed baseline.
 The fingerprint uses path, rule ID, message, and trimmed source line so ordinary
 line movement does not create noise.
 
 When documentation cleanup intentionally removes diagnostics, run
-`make dogfood-refresh-baseline` and commit the reduced baseline.
+`just dogfood-refresh-baseline` and commit the reduced baseline.
 
 ## Default Scope
 
@@ -87,7 +87,7 @@ Status: completed with known findings, then converted into a baseline gate.
 First command:
 
 ~~~bash
-make dogfood
+just dogfood
 ~~~
 
 Result:
@@ -101,12 +101,12 @@ Result:
 Current baseline:
 
 - diagnostics: 73
-- behavior: `make dogfood` exits successfully unless new diagnostics appear
+- behavior: `just dogfood` exits successfully unless new diagnostics appear
 - raw report: `target/dogfood-report.json`
 
 The first run classified findings into:
 
-- `safe-fix`: can be fixed by `make dogfood-fix`
+- `safe-fix`: can be fixed by `just dogfood-fix`
 - `manual-doc`: requires intentional documentation edits
 - `cli-ux`: indicates a CLI behavior or output issue
 - `known-exclusion`: intentionally excluded from the default dogfood scope
@@ -115,10 +115,10 @@ The first run classified findings into:
 
 | ID | Command | Expected | Actual | Decision |
 | --- | --- | --- | --- | --- |
-| CLI-001 | `make dogfood` with `.markdownlint.json` discovery | Existing repository config can be used directly | Config validation rejects official aliases such as `first-line-heading`, `no-duplicate-heading`, `no-inline-html`, and `MD022.lines_below` | Use `.markdownlint-dogfood.json` for this dogfood change; move alias/property parity into compatibility work |
-| CLI-002 | `make dogfood` with `.markdownlint-dogfood.json` | Configured properties reduce noisy diagnostics | `MD013.line_length`, `MD044.names`, and similar properties do not affect rule execution consistently | Track property application in compatibility work before making dogfood a blocking gate |
-| CLI-003 | `make dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |
-| CLI-004 | `make dogfood-fix` decision | Safe fixes can be previewed before writing | CLI has `--diff`, but fix mode writes files and has no dry-run mode | Do not apply dogfood fixes in this change; consider dry-run fix support later |
+| CLI-001 | `just dogfood` with `.markdownlint.json` discovery | Existing repository config can be used directly | Config validation rejects official aliases such as `first-line-heading`, `no-duplicate-heading`, `no-inline-html`, and `MD022.lines_below` | Use `.markdownlint-dogfood.json` for this dogfood change; move alias/property parity into compatibility work |
+| CLI-002 | `just dogfood` with `.markdownlint-dogfood.json` | Configured properties reduce noisy diagnostics | `MD013.line_length`, `MD044.names`, and similar properties do not affect rule execution consistently | Track property application in compatibility work before making dogfood a blocking gate |
+| CLI-003 | `just dogfood` on OpenSpec task files | Task checkboxes are not treated as links | MD039 reports spaces inside `[ ]` and `[x]` task checkbox text | Treat as a rule false-positive candidate for upstream comparison |
+| CLI-004 | `just dogfood-fix` decision | Safe fixes can be previewed before writing | CLI has `--diff`, but fix mode writes files and has no dry-run mode | Do not apply dogfood fixes in this change; consider dry-run fix support later |
 
 ## Fix Decision
 
@@ -130,7 +130,7 @@ preview mode.
 
 ## Public Confidence Corpus
 
-`make public-confidence` runs `check`, `fix`, repeated `fix`, `fmt`, repeated
+`just public-confidence` runs `check`, `fix`, repeated `fix`, `fmt`, repeated
 `fmt`, and final `check` against
 `tests/fixtures/public-confidence/corpus`. It writes machine-readable evidence
 to `target/public-confidence-report.json`.
@@ -139,7 +139,7 @@ The curated fixture includes links, images, inline HTML, fenced code, tables,
 reference definitions, and mixed Japanese/English text. It is committed so
 release gates never depend on a private sibling checkout.
 
-`make external-katana-dogfood` uses the same runner against KatanA
+`just external-katana-dogfood` uses the same runner against KatanA
 `docs/**/*.md` and `assets/**/*.md` when `KATANA_CHECKOUT` is set. It records
 the real-document inventory and classified findings without modifying the
 KatanA checkout. Remaining true-positive diagnostics are evidence, not a

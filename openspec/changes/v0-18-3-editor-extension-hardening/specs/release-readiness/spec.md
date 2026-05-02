@@ -6,7 +6,7 @@ release readiness は、editor extension package と LSP launch の検証を含�
 
 #### Scenario: release check runs editor extension gates
 
-- **WHEN** developer runs `make release-check VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-check`
 - **THEN** system runs VS Code extension check
 - **AND** system runs Zed extension check
 - **AND** system verifies both checks use the same `kml` release version
@@ -17,7 +17,7 @@ release readiness は、editor extension package と LSP launch の検証を含�
 
 #### Scenario: extension artifact is published
 
-- **WHEN** developer runs `make release-verify VERSION=vX.Y.Z`
+- **WHEN** developer runs `just VERSION=vX.Y.Z release-verify`
 - **THEN** system checks published extension artifact version
 - **AND** system verifies extension metadata references the compatible `kml` version
 - **AND** system reports a clear skip reason when extension publish is intentionally manual or deferred

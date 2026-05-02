@@ -376,11 +376,11 @@ and Neovim setup examples are documented in
 
 ## Quality Gates
 
-Use `make check` for the default local gate. It runs format, Clippy, AST lint, and tests.
+Use `just check` for the default local gate. It runs format, Clippy, AST lint, and tests.
 
-Use `make dogfood` to run `kml` against this repository's Markdown documentation without modifying files. Use `make dogfood-fix` only when you intend to apply safe Markdown fixes. Archived OpenSpec documents are excluded from the default dogfood targets; run `make dogfood-archive` to check them explicitly.
+Use `just dogfood` to run `kml` against this repository's Markdown documentation without modifying files. Use `just dogfood-fix` only when you intend to apply safe Markdown fixes. Archived OpenSpec documents are excluded from the default dogfood targets; run `just dogfood-archive` to check them explicitly.
 
-Use `make examples` to compile the public Rust embedding examples.
+Use `just examples` to compile the public Rust embedding examples.
 
 Quality gate details, CI required checks, coverage modes, and release readiness are documented in [`docs/quality-gates.md`](docs/quality-gates.md).
 
@@ -416,7 +416,7 @@ Workspace paths must stay under the configured `--workspace-root`. File writes
 are limited to `fix_file_apply` and require `apply: true`; no directory apply
 tool is exposed.
 
-Run `make mcp-stdio-smoke` to exercise the installed MCP server through
+Run `just mcp-stdio-smoke` to exercise the installed MCP server through
 JSON-RPC stdio calls.
 
 `kml-mcp-remote` is a separate self-hosted Streamable HTTP server for API-hosted
@@ -428,7 +428,7 @@ cargo build --bin kml-mcp-remote --features mcp-remote --locked
 KML_MCP_REMOTE_TOKEN=change-me target/debug/kml-mcp-remote
 ~~~
 
-Run `make mcp-remote-smoke` to verify bearer authentication, text-only tool
+Run `just mcp-remote-smoke` to verify bearer authentication, text-only tool
 capabilities, text diagnostics, and the request body limit.
 
 `v0.14.0` introduced a Linux MCPB bundle from GitHub Releases and MCP
@@ -436,7 +436,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-make mcpb-smoke VERSION=v0.17.7
+just VERSION=v0.17.7 mcpb-smoke
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the
@@ -449,10 +449,10 @@ See [MCP server documentation](docs/mcp-server.md), the
 - The library API is the primary contract.
 - The CLI is a thin wrapper over the library.
 - `Cargo.toml` package version is the release version source of truth.
-- Run `make release-check VERSION=vX.Y.Z` before publication.
-- Run `make release-github VERSION=vX.Y.Z` to create or update only the GitHub Release.
-- Run `make release VERSION=vX.Y.Z` only when registry publication is intended.
-- Run `make release-verify VERSION=vX.Y.Z` after publication to compare the tag target, GitHub Release target, crates.io, npm, PyPI, wrapper launch, Homebrew formula, and binary release assets.
+- Run `just VERSION=vX.Y.Z release-check` before publication.
+- Run `just VERSION=vX.Y.Z release-github` to create or update only the GitHub Release.
+- Run `just VERSION=vX.Y.Z release` only when registry publication is intended.
+- Run `just VERSION=vX.Y.Z release-verify` after publication to compare the tag target, GitHub Release target, crates.io, npm, PyPI, wrapper launch, Homebrew formula, and binary release assets.
 - GitHub Releases require a signed annotated `vX.Y.Z` tag that GitHub reports as `Verified`.
-- `make release` stops before dispatch when the requested version already exists on crates.io.
+- `just release` stops before dispatch when the requested version already exists on crates.io.
 - crates.io publication requires the `CARGO_REGISTRY_TOKEN` GitHub secret.

@@ -33,10 +33,10 @@
 
 ## 4. Build and CI
 
-- [ ] 4.1 `make vscode-extension-check` を追加する
+- [ ] 4.1 `just vscode-extension-check` を追加する
 - [ ] 4.2 release preflight または CI に extension check を追加する
 - [ ] 4.3 extension package の file list が不要物を含まないことを検証する
-- [ ] 4.4 `make release-check VERSION=v0.18.1` に extension check を組み込む
+- [ ] 4.4 `just VERSION=v0.18.1 release-check` に extension check を組み込む
 
 ## 5. Documentation
 
@@ -48,14 +48,14 @@
 
 ## 6. Verification
 
-- [ ] 6.1 `make fmt-check`
-- [ ] 6.2 `make lint`
-- [ ] 6.3 `make ast-lint`
+- [ ] 6.1 `just fmt-check`
+- [ ] 6.2 `just lint`
+- [ ] 6.3 `just ast-lint`
 - [ ] 6.4 `cargo test --workspace --locked`
-- [ ] 6.5 `make dogfood`
+- [ ] 6.5 `just dogfood`
 - [ ] 6.6 `git diff --check`
-- [ ] 6.7 `make vscode-extension-check`
-- [ ] 6.8 `make release-check VERSION=v0.18.1`
+- [ ] 6.7 `just vscode-extension-check`
+- [ ] 6.8 `just VERSION=v0.18.1 release-check`
 
 ## Definition of Done
 
