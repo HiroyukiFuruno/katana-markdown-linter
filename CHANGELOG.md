@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.18.0
+
+- Adds the release workflow support for versioned schema assets by publishing
+  `markdownlint.schema.v<version>.json` to GitHub Releases and validating schema
+  publication contract checks for each release.
+- Updates release release automation to allow pre-release-suffixed versions to
+  pass binary smoke version checks without false failures.
+- Adds CI safety so the workflow can auto-create missing signed release tags when
+  `RELEASE_GPG_KEY` is configured.
+
 ## v0.17.7
 
 - Clarifies that unsafe fixes can be used with both `kml fix` and
