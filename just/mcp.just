@@ -20,7 +20,7 @@ mcp-test:
 
 # Install optional MCP server binary into a local smoke-test root
 mcp-install-smoke:
-    cargo install --path . --locked --features mcp --bin kml-mcp --root "{{MCP_INSTALL_SMOKE_DIR}}" --force
+    PATH="$(pwd)/{{MCP_INSTALL_SMOKE_DIR}}/bin:$PATH" cargo install --path . --locked --features mcp --bin kml-mcp --root "{{MCP_INSTALL_SMOKE_DIR}}" --force
     test -x "{{MCP_INSTALL_SMOKE_DIR}}/bin/kml-mcp"
 
 # Exercise kml-mcp through MCP stdio JSON-RPC
@@ -29,7 +29,7 @@ mcp-stdio-smoke: mcp-install-smoke
 
 # Install optional remote MCP server binary into a local smoke-test root
 mcp-remote-install-smoke:
-    cargo install --path . --locked --features mcp-remote --bin kml-mcp-remote --root "{{MCP_REMOTE_INSTALL_SMOKE_DIR}}" --force
+    PATH="$(pwd)/{{MCP_REMOTE_INSTALL_SMOKE_DIR}}/bin:$PATH" cargo install --path . --locked --features mcp-remote --bin kml-mcp-remote --root "{{MCP_REMOTE_INSTALL_SMOKE_DIR}}" --force
     test -x "{{MCP_REMOTE_INSTALL_SMOKE_DIR}}/bin/kml-mcp-remote"
 
 # Exercise kml-mcp-remote through Streamable HTTP JSON-RPC
