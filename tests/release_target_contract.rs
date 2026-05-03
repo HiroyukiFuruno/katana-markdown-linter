@@ -94,6 +94,24 @@ fn accidental_prerelease_is_ignored_when_resolving_latest_stable_release() {
 }
 
 #[test]
+fn latest_stable_released_after_accidental_release_is_accepted() {
+    let fixture = write_github_releases_fixture(
+        "stable-plus-accidental",
+        r#"[
+            {"tag_name": "v0.18.1", "draft": false, "prerelease": false},
+            {"tag_name": "v0.18.7", "draft": false, "prerelease": true}
+        ]"#,
+    );
+    let output = ReleaseTargetCommand::with_github_releases_json("v0.18.2", fixture).run();
+
+    assert!(
+        output.status.success(),
+        "expected latest stable release v0.18.1 and accidental pre-release v0.18.7 to pass, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn new_minor_release_must_start_at_zero() {
     let output = ReleaseTargetCommand::new("v0.18.7", "v0.17.6").run();
     let stderr = String::from_utf8_lossy(&output.stderr);
