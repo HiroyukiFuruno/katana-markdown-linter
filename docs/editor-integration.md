@@ -13,6 +13,23 @@ The stable schema ID is:
 
 <https://schemas.katana.tools/kml/markdownlint.schema.json>
 
+Versioned schemas are available as release assets for stable dependency pinning.
+For example, `v0.18.0` is available at:
+
+<https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.18.0/markdownlint.schema.v0.18.0.json>
+
+### Compatibility Policy
+
+The `kml` configuration schema follows an **additive-first** compatibility
+policy. Existing rule properties, types, enum values, and defaults are
+preserved within a minor release line. New rules and properties are added as
+additive changes that do not break existing configuration files.
+
+Breaking schema changes are only introduced in major releases or with explicit
+deprecation notices in the release notes.
+
+### Local Fallback
+
 Generate a local copy when an editor cannot fetch remote schemas:
 
 ~~~bash
@@ -77,6 +94,15 @@ Add schema mapping to `.zed/settings.json`:
 Zed can use the JSON language server for schema-backed configuration editing.
 Running `kml lsp` for Markdown files requires a Zed extension or another adapter
 that registers `kml` as a Markdown language server.
+
+## Local Schema Fallback
+
+If you prefer to keep the schema file within your repository for offline use:
+
+1. Generate the schema: `kml config schema > .markdownlint.schema.json`
+2. Reference the local file in your editor settings (e.g., using a relative path).
+
+Note: Remember to regenerate the local schema file after upgrading `kml`.
 
 ## Neovim
 

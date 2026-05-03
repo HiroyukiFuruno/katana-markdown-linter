@@ -186,6 +186,9 @@ jobs:
       - name: Format check
         run: just fmt-check
 
+      - name: Schema consistency check
+        run: just schema-check
+
       - name: Test
         run: cargo test --all-features --locked
 
@@ -309,6 +312,8 @@ jobs:
         run: |
           shopt -s nullglob
           tag_target="$(git rev-list -n 1 "$TAG")"
+          schema_asset="markdownlint.schema.${TAG}.json"
+          cp "schema/markdownlint.schema.json" "$schema_asset"
           binary_assets=(target/binary/kml-${TAG}-*.tar.gz target/binary/kml-${TAG}-*.tar.gz.sha256 target/binary/kml-${TAG}-*.zip target/binary/kml-${TAG}-*.zip.sha256)
           if [[ "${#binary_assets[@]}" -ne 8 ]]; then
             echo "Expected 8 binary assets, found ${#binary_assets[@]}." >&2
@@ -320,9 +325,9 @@ jobs:
               --title "$TAG" \
               --notes-file RELEASE_NOTES.md \
               --target "$tag_target"
-            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" --clobber
+            gh release upload "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "$schema_asset" "${binary_assets[@]}" --clobber
           else
-            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "${binary_assets[@]}" \
+            gh release create "$TAG" "$PACKAGE_PATH" "$CHECKSUM_PATH" "$MCPB_PATH" "$MCPB_CHECKSUM_PATH" "$SERVER_JSON_PATH" "$schema_asset" "${binary_assets[@]}" \
               --verify-tag \
               --target "$tag_target" \
               --title "$TAG" \

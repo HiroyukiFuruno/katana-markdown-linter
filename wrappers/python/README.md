@@ -16,17 +16,33 @@ kml --version
 Use `uvx` for one-off runs:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.17.7 kml --version
-uvx --from katana-markdown-linter==0.17.7 kml check README.md
+uvx --from katana-markdown-linter==0.18.0 kml --version
+uvx --from katana-markdown-linter==0.18.0 kml check README.md
 ~~~
 
 ## Basic Usage
 
 ~~~bash
+# Run linting
 kml check README.md
-kml check docs --config .markdownlint.json
+
+# Show help
+kml help
+kml --help
+kml -h
+kml check --help
+
+# Localized help
 kml --locale ja help
+
+# Show version aliases
+kml version
+kml --version
+kml -v
+
+# Fix and Format
 kml fix README.md
+kml fmt
 ~~~
 
 ## Supported Platforms

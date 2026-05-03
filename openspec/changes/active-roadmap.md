@@ -38,7 +38,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.17.3`: `v0.17.2` が GitHub Release / crates.io だけ先行公開されたため、PyPI page polish と release workflow の partial publish 防止を加え、npm / PyPI publish closeout を整合版で完了する。
 - `v0.17.4`: PyPI wrapper が過去の unversioned cache を再利用して `0.17.0` を返したため、wrapper cache を version / target 別に分離し、release verification の停止箇所も修正する。
 - `v0.17.5`: CLI help / version alias の入口を修正し、Homebrew tap が古い version のまま残らないように release workflow と post-release verification を修正する。
-- `v0.18.0`: config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
+- `v0.18.0`: (released) config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
 - `v0.18.1`: VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
 - `v0.18.3`: editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
@@ -47,7 +47,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Priority | Work Area | Change | Why Now |
 | --- | --- | --- | --- |
 | P0 | Distribution closeout for `v0.17.1` | `v0-17-1-distribution-closeout` | `v0.17.0` already published GitHub Release, crates.io, and the initial npm wrapper source. `v0.17.1` closed GitHub Release / crates.io / PyPI / Homebrew work, while npm publication is handed to `v0.17.3` after package README, PyPI README, metadata polish, and workflow hardening. |
-| P1 | Schema publication for `v0.18.0` | `v0-18-0-schema-publication` | `kml config schema` already exists, but distribution docs still defer schema publication. The next durable step is a versioned schema contract, fixture-backed schema compatibility checks, and docs that editor integrations can rely on. |
+| Done | Schema publication for `v0.18.0` | `v0-18-0-schema-publication` | Completed for `v0.18.0`; config schema now has mechanical consistency checks, versioned artifact handling, and published documentation contract. |
 | P1 | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | The LSP entrypoint and schema command already exist. VS Code should become the first real editor target because the extension surface can stay thin: launch `kml lsp`, associate the config schema, and expose diagnostics / format / safe quick-fix without moving lint logic into the extension. |
 | P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
 | P2 | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | After both target editors have MVPs, harden install docs, smoke tests, release verification, marketplace packaging, and optional docs-only Neovim configuration without expanding the core engine. |
@@ -134,6 +134,7 @@ Archived completed changes:
 - `v0-16-2-document-answer-fix-regressions` -> `openspec/changes/archive/2026-04-29-v0-16-2-document-answer-fix-regressions`
 - `v0-17-0-binary-distribution-expansion` -> `openspec/changes/archive/2026-04-30-v0-17-0-binary-distribution-expansion`
 - `v0-17-2-npm-package-polish` -> `openspec/changes/archive/2026-04-30-v0-17-2-npm-package-polish`
+- `v0-18-0-schema-publication` -> `openspec/changes/archive/2026-05-02-v0-18-0-schema-publication`
 
 ## Suggested Order
 
