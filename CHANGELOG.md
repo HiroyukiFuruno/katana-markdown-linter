@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.18.2
+
+- Adds the Zed extension MVP as a thin wrapper around `kml lsp`.
+- Exposes Markdown diagnostics, formatting, and safe quick fixes to Zed.
+- Supports `kml` binary discovery via `PATH` and explicit Zed configuration.
+- Adds `just zed-extension-check` to the release gate for extension quality.
+- Synchronizes project version to `v0.18.2` across CLI, wrappers, MCP, and
+  extensions.
+
 ## v0.18.1
 
 - Adds the VS Code extension MVP as a thin wrapper around `kml lsp`.

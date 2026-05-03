@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from urllib import error, request
@@ -89,13 +90,31 @@ def github_release_payload(args: argparse.Namespace) -> list[object]:
     for page in range(1, 11):
         url = f"https://api.github.com/repos/{args.repo}/releases?per_page=100&page={page}"
         api_request = request.Request(url, headers=github_request_headers())
+        page_payload: list[object] = []
+        for attempt in range(3):
+            try:
+                with request.urlopen(api_request, timeout=20) as response:
+                    payload = bytearray()
+                    while True:
+                        chunk = response.read(8192)
+                        if not chunk:
+                            break
+                        payload.extend(chunk)
+                page_payload_raw = bytes(payload)
+                break
+            except Exception as release_error:
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                    continue
+                raise RuntimeError(
+                    f"could not read latest stable GitHub Release from {args.repo}: {release_error}"
+                ) from release_error
         try:
-            with request.urlopen(api_request, timeout=20) as response:
-                page_payload = json.loads(response.read().decode("utf-8"))
-        except error.URLError as release_error:
+            page_payload = json.loads(page_payload_raw.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as parse_error:
             raise RuntimeError(
-                f"could not read latest stable GitHub Release from {args.repo}: {release_error}"
-            ) from release_error
+                f"could not parse latest stable GitHub Release JSON from {args.repo}: {parse_error}"
+            ) from parse_error
         if not isinstance(page_payload, list):
             raise ValueError("GitHub Releases API response must be an array")
         releases.extend(page_payload)
@@ -139,7 +158,16 @@ def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> St
     if args.latest_version:
         return StableVersion.parse(args.latest_version)
 
-    github_versions = github_stable_versions(target, args)
+    try:
+        github_versions = github_stable_versions(target, args)
+    except RuntimeError as error:
+        print(
+            "Warning: could not read GitHub releases data; "
+            "falling back to git tags for release line check.",
+            file=sys.stderr,
+        )
+        print(f"  cause: {error}", file=sys.stderr)
+        github_versions = []
     if github_versions:
         return max(github_versions)
     return latest_tag_version(target, args.remote)
