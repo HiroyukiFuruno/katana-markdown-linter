@@ -24,6 +24,18 @@ fi
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR/server"
 cp mcpb/manifest.json "$STAGING_DIR/manifest.json"
+python3 - "$STAGING_DIR/manifest.json" "$VERSION_BARE" <<'PY'
+import json
+import pathlib
+import sys
+
+manifest_path = pathlib.Path(sys.argv[1])
+version = sys.argv[2]
+
+payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+payload["version"] = version
+manifest_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
 cp "$BINARY_SRC" "$STAGING_DIR/server/kml-mcp"
 chmod 0755 "$STAGING_DIR/server/kml-mcp"
 
