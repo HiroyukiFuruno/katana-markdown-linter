@@ -1,0 +1,65 @@
+{
+  "name": "vscode-katana-markdown-linter",
+  "displayName": "KatanA Markdown Linter",
+  "description": "VS Code extension for KatanA Markdown Linter (kml)",
+  "version": "0.18.1",
+  "publisher": "HiroyukiFuruno",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "KatanA Markdown Linter",
+      "properties": {
+        "kml.executablePath": {
+          "type": "string",
+          "default": "kml",
+          "description": "Path to the kml executable."
+        }
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": ".markdownlint.json",
+        "url": "https://raw.githubusercontent.com/HiroyukiFuruno/katana-markdown-linter/main/schema/markdownlint.schema.json"
+      },
+      {
+        "fileMatch": ".markdownlint.jsonc",
+        "url": "https://raw.githubusercontent.com/HiroyukiFuruno/katana-markdown-linter/main/schema/markdownlint.schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
+    "eslint": "^8.36.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^4.9.5",
+    "vscode-test": "^1.6.1"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  }
+}
