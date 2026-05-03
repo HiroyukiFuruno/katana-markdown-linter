@@ -151,6 +151,20 @@ Homebrew formula publication is part of the release flow. Install with:
 brew install HiroyukiFuruno/katana/kml
 ~~~
 
+### VS Code
+
+Install the **KatanA Markdown Linter** extension from the VS Code Marketplace
+(coming soon) or sideload the local package. The extension acts as a thin
+wrapper around the `kml lsp` server.
+
+~~~bash
+# Sideload for MVP testing
+cd editors/vscode
+npm install
+npm run compile
+code --extensionDevelopmentPath=$PWD
+~~~
+
 ## GitHub Actions
 
 Use the repository action to run `kml` in CI without writing install steps:

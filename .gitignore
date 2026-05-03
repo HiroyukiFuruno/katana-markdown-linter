@@ -18,3 +18,8 @@ openspec*
 !openspec/**
 opsx*
 !/scripts/openspec
+
+# Editors
+editors/vscode/node_modules/
+editors/vscode/out/
+editors/vscode/.vscode-test/
