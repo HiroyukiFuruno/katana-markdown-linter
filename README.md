@@ -165,6 +165,17 @@ npm run compile
 code --extensionDevelopmentPath=$PWD
 ~~~
 
+### Zed
+
+Sideload the Zed extension from the repository. The extension acts as a thin
+wrapper that registers `kml lsp` as a Markdown language server.
+
+~~~bash
+# Sideload for MVP testing
+# Use the "zed: install dev extension" action in Zed
+# and select the 'editors/zed' directory.
+~~~
+
 ## GitHub Actions
 
 Use the repository action to run `kml` in CI without writing install steps:

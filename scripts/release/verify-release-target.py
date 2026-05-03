@@ -7,8 +7,8 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from urllib import error, request
@@ -50,22 +50,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def git_tags(remote: str) -> list[str]:
-    subprocess.run(
-        ["git", "fetch", "--quiet", "--tags", remote],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    result = subprocess.run(
-        ["git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*"],
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE,
-    )
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
-
-
 def github_request_headers() -> dict[str, str]:
     headers = {
         "Accept": "application/vnd.github+json",
@@ -78,71 +62,100 @@ def github_request_headers() -> dict[str, str]:
     return headers
 
 
-def github_release_payload(args: argparse.Namespace) -> list[object]:
-    if args.github_releases_json:
-        payload = json.loads(Path(args.github_releases_json).read_text(encoding="utf-8"))
-        if not isinstance(payload, list):
-            raise ValueError("GitHub Releases JSON fixture must be an array")
-        return payload
-
-    releases: list[object] = []
-    for page in range(1, 11):
-        url = f"https://api.github.com/repos/{args.repo}/releases?per_page=100&page={page}"
-        api_request = request.Request(url, headers=github_request_headers())
+def github_api_request_json(url: str, args: argparse.Namespace) -> object:
+    api_request = request.Request(url, headers=github_request_headers())
+    for attempt in range(3):
         try:
             with request.urlopen(api_request, timeout=20) as response:
-                page_payload = json.loads(response.read().decode("utf-8"))
-        except error.URLError as release_error:
+                payload = bytearray()
+                while True:
+                    chunk = response.read(8192)
+                    if not chunk:
+                        break
+                    payload.extend(chunk)
+                return json.loads(payload.decode("utf-8"))
+        except (error.URLError, json.JSONDecodeError, UnicodeDecodeError, OSError) as release_error:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
             raise RuntimeError(
                 f"could not read latest stable GitHub Release from {args.repo}: {release_error}"
             ) from release_error
-        if not isinstance(page_payload, list):
-            raise ValueError("GitHub Releases API response must be an array")
-        releases.extend(page_payload)
-        if len(page_payload) < 100:
-            break
-    return releases
 
 
-def github_stable_versions(target: StableVersion, args: argparse.Namespace) -> list[StableVersion]:
-    versions: list[StableVersion] = []
-    for release in github_release_payload(args):
+def github_release_payload(args: argparse.Namespace) -> list[object]:
+    if args.github_releases_json:
+        payload = json.loads(Path(args.github_releases_json).read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            return [payload]
+        if not isinstance(payload, list):
+            raise ValueError("GitHub Releases JSON fixture must be an object or array")
+        return payload
+
+    latest_payload = github_api_request_json(
+        f"https://api.github.com/repos/{args.repo}/releases/latest", args
+    )
+    if not isinstance(latest_payload, dict):
+        raise ValueError("GitHub latest release payload must be an object")
+    return [latest_payload]
+
+
+def stable_version_from_tag(tag_name: object) -> StableVersion | None:
+    if not isinstance(tag_name, str):
+        return None
+    try:
+        return StableVersion.parse(tag_name)
+    except ValueError:
+        return None
+
+
+def github_stable_version_from_payload(
+    payload: object, target: StableVersion
+) -> StableVersion | None:
+    releases: list[StableVersion] = []
+    if isinstance(payload, dict):
+        payload = [payload]
+    elif not isinstance(payload, list):
+        raise ValueError("GitHub Releases payload must be an object or array")
+
+    for release in payload:
         if not isinstance(release, dict):
             continue
         if release.get("draft") or release.get("prerelease"):
             continue
-        tag_name = release.get("tag_name")
-        if not isinstance(tag_name, str):
-            continue
-        try:
-            version = StableVersion.parse(tag_name)
-        except ValueError:
-            continue
-        if version != target:
-            versions.append(version)
-    return versions
+        version = stable_version_from_tag(release.get("tag_name"))
+        if version is not None and version != target:
+            releases.append(version)
 
-
-def latest_tag_version(target: StableVersion, remote: str) -> StableVersion | None:
-    versions = []
-    for tag in git_tags(remote):
-        try:
-            version = StableVersion.parse(tag)
-        except ValueError:
-            continue
-        if version != target:
-            versions.append(version)
-    return max(versions) if versions else None
+    if not releases:
+        return None
+    return max(releases)
 
 
 def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> StableVersion | None:
     if args.latest_version:
         return StableVersion.parse(args.latest_version)
 
-    github_versions = github_stable_versions(target, args)
-    if github_versions:
-        return max(github_versions)
-    return latest_tag_version(target, args.remote)
+    payload = github_release_payload(args)
+    latest = github_stable_version_from_payload(payload, target)
+    if latest is None:
+        if args.github_releases_json:
+            return None
+        raise RuntimeError(
+            "Could not resolve latest stable GitHub release; no stable payload was available"
+        )
+    if not args.github_releases_json:
+        if (
+            not isinstance(payload, list)
+            or not payload
+            or not isinstance(payload[0], dict)
+        ):
+            raise RuntimeError("Unexpected GitHub release payload format from /releases/latest")
+        if payload[0].get("draft") or payload[0].get("prerelease"):
+            raise RuntimeError(
+                "GitHub releases/latest is not a stable release; refuse to infer the release line"
+            )
+    return latest
 
 
 def fail(message: str) -> int:
@@ -199,7 +212,7 @@ def main() -> int:
     try:
         target = StableVersion.parse(args.target_version)
         latest = latest_stable_version(target, args)
-    except (RuntimeError, ValueError, subprocess.CalledProcessError) as error:
+    except (RuntimeError, ValueError) as error:
         print(f"Release target sanity check failed: {error}", file=sys.stderr)
         return 1
     return verify(target, latest)

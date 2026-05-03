@@ -95,7 +95,26 @@ files. LSP support requires a generic LSP bridge plugin that can launch
 
 ## Zed
 
-Add schema mapping to `.zed/settings.json`:
+### Official Extension (Recommended)
+
+Sideload the extension from the repository:
+
+1. Open Zed.
+2. Run the `zed: install dev extension` action.
+3. Select the `editors/zed` directory.
+
+The extension automatically registers `kml lsp` for Markdown files and supports
+the following configuration:
+
+- `lsp`:
+  - `kml`:
+    - `binary`:
+      - `path`: Path to the `kml` binary. Defaults to `kml` (on PATH).
+
+### Manual Configuration
+
+If you do not want to install the extension, add schema mapping to
+`.zed/settings.json`:
 
 ~~~json
 {
@@ -120,8 +139,6 @@ Add schema mapping to `.zed/settings.json`:
 ~~~
 
 Zed can use the JSON language server for schema-backed configuration editing.
-Running `kml lsp` for Markdown files requires a Zed extension or another adapter
-that registers `kml` as a Markdown language server.
 
 ## Local Schema Fallback
 

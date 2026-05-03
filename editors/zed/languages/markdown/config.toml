@@ -1,0 +1,3 @@
+name = "Markdown"
+grammar = "markdown"
+path_suffixes = ["md", "markdown"]

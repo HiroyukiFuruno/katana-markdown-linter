@@ -1,0 +1,11 @@
+[package]
+name = "katana-markdown-linter-zed"
+version = "0.18.2"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.3.0"
