@@ -18,6 +18,7 @@ class BinaryArtifactTool:
         self.args = args
         self.version = self._normalize_version(args.version)
         self.version_bare = self.version.removeprefix("v")
+        self.version_base = self._version_base(self.version_bare)
         self.target = args.target or self._detect_target()
         self.dist_dir = Path(args.dist_dir)
         self.archive_name = self._archive_name()
@@ -71,8 +72,10 @@ class BinaryArtifactTool:
             binary = self._find_binary(extract_dir)
             version_run = subprocess.run([str(binary), "--version"], check=True, capture_output=True, text=True)
             version_output = version_run.stdout.strip()
-            if version_output != self.version_bare:
-                raise SystemExit(f"kml --version mismatch: expected {self.version_bare}, got {version_output}")
+            if version_output != self.version_base:
+                raise SystemExit(
+                    f"kml --version mismatch: expected {self.version_base}, got {version_output}"
+                )
             fixture = Path(temp_dir) / "README.md"
             fixture.write_text("# Smoke\n\nText.\n", encoding="utf-8")
             subprocess.run(
@@ -138,6 +141,9 @@ class BinaryArtifactTool:
         if not version:
             raise SystemExit("version is required")
         return version if version.startswith("v") else f"v{version}"
+
+    def _version_base(self, version_bare: str) -> str:
+        return version_bare.split("-", maxsplit=1)[0].split("+", maxsplit=1)[0]
 
     def _verify_checksum(self, archive_path: Path, checksum_path: Path) -> None:
         expected = checksum_path.read_text(encoding="utf-8").split()[0]
