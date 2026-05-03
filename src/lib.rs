@@ -120,24 +120,60 @@ pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta> {
 
 /// Returns the set of rules that are currently executed by the linter.
 pub fn implemented_rules() -> Vec<RuleMeta> {
+    let configurable_meta =
+        crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
+
     rules::markdown::MarkdownLinterOps::official_rules()
         .iter()
         .filter_map(|rule| rule.official_meta())
-        .map(Into::into)
+        .map(|value| {
+            let aliases = configurable_meta
+                .get(value.code)
+                .map(|meta| {
+                    meta.aliases
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            RuleMeta {
+                id: value.code.to_string(),
+                name: value.title.to_string(),
+                description: value.description.to_string(),
+                docs_url: value.docs_url.to_string(),
+                fixable: value.is_fixable,
+                aliases,
+            }
+        })
         .collect()
 }
 
 /// Returns the set of official rules that are exposed to configuration but not yet linted.
 pub fn missing_rules() -> Vec<RuleMeta> {
+    let configurable_meta =
+        crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
+
     catalog::RuleCatalog::build()
         .missing_check_rules()
         .into_iter()
-        .map(|entry| RuleMeta {
-            id: entry.id.clone(),
-            name: entry.name.clone(),
-            description: entry.description.clone(),
-            docs_url: entry.docs_url.clone(),
-            fixable: entry.fixable,
+        .map(|entry| {
+            let aliases = configurable_meta
+                .get(entry.id.as_str())
+                .map(|meta| {
+                    meta.aliases
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            RuleMeta {
+                id: entry.id.clone(),
+                name: entry.name.clone(),
+                description: entry.description.clone(),
+                docs_url: entry.docs_url.clone(),
+                fixable: entry.fixable,
+                aliases,
+            }
         })
         .collect()
 }
@@ -237,6 +273,7 @@ impl From<rules::markdown::OfficialRuleMeta> for RuleMeta {
             description: value.description.to_string(),
             docs_url: value.docs_url.to_string(),
             fixable: value.is_fixable,
+            aliases: value.aliases.iter().map(|s| s.to_string()).collect(),
         }
     }
 }

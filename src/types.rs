@@ -81,6 +81,7 @@ pub struct RuleMeta {
     pub description: String,
     pub docs_url: String,
     pub fixable: bool,
+    pub aliases: Vec<String>,
 }
 
 impl RuleMeta {

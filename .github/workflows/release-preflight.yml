@@ -54,6 +54,9 @@ jobs:
       - name: Format check
         run: just fmt-check
 
+      - name: Schema consistency check
+        run: just schema-check
+
       - name: Test
         run: cargo test --all-features --locked
 

@@ -87,14 +87,29 @@ impl RuleCatalog {
     }
 
     pub fn to_rule_meta(&self) -> Vec<RuleMeta> {
+        let configurable_meta =
+            crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
+
         self.active
             .iter()
-            .map(|entry| RuleMeta {
-                id: entry.id.clone(),
-                name: entry.name.clone(),
-                description: entry.description.clone(),
-                docs_url: entry.docs_url.clone(),
-                fixable: entry.fixable,
+            .map(|entry| {
+                let aliases = configurable_meta
+                    .get(entry.id.as_str())
+                    .map(|meta| {
+                        meta.aliases
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+                RuleMeta {
+                    id: entry.id.clone(),
+                    name: entry.name.clone(),
+                    description: entry.description.clone(),
+                    docs_url: entry.docs_url.clone(),
+                    fixable: entry.fixable,
+                    aliases,
+                }
             })
             .collect()
     }

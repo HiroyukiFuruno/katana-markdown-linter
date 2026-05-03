@@ -16,17 +16,33 @@ kml --version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.17.7 --version
-npx --yes katana-markdown-linter@0.17.7 check README.md
+npx --yes katana-markdown-linter@0.18.0 --version
+npx --yes katana-markdown-linter@0.18.0 check README.md
 ~~~
 
 ## Basic Usage
 
 ~~~bash
+# Run linting
 kml check README.md
-kml check docs --config .markdownlint.json
+
+# Show help
+kml help
+kml --help
+kml -h
+kml check --help
+
+# Localized help
 kml --locale ja help
+
+# Show version aliases
+kml version
+kml --version
+kml -v
+
+# Fix and Format
 kml fix README.md
+kml fmt
 ~~~
 
 ## Supported Platforms

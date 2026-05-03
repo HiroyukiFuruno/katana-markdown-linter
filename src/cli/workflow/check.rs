@@ -339,6 +339,9 @@ pub(super) fn resolve_unsafe_fix_policy(
             declined: false,
         });
     }
+    if cfg!(test) {
+        return Err("unsafe fixes require --yes in non-interactive mode".to_string());
+    }
     if !io::stdin().is_terminal() {
         return Err("unsafe fixes require --yes in non-interactive mode".to_string());
     }

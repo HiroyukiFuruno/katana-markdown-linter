@@ -10,6 +10,10 @@ fmt:
 fmt-check:
     cargo fmt --all -- --check
 
+# Verify config schema consistency
+schema-check:
+    scripts/release/verify-schema.sh
+
 # Run Clippy (forces zero warnings)
 lint:
     cargo clippy -j {{JOBS}} --workspace --all-targets --all-features --locked -- -D warnings

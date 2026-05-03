@@ -22,7 +22,9 @@ class StableVersion:
 
     @classmethod
     def parse(cls, value: str) -> "StableVersion":
-        match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", value.strip())
+        # Allow versions with suffixes (e.g. v0.18.0-id) by splitting at hyphen or plus
+        base_version = value.strip().split("-")[0].split("+")[0]
+        match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", base_version)
         if match is None:
             raise ValueError(f"expected a stable version like v1.2.3, got {value!r}")
         return cls(*(int(group) for group in match.groups()))
