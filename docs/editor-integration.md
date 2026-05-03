@@ -42,7 +42,35 @@ configuration validation. Rule entries accept either a boolean or an object with
 
 ## VS Code
 
-Add schema mapping to `.vscode/settings.json`:
+### Official Extension (Recommended)
+
+The **KatanA Markdown Linter** extension is the easiest way to use `kml` in
+VS Code. It automatically:
+
+- Launches `kml lsp` when you open a Markdown file.
+- Associates `.markdownlint.json` and `.markdownlint.jsonc` with the published
+  JSON schema.
+- Provides diagnostics, formatting, and safe quick fixes.
+
+**Installation:**
+Search for "KatanA Markdown Linter" in the VS Code Marketplace, or sideload
+from the repository:
+
+~~~bash
+cd editors/vscode
+npm install
+npm run compile
+code --extensionDevelopmentPath=$PWD
+~~~
+
+**Configuration:**
+
+- `kml.executablePath`: Path to the `kml` binary. Defaults to `kml` (on PATH).
+
+### Manual Configuration
+
+If you do not want to install the extension, add schema mapping to
+`.vscode/settings.json`:
 
 ~~~json
 {
@@ -62,8 +90,8 @@ Add schema mapping to `.vscode/settings.json`:
 ~~~
 
 VS Code uses this for completion, hover text, and validation in configuration
-files. LSP support requires a VS Code extension or generic LSP bridge that can
-launch `kml lsp` over stdio.
+files. LSP support requires a generic LSP bridge plugin that can launch
+`kml lsp` over stdio.
 
 ## Zed
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.18.1
+
+- Adds the VS Code extension MVP as a thin wrapper around `kml lsp`.
+- Exposes Markdown diagnostics, formatting, and safe quick fixes to VS Code.
+- Associates `.markdownlint.json` and `.markdownlint.jsonc` with the published
+  configuration schema.
+- Adds `kml.executablePath` configuration to the VS Code extension.
+- Adds `just vscode-extension-check` to the release gate for extension quality.
+
 ## v0.18.0
 
 - Adds the release workflow support for versioned schema assets by publishing
