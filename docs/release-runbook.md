@@ -40,6 +40,7 @@ For MCP distribution changes, the release check includes:
 For binary distribution changes, the release check includes:
 
 - `just VERSION=vX.Y.Z binary-smoke`
+- [ ] Run `just VERSION=vX.Y.Z editor-extension-check`
 - `just VERSION=vX.Y.Z homebrew-formula-check`
 - `just VERSION=vX.Y.Z wrapper-smoke`
 - `just npm-package-check`

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.18.3
+
+- Hardens editor extensions for VS Code and Zed with version compatibility checks.
+- Displays a warning when the `kml` binary version does not satisfy the `^0.18.0` requirement.
+- Integrates extension package verification into the release quality gates via `just editor-extension-check`.
+- Adds a troubleshooting guide and refined Neovim configuration sample to the documentation.
+- Synchronizes project version to `v0.18.3` across CLI, wrappers, MCP, and extensions.
+
 ## v0.18.2
 
 - Adds the Zed extension MVP as a thin wrapper around `kml lsp`.

@@ -154,15 +154,40 @@ Note: Remember to regenerate the local schema file after upgrading `kml`.
 Use Neovim's built-in LSP client when `kml` is installed on `PATH`:
 
 ~~~lua
-vim.lsp.config("kml", {
-  cmd = { "kml", "lsp" },
-  filetypes = { "markdown" },
-  root_markers = { ".markdownlint.json", ".markdownlint.jsonc", ".git" },
-})
+-- Sample configuration using nvim-lspconfig
+local configs = require('lspconfig.configs')
+local nvim_lsp = require('lspconfig')
 
-vim.lsp.enable("kml")
+if not configs.kml then
+  configs.kml = {
+    default_config = {
+      cmd = { 'kml', 'lsp' },
+      filetypes = { 'markdown' },
+      root_dir = nvim_lsp.util.root_pattern('.markdownlint.json', '.markdownlint.jsonc', '.git'),
+      settings = {},
+    },
+  }
+end
+
+nvim_lsp.kml.setup({})
 ~~~
 
-After opening a Markdown buffer, run `:checkhealth vim.lsp` to confirm the
-client attached. The server reports diagnostics as documents open or change and
-returns formatting edits through the normal LSP formatting command.
+After opening a Markdown buffer, run `:checkhealth lsp` or `:LspInfo` to confirm
+the client attached. The server reports diagnostics as documents open or change
+and returns formatting edits through the normal LSP formatting command.
+
+## Troubleshooting
+
+### Binary Path and Version
+
+If the editor fails to start the `kml` server, check the following:
+
+- **PATH**: Ensure `kml` is available on your system `PATH`.
+- **Custom Path**: Use `kml.executablePath` (VS Code) or Zed LSP binary settings to point to the exact location of the binary.
+- **Compatibility**: The extension checks for a compatible `kml` version (e.g., `^0.18.0`). If you are using an older version, the extension may show a warning. Upgrade `kml` or the extension to resolve this.
+
+### Workspace Root (VS Code)
+
+When using relative paths for `kml.executablePath`, the extension resolves them
+relative to the first workspace folder. Ensure your project is opened as a
+workspace folder if you rely on relative paths.

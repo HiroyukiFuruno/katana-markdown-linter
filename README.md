@@ -154,8 +154,8 @@ brew install HiroyukiFuruno/katana/kml
 ### VS Code
 
 Install the **KatanA Markdown Linter** extension from the VS Code Marketplace
-(coming soon) or sideload the local package. The extension acts as a thin
-wrapper around the `kml lsp` server.
+or sideload the local package. The extension acts as a thin wrapper around
+the `kml lsp` server and verifies version compatibility on startup.
 
 ~~~bash
 # Sideload for MVP testing
@@ -167,8 +167,9 @@ code --extensionDevelopmentPath=$PWD
 
 ### Zed
 
-Sideload the Zed extension from the repository. The extension acts as a thin
-wrapper that registers `kml lsp` as a Markdown language server.
+Install the **KatanA Markdown Linter** extension from the Zed extension registry
+or sideload from the repository. The extension registers `kml lsp` as a
+Markdown language server and supports custom binary paths.
 
 ~~~bash
 # Sideload for MVP testing

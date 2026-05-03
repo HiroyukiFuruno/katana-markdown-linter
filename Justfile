@@ -84,3 +84,6 @@ import 'just/vscode.just'
 import 'just/zed.just'
 import 'just/release.just'
 import 'just/maintenance.just'
+
+# Consolidated editor extension quality check
+editor-extension-check: vscode-extension-check zed-extension-check
