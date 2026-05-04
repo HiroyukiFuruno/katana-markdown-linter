@@ -340,7 +340,14 @@ jobs:
             --output "target/homebrew/kml@${{ steps.version.outputs.version_bare }}.rb"
 
       - name: Build release notes
-        run: scripts/release/release-notes.sh "${{ steps.version.outputs.version_bare }}" > RELEASE_NOTES.md
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            notes_version="${{ steps.version.outputs.cargo_version }}"
+          else
+            notes_version="${{ steps.version.outputs.version_bare }}"
+          fi
+
+          scripts/release/release-notes.sh "$notes_version" > RELEASE_NOTES.md
 
       - name: Create or update GitHub Release
         if: github.event_name == 'workflow_dispatch'
