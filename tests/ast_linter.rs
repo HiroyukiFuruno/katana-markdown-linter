@@ -314,7 +314,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
             &release_just,
             "scripts/release/recover-accidental-release.py",
         ),
-        ("just/release.just", &release_just, "release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check"),
+        ("just/release.just", &release_just, "release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate homebrew-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check"),
         ("just/release.just", &release_just, "binary-smoke: binary-package"),
         (
             "just/release.just",

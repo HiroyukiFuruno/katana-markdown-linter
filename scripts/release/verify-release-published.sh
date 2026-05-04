@@ -41,11 +41,13 @@ verify_github_release() {
   release_title="$(gh release view "${TAG}" --repo "${REPO}" --json name --jq '.name')"
   release_target="$(gh release view "${TAG}" --repo "${REPO}" --json targetCommitish --jq '.targetCommitish')"
   release_draft="$(gh release view "${TAG}" --repo "${REPO}" --json isDraft --jq '.isDraft')"
+  release_prerelease="$(gh release view "${TAG}" --repo "${REPO}" --json isPrerelease --jq '.isPrerelease')"
   release_url="$(gh release view "${TAG}" --repo "${REPO}" --json url --jq '.url')"
 
   assert_equal "GitHub Release tag" "${TAG}" "${release_tag}"
   assert_equal "GitHub Release title" "${TAG}" "${release_title}"
   assert_equal "GitHub Release draft state" "false" "${release_draft}"
+  assert_equal "GitHub Release prerelease state" "false" "${release_prerelease}"
 
   if [[ "${release_target}" != "${local_target}" ]]; then
     echo "${TAG} GitHub Release target differs from the local tag target." >&2
