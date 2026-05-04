@@ -21,6 +21,7 @@
 3. 運用の可観測性
    - 失敗理由は runbook で 3 行以内で再現可能な手順として記録。
    - いつ `v0.19.0` へ進むかは、ゲート結果の通過記録でのみ判断。
+   - proposal / design / tasks / spec 間の用語と条件を release-readiness で一致させる。
 4. Self-dogfood を release-readiness に固定
    - `release-check` 前に `just dogfood` を必須実行し、`README.md docs openspec` を対象に自己検査する。
    - `target/dogfood-report.json` を evidence として残し、意図しない baseline 増加を release blocker とする。

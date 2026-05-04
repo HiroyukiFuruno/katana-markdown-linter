@@ -39,3 +39,23 @@
 - **THEN** system は `README.md docs openspec` を対象として `target/dogfood-report.json` を生成する。
 - **AND** `v0.18.7` 後の変更では、意図しない新規 warning / baseline 増分がないことを確認する。
 - **AND** 意図的な差分がある場合は、`dogfood` baseline 更新手順を別途 evidence として保持する。
+
+### Requirement: release-readiness SHALL define DoR / DoD
+
+release 管理 change は、`v0.19.0` 前提を明確化するため、DoR と DoD を実行可能なチェック項目で持つこと（SHALL）。
+
+#### Scenario: DoR / DoD are explicit and checkable
+
+- **WHEN** release 準備を始める。
+- **THEN** system は DoR に沿って、`v0.18.7` 再公開不可、既存版検知、marketplace 前提条件、dogfood 前提が満たされていることを確認する。
+- **AND** system は DoD に沿って、`release-check` / `release-verify` / dogfood の結果を runbook に紐付け、`v0.19.0` 進行可否を一意に判定できることを示す。
+
+### Requirement: change documents SHALL be internally consistent
+
+proposal / design / tasks / spec の主要判断軸が同一条件で一致していること。
+
+#### Scenario: per-change document consistency check
+
+- **WHEN** change 実装前に `v0.19.0 Editor Publication Gate` の4文書を突合する。
+- **THEN** `再公開不可（`v0.18.7`）`, `v0.19.0 Go/No-Go`, `dogfood 必須` の3軸が全文書で一致し、欠落・矛盾がないことを確認する。
+- **AND** 矛盾がある場合は DoD を成立させない。

@@ -17,3 +17,4 @@
    - marketplace 公開前提条件（account / publisher / package / verification）が未設定なら公開を停止する。
    - published / deferred のどちらでも、release-verify が実状態を説明できる。
 5. `just dogfood` で `README.md docs openspec` を毎回実行し、自己リポジトリの新規 warning 増加を release blocker とする。
+6. この change の proposal / design / tasks / spec は、再公開不可、`v0.19.0` 判定、dogfood 前提の3軸を同一条件で扱うことを DoR / DoD の成立条件に含める。
