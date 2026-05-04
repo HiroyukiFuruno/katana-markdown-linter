@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -132,18 +133,65 @@ def github_stable_version_from_payload(
     return max(releases)
 
 
+def latest_stable_version_from_tags(
+    target: StableVersion, remote: str
+) -> StableVersion | None:
+    subprocess.run(
+        ["git", "fetch", "--quiet", "--tags", remote],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    result = subprocess.run(
+        ["git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*"],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    )
+    versions: list[StableVersion] = []
+    for line in result.stdout.splitlines():
+        try:
+            version = StableVersion.parse(line)
+        except ValueError:
+            continue
+        if version < target:
+            versions.append(version)
+    if not versions:
+        return None
+    return max(versions)
+
+
 def latest_stable_version(target: StableVersion, args: argparse.Namespace) -> StableVersion | None:
     if args.latest_version:
         return StableVersion.parse(args.latest_version)
 
-    payload = github_release_payload(args)
+    try:
+        payload = github_release_payload(args)
+    except RuntimeError as error_from_api:
+        fallback = latest_stable_version_from_tags(target, args.remote)
+        if fallback is None:
+            raise error_from_api
+        print(
+            f"Fallback to local tags for release-line resolution: {fallback.tag()} "
+            "(GitHub release API unavailable).",
+            file=sys.stderr,
+        )
+        return fallback
     latest = github_stable_version_from_payload(payload, target)
     if latest is None:
         if args.github_releases_json:
             return None
-        raise RuntimeError(
-            "Could not resolve latest stable GitHub release; no stable payload was available"
+        fallback = latest_stable_version_from_tags(target, args.remote)
+        if fallback is None:
+            raise RuntimeError(
+                "Could not resolve latest stable GitHub release; no stable payload was available"
+            )
+        print(
+            f"Fallback to local tags for release-line resolution: {fallback.tag()} "
+            "(no stable GitHub payload).",
+            file=sys.stderr,
         )
+        return fallback
     if not args.github_releases_json:
         if (
             not isinstance(payload, list)
