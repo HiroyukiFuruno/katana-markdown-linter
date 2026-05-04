@@ -2,7 +2,8 @@
 set -euo pipefail
 
 VERSION_BARE="${1:?version is required}"
-PACKAGE="katana-markdown-linter-${VERSION_BARE}.crate"
+PACKAGE_VERSION="$(awk -F '"' '/^version = / { print $2; exit }' Cargo.toml)"
+PACKAGE="katana-markdown-linter-${PACKAGE_VERSION}.crate"
 PACKAGE_PATH="target/package/${PACKAGE}"
 CHECKSUM_PATH="${PACKAGE_PATH}.sha256"
 
