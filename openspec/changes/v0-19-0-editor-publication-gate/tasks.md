@@ -53,7 +53,7 @@
 
 ## Definition of Done（完了条件）
 
-- [ ] D1 5.0 の task0 を release-readiness の前提として実行し、`target/dogfood-report.json` と `tests/fixtures/dogfood-baseline.json` が証跡として残っていること
+- [ ] D1 5章の task0 を release-readiness の前提として実行し、`target/dogfood-report.json` と `tests/fixtures/dogfood-baseline.json` が証跡として残っていること
 - [ ] D2 `v0.18.7` 再公開不可・既存版検知・manual publish guard が design/spec/tasks の 3 本立てで矛盾なく表現されていること
 - [ ] D3 v0.18.x patch と v0.19.0 判定条件の紐づけが 1 箇所に集約され、`0.19` 進行ロジックで説明可能になっていること
 - [ ] D4 `release-check` / `release-verify` の結果により、v0.19.0 の Go / No-Go が再現可能であること
