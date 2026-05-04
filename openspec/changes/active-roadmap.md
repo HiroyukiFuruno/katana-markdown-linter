@@ -41,8 +41,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.18.0`: (released) config schema publication を product surface として固める。versioned schema URL、schema regression tests、editor validation docs を release gate に含める。
 - `v0.18.1`: (released) VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
-- `v0.18.3`: editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
-- `v0.18.4`: v0.18.4 では release gate 最終化（editor artifact state の明示）を行う。
+- `v0.18.3`: (released) editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
+- `v0.18.4`: (released) v0.18.4 では release gate 最終化（editor artifact state の明示）を行う。
 - `v0.18.5`: v0.18.5 では release verification hardening（partial publish fail-fast）を入れる。
 - `v0.18.6`: v0.18.6 では marketplace 公開の事前条件（account/publisher/package）と docs-only 方針を実装可レベルで固定する。
 - `v0.18.7`: `v0.18.7` 再公開不能事故を受け、`v0.18.x` は `check`/`fix`/`format` の実害解消 bugfix を優先。
@@ -56,7 +56,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | Completed for `v0.18.1`; thin VS Code extension wrapper launches `kml lsp` and associates published config schema. |
 | P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
 | Done | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | Completed for `v0.18.3`; docs/smoke test / release verification と Neovim docs-only 方針の土台を固めた。 |
-| P0 | Release gate finalization for `v0.18.4` | `v0-18-4-editor-release-gate-finalization` | `release-verify` で editor artifact の published/deferred を固定し、公開証跡を release gate へ結合する。 |
+| Done | Release gate finalization for `v0.18.4` | `v0-18-4-editor-release-gate-finalization` | `release-verify` で editor artifact の published/deferred を固定し、公開証跡を release gate へ結合する。 |
 | P0 | release verification hardening for `v0.18.5` | `v0-18-5-release-verification-hardening` | partial publish（GitHub Release 先行など）を fail-fast にし、workflow と release-check の分岐整合を固定する。 |
 | P1 | Publish preconditions for `v0.18.6` | `v0-18-6-editor-publication-prerequisites` | marketplace 前提条件（account / publisher / package）と docs-only 方針を実装可レベルへ整える。 |
 | P0 | Release safety policy for v0.18/v0.19 | `v0-19-0-editor-publication-gate` | `v0.18.7` 再公開不能事故を前提に、同一版再 publish 拒否・manual publish guard・`v0.19.0` の Go/No-Go を固定する。 |

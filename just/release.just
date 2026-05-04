@@ -53,6 +53,10 @@ pypi-package-check:
 wrapper-publish-gate:
     scripts/release/wrapper-publish-gate.sh
 
+# Verify editor extension publish flags stay deferred outside trusted publishing
+editor-publish-gate:
+    scripts/release/editor-publish-gate.sh
+
 # Run release-equivalent tests with all optional features
 release-test:
     cargo test --all-features --locked
@@ -75,7 +79,7 @@ release-recover: bad-version-required
     python3 scripts/release/recover-accidental-release.py --bad-version "{{BAD_VERSION}}" $replacement_arg --execute
 
 # Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
-release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate document-answer-fix public-confidence editor-extension-check
+release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check
     cargo publish --dry-run --locked --allow-dirty
     cargo install --path . --locked --force --root "${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
     "${TMPDIR:-/tmp}/kml-release-install-check/bin/kml" init-config --config "${TMPDIR:-/tmp}/kml-release-install-check/.markdownlint.json"

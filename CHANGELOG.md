@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.18.4
+
+- Finalizes the release gate for editor extensions by explicitly defining `published` and `deferred` states.
+- Integrates editor publication gates into `just release-check` and `just release-verify`.
+- Updates the release runbook with state interpretation and stop conditions for VS Code and Zed extensions.
+- Synchronizes project version to `v0.18.4` across all distribution channels.
+
 ## v0.18.3
 
 - Hardens editor extensions for VS Code and Zed with version compatibility checks.

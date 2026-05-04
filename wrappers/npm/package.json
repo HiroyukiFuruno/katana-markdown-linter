@@ -1,6 +1,6 @@
 {
   "name": "katana-markdown-linter",
-  "version": "0.18.3",
+  "version": "0.18.4",
   "description": "Fast Markdown linter and formatter with localized CLI help and version aliases.",
   "keywords": [
     "markdown",
