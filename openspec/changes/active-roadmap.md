@@ -42,6 +42,8 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.18.1`: (released) VS Code extension MVP を進める。`kml lsp` と config schema を共有エンジンにし、VS Code 側は薄い起動ラッパー（thin wrapper）として diagnostics / format / safe quick-fix を公開する。
 - `v0.18.2`: Zed extension MVP を進める。VS Code extension の実装判断を再利用しつつ、Zed の language server extension 境界で `kml lsp` を起動できることを小さく検証する。
 - `v0.18.3`: editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
+- `v0.18.6`: `v0.18.7` 再公開不能事故を受け、`v0.18.x` は `check`/`fix`/`format` の実害解消 bugfix を優先。
+- `v0.19.0`: VS Code と Zed marketplace の公開実行を同時に入れる場合のみ minor bump。
 - `v0.17.7`: `check --fix --unsafe --yes` の既存挙動を CLI help と README で発見できるようにし、unsafe fix opt-in の契約を回帰テストで固定する。
 
 | Priority | Work Area | Change | Why Now |
@@ -51,6 +53,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | VS Code extension MVP for `v0.18.1` | `v0-18-1-vscode-extension-mvp` | Completed for `v0.18.1`; thin VS Code extension wrapper launches `kml lsp` and associates published config schema. |
 | P2 | Zed extension MVP for `v0.18.2` | `v0-18-2-zed-extension-mvp` | Zed is the second target. Keep it behind VS Code so the shared `kml lsp` contract is already stable, then validate only the Zed-specific extension boundary and installation flow. |
 | P2 | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | After both target editors have MVPs, harden install docs, smoke tests, release verification, marketplace packaging, and optional docs-only Neovim configuration without expanding the core engine. |
+| P0 | Release safety policy for v0.18/v0.19 | `v0-19-0-editor-publication-gate` | `v0.18.7` 再公開不能事故を前提に、同一版再 publish 拒否・manual publish guard・`v0.19.0` の Go/No-Go を固定する。 |
 | P0 | CLI unsafe fix help for `v0.17.7` | `v0-17-7-cli-unsafe-fix-help` | `check --fix --unsafe --yes` already works but was not discoverable from `kml check --help`; release this help contract fix before further schema/editor work. |
 | P2 | Release verification hardening | TBD: `release-verification-hardening` | `v0.17.0` exposed that external registry verification is broader than GitHub Release + crates.io. Add npm, PyPI, wrapper launch, and tap formula checks to the post-release verification path before the next distribution release. |
 | Done | Golden and edge coverage for `v0.4.0` | `golden-edge-coverage-expansion` | Completed for `v0.4.0`; dashboard now derives golden status from the locked baseline and records edge coverage. |
@@ -144,7 +147,8 @@ Archived completed changes:
 3. `v0-18-1-vscode-extension-mvp`: build the first thin editor wrapper on the stable schema and existing LSP entrypoint.
 4. `v0-18-2-zed-extension-mvp`: reuse the shared LSP contract and validate the Zed-specific extension boundary.
 5. `v0-18-3-editor-extension-hardening`: harden docs, smoke tests, release checks, and packaging after both target editor MVPs exist.
-6. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Justfile`, and release docs.
+6. `v0-19-0-editor-publication-gate`: lock the release policy (`v0.18.7` の再公開不能事故の扱い、`v0.19.0` Go/No-Go 条件) before minor bump.
+7. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Justfile`, and release docs.
 
 ## Deferred Until v0.12.8 Stable Acceptance
 
