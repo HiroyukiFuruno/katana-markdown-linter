@@ -47,6 +47,7 @@ For binary distribution changes, the release check includes:
 - `just npm-publish-target-check`
 - `just pypi-package-check`
 - `just wrapper-publish-gate`
+- `just editor-publish-gate`
 
 If validating upstream drift locally, clone upstream docs and run:
 
@@ -218,6 +219,18 @@ Use these trusted publisher settings:
 | --- | --- | --- | --- | --- | --- |
 | npm | `katana-markdown-linter` | `HiroyukiFuruno` | `katana-markdown-linter` | `release.yml` | Leave empty unless npm is configured with a GitHub environment |
 | PyPI | `katana-markdown-linter` | `HiroyukiFuruno` | `katana-markdown-linter` | `release.yml` | `pypi` |
+
+## Editor Extension Publication
+
+Editor extensions for VS Code and Zed are thin wrappers around `kml linter`. They follow the same versioning as the core linter but may have independent publication schedules.
+
+Keep these conditions true before publishing an editor extension:
+
+- `just editor-extension-check` passes for both `editors/vscode` and `editors/zed`.
+- `just editor-publish-gate` confirms whether publication is enabled or deferred. Local checks always defer publication.
+- Release verification (`just release-verify`) reports `published` or `deferred` status based on `PUBLISH_VSCODE_EXTENSION` and `PUBLISH_ZED_EXTENSION` flags.
+
+If an extension publication is deferred, it will not block the core linter release. However, once enabled, publication must succeed before the release can be considered complete.
 
 The PyPI project name must match `wrappers/python/pyproject.toml`. Change the
 wrapper metadata first if the package name is changed before publication.

@@ -150,6 +150,35 @@ smoke_pypi_wrapper() {
   fi
 }
 
+verify_vscode_extension() {
+  if [[ "${PUBLISH_VSCODE_EXTENSION:-false}" == "true" ]]; then
+    # Check VS Code Marketplace availability
+    if curl -sSfL "https://marketplace.visualstudio.com/items?itemName=HiroyukiFuruno.vscode-katana-markdown-linter" > /dev/null 2>&1; then
+      echo "vscode_extension_status=published"
+    else
+      echo "VS Code extension publication check failed: extension not found in marketplace." >&2
+      exit 1
+    fi
+  else
+    echo "vscode_extension_status=deferred"
+  fi
+}
+
+verify_zed_extension() {
+  if [[ "${PUBLISH_ZED_EXTENSION:-false}" == "true" ]]; then
+    # Check Zed Extension Registry availability
+    # Note: Zed extension registry URL pattern is based on current zed ecosystem
+    if curl -sSfL "https://extensions.zed.dev/extensions/katana-markdown-linter" > /dev/null 2>&1; then
+       echo "zed_extension_status=published"
+    else
+      echo "Zed extension publication check failed: extension not found in registry." >&2
+      exit 1
+    fi
+  else
+    echo "zed_extension_status=deferred"
+  fi
+}
+
 verify_homebrew_formula() {
   formula_dist_dir="${TMP_ROOT}/homebrew-assets"
   formula_path="${VERIFY_OUTPUT_DIR}/homebrew/kml.rb"
@@ -231,6 +260,8 @@ verify_npm_registry
 verify_pypi_registry
 smoke_npm_wrapper
 smoke_pypi_wrapper
+verify_vscode_extension
+verify_zed_extension
 verify_homebrew_formula
 
 echo "tag_target=${local_target}"

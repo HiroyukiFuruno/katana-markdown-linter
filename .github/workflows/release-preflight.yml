@@ -102,6 +102,9 @@ jobs:
       - name: Wrapper publish gate
         run: just wrapper-publish-gate
 
+      - name: Editor publish gate
+        run: just editor-publish-gate
+
       - name: Dogfood
         run: just dogfood
 
