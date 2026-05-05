@@ -2,7 +2,7 @@
 
 ## Definition of Ready
 
-- [ ] 0.1 `v0.18.5` の verification hardening が完了している
+- [x] 0.1 `v0.18.5` の verification hardening が完了している
 
 ## v0.18.6 Execution Readiness
 
@@ -24,4 +24,4 @@
 | 動作整合性 | 40 | 40 | 公開ゲートのメタデータ検証が正常に動作することを確認済み。 |
 | 文書整合性 | 30 | 30 | runbook, roadmap, integration docs の一貫性を確保。 |
 | リリース安全性 | 30 | 30 | 条件未達時の停止（fail-fast）を実装。 |
-| **合計** | **100** | **100** | |
+| 合計 | 100 | 100 | |

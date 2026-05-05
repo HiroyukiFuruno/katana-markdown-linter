@@ -2,7 +2,7 @@
   "name": "vscode-katana-markdown-linter",
   "displayName": "KatanA Markdown Linter",
   "description": "VS Code extension for KatanA Markdown Linter (kml)",
-  "version": "0.18.5",
+  "version": "0.18.6",
   "publisher": "HiroyukiFuruno",
   "engines": {
     "vscode": "^1.75.0"

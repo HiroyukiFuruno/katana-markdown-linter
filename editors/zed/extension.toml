@@ -1,6 +1,6 @@
 id = "katana-markdown-linter"
 name = "KatanA Markdown Linter"
-version = "0.18.5"
+version = "0.18.6"
 schema_version = 1
 authors = ["Hiroyuki Furuno <hfuruno0114@gmail.com>"]
 description = "Fast Markdown linter and formatter (kml)"

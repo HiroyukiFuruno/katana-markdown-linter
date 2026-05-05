@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.18.6
+
+- Adds fail-fast publication checks for VS Code and Zed extension marketplace prerequisites.
+- Clarifies the editor publication runbook so missing account, publisher, or package setup stops the release before publish attempts.
+- Documents Neovim as a docs-only integration path rather than a marketplace-published package.
+- Synchronizes project version to `v0.18.6` across CLI, wrappers, MCP, and editor extensions.
+
 ## v0.18.5
 
 - Hardens the release verification process by ensuring that partial publish states (e.g., GitHub Release exists but crates.io publish failed) are treated as explicit failures.

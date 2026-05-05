@@ -44,7 +44,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.18.3`: (released) editor extension hardening を進める。VS Code / Zed の install docs、smoke tests、release verification、将来の Neovim docs-only sample をまとめて整える。
 - `v0.18.4`: (released) v0.18.4 では release gate 最終化（editor artifact state の明示）を行う。
 - `v0.18.5`: (released) v0.18.5 では release verification hardening（partial publish fail-fast）を入れる。
-- `v0.18.6`: v0.18.6 では marketplace 公開の事前条件（account/publisher/package）と docs-only 方針を実装可レベルで固定する。
+- `v0.18.6`: (released) v0.18.6 では marketplace 公開の事前条件（account/publisher/package）と docs-only 方針を実装可レベルで固定した。
 - `v0.18.7`: `v0.18.7` 再公開不能事故を受け、`v0.18.x` は `check`/`fix`/`format` の実害解消 bugfix を優先。
 - `v0.19.0`: VS Code と Zed marketplace の公開実行を同時に入れる場合のみ minor bump。
 - `v0.17.7`: `check --fix --unsafe --yes` の既存挙動を CLI help と README で発見できるようにし、unsafe fix opt-in の契約を回帰テストで固定する。
@@ -58,7 +58,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Editor extension hardening for `v0.18.3` | `v0-18-3-editor-extension-hardening` | Completed for `v0.18.3`; docs/smoke test / release verification と Neovim docs-only 方針の土台を固めた。 |
 | Done | Release gate finalization for `v0.18.4` | `v0-18-4-editor-release-gate-finalization` | `release-verify` で editor artifact の published/deferred を固定し、公開証跡を release gate へ結合する。 |
 | Done | release verification hardening for `v0.18.5` | `v0-18-5-release-verification-hardening` | partial publish（GitHub Release 先行など）を fail-fast にし、workflow と release-check の分岐整合を固定する。 |
-| P1 | Publish preconditions for `v0.18.6` | `v0-18-6-editor-publication-prerequisites` | marketplace 前提条件（account / publisher / package）と docs-only 方針を実装可レベルへ整える。 |
+| Done | Publish preconditions for `v0.18.6` | `archive/2026-05-05-v0-18-6-editor-publication-prerequisites` | Completed for `v0.18.6`; marketplace 前提条件（account / publisher / package）と docs-only 方針を実装可レベルへ整えた。 |
 | P0 | Release safety policy for v0.18/v0.19 | `v0-19-0-editor-publication-gate` | `v0.18.7` 再公開不能事故を前提に、同一版再 publish 拒否・manual publish guard・`v0.19.0` の Go/No-Go を固定する。 |
 | P0 | CLI unsafe fix help for `v0.17.7` | `v0-17-7-cli-unsafe-fix-help` | `check --fix --unsafe --yes` already works but was not discoverable from `kml check --help`; release this help contract fix before further schema/editor work. |
 | P2 | Release verification hardening | TBD: `release-verification-hardening` | `v0.17.0` exposed that external registry verification is broader than GitHub Release + crates.io. Add npm, PyPI, wrapper launch, and tap formula checks to the post-release verification path before the next distribution release. |
@@ -146,6 +146,7 @@ Archived completed changes:
 - `v0-18-0-schema-publication` -> `openspec/changes/archive/2026-05-02-v0-18-0-schema-publication`
 - `v0-18-1-vscode-extension-mvp` -> `openspec/changes/archive/2026-05-03-v0-18-1-vscode-extension-mvp`
 - `v0-18-2-zed-extension-mvp` -> `openspec/changes/archive/2026-05-03-v0-18-2-zed-extension-mvp`
+- `v0-18-6-editor-publication-prerequisites` -> `openspec/changes/archive/2026-05-05-v0-18-6-editor-publication-prerequisites`
 
 ## Suggested Order
 

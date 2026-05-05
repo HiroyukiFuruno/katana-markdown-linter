@@ -22,6 +22,8 @@ if [[ "$VERSION_BARE" != "$CARGO_VERSION" && "$VERSION_BARE" != "$CARGO_VERSION-
   exit 1
 fi
 
+python3 scripts/release/verify-version-sync.py --version "$CARGO_VERSION"
+
 echo "Release version: ${VERSION}"
 
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
