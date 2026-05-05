@@ -41,11 +41,13 @@ verify_github_release() {
   release_title="$(gh release view "${TAG}" --repo "${REPO}" --json name --jq '.name')"
   release_target="$(gh release view "${TAG}" --repo "${REPO}" --json targetCommitish --jq '.targetCommitish')"
   release_draft="$(gh release view "${TAG}" --repo "${REPO}" --json isDraft --jq '.isDraft')"
+  release_prerelease="$(gh release view "${TAG}" --repo "${REPO}" --json isPrerelease --jq '.isPrerelease')"
   release_url="$(gh release view "${TAG}" --repo "${REPO}" --json url --jq '.url')"
 
   assert_equal "GitHub Release tag" "${TAG}" "${release_tag}"
   assert_equal "GitHub Release title" "${TAG}" "${release_title}"
   assert_equal "GitHub Release draft state" "false" "${release_draft}"
+  assert_equal "GitHub Release prerelease state" "false" "${release_prerelease}"
 
   if [[ "${release_target}" != "${local_target}" ]]; then
     echo "${TAG} GitHub Release target differs from the local tag target." >&2
@@ -246,12 +248,35 @@ PY
   fi
 }
 
+verify_consistency_with_state() {
+  state_path="target/release-verify-state.json"
+  if [[ ! -f "${state_path}" ]]; then
+    echo "Verification state file missing: ${state_path}" >&2
+    exit 1
+  fi
+
+  expected_version="$(python3 -c "import json; print(json.load(open('${state_path}'))['version'])")"
+  if [[ "${TAG}" != "${expected_version}" ]]; then
+    echo "Verification drift detected: expected version ${expected_version} from state, but verifying ${TAG}." >&2
+    exit 1
+  fi
+
+  release_decision="$(python3 -c "import json; print(json.load(open('${state_path}'))['release_decision'])")"
+  if [[ "${release_decision}" != "allow_release" ]]; then
+    echo "Verification state indicates blockers: ${release_decision}" >&2
+    python3 -c "import json; print('\n'.join(json.load(open('${state_path}'))['publish_blockers']))" >&2
+    exit 1
+  fi
+  echo "Consistency check passed with ${state_path}"
+}
+
 require_command gh
 require_command cargo
 require_command python3
 trap cleanup EXIT
 TMP_ROOT="$(mktemp -d)"
 
+verify_consistency_with_state
 verify_github_release
 verify_binary_assets
 smoke_current_platform_binary

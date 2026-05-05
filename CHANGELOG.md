@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.18.5
+
+- Hardens the release verification process by ensuring that partial publish states (e.g., GitHub Release exists but crates.io publish failed) are treated as explicit failures.
+- Introduces `homebrew-publish-gate` to prevent accidental Homebrew formula updates outside of trusted CI environments.
+- Unifies judgment keys for release checks and verification to ensure consistency across the release lifecycle.
+- Synchronizes project version to `v0.18.5` across CLI, wrappers, MCP, and editor extensions.
+
 ## v0.18.4
 
 - Finalizes the release gate for editor extensions by explicitly defining `published` and `deferred` states.

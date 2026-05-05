@@ -90,6 +90,9 @@ jobs:
       - name: Homebrew formula check
         run: just homebrew-formula-check
 
+      - name: Partial publish simulation
+        run: just release-partial-publish-test
+
       - name: Wrapper smoke
         run: just wrapper-smoke
 
@@ -101,6 +104,9 @@ jobs:
 
       - name: Wrapper publish gate
         run: just wrapper-publish-gate
+
+      - name: Homebrew publish gate
+        run: just homebrew-publish-gate
 
       - name: Editor publish gate
         run: just editor-publish-gate
