@@ -248,12 +248,36 @@ PY
   fi
 }
 
+verify_consistency_with_state() {
+  state_path="target/release-verify-state.json"
+  if [[ ! -f "${state_path}" ]]; then
+    echo "Verification state file missing: ${state_path}" >&2
+    # Not failing here as verify-published might run independently, but it's a warning
+    return 0
+  fi
+
+  expected_version="$(python3 -c "import json; print(json.load(open('${state_path}'))['version'])")"
+  if [[ "${TAG}" != "${expected_version}" ]]; then
+    echo "Verification drift detected: expected version ${expected_version} from state, but verifying ${TAG}." >&2
+    exit 1
+  fi
+
+  release_decision="$(python3 -c "import json; print(json.load(open('${state_path}'))['release_decision'])")"
+  if [[ "${release_decision}" != "allow_release" ]]; then
+    echo "Verification state indicates blockers: ${release_decision}" >&2
+    python3 -c "import json; print('\n'.join(json.load(open('${state_path}'))['publish_blockers']))" >&2
+    exit 1
+  fi
+  echo "Consistency check passed with ${state_path}"
+}
+
 require_command gh
 require_command cargo
 require_command python3
 trap cleanup EXIT
 TMP_ROOT="$(mktemp -d)"
 
+verify_consistency_with_state
 verify_github_release
 verify_binary_assets
 smoke_current_platform_binary

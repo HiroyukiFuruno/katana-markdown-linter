@@ -255,15 +255,42 @@ def verify(target: StableVersion, latest: StableVersion | None) -> int:
     return fail(f"{target.tag()} skips over latest stable release {latest.tag()}.")
 
 
+def write_verification_state(target: StableVersion, blockers: list[str]) -> None:
+    state_path = Path("target/release-verify-state.json")
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Simplified mock for editor artifacts state as they are checked by separate scripts
+    # In a full implementation, we might collect these from the environment or specific check results.
+    state = {
+        "version": target.tag(),
+        "editor_artifacts": {
+            "vscode": {"state": os.environ.get("PUBLISH_VSCODE_EXTENSION", "deferred")},
+            "zed": {"state": os.environ.get("PUBLISH_ZED_EXTENSION", "deferred")},
+        },
+        "publish_blockers": blockers,
+        "release_decision": "allow_release" if not blockers else "stop_release",
+    }
+    state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    print(f"Verification state written to {state_path}")
+
+
 def main() -> int:
     args = parse_args()
+    blockers = []
     try:
         target = StableVersion.parse(args.target_version)
         latest = latest_stable_version(target, args)
+        result = verify(target, latest)
+        if result != 0:
+            blockers.append(f"Release target sanity check failed for {target.tag()}")
     except (RuntimeError, ValueError) as error:
         print(f"Release target sanity check failed: {error}", file=sys.stderr)
-        return 1
-    return verify(target, latest)
+        target = StableVersion(0, 0, 0)  # Dummy for state write
+        blockers.append(str(error))
+        result = 1
+
+    write_verification_state(target, blockers)
+    return result
 
 
 if __name__ == "__main__":

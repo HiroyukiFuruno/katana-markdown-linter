@@ -131,6 +131,10 @@ release-tag:
     git push origin "refs/tags/{{TAG}}"
     scripts/release/verify-tag-verified.sh "{{TAG}}" "{{RELEASE_REPO}}"
 
+# Run partial publish simulation tests
+release-partial-publish-test:
+    scripts/release/test-partial-publish.sh "{{VERSION_BARE}}"
+
 # Verify tag, GitHub Release, and crates.io state after publication
 release-verify:
     scripts/release/verify-version.sh "{{VERSION}}"
