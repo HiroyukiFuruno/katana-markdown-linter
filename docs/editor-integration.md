@@ -151,6 +151,8 @@ Note: Remember to regenerate the local schema file after upgrading `kml`.
 
 ## Neovim
 
+**Note:** Neovim support is provided as a **docs-only sample**. There is no official Neovim plugin; instead, we recommend using the built-in LSP client with the configuration below.
+
 Use Neovim's built-in LSP client when `kml` is installed on `PATH`:
 
 ~~~lua

@@ -227,11 +227,24 @@ Use these trusted publisher settings:
 
 Editor extensions for VS Code and Zed are thin wrappers around `kml linter`. They follow the same versioning as the core linter but may have independent publication schedules.
 
+### Marketplace Prerequisites
+
+When publication is enabled, the following metadata must be exactly as specified:
+
+| Editor | Field | Expected Value |
+| --- | --- | --- |
+| VS Code | `publisher` | `HiroyukiFuruno` |
+| VS Code | `name` | `vscode-katana-markdown-linter` |
+| Zed | `id` | `katana-markdown-linter` |
+| Zed | `authors` | Must contain `Hiroyuki Furuno` |
+
 Keep these conditions true before publishing an editor extension:
 
 - `just editor-extension-check` passes for both `editors/vscode` and `editors/zed`.
-- `just editor-publish-gate` confirms whether publication is enabled or deferred. Local checks always defer publication.
+- `just editor-publish-gate` confirms whether publication is enabled or deferred and verifies the above metadata. Local checks always defer publication.
 - Release verification (`just release-verify`) reports `published` or `deferred` status based on `PUBLISH_VSCODE_EXTENSION` and `PUBLISH_ZED_EXTENSION` flags.
+
+**Stop Route:** If any of the above prerequisites are not met when publication is enabled, the release process will exit with an error. Fix the metadata or disable publication before proceeding.
 
 If an extension publication is deferred, it will not block the core linter release. However, once enabled, publication must succeed before the release can be considered complete.
 

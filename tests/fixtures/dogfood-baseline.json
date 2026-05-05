@@ -1,20 +1,13 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail just dogfood.",
-  "total_diagnostics": 4,
+  "total_diagnostics": 3,
   "diagnostics": [
     {
-      "path": "openspec/changes/v0-18-4-editor-release-gate-finalization/specs/editor-release-gate/spec.md",
-      "rule_id": "MD001",
-      "message": "Heading levels should only increment by one level at a time [Expected: h2, Actual: h3]",
-      "line_text": "### Requirement: release-verify SHALL output editor artifact state",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-18-5-release-verification-hardening/specs/release-verification-hardening/spec.md",
-      "rule_id": "MD001",
-      "message": "Heading levels should only increment by one level at a time [Expected: h2, Actual: h3]",
-      "line_text": "### Requirement: partial publish SHALL be fail-fast",
+      "path": "docs/editor-integration.md",
+      "rule_id": "MD037",
+      "message": "Spaces inside emphasis markers",
+      "line_text": "**Note:** Neovim support is provided as a **docs-only sample**. There is no official Neovim plugin; instead, we recommend using the built-in LSP client with the configuration below.",
       "count": 1
     },
     {
