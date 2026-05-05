@@ -268,8 +268,13 @@ def write_verification_state(target: StableVersion, blockers: list[str]) -> None
             "zed": {"state": os.environ.get("PUBLISH_ZED_EXTENSION", "deferred")},
         },
         "publish_blockers": blockers,
-        "release_decision": "allow_release" if not blockers else "stop_release",
     }
+    allowed_editor_states = {"deferred", "published"}
+    editor_ok = all(
+        s["state"] in allowed_editor_states
+        for s in state["editor_artifacts"].values()
+    )
+    state["release_decision"] = "allow_release" if not blockers and editor_ok else "stop_release"
     state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
     print(f"Verification state written to {state_path}")
 

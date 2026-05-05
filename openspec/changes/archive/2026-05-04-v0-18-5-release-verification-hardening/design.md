@@ -30,3 +30,8 @@ GitHub Release だけ先行し、他の公開経路が未完了なケースは�
 ### D-3 one source of truth
 
 上記条件の評価は共通 script と同一チェックキーから取る。
+
+### D-4 v0.18.5 における制約
+
+v0.18.5 では共通 state ファイルの骨格を実装し、版管理（version）と基本的な editor 状態の検証を先行させる。
+external registry / wrapper / Homebrew のゲート失敗を自動的に state.publish_blockers に集約する完全実装は v0.18.6 以降の課題とする。

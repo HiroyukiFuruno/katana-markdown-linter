@@ -24,3 +24,8 @@
 | テスト網羅性 | 9 |
 | ドキュメント | 9 |
 | **合計** | **27** |
+
+## v0.18.6 への引き継ぎ事項
+
+- [ ] editor-publish-gate / wrapper-publish-gate / homebrew-publish-gate の判定結果を state.json に集約する
+- [ ] verify-release-published.sh の各 assertion ごとに独立したテストケースを整備する

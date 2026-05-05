@@ -252,8 +252,7 @@ verify_consistency_with_state() {
   state_path="target/release-verify-state.json"
   if [[ ! -f "${state_path}" ]]; then
     echo "Verification state file missing: ${state_path}" >&2
-    # Not failing here as verify-published might run independently, but it's a warning
-    return 0
+    exit 1
   fi
 
   expected_version="$(python3 -c "import json; print(json.load(open('${state_path}'))['version'])")"

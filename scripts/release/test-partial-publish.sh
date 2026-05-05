@@ -27,22 +27,21 @@ if [[ "\$1" == "release" && "\$2" == "view" ]]; then
     is_prerelease="true"
   fi
 
-  # Respond based on requested fields
-  json_args=""
-  for arg in "\$@"; do
-    if [[ "\$arg" == "--json" ]]; then json_args="true"; fi
+  field=""
+  # Improved argument parsing
+  while [[ \$# -gt 0 ]]; do
+    case "\$1" in
+      --jq)
+        field="\$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
   done
 
-  if [[ -n "\$json_args" ]]; then
-    # Very simple field extractor for mock
-    field=""
-    for i in "\${!@}"; do
-      if [[ "\${!i}" == "--jq" ]]; then
-        next_idx=\$((i+1))
-        field="\${!next_idx}"
-      fi
-    done
-
+  if [[ -n "\$field" ]]; then
     case "\$field" in
       ".tagName") echo "$TAG" ;;
       ".name") echo "$TAG" ;;
@@ -51,10 +50,12 @@ if [[ "\$1" == "release" && "\$2" == "view" ]]; then
       ".isPrerelease") echo "\$is_prerelease" ;;
       ".url") echo "https://github.com/mock" ;;
       ".assets[].name") echo "kml-$TAG-x86_64-unknown-linux-gnu.tar.gz" ;;
-      *) echo '{"tagName":"$TAG", "name":"$TAG", "isDraft":false, "isPrerelease":'\$is_prerelease'}' ;;
+      *) echo "unknown field \$field" >&2; exit 1 ;;
     esac
     exit 0
   fi
+  # If no --jq, return a JSON object (though verify-release-published.sh always uses --jq)
+  echo '{"tagName":"$TAG", "name":"$TAG", "isDraft":false, "isPrerelease":'\$is_prerelease'}'
 fi
 exit 0
 MOCK
@@ -75,7 +76,7 @@ chmod +x "${TMP_MOCK_ROOT}/bin/cargo"
 touch "${TMP_MOCK_ROOT}/bin/npm" "${TMP_MOCK_ROOT}/bin/python3" "${TMP_MOCK_ROOT}/bin/uvx" "${TMP_MOCK_ROOT}/bin/npx"
 chmod +x "${TMP_MOCK_ROOT}/bin/npm" "${TMP_MOCK_ROOT}/bin/python3" "${TMP_MOCK_ROOT}/bin/uvx" "${TMP_MOCK_ROOT}/bin/npx"
 
-# Ensure we have a valid state file for consistency check or skip it
+# Ensure we have a valid state file for consistency check
 mkdir -p target
 cat << EOF > target/release-verify-state.json
 {
