@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.19.0
+
+- Implements project-specific configuration awareness in the LSP server.
+- Resolves `.markdownlint.json` and `.markdownlint.jsonc` based on the open document's path.
+- Triggers automatic re-diagnosis for all open documents when configuration files are saved.
+- Ensures only safe quick fixes are presented in editor code actions.
+- Synchronizes project version to `v0.19.0` across all components.
+
 ## v0.18.6
 
 - Adds fail-fast publication checks for VS Code and Zed extension marketplace prerequisites.

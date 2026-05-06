@@ -39,7 +39,7 @@ export function isCompatible(version: string): boolean {
     const major = Number.parseInt(parts[0], 10);
     const minor = Number.parseInt(parts[1], 10);
 
-    return major === 0 && minor === 18;
+    return major === 0 && minor === 19;
 }
 
 export async function activate(_context: vscode.ExtensionContext) {
@@ -61,7 +61,7 @@ export async function activate(_context: vscode.ExtensionContext) {
         outputChannel.appendLine(`Found kml version: ${version}`);
         if (!isCompatible(version)) {
             vscode.window.showWarningMessage(
-                `KatanA Markdown Linter version ${version} might be incompatible with this extension. Expected ^0.18.0.`,
+                `KatanA Markdown Linter version ${version} might be incompatible with this extension. Expected ^0.19.0.`,
                 'Open Settings'
             ).then(selection => {
                 if (selection === 'Open Settings') {

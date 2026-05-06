@@ -2,10 +2,8 @@ use super::super::args::Cli;
 use super::super::reporter::{
     output_report, plural, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
-use super::common::{
-    apply_fixes_until_stable, load_effective_config, load_effective_config_with_source,
-    FixedContent, UnsafeFixPolicy,
-};
+use super::common::{apply_fixes_until_stable, FixedContent, UnsafeFixPolicy};
+use crate::config::{load_effective_config, load_effective_config_with_source};
 use crate::i18n::Locale;
 use crate::{lint, lint_for_path, FixSafety};
 use std::collections::HashSet;

@@ -15,7 +15,7 @@ fn extract_kml_version(raw_version: &str) -> Option<(u8, u8)> {
 }
 
 fn is_compatible_kml_version(raw_version: &str) -> bool {
-    matches!(extract_kml_version(raw_version), Some((0, 18)))
+    matches!(extract_kml_version(raw_version), Some((0, 19)))
 }
 
 struct KatanaMarkdownLinterExtension;

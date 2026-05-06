@@ -31,6 +31,14 @@ pub struct FormatResult {
 /// The formatter intentionally uses a narrow layout-only policy. It normalizes line endings and
 /// then applies safe fixes for the formatter rule subset; it does not apply semantic/style rewrites.
 pub fn format_markdown(content: &str, options: &FormatOptions) -> Result<FormatResult, Error> {
+    format_markdown_with_lint_options(content, options, &layout_lint_options())
+}
+
+pub fn format_markdown_with_lint_options(
+    content: &str,
+    options: &FormatOptions,
+    lint_options: &LintOptions,
+) -> Result<FormatResult, Error> {
     let mut content = content.to_string();
     let mut applied_operations = 0;
     let normalized = normalize_line_endings(&content);
@@ -44,10 +52,9 @@ pub fn format_markdown(content: &str, options: &FormatOptions) -> Result<FormatR
         content = terminal_normalized;
     }
 
-    let lint_options = layout_lint_options();
     let max_passes = options.max_passes.max(1);
     for _ in 0..max_passes {
-        let diagnostics = lint(&content, &lint_options)?;
+        let diagnostics = lint(&content, lint_options)?;
         if !diagnostics
             .iter()
             .any(|diagnostic| diagnostic.fix.is_some())
@@ -77,22 +84,31 @@ pub fn format_markdown(content: &str, options: &FormatOptions) -> Result<FormatR
 }
 
 pub fn layout_lint_options() -> LintOptions {
+    layout_lint_options_from(&LintOptions::default())
+}
+
+pub fn layout_lint_options_from(base: &LintOptions) -> LintOptions {
     let layout_rules = LAYOUT_RULES.into_iter().collect::<HashSet<_>>();
-    LintOptions {
-        default_severity: crate::Severity::Warning,
-        rules: crate::rules::markdown::MarkdownLinterOps::official_rules()
-            .iter()
-            .map(|rule_id| {
-                (
-                    rule_id.id().to_string(),
-                    RuleConfig {
-                        enabled: layout_rules.contains(rule_id.id()),
-                        properties: HashMap::new(),
-                    },
-                )
-            })
-            .collect(),
+    let mut options = base.clone();
+    options.default_severity = crate::Severity::Warning;
+
+    // Ensure only layout rules are enabled, and keep their configured properties
+    let mut rules = HashMap::new();
+    for rule in crate::rules::markdown::MarkdownLinterOps::official_rules() {
+        let id = rule.id();
+        let is_layout = layout_rules.contains(id);
+        let config = options.rules.get(id);
+
+        rules.insert(
+            id.to_string(),
+            RuleConfig {
+                enabled: is_layout && config.map(|c| c.enabled).unwrap_or(true),
+                properties: config.map(|c| c.properties.clone()).unwrap_or_default(),
+            },
+        );
     }
+    options.rules = rules;
+    options
 }
 
 fn normalize_line_endings(content: &str) -> String {

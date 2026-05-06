@@ -1,11 +1,15 @@
 use super::range::SelectedLineRange;
-use crate::{format_markdown, lint_for_path, FixSafety, FormatOptions, LintOptions, LintResult};
+use super::uri_path;
+use crate::{lint_for_path, FixSafety, FormatOptions, LintOptions, LintResult};
 use serde_json::{json, Value};
-use std::path::{Path, PathBuf};
 
-pub(crate) fn diagnostics(uri: &str, content: &str) -> Result<Value, String> {
+pub(crate) fn diagnostics(
+    uri: &str,
+    content: &str,
+    options: &LintOptions,
+) -> Result<Value, String> {
     let path = uri_path(uri);
-    let diagnostics = lint_for_path(&path, content, &LintOptions::default())
+    let diagnostics = lint_for_path(&path, content, options)
         .map_err(|err| err.to_string())?
         .into_iter()
         .map(lsp_diagnostic)
@@ -13,10 +17,17 @@ pub(crate) fn diagnostics(uri: &str, content: &str) -> Result<Value, String> {
     Ok(json!({ "uri": uri, "diagnostics": diagnostics }))
 }
 
-pub(crate) fn formatting_edits(content: &str) -> Result<Value, String> {
-    let formatted = format_markdown(content, &FormatOptions::default())
-        .map_err(|err| err.to_string())?
-        .content;
+pub(crate) fn formatting_edits_with_options(
+    content: &str,
+    options: &FormatOptions,
+    lint_options: &LintOptions,
+) -> Result<Value, String> {
+    // Use customized format logic that respects lint_options for layout rules
+    let formatted =
+        crate::formatter::format_markdown_with_lint_options(content, options, lint_options)
+            .map_err(|err| err.to_string())?
+            .content;
+
     if formatted == content {
         return Ok(json!([]));
     }
@@ -26,14 +37,20 @@ pub(crate) fn formatting_edits(content: &str) -> Result<Value, String> {
     }]))
 }
 
-pub(crate) fn range_formatting_edits(content: &str, range: &Value) -> Result<Value, String> {
+pub(crate) fn range_formatting_edits_with_options(
+    content: &str,
+    range: &Value,
+    options: &FormatOptions,
+    lint_options: &LintOptions,
+) -> Result<Value, String> {
     let Some(selection) = SelectedLineRange::from_lsp_range(content, range) else {
         return Ok(json!([]));
     };
     let selected = &content[selection.start_offset..selection.end_offset];
-    let formatted = format_markdown(selected, &FormatOptions::default())
-        .map_err(|err| err.to_string())?
-        .content;
+    let formatted =
+        crate::formatter::format_markdown_with_lint_options(selected, options, lint_options)
+            .map_err(|err| err.to_string())?
+            .content;
     if formatted == selected {
         return Ok(json!([]));
     }
@@ -43,10 +60,13 @@ pub(crate) fn range_formatting_edits(content: &str, range: &Value) -> Result<Val
     }]))
 }
 
-pub(crate) fn code_actions(uri: &str, content: &str) -> Result<Value, String> {
+pub(crate) fn code_actions(
+    uri: &str,
+    content: &str,
+    options: &LintOptions,
+) -> Result<Value, String> {
     let path = uri_path(uri);
-    let diagnostics =
-        lint_for_path(&path, content, &LintOptions::default()).map_err(|err| err.to_string())?;
+    let diagnostics = lint_for_path(&path, content, options).map_err(|err| err.to_string())?;
     let actions = diagnostics
         .iter()
         .filter_map(|diagnostic| code_action(uri, diagnostic))
@@ -136,11 +156,4 @@ fn end_position(content: &str) -> (usize, usize) {
         }
     }
     (line, character)
-}
-
-fn uri_path(uri: &str) -> PathBuf {
-    uri.strip_prefix("file://")
-        .map(Path::new)
-        .unwrap_or_else(|| Path::new(uri))
-        .to_path_buf()
 }

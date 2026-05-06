@@ -416,7 +416,6 @@ impl MarkdownLinterOps {
             Box::new(RuleMD001),
             Box::new(RuleMD003),
             Box::new(RuleMD004),
-            Box::new(RuleMD007),
             Box::new(RuleMD011),
             Box::new(RuleMD012),
             Box::new(RuleMD013),
