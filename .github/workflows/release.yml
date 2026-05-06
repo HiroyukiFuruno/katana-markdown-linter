@@ -264,8 +264,15 @@ jobs:
 
       - name: npm publish target check
         if: >
-          github.event_name == 'workflow_dispatch' &&
-          inputs.publish_npm_wrapper == true
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'release/v')
+          ) || (
+            github.event_name == 'workflow_dispatch' &&
+            inputs.publish_npm_wrapper == true
+          )
         run: just npm-publish-target-check
 
       - name: PyPI package check
@@ -350,7 +357,14 @@ jobs:
           scripts/release/release-notes.sh "$notes_version" > RELEASE_NOTES.md
 
       - name: Create or update GitHub Release
-        if: github.event_name == 'workflow_dispatch'
+        if: >
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'release/v')
+          ) ||
+          github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.version }}
@@ -385,7 +399,14 @@ jobs:
           fi
 
       - name: Update Homebrew tap
-        if: github.event_name == 'workflow_dispatch'
+        if: >
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'release/v')
+          ) ||
+          github.event_name == 'workflow_dispatch'
         env:
           HOMEBREW_KATANA_GIT_TOKEN: ${{ secrets.HOMEBREW_KATANA_GIT_TOKEN }}
         run: |
@@ -396,12 +417,19 @@ jobs:
 
       - name: Publish MCP Registry metadata
         if: >
-          github.event_name == 'workflow_dispatch' &&
           (
-            inputs.publish_crate == true ||
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'release/v')
+          ) || (
+            github.event_name == 'workflow_dispatch' &&
             (
-              inputs.publish_npm_wrapper != true &&
-              inputs.publish_pypi_wrapper != true
+              inputs.publish_crate == true ||
+              (
+                inputs.publish_npm_wrapper != true &&
+                inputs.publish_pypi_wrapper != true
+              )
             )
           )
         run: |
@@ -422,8 +450,15 @@ jobs:
 
       - name: Publish crate
         if: >
-          github.event_name == 'workflow_dispatch' &&
-          inputs.publish_crate == true
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'release/v')
+          ) || (
+            github.event_name == 'workflow_dispatch' &&
+            inputs.publish_crate == true
+          )
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
@@ -438,8 +473,15 @@ jobs:
     name: Publish npm wrapper
     needs: release
     if: >
-      github.event_name == 'workflow_dispatch' &&
-      inputs.publish_npm_wrapper == true
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        startsWith(github.event.pull_request.head.ref, 'release/v')
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.publish_npm_wrapper == true
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -492,8 +534,15 @@ jobs:
     name: Publish PyPI wrapper
     needs: release
     if: >
-      github.event_name == 'workflow_dispatch' &&
-      inputs.publish_pypi_wrapper == true
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        startsWith(github.event.pull_request.head.ref, 'release/v')
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.publish_pypi_wrapper == true
+      )
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

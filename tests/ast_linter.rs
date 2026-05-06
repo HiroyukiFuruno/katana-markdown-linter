@@ -568,6 +568,84 @@ fn ast_linter_npm_wrapper_publish_is_tokenless() {
 }
 
 #[test]
+fn ast_linter_release_pr_merge_enables_release_publication_path() {
+    let workflow = read_workspace_file(".github/workflows/release.yml");
+    let required_release_pr_conditions = [
+        "github.event_name == 'pull_request'",
+        "github.event.pull_request.merged == true",
+        "github.event.pull_request.head.repo.full_name == github.repository",
+        "startsWith(github.event.pull_request.head.ref, 'release/v')",
+    ];
+    let sections = [
+        (
+            "npm publish target check",
+            workflow_section(
+                &workflow,
+                "      - name: npm publish target check",
+                &["\n      - name: PyPI package check"],
+            ),
+        ),
+        (
+            "Create or update GitHub Release",
+            workflow_section(
+                &workflow,
+                "      - name: Create or update GitHub Release",
+                &["\n      - name: Update Homebrew tap"],
+            ),
+        ),
+        (
+            "Update Homebrew tap",
+            workflow_section(
+                &workflow,
+                "      - name: Update Homebrew tap",
+                &["\n      - name: Publish MCP Registry metadata"],
+            ),
+        ),
+        (
+            "Publish MCP Registry metadata",
+            workflow_section(
+                &workflow,
+                "      - name: Publish MCP Registry metadata",
+                &["\n      - name: Publish crate"],
+            ),
+        ),
+        (
+            "Publish crate",
+            workflow_section(
+                &workflow,
+                "      - name: Publish crate",
+                &["\n  publish-npm-wrapper:"],
+            ),
+        ),
+        (
+            "publish-npm-wrapper",
+            workflow_section(
+                &workflow,
+                "  publish-npm-wrapper:",
+                &["\n  publish-pypi-wrapper:"],
+            ),
+        ),
+        (
+            "publish-pypi-wrapper",
+            workflow_section(&workflow, "  publish-pypi-wrapper:", &[]),
+        ),
+    ];
+    let violations = sections
+        .iter()
+        .flat_map(|(label, section)| {
+            required_release_pr_conditions
+                .iter()
+                .filter(move |condition| !section.contains(**condition))
+                .map(move |condition| {
+                    format!(".github/workflows/release.yml: {label} missing `{condition}`")
+                })
+        })
+        .collect();
+
+    assert_no_violations("release-pr-merge-publication-path", violations);
+}
+
+#[test]
 fn ast_linter_coverage_gate_counts_integration_tests() {
     let coverage = read_workspace_file("scripts/ci/coverage.sh");
     let violations = [
@@ -867,6 +945,20 @@ fn workspace_root() -> PathBuf {
 
 fn read_workspace_file(path: &str) -> String {
     std::fs::read_to_string(workspace_root().join(path)).expect("workspace file should be readable")
+}
+
+fn workflow_section<'a>(workflow: &'a str, start: &str, end_markers: &[&str]) -> &'a str {
+    let start_index = workflow
+        .find(start)
+        .unwrap_or_else(|| panic!("workflow section should exist: {start}"));
+    let tail = &workflow[start_index..];
+    let end_index = end_markers
+        .iter()
+        .filter_map(|marker| tail.find(marker))
+        .min()
+        .unwrap_or(tail.len());
+
+    &tail[..end_index]
 }
 
 fn rule_fixture_matrix() -> Value {
