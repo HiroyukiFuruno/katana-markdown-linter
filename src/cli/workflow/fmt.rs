@@ -2,7 +2,7 @@ use super::super::args::Cli;
 use super::super::reporter::{
     output_report, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
-use super::common::validate_effective_config;
+use crate::config::validate_effective_config;
 use crate::i18n::Locale;
 use crate::{format_markdown, FormatOptions};
 use std::fs;

@@ -1,27 +1,13 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail just dogfood.",
-  "total_diagnostics": 3,
+  "total_diagnostics": 1,
   "diagnostics": [
     {
       "path": "docs/editor-integration.md",
       "rule_id": "MD037",
       "message": "Spaces inside emphasis markers",
       "line_text": "**Note:** Neovim support is provided as a **docs-only sample**. There is no official Neovim plugin; instead, we recommend using the built-in LSP client with the configuration below.",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-18-6-editor-publication-prerequisites/design.md",
-      "rule_id": "MD032",
-      "message": "Lists should be surrounded by blank lines",
-      "line_text": "- account",
-      "count": 1
-    },
-    {
-      "path": "openspec/changes/v0-18-6-editor-publication-prerequisites/specs/editor-publication-prerequisites/spec.md",
-      "rule_id": "MD001",
-      "message": "Heading levels should only increment by one level at a time [Expected: h2, Actual: h3]",
-      "line_text": "### Requirement: manual publish prerequisites SHALL be explicit",
       "count": 1
     }
   ]

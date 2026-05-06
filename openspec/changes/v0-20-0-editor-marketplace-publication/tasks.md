@@ -14,6 +14,12 @@
 - [ ] 0.4 VS Code publisher / package name / token secret を確認する
 - [ ] 0.5 Zed upstream registry PR の作成・merge 手順を確認する
 
+## 0x. Follow-up from v0.19.0 (Maintenance & Hardening)
+
+- [ ] 0x.1 `src/lsp/server.rs`: `is_config_file` の suffix 一致をファイル名完全一致（または正規化）へ修正する
+- [ ] 0x.2 `src/lsp/mod.rs`: `uri_path` を `url::Url::to_file_path` 相当へ寄せ、Windows ドライブレター等のマルチプラットフォーム対応を強化する
+- [ ] 0x.3 `src/rules/markdown/rules/list_indent.rs`: 手書きの `MarkdownDiagnostic` 生成を `RuleHelpers` 利用へ戻し、message format と range 計算を他 rule と整合させる
+
 ## 1. Release gate
 
 - [ ] 1.1 `release-target-check` が VS Code Marketplace の既存 version を検出することを固定する

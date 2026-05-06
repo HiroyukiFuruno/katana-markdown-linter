@@ -17,9 +17,21 @@ impl MarkdownRule for UnorderedListIndentRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        self.evaluate_configured(file_path, content, None)
+    }
+
+    fn evaluate_configured(
+        &self,
+        file_path: &Path,
+        content: &str,
+        config: Option<&crate::types::RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD007");
         let mut diagnostics = Vec::new();
-        let indent = 2;
+        let indent = config
+            .and_then(|c| c.properties.get("indent"))
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or(2);
         let mut ordered_parent_indents = Vec::<OrderedParentIndent>::new();
         let mut unordered_parent_indents = Vec::<UnorderedParentIndent>::new();
 
@@ -62,15 +74,23 @@ impl MarkdownRule for UnorderedListIndentRule {
                         end_column: leading.saturating_add(1),
                         replacement: " ".repeat(expected_indent),
                     };
-                    RuleHelpers::push_diag_with_fix(
-                        &mut diagnostics,
-                        file_path,
-                        i,
-                        line,
-                        &meta,
-                        DiagnosticSeverity::Warning,
-                        Some(fix),
-                    );
+                    diagnostics.push(MarkdownDiagnostic {
+                        file: file_path.to_path_buf(),
+                        severity: DiagnosticSeverity::Warning,
+                        range: crate::rules::markdown::DiagnosticRange {
+                            start_line: i + 1,
+                            start_column: 1,
+                            end_line: i + 1,
+                            end_column: line.len().max(1),
+                        },
+                        message: format!(
+                            "{} [Expected: {}, Actual: {}]",
+                            meta.description, expected_indent, leading
+                        ),
+                        rule_id: meta.code.to_string(),
+                        official_meta: Some(meta.clone()),
+                        fix_info: Some(fix),
+                    });
                 }
                 let parent_expected = expected_indent.unwrap_or(leading);
                 unordered_parent_indents.retain(|list_indent| list_indent.actual <= leading);

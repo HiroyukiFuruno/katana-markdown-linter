@@ -29,6 +29,17 @@ pub(crate) fn response(id: Value, result: Value) -> Value {
     })
 }
 
+pub(crate) fn error_response(id: Value, code: i32, message: &str) -> Value {
+    json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "error": {
+            "code": code,
+            "message": message
+        }
+    })
+}
+
 pub(crate) fn notification(method: &str, params: Value) -> Value {
     json!({
         "jsonrpc": "2.0",
