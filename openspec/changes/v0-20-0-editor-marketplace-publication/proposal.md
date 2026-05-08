@@ -5,8 +5,9 @@ VS Code / Zed 拡張は、editor 上で設定反映済みの診断・整形・�
 ## What Changes
 
 - `v0-19-0-editor-capability-completion` の完了 evidence を公開前提条件にする。
-- VS Code Marketplace 公開を `VSCE_PAT` と `vsce` で実行する。
-- Zed extension registry 公開を `zed-industries/extensions` の merged PR で検証する。
+- VS Code Marketplace 公開を `VSCE_PAT` と `vsce` で実行し、GitHub OIDC fallback を持たない。
+- Zed extension registry 公開はこの repository から直接 publish せず、`zed-industries/extensions` の merged PR URL で検証する。
+- CI/CD の公開 input / env / secret の責務を固定し、実装者が独自判断で変数を増やさないようにする。
 - release workflow / runbook / release verification が editor marketplace の published / failed 状態を説明できるようにする。
 - 公開後に VS Code Marketplace と Zed extension registry の両方で `v0.20.0` を確認する。
 
