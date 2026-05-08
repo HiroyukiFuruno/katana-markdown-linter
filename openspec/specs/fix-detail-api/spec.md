@@ -1,11 +1,15 @@
-## ADDED Requirements
+## Purpose
+
+自動修正の適用結果を呼び出し側が追跡できるように、`FixResult` と `FixDetail` が公開する詳細情報の契約を定義する。
+
+## Requirements
 
 ### Requirement: FixResult SHALL expose per-fix detail information
 
-`fix_with_results` および `fix_with_results_including_unsafe` が返す `FixResult` は、
-適用またはスキップされた各 fix の詳細情報を `details: Vec<FixDetail>` フィールドとして含まなければならない（SHALL）。
+`fix_with_results` および `fix_with_results_including_unsafe` が返す `FixResult` SHALL include
+適用またはスキップされた各 fix の詳細情報を `details: Vec<FixDetail>` フィールドとして含むこと。
 
-`FixDetail` は以下のフィールドを持つ公開型として定義される。
+`FixDetail` は、以下のフィールドを持つ公開型として定義されなければならない（SHALL）。
 
 - `rule_id: String` — 修正を生成したルール ID（例: `"MD034"`）
 - `range: Range` — 修正が対象とする行・列の範囲（既存の `Range` 型を再利用）

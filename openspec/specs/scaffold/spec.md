@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+独立した Rust crate として katana-markdown-linter を育てるための初期 scaffold、local helper の非追跡、将来 phase の entrypoint を定義する。
+
+## Requirements
 
 ### Requirement: repository SHALL contain a standalone Rust crate scaffold for the markdown linter
 

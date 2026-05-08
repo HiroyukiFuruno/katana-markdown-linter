@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+元の Markdown ソース位置を保持した document context を定義し、rule 実行、診断、修正範囲、性能確認を同じ前提で扱うための契約を定義する。
+
+## Requirements
 
 ### Requirement: system SHALL build a source-preserving document context
 

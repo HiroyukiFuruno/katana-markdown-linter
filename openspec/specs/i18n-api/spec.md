@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+埋め込み利用側アプリケーションが locale code を渡して、rule metadata、rule catalog、rule documentation、config error を多言語表示できる API 契約を定義する。
+
+## Requirements
 
 ### Requirement: library SHALL resolve arbitrary locale code strings for embedding consumers
 
