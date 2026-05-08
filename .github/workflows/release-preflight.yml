@@ -45,11 +45,17 @@ jobs:
       - name: Install just
         uses: taiki-e/install-action@just
 
+      - name: Resolve version
+        id: version
+        if: startsWith(github.head_ref, 'release/v')
+        shell: bash
+        run: bash scripts/release/resolve-release-version.sh "pull_request" "" "${{ github.head_ref }}"
+
       - name: Release target check
         if: startsWith(github.head_ref, 'release/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: just VERSION="${GITHUB_HEAD_REF#release/}" release-target-check
+        run: just VERSION="${{ steps.version.outputs.version }}" release-target-check
 
       - name: Format check
         run: just fmt-check

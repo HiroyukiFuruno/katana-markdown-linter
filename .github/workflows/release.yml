@@ -93,11 +93,11 @@ jobs:
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            release_branch="${{ github.event.pull_request.head.ref }}"
-            scripts/release/verify-version.sh "${release_branch#release/}"
           else
-            scripts/release/verify-version.sh "${{ inputs.version }}"
+            bash scripts/release/resolve-release-version.sh \
+              "${{ github.event_name }}" \
+              "${{ inputs.version }}" \
+              "${{ github.event.pull_request.head.ref }}"
           fi
 
       - name: Release target check
@@ -163,11 +163,11 @@ jobs:
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            release_branch="${{ github.event.pull_request.head.ref }}"
-            scripts/release/verify-version.sh "${release_branch#release/}"
           else
-            scripts/release/verify-version.sh "${{ inputs.version }}"
+            bash scripts/release/resolve-release-version.sh \
+              "${{ github.event_name }}" \
+              "${{ inputs.version }}" \
+              "${{ github.event.pull_request.head.ref }}"
           fi
 
       - name: Release target check

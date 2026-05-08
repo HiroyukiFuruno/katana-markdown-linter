@@ -448,7 +448,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release-preflight.yml", &preflight, "contents: read"),
         (".github/workflows/release-preflight.yml", &preflight, "GH_TOKEN: ${{ github.token }}"),
         (".github/workflows/release-preflight.yml", &preflight, "startsWith(github.head_ref, 'release/v')"),
-        (".github/workflows/release-preflight.yml", &preflight, "just VERSION=\"${GITHUB_HEAD_REF#release/}\" release-target-check"),
+        (".github/workflows/release-preflight.yml", &preflight, "just VERSION=\"${{ steps.version.outputs.version }}\" release-target-check"),
         (".github/workflows/release-preflight.yml", &preflight, "run: just schema-check"),
         (".github/workflows/release-preflight.yml", &preflight, "run: just lint"),
         (".github/workflows/release-preflight.yml", &preflight, "run: just examples"),

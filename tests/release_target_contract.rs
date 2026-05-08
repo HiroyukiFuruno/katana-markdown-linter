@@ -112,6 +112,39 @@ fn latest_stable_released_after_accidental_release_is_accepted() {
 }
 
 #[test]
+fn suffix_release_targets_are_rejected() {
+    let output = ReleaseTargetCommand::new("v0.18.2-123456789", "v0.18.1").run();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(
+        !output.status.success(),
+        "expected suffix target release to fail"
+    );
+    assert!(
+        stderr.contains("expected a stable version like v1.2.3"),
+        "expected stable version failure, stderr: {stderr}"
+    );
+}
+
+#[test]
+fn suffix_release_tags_are_ignored_when_resolving_latest_stable_release() {
+    let fixture = write_github_releases_fixture(
+        "suffix-tag",
+        r#"[
+            {"tag_name": "v0.18.1-123456789", "draft": false, "prerelease": false},
+            {"tag_name": "v0.18.0", "draft": false, "prerelease": false}
+        ]"#,
+    );
+    let output = ReleaseTargetCommand::with_github_releases_json("v0.18.1", fixture).run();
+
+    assert!(
+        output.status.success(),
+        "expected suffix tag to be ignored, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn new_minor_release_must_start_at_zero() {
     let output = ReleaseTargetCommand::new("v0.18.7", "v0.17.6").run();
     let stderr = String::from_utf8_lossy(&output.stderr);
