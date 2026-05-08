@@ -5,6 +5,7 @@
 エディタ診断とクイック修正（quick fix）が、設定反映済みの lint 結果と安全な修正だけに基づくための契約を定義する。
 
 ## Requirements
+
 ### Requirement: editor diagnostics SHALL match configuration-aware lint results
 
 editor diagnostics は、同じ file と config で実行した `kml check` の lint 判断と一致すること（SHALL）。

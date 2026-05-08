@@ -5,6 +5,7 @@
 VS Code / Zed 公開前の最終ドッグフード（dogfood）で確認すべき範囲、証跡、問題分類の契約を定義する。
 
 ## Requirements
+
 ### Requirement: final editor dogfood SHALL cover diagnostics, formatting, fixes, and config changes
 
 `v0.19.0` 系の完了前に、editor integration の最終 dogfood は diagnostics、formatting、safe fixes、config changes をまとめて検証すること（SHALL）。

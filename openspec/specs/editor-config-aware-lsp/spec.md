@@ -5,6 +5,7 @@
 エディタ向け言語サーバー（LSP）が、CLI と同じ markdownlint 設定探索・読み込み結果を文書ごとに反映する契約を定義する。
 
 ## Requirements
+
 ### Requirement: LSP SHALL resolve project markdownlint configuration per document
 
 LSP は、Markdown document ごとに CLI と同じ `.markdownlint.json` / `.markdownlint.jsonc` 探索・読み込み結果を使うこと（SHALL）。
