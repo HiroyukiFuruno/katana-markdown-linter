@@ -2,7 +2,7 @@ name: release-preflight
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [master]
     paths:
       - '**.rs'
       - 'README.md'

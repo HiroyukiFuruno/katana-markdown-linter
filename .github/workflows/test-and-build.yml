@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
     paths:
       - '**.rs'
       - 'Cargo.toml'
@@ -20,7 +20,7 @@ on:
       - 'tests/**'
       - 'wrappers/**'
   pull_request:
-    branches: [main, master]
+    branches: [master]
     paths:
       - '**.rs'
       - 'Cargo.toml'
@@ -53,7 +53,7 @@ jobs:
   test:
     name: Test and Build
     # WHY: Avoid redundant CI runs when a PR is merged — tests already passed on the PR branch.
-    # Direct pushes to main (admin) still trigger the full 3-platform matrix.
+    # Direct pushes to master (admin) still trigger the full 3-platform matrix.
     if: >-
       github.event_name != 'push' || (
         !startsWith(github.event.head_commit.message, 'Merge pull request ') &&
