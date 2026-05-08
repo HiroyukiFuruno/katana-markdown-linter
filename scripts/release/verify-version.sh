@@ -2,7 +2,12 @@
 set -euo pipefail
 
 INPUT_VERSION="${1:-}"
-CARGO_VERSION="$(awk -F '"' '/^version = / { print $2; exit }' Cargo.toml)"
+# Strip potential trailing carriage return (common in Windows CI environments)
+INPUT_VERSION="${INPUT_VERSION%$'\r'}"
+
+CARGO_VERSION="$(awk -F '"' '/^version = / { print $2 }' Cargo.toml | head -n 1)"
+# Strip potential trailing carriage return (common in Windows CI environments)
+CARGO_VERSION="${CARGO_VERSION%$'\r'}"
 
 if [[ -z "$INPUT_VERSION" ]]; then
   INPUT_VERSION="$CARGO_VERSION"
