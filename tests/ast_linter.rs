@@ -14,6 +14,38 @@ mod open_spec_command_portability_guard;
 mod workflow_portability_guard;
 
 #[test]
+fn ast_linter_repository_standard_rules_are_clean() {
+    katana_ast_lint::KatanaAstLint::from_workspace().assert_clean();
+}
+
+#[test]
+fn ast_linter_test_sources_do_not_contain_lazy_macros() {
+    let root = workspace_root();
+    let violations = scan_rust_sources(&[root.join("tests")], |path, line_idx, line| {
+        let path_normalized = path.to_string_lossy().replace('\\', "/");
+        if path_normalized.ends_with("tests/ast_linter.rs")
+            || path_normalized.contains("tests/ast_linter/")
+        {
+            return None;
+        }
+        let banned = ["todo!(", "unimplemented!(", "dbg!("];
+        banned
+            .iter()
+            .find(|token| line.contains(**token))
+            .map(|token| {
+                format!(
+                    "{}:{}: remove lazy macro `{}` and implement the behavior",
+                    path.display(),
+                    line_idx + 1,
+                    token.trim_end_matches('(')
+                )
+            })
+    });
+
+    assert_no_violations("test-lazy-macros", violations);
+}
+
+#[test]
 fn ast_linter_parses_rule_doc_fixture() {
     let document = katana_markdown_linter::upstream::parse_rule_document(
         r#"# `MD001` - Heading levels should only increment by one level at a time
@@ -36,35 +68,57 @@ Parameters:
 }
 
 #[test]
-fn ast_linter_no_lazy_macros_in_source() {
-    let root = workspace_root();
-    let violations = scan_rust_sources(
-        &[root.join("src"), root.join("tests"), root.join("build.rs")],
-        |path, line_idx, line| {
-            // Skip this file itself — it defines the banned token strings as literals.
-            // Normalize separators for Windows compatibility.
-            let path_normalized = path.to_string_lossy().replace('\\', "/");
-            if path_normalized.ends_with("tests/ast_linter.rs")
-                || path_normalized.contains("tests/ast_linter/")
-            {
-                return None;
-            }
-            let banned = ["todo!(", "unimplemented!(", "dbg!("];
-            banned
-                .iter()
-                .find(|token| line.contains(**token))
-                .map(|token| {
-                    format!(
-                        "{}:{}: remove lazy macro `{}` and implement the behavior",
-                        path.display(),
-                        line_idx + 1,
-                        token.trim_end_matches('(')
-                    )
-                })
-        },
-    );
+fn ast_linter_kal_dependency_is_declared() {
+    let manifest = read_workspace_file("Cargo.toml");
+    let violations = [
+        (
+            manifest.contains("[dev-dependencies]")
+                && manifest.contains("katana-ast-lint = \"0.5.1\""),
+            "Cargo.toml: add `katana-ast-lint = \"0.5.1\"` to dev-dependencies",
+        ),
+        (
+            manifest.contains("edition = \"2021\""),
+            "Cargo.toml: keep this crate edition unchanged while adopting KAL",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
 
-    assert_no_violations("lazy-macros", violations);
+    assert_no_violations("kal-dependency", violations);
+}
+
+#[test]
+fn ast_linter_uses_kal_default_rule_scope() {
+    let violations = [(
+        !workspace_root().join("kal.json").exists(),
+        "kal.json: do not disable standard KAL rules; use KAL defaults unless a domain-specific rule must be configured",
+    )]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
+
+    assert_no_violations("kal-default-rule-scope", violations);
+}
+
+#[test]
+fn ast_linter_kal_replaces_source_lazy_macro_scan() {
+    let ast_linter = read_workspace_file("tests/ast_linter.rs");
+    let violations = [
+        (
+            ast_linter.contains("katana_ast_lint::KatanaAstLint::from_workspace().assert_clean();"),
+            "tests/ast_linter.rs: use the KAL one-line repository runner",
+        ),
+        (
+            !ast_linter.contains("[root.join(\"src\"), root.join(\"tests\"), root.join(\"build.rs\")]"),
+            "tests/ast_linter.rs: remove the old source/build.rs lazy macro scan now covered by KAL",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
+
+    assert_no_violations("kal-source-lazy-scan-migration", violations);
 }
 
 #[test]
