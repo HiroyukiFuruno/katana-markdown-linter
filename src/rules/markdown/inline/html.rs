@@ -1,7 +1,7 @@
 use super::scan::{inside_code_span, skip_ascii_whitespace};
 use super::types::{InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement};
 use crate::rules::markdown::document::{LineInfo, SourceRange};
-pub(crate) fn extract_inline_html_elements<'a>(
+pub(in crate::rules::markdown) fn extract_inline_html_elements<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
     code_spans: &[InlineCodeSpan],

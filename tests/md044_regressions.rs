@@ -1,9 +1,9 @@
-use katana_markdown_linter::{implemented_rules, lint, LintOptions, RuleConfig};
+use katana_markdown_linter::{LintOptions, MarkdownLinter, RuleCatalogService, RuleConfig};
 use std::collections::HashMap;
 
 fn md044_options(names: Option<&str>, code_blocks: Option<bool>) -> LintOptions {
     let mut options = LintOptions::default();
-    for rule in implemented_rules() {
+    for rule in RuleCatalogService::implemented_rules() {
         options.rules.insert(
             rule.id,
             RuleConfig {
@@ -32,7 +32,7 @@ fn md044_options(names: Option<&str>, code_blocks: Option<bool>) -> LintOptions 
 
 #[test]
 fn fixes_known_proper_name_capitalization() {
-    let diagnostics = lint(
+    let diagnostics = MarkdownLinter::lint(
         "markdownlint and github",
         &md044_options(Some("[\"Markdownlint\",\"GitHub\"]"), None),
     )
@@ -49,7 +49,7 @@ fn fixes_known_proper_name_capitalization() {
 
 #[test]
 fn can_ignore_code_blocks_and_code_spans() {
-    let diagnostics = lint(
+    let diagnostics = MarkdownLinter::lint(
         "```\ngithub\n```\n`github`\n",
         &md044_options(Some("[\"GitHub\"]"), Some(false)),
     )
@@ -60,7 +60,7 @@ fn can_ignore_code_blocks_and_code_spans() {
 
 #[test]
 fn configured_code_blocks_true_keeps_code_span_behavior() {
-    let diagnostics = lint(
+    let diagnostics = MarkdownLinter::lint(
         "`github`\n",
         &md044_options(Some("[\"GitHub\"]"), Some(true)),
     )
@@ -71,7 +71,7 @@ fn configured_code_blocks_true_keeps_code_span_behavior() {
 
 #[test]
 fn code_blocks_false_ignores_long_and_unclosed_code_spans() {
-    let diagnostics = lint(
+    let diagnostics = MarkdownLinter::lint(
         "``github``\n`github\n",
         &md044_options(Some("[\"GitHub\"]"), Some(false)),
     )
@@ -82,8 +82,8 @@ fn code_blocks_false_ignores_long_and_unclosed_code_spans() {
 
 #[test]
 fn default_config_does_not_guess_proper_names() {
-    let diagnostics =
-        lint("markdownlint and github", &md044_options(None, None)).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint("markdownlint and github", &md044_options(None, None))
+        .expect("lint should run");
 
     assert!(diagnostics.is_empty());
 }

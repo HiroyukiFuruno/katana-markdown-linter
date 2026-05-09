@@ -132,8 +132,6 @@ mod tests {
 
     #[test]
     fn reports_setext_heading_marker() {
-        // Diagnostic must point to the heading text line (line 1), not the underline (line 2),
-        // matching the markdownlint reference implementation.
         let diagnostics = HeadingStyleRule.evaluate(Path::new("test.md"), "Heading\n---\n");
 
         assert_eq!(diagnostics.len(), 1);

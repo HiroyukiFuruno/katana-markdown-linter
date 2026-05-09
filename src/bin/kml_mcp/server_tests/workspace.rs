@@ -1,5 +1,7 @@
 use super::*;
 
+const INVALID_UTF8_PREFIX: [u8; 2] = [0xff, 0xfe];
+
 #[tokio::test]
 async fn file_tools_check_preview_and_apply_inside_workspace() {
     let workspace = temp_workspace("mcp-file-tools");
@@ -131,7 +133,7 @@ async fn workspace_policy_rejects_parent_and_symbolic_paths() {
 #[tokio::test]
 async fn check_file_reports_non_utf8_file_as_error() {
     let workspace = temp_workspace("mcp-non-utf8");
-    std::fs::write(workspace.join("binary.md"), [0xff, 0xfe])
+    std::fs::write(workspace.join("binary.md"), INVALID_UTF8_PREFIX)
         .expect("binary fixture should be written");
     let server = server_for_workspace(&workspace);
 

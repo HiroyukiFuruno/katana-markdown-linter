@@ -1,8 +1,11 @@
 # editor-publication-readiness Specification
 
 ## Purpose
+
 TBD - created by archiving change assess-editor-publication-readiness. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: triage change SHALL not carry a release version
 
 - この change は、versioned release 実装ではなく、editor publication readiness の調査・task 化 change として扱うこと（SHALL）。
@@ -47,4 +50,3 @@ TBD - created by archiving change assess-editor-publication-readiness. Update Pu
 - **WHEN** release target が `v0.18.7` または `v0.18.8` を指定する。
 - **THEN** system はその release target を拒否する。
 - **AND** system は `v0.18.7` が永久欠番であることを説明する。
-

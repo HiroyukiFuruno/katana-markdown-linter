@@ -7,4 +7,4 @@ mod server;
 #[path = "remote/transport.rs"]
 mod transport;
 
-pub(crate) use runtime::run_from_env;
+pub(crate) use runtime::KmlMcpRemoteRuntime;

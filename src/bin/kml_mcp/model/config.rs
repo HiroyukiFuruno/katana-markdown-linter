@@ -24,7 +24,7 @@ pub(crate) struct ConfigValidationError {
 }
 
 impl ConfigValidationError {
-    pub(crate) fn from_error(error: ConfigError, locale: Locale) -> Self {
+    pub(super) fn from_error(error: ConfigError, locale: Locale) -> Self {
         Self {
             rule_id: error.rule_id.clone(),
             property: error.property.clone(),
@@ -39,7 +39,7 @@ impl ConfigValidationError {
     }
 }
 
-pub(crate) fn validate_config(raw: Value, locale: Locale) -> Vec<ConfigValidationError> {
+pub(super) fn validate_config(raw: Value, locale: Locale) -> Vec<ConfigValidationError> {
     MarkdownLintConfig { raw }
         .validate_against_schema()
         .into_iter()

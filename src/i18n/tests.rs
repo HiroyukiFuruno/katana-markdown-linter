@@ -18,14 +18,14 @@ fn locale_parsing_accepts_primary_region_and_charset_values() {
 
 #[test]
 fn public_locale_resolvers_accept_ui_language_codes() {
-    assert_eq!(resolve_locale_code("en"), Locale::En);
-    assert_eq!(resolve_locale_code("EN_us.UTF-8"), Locale::En);
-    assert_eq!(resolve_locale_code("ja"), Locale::Ja);
-    assert_eq!(resolve_locale_code("zh-Hant"), Locale::ZhTw);
-    assert_eq!(resolve_locale_code("pt-PT"), Locale::Pt);
-    assert_eq!(resolve_locale_code(""), Locale::En);
-    assert_eq!(resolve_locale_code("sv"), Locale::En);
-    assert_eq!(resolve_locale_code_or("sv", Locale::Ja), Locale::Ja);
+    assert_eq!(LocaleService::resolve_code("en"), Locale::En);
+    assert_eq!(LocaleService::resolve_code("EN_us.UTF-8"), Locale::En);
+    assert_eq!(LocaleService::resolve_code("ja"), Locale::Ja);
+    assert_eq!(LocaleService::resolve_code("zh-Hant"), Locale::ZhTw);
+    assert_eq!(LocaleService::resolve_code("pt-PT"), Locale::Pt);
+    assert_eq!(LocaleService::resolve_code(""), Locale::En);
+    assert_eq!(LocaleService::resolve_code("sv"), Locale::En);
+    assert_eq!(LocaleService::resolve_code_or("sv", Locale::Ja), Locale::Ja);
 }
 
 #[test]
@@ -42,15 +42,18 @@ fn explicit_locale_overrides_os_locale_and_unsupported_os_falls_back_to_english(
 
 #[test]
 fn catalog_keys_match_between_supported_locales() {
-    for locale in supported_locales() {
-        assert_eq!(catalog_keys(Locale::En), catalog_keys(*locale));
+    for locale in LocaleService::supported_locales() {
+        assert_eq!(
+            MessageCatalog::catalog_keys(Locale::En),
+            MessageCatalog::catalog_keys(*locale)
+        );
     }
 }
 
 #[test]
 fn missing_translation_key_falls_back_to_english_message() {
     assert_eq!(
-        render_message(
+        MessageCatalog::render_message(
             Locale::Ja,
             "unknown.message",
             &MessageParams::new(),
@@ -62,7 +65,7 @@ fn missing_translation_key_falls_back_to_english_message() {
 
 #[test]
 fn md001_message_params_extract_expected_and_actual_levels() {
-    let params = diagnostic_message_params(
+    let params = MessageCatalog::diagnostic_message_params(
         "MD001",
         "heading-increment",
         "Heading levels should only increment by one level at a time [Expected: h2, Actual: h4]",
@@ -74,20 +77,35 @@ fn md001_message_params_extract_expected_and_actual_levels() {
 #[test]
 fn localized_rule_description_uses_catalog_without_diagnostic_params() {
     assert_eq!(
-        localized_rule_description("MD003", "Heading style should be consistent", "ja-JP"),
+        I18nRuleDescriptionService::localized_rule_description(
+            "MD003",
+            "Heading style should be consistent",
+            "ja-JP"
+        ),
         "見出しのスタイルを統一してください"
     );
     assert_eq!(
-        localized_rule_description("MD003", "Heading style should be consistent", "fr"),
+        I18nRuleDescriptionService::localized_rule_description(
+            "MD003",
+            "Heading style should be consistent",
+            "fr"
+        ),
         "Conservez un style de titre cohérent"
     );
     assert_eq!(
-        localized_rule_description("MD003", "Heading style should be consistent", "sv"),
+        I18nRuleDescriptionService::localized_rule_description(
+            "MD003",
+            "Heading style should be consistent",
+            "sv"
+        ),
         "Heading style should be consistent"
     );
-    assert!(
-        localized_rule_description("MD999", "Custom fallback", "ja").contains("Custom fallback")
-    );
+    assert!(I18nRuleDescriptionService::localized_rule_description(
+        "MD999",
+        "Custom fallback",
+        "ja"
+    )
+    .contains("Custom fallback"));
 }
 
 #[test]
@@ -99,7 +117,7 @@ fn config_error_messages_render_with_structured_params() {
     params.insert("actual".to_string(), "string".to_string());
 
     assert_eq!(
-        render_message(
+        MessageCatalog::render_message(
             Locale::Ja,
             "config.invalid_type",
             &params,
@@ -111,8 +129,8 @@ fn config_error_messages_render_with_structured_params() {
 
 #[test]
 fn active_rule_description_translation_status_is_explicit() {
-    for locale in supported_locales() {
-        assert!(has_rule_description_translation("MD003", *locale));
+    for locale in LocaleService::supported_locales() {
+        assert!(I18nRuleDescriptionService::has_rule_description_translation("MD003", *locale));
     }
-    assert!(!has_rule_description_translation("MD999", Locale::Ja));
+    assert!(!I18nRuleDescriptionService::has_rule_description_translation("MD999", Locale::Ja));
 }

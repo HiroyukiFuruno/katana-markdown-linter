@@ -5,6 +5,9 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
+const INDENTED_CODE_PREFIX: &str = "    ";
+const FENCE_MARKER: &str = "```";
+
 /// MD046 / code-block-style — Code block style.
 pub struct CodeBlockStyleRule;
 
@@ -80,20 +83,26 @@ fn indented_code_block_groups<'a>(
 }
 
 fn build_fenced_replacement(lines: &[&str]) -> String {
-    let content_len: usize = lines.iter().map(|l| l.len().saturating_sub(4) + 1).sum();
-    let mut result = String::with_capacity(4 + content_len + 3);
-    result.push_str("```");
+    let content_len: usize = lines
+        .iter()
+        .map(|line| line.len().saturating_sub(INDENTED_CODE_PREFIX.len()) + 1)
+        .sum();
+    let mut result = String::with_capacity(FENCE_MARKER.len() + content_len + FENCE_MARKER.len());
+    result.push_str(FENCE_MARKER);
     for line in lines {
         result.push('\n');
-        result.push_str(line.strip_prefix("    ").unwrap_or(line));
+        result.push_str(line.strip_prefix(INDENTED_CODE_PREFIX).unwrap_or(line));
     }
     result.push('\n');
-    result.push_str("```");
+    result.push_str(FENCE_MARKER);
     result
 }
 
 fn is_indented_code_line(ctx: &DocumentContext<'_>, line_index: usize, line: &str) -> bool {
-    if ctx.is_code_line(line_index) || !line.starts_with("    ") || line.trim().is_empty() {
+    if ctx.is_code_line(line_index)
+        || !line.starts_with(INDENTED_CODE_PREFIX)
+        || line.trim().is_empty()
+    {
         return false;
     }
     if is_definition_list_continuation(ctx, line_index) {
@@ -102,7 +111,7 @@ fn is_indented_code_line(ctx: &DocumentContext<'_>, line_index: usize, line: &st
     if ListContext::is_paragraph_continuation(ctx, line_index) {
         return false;
     }
-    !is_list_marker_line(&line[4..])
+    !is_list_marker_line(&line[INDENTED_CODE_PREFIX.len()..])
 }
 
 fn is_definition_list_continuation(ctx: &DocumentContext<'_>, line_index: usize) -> bool {
@@ -112,7 +121,7 @@ fn is_definition_list_continuation(ctx: &DocumentContext<'_>, line_index: usize)
     for previous_index in (0..line_index).rev() {
         let previous = ctx.lines()[previous_index].text;
         if previous.trim().is_empty()
-            || previous.starts_with("    ")
+            || previous.starts_with(INDENTED_CODE_PREFIX)
             || ctx.is_code_line(previous_index)
         {
             continue;
@@ -139,12 +148,12 @@ fn is_list_marker_line(s: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{fix, lint, LintOptions};
+    use crate::{LintOptions, MarkdownLinter};
 
     #[test]
     fn ignores_indented_lines_inside_fenced_diagrams() {
         let content = "# Title\n\n```mermaid\ngraph TD\n    A --> B\n```\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|result| result.rule_id != "MD046"));
     }
@@ -152,7 +161,7 @@ mod tests {
     #[test]
     fn ignores_indented_list_items_as_code_block() {
         let content = "```rust\nlet x = 1;\n```\n\n- item\n    - nested\n    - nested2\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|result| result.rule_id != "MD046"));
     }
@@ -160,7 +169,7 @@ mod tests {
     #[test]
     fn emits_per_block_diagnostic_with_fix() {
         let content = "```rust\nlet x = 1;\n```\n\n    indented code\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
         let md046: Vec<_> = results.iter().filter(|r| r.rule_id == "MD046").collect();
 
         assert_eq!(md046.len(), 1);
@@ -170,7 +179,7 @@ mod tests {
     #[test]
     fn fix_converts_indented_block_to_fenced() {
         let content = "```rust\nlet x = 1;\n```\n\n    hello\n    world\n";
-        let result = fix(content, &LintOptions::default()).expect("fix runs");
+        let result = MarkdownLinter::fix(content, &LintOptions::default()).expect("fix runs");
 
         assert!(result.content.contains("hello\nworld\n```"));
         assert!(!result.content.contains("    hello"));
@@ -180,7 +189,7 @@ mod tests {
     #[test]
     fn two_separate_indented_blocks_produce_two_diagnostics() {
         let content = "```rust\nfn x() {}\n```\n\n    block one\n\n    block two\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
         let md046: Vec<_> = results.iter().filter(|r| r.rule_id == "MD046").collect();
 
         assert_eq!(md046.len(), 2);
@@ -191,7 +200,7 @@ mod tests {
     #[test]
     fn pure_indented_only_document_emits_no_diagnostic() {
         let content = "    only indented\n    no fenced blocks\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|r| r.rule_id != "MD046"));
     }

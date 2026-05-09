@@ -1,77 +1,85 @@
 use super::range::SelectedLineRange;
-use super::uri_path;
-use crate::{lint_for_path, FixSafety, FormatOptions, LintOptions, LintResult};
+use super::LspUri;
+use crate::{FixSafety, FormatOptions, LintOptions, LintResult, MarkdownFormatter, MarkdownLinter};
 use serde_json::{json, Value};
 
-pub(crate) fn diagnostics(
-    uri: &str,
-    content: &str,
-    options: &LintOptions,
-) -> Result<Value, String> {
-    let path = uri_path(uri);
-    let diagnostics = lint_for_path(&path, content, options)
-        .map_err(|err| err.to_string())?
-        .into_iter()
-        .map(lsp_diagnostic)
-        .collect::<Vec<_>>();
-    Ok(json!({ "uri": uri, "diagnostics": diagnostics }))
-}
+const LSP_SEVERITY_ERROR: u8 = 1;
+const LSP_SEVERITY_WARNING: u8 = 2;
+const LSP_SEVERITY_INFO: u8 = 3;
 
-pub(crate) fn formatting_edits_with_options(
-    content: &str,
-    options: &FormatOptions,
-    lint_options: &LintOptions,
-) -> Result<Value, String> {
-    // Use customized format logic that respects lint_options for layout rules
-    let formatted =
-        crate::formatter::format_markdown_with_lint_options(content, options, lint_options)
+pub(crate) struct LspDocumentOps;
+
+impl LspDocumentOps {
+    pub(crate) fn diagnostics(
+        uri: &str,
+        content: &str,
+        options: &LintOptions,
+    ) -> Result<Value, String> {
+        let path = LspUri::path(uri);
+        let diagnostics = MarkdownLinter::lint_for_path(&path, content, options)
             .map_err(|err| err.to_string())?
-            .content;
-
-    if formatted == content {
-        return Ok(json!([]));
+            .into_iter()
+            .map(lsp_diagnostic)
+            .collect::<Vec<_>>();
+        Ok(json!({ "uri": uri, "diagnostics": diagnostics }))
     }
-    Ok(json!([{
-        "range": full_document_range(content),
-        "newText": formatted
-    }]))
-}
 
-pub(crate) fn range_formatting_edits_with_options(
-    content: &str,
-    range: &Value,
-    options: &FormatOptions,
-    lint_options: &LintOptions,
-) -> Result<Value, String> {
-    let Some(selection) = SelectedLineRange::from_lsp_range(content, range) else {
-        return Ok(json!([]));
-    };
-    let selected = &content[selection.start_offset..selection.end_offset];
-    let formatted =
-        crate::formatter::format_markdown_with_lint_options(selected, options, lint_options)
-            .map_err(|err| err.to_string())?
-            .content;
-    if formatted == selected {
-        return Ok(json!([]));
+    pub(crate) fn formatting_edits_with_options(
+        content: &str,
+        options: &FormatOptions,
+        lint_options: &LintOptions,
+    ) -> Result<Value, String> {
+        let formatted =
+            MarkdownFormatter::format_markdown_with_lint_options(content, options, lint_options)
+                .map_err(|err| err.to_string())?
+                .content;
+
+        if formatted == content {
+            return Ok(json!([]));
+        }
+        Ok(json!([{
+            "range": full_document_range(content),
+            "newText": formatted
+        }]))
     }
-    Ok(json!([{
-        "range": selection.lsp_range(),
-        "newText": formatted
-    }]))
-}
 
-pub(crate) fn code_actions(
-    uri: &str,
-    content: &str,
-    options: &LintOptions,
-) -> Result<Value, String> {
-    let path = uri_path(uri);
-    let diagnostics = lint_for_path(&path, content, options).map_err(|err| err.to_string())?;
-    let actions = diagnostics
-        .iter()
-        .filter_map(|diagnostic| code_action(uri, diagnostic))
-        .collect::<Vec<_>>();
-    Ok(json!(actions))
+    pub(crate) fn range_formatting_edits_with_options(
+        content: &str,
+        range: &Value,
+        options: &FormatOptions,
+        lint_options: &LintOptions,
+    ) -> Result<Value, String> {
+        let Some(selection) = SelectedLineRange::from_lsp_range(content, range) else {
+            return Ok(json!([]));
+        };
+        let selected = &content[selection.start_offset..selection.end_offset];
+        let formatted =
+            MarkdownFormatter::format_markdown_with_lint_options(selected, options, lint_options)
+                .map_err(|err| err.to_string())?
+                .content;
+        if formatted == selected {
+            return Ok(json!([]));
+        }
+        Ok(json!([{
+            "range": selection.lsp_range(),
+            "newText": formatted
+        }]))
+    }
+
+    pub(crate) fn code_actions(
+        uri: &str,
+        content: &str,
+        options: &LintOptions,
+    ) -> Result<Value, String> {
+        let path = LspUri::path(uri);
+        let diagnostics = MarkdownLinter::lint_for_path(&path, content, options)
+            .map_err(|err| err.to_string())?;
+        let actions = diagnostics
+            .iter()
+            .filter_map(|diagnostic| code_action(uri, diagnostic))
+            .collect::<Vec<_>>();
+        Ok(json!(actions))
+    }
 }
 
 fn code_action(uri: &str, diagnostic: &LintResult) -> Option<Value> {
@@ -116,9 +124,9 @@ fn lsp_diagnostic(diagnostic: LintResult) -> Value {
 
 fn severity_code(severity: crate::Severity) -> u8 {
     match severity {
-        crate::Severity::Error => 1,
-        crate::Severity::Warning => 2,
-        crate::Severity::Info => 3,
+        crate::Severity::Error => LSP_SEVERITY_ERROR,
+        crate::Severity::Warning => LSP_SEVERITY_WARNING,
+        crate::Severity::Info => LSP_SEVERITY_INFO,
     }
 }
 

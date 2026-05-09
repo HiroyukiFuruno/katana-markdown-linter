@@ -5,6 +5,8 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
+const DOLLAR_PROMPT_WIDTH: usize = 2;
+
 /// MD014 / dollar-signs-before-commands — Dollar signs used before commands without spaces.
 pub struct DollarSignsBeforeCommandsRule;
 
@@ -40,7 +42,7 @@ impl MarkdownRule for DollarSignsBeforeCommandsRule {
                     start_line: line.number,
                     start_column: indent + 1,
                     end_line: line.number,
-                    end_column: indent + 3,
+                    end_column: indent + DOLLAR_PROMPT_WIDTH + 1,
                 },
                 message: meta.description.to_string(),
                 rule_id: meta.code.to_string(),
@@ -49,7 +51,7 @@ impl MarkdownRule for DollarSignsBeforeCommandsRule {
                     start_line: line.number,
                     start_column: indent + 1,
                     end_line: line.number,
-                    end_column: indent + 3,
+                    end_column: indent + DOLLAR_PROMPT_WIDTH + 1,
                     replacement: String::new(),
                 }),
             });

@@ -5,6 +5,8 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
+const DEFAULT_LINE_LENGTH: usize = 80;
+
 /// MD013 / line-length — Line length.
 pub struct LineLengthRule;
 
@@ -63,9 +65,13 @@ struct LineLengthOptions {
 impl LineLengthOptions {
     fn from_config(config: Option<&RuleConfig>) -> Self {
         Self {
-            line_length: usize_property(config, "line_length", 80),
-            code_block_line_length: usize_property(config, "code_block_line_length", 80),
-            heading_line_length: usize_property(config, "heading_line_length", 80),
+            line_length: usize_property(config, "line_length", DEFAULT_LINE_LENGTH),
+            code_block_line_length: usize_property(
+                config,
+                "code_block_line_length",
+                DEFAULT_LINE_LENGTH,
+            ),
+            heading_line_length: usize_property(config, "heading_line_length", DEFAULT_LINE_LENGTH),
             code_blocks: bool_property(config, "code_blocks", true),
             headings: bool_property(config, "headings", true),
             tables: bool_property(config, "tables", true),

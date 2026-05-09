@@ -32,8 +32,6 @@ pub(super) fn find_unescaped(line: &str, start: usize, needle: u8) -> Option<usi
 /// Returns true if `offset` (document-absolute byte position) falls inside any code span.
 /// Code spans are sorted by `full_range.start`, so binary search (O(log s)) is used.
 pub(super) fn inside_code_span(code_spans: &[InlineCodeSpan], offset: usize) -> bool {
-    // partition_point returns the first index where full_range.start > offset,
-    // so the span at idx-1 is the only candidate that can contain offset.
     let idx = code_spans.partition_point(|span| span.full_range.start <= offset);
     idx > 0 && offset < code_spans[idx - 1].full_range.end
 }

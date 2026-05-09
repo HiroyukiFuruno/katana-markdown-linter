@@ -1,6 +1,4 @@
-use crate::{
-    fix_with_results, fix_with_results_including_unsafe, lint_for_path, FixSafety, LintOptions,
-};
+use crate::{FixSafety, LintOptions, MarkdownLinter};
 use std::path::Path;
 
 pub(super) struct FixedContent {
@@ -39,9 +37,9 @@ pub(super) fn apply_fixes_until_stable(
         }
 
         let fixed = if include_unsafe {
-            fix_with_results_including_unsafe(&content, &diagnostics)
+            MarkdownLinter::fix_with_results_including_unsafe(&content, &diagnostics)
         } else {
-            fix_with_results(&content, &diagnostics)
+            MarkdownLinter::fix_with_results(&content, &diagnostics)
         };
         if fixed.applied_fixes == 0 || fixed.content == content {
             break;
@@ -50,7 +48,8 @@ pub(super) fn apply_fixes_until_stable(
         applied_fixes += fixed.applied_fixes;
         fix_details.extend(fixed.details);
         content = fixed.content;
-        diagnostics = lint_for_path(file_path, &content, options).map_err(|err| err.to_string())?;
+        diagnostics = MarkdownLinter::lint_for_path(file_path, &content, options)
+            .map_err(|err| err.to_string())?;
     }
 
     Ok(FixedContent {

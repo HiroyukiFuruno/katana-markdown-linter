@@ -2,6 +2,8 @@ use crate::rules::markdown::document::{LineInfo, SourceRange};
 use crate::rules::markdown::DocumentContext;
 use std::collections::HashSet;
 
+const MAX_HEADING_LEVEL: usize = 6;
+
 pub(super) struct ShortcutReference<'a> {
     pub(super) label: &'a str,
     pub(super) range: SourceRange,
@@ -98,7 +100,7 @@ fn is_changelog_version_heading(
 fn is_heading_prefix(prefix: &str) -> bool {
     let trimmed = prefix.trim_start();
     let hashes = trimmed.bytes().take_while(|byte| *byte == b'#').count();
-    (1..=6).contains(&hashes) && trimmed[hashes..].trim().is_empty()
+    (1..=MAX_HEADING_LEVEL).contains(&hashes) && trimmed[hashes..].trim().is_empty()
 }
 
 fn is_version_label(label: &str) -> bool {

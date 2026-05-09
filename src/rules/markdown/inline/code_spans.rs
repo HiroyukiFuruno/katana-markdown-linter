@@ -1,7 +1,7 @@
 use super::types::InlineCodeSpan;
 use crate::rules::markdown::document::{LineInfo, SourceRange};
 
-pub(crate) fn extract_inline_code_spans<'a>(
+pub(in crate::rules::markdown) fn extract_inline_code_spans<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
 ) -> Vec<InlineCodeSpan> {

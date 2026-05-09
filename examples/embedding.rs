@@ -1,7 +1,6 @@
 use katana_markdown_linter::{
-    available_rules, fix, format_markdown, lint, localized_rule_catalog,
-    localized_rule_description, resolve_locale_code_or, FormatOptions, LintOptions, Locale,
-    MarkdownLintConfig,
+    FormatOptions, I18nRuleDescriptionService, LintOptions, Locale, LocaleService,
+    MarkdownFormatter, MarkdownLintConfig, MarkdownLinter, RuleCatalogService,
 };
 use std::fs;
 use std::path::Path;
@@ -13,18 +12,19 @@ type FileVisitor<'a> = dyn FnMut(&Path) -> VisitResult + 'a;
 fn main() -> Result<(), DynError> {
     let options = LintOptions::default();
 
-    let diagnostics = lint("# Title\n\n### Skipped level\n", &options)?;
+    let diagnostics = MarkdownLinter::lint("# Title\n\n### Skipped level\n", &options)?;
     println!("string diagnostics: {}", diagnostics.len());
-    let unsafe_candidates = lint("**Section**\n\nText\n", &options)?
+    let unsafe_candidates = MarkdownLinter::lint("**Section**\n\nText\n", &options)?
         .into_iter()
         .filter_map(|diagnostic| diagnostic.fix)
         .filter(|fix| fix.safety == katana_markdown_linter::FixSafety::Unsafe)
         .count();
     println!("unsafe fix candidates: {unsafe_candidates}");
 
-    let fixed = fix("text with trailing spaces  \n", &options)?;
+    let fixed = MarkdownLinter::fix("text with trailing spaces  \n", &options)?;
     println!("applied fixes: {}", fixed.applied_fixes);
-    let formatted = format_markdown("# Title\r\nText\n\n\n", &FormatOptions::default())?;
+    let formatted =
+        MarkdownFormatter::format_markdown("# Title\r\nText\n\n\n", &FormatOptions::default())?;
     println!("format operations: {}", formatted.applied_operations);
 
     let config = MarkdownLintConfig::load(Path::new(".markdownlint.json"))?;
@@ -34,11 +34,11 @@ fn main() -> Result<(), DynError> {
     let markdown_files = lint_markdown_tree(Path::new("."), &configured_options)?;
     println!("checked markdown files: {markdown_files}");
 
-    let rules = available_rules();
+    let rules = RuleCatalogService::available_rules();
     println!("available rules: {}", rules.len());
-    let locale = resolve_locale_code_or("ja-JP", Locale::En);
+    let locale = LocaleService::resolve_code_or("ja-JP", Locale::En);
     println!("resolved locale: {locale:?}");
-    let localized_catalog = localized_rule_catalog(locale.code());
+    let localized_catalog = RuleCatalogService::localized_rule_catalog(locale.code());
     println!(
         "localized active rules: {}",
         localized_catalog.active_rules().count()
@@ -51,7 +51,11 @@ fn main() -> Result<(), DynError> {
     }
     println!(
         "localized fallback: {}",
-        localized_rule_description("MD999", "Custom rule description", "ja-JP")
+        I18nRuleDescriptionService::localized_rule_description(
+            "MD999",
+            "Custom rule description",
+            "ja-JP"
+        )
     );
 
     Ok(())
@@ -61,7 +65,7 @@ fn lint_markdown_tree(root: &Path, options: &LintOptions) -> Result<usize, DynEr
     let mut checked = 0;
     visit_markdown_files(root, &mut |path| {
         let content = fs::read_to_string(path)?;
-        let diagnostics = lint(&content, options)?;
+        let diagnostics = MarkdownLinter::lint(&content, options)?;
         println!("{}: {} diagnostics", path.display(), diagnostics.len());
         checked += 1;
         Ok(())

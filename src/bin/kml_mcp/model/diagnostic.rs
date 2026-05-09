@@ -21,7 +21,7 @@ pub(crate) struct Diagnostic {
 impl Diagnostic {
     pub(crate) fn from_result(result: LintResult, locale: Locale) -> Self {
         let fixable = result.fix.is_some();
-        let message = katana_markdown_linter::i18n::render_message(
+        let message = katana_markdown_linter::i18n::MessageCatalog::render_message(
             locale,
             result.message_id.as_str(),
             &result.message_params,

@@ -137,7 +137,7 @@ fn format_row(row: &TableRow<'_>, style: PipeStyle) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{fix_with_results, lint, LintOptions, RuleConfig};
+    use crate::{LintOptions, MarkdownLinter, RuleConfig};
     use std::collections::HashMap;
 
     fn md055_options(style: &str) -> LintOptions {
@@ -158,21 +158,22 @@ mod tests {
     #[test]
     fn fixes_table_pipe_style_to_leading_and_trailing() {
         let content = "| A | B |\n|---|---\n  C | D\n";
-        let results = lint(content, &md055_options("leading_and_trailing")).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &md055_options("leading_and_trailing"))
+            .expect("lint runs");
         let md055 = results
             .iter()
             .find(|result| result.rule_id == "MD055")
             .expect("MD055 diagnostic exists");
 
         assert!(md055.fix.is_some());
-        let fixed = fix_with_results(content, &results);
+        let fixed = MarkdownLinter::fix_with_results(content, &results);
         assert_eq!(fixed.content, "| A | B |\n| --- | --- |\n| C | D |\n");
     }
 
     #[test]
     fn ignores_pipe_text_inside_code_fences() {
         let content = "```md\nA | B\n---|---\n```\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|result| result.rule_id != "MD055"));
     }
@@ -189,7 +190,7 @@ mod tests {
             "    B -->|No| D[処理B]\n",
             "```\n"
         );
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
 
         assert!(results.iter().all(|result| result.rule_id != "MD055"));
     }

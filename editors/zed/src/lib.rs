@@ -42,33 +42,37 @@ impl zed::Extension for KatanaMarkdownLinterExtension {
                 .ok_or_else(|| "kml executable not found in PATH".to_string())?;
         }
 
-        let version_output = zed_extension_api::process::Command::new(&executable_path)
-            .arg("--version")
-            .output();
+        let mut version_command = zed_extension_api::process::Command {
+            command: executable_path.clone(),
+            args: vec!["--version".to_string()],
+            env: vec![],
+        };
 
-        if let Ok(output) = version_output {
-            let version_text = String::from_utf8_lossy(&output.stdout)
-                .trim()
-                .to_string();
-            let stderr_text = String::from_utf8_lossy(&output.stderr)
-                .trim()
-                .to_string();
-            let effective_version = if !version_text.is_empty() {
-                version_text
-            } else {
-                stderr_text
-            };
+        match version_command.output() {
+            Ok(output) => {
+                let version_text = String::from_utf8_lossy(&output.stdout)
+                    .trim()
+                    .to_string();
+                let stderr_text = String::from_utf8_lossy(&output.stderr)
+                    .trim()
+                    .to_string();
+                let effective_version = if !version_text.is_empty() {
+                    version_text
+                } else {
+                    stderr_text
+                };
 
-            if !effective_version.is_empty() && !is_compatible_kml_version(&effective_version) {
-                eprintln!(
-                    "Warning: kml version may be incompatible with this extension. \"kml --version\" returned: {}",
-                    effective_version
-                );
-            } else if effective_version.is_empty() {
-                eprintln!("Could not determine kml version output from kml --version");
+                if !effective_version.is_empty() && !is_compatible_kml_version(&effective_version)
+                {
+                    eprintln!(
+                        "Warning: kml version may be incompatible with this extension. \"kml --version\" returned: {}",
+                        effective_version
+                    );
+                } else if effective_version.is_empty() {
+                    eprintln!("Could not determine kml version output from kml --version");
+                }
             }
-        } else if let Err(err) = version_output {
-            eprintln!("Failed to run kml --version: {err}");
+            Err(err) => eprintln!("Failed to run kml --version: {err}"),
         }
 
         Ok(Command {

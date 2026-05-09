@@ -1,9 +1,9 @@
-use katana_markdown_linter::{fix, implemented_rules, lint, LintOptions, RuleConfig};
+use katana_markdown_linter::{LintOptions, MarkdownLinter, RuleCatalogService, RuleConfig};
 use std::collections::HashMap;
 
 fn only_rule(rule_id: &str) -> LintOptions {
     let mut options = LintOptions::default();
-    for rule in implemented_rules() {
+    for rule in RuleCatalogService::implemented_rules() {
         options.rules.insert(
             rule.id.to_string(),
             RuleConfig {
@@ -33,8 +33,8 @@ fn md027_ignores_code_lines_inside_blockquote_fences() {
 ";
     let options = only_rule("MD027");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);
@@ -50,8 +50,8 @@ fn md040_recognizes_fences_opened_after_list_markers() {
 ";
     let options = only_rule("MD040");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);
@@ -68,8 +68,8 @@ fn md031_treats_blockquote_marker_lines_as_blank_lines() {
 ";
     let options = only_rule("MD031");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);
@@ -88,8 +88,8 @@ fn md046_keeps_definition_list_continuation_paragraphs() {
 ";
     let options = only_rule("MD046");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);
@@ -109,8 +109,8 @@ git status
 ";
     let options = only_rule("MD046");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);
@@ -131,8 +131,8 @@ git status
 ";
     let options = only_rule("MD046");
 
-    let diagnostics = lint(content, &options).expect("lint should run");
-    let fixed = fix(content, &options).expect("fix should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
 
     assert!(diagnostics.is_empty(), "diagnostics: {diagnostics:?}");
     assert_eq!(fixed.content, content);

@@ -6,371 +6,24 @@ pub mod config;
 pub mod fix;
 pub mod formatter;
 pub mod i18n;
+pub mod linter;
 pub mod lsp;
 pub mod parser;
 pub mod rules;
 pub mod types;
 pub mod upstream;
 
-pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};
-pub use formatter::{format_markdown, layout_lint_options, FormatOptions, FormatResult};
+pub use config::{ConfigError, ConfigErrorKind, ConfigLoader, MarkdownLintConfig};
+pub use formatter::{FormatOptions, FormatResult, MarkdownFormatter};
 pub use i18n::{
-    has_rule_description_translation, localized_rule_description, resolve_locale_code,
-    resolve_locale_code_or, supported_locales, Locale, LocaleError, LocalizedDiagnostic,
+    I18nRuleDescriptionService, Locale, LocaleError, LocaleService, LocalizedDiagnostic,
+    MessageCatalog,
 };
+pub use linter::{Error, MarkdownLinter, RuleCatalogService};
 pub use types::{
     Fix, FixDetail, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta,
     Severity,
 };
-
-use std::path::Path;
-use std::sync::OnceLock;
-
-/// Runs linting for the provided Markdown content.
-pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error> {
-    lint_for_path(Path::new("<memory>"), content, options)
-}
-
-pub(crate) fn lint_for_path(
-    file_path: &Path,
-    content: &str,
-    options: &LintOptions,
-) -> Result<Vec<LintResult>, Error> {
-    let severity_map = build_severity_map(options);
-    let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
-        file_path,
-        content,
-        true,
-        &severity_map,
-        &options.rules,
-    );
-    Ok(diags.into_iter().map(Into::into).collect())
-}
-
-/// Applies available fixes to the provided Markdown content.
-pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error> {
-    const MAX_FIX_PASSES: usize = 8;
-
-    let mut content = content.to_string();
-    let mut applied_fixes = 0;
-    let mut all_details = Vec::new();
-    let severity_map = build_fix_severity_map(options);
-
-    for _ in 0..MAX_FIX_PASSES {
-        let diags = rules::markdown::MarkdownLinterOps::evaluate_all(
-            Path::new("<memory>"),
-            &content,
-            true,
-            &severity_map,
-            &options.rules,
-        );
-        let results = diags
-            .into_iter()
-            .map(Into::into)
-            .collect::<Vec<LintResult>>();
-        if !results.iter().any(|result| result.fix.is_some()) {
-            break;
-        }
-
-        let fixed = fix_with_results(&content, &results);
-        if fixed.applied_fixes == 0 || fixed.content == content {
-            break;
-        }
-
-        applied_fixes += fixed.applied_fixes;
-        all_details.extend(fixed.details);
-        content = fixed.content;
-    }
-
-    Ok(FixResult {
-        content,
-        applied_fixes,
-        details: all_details,
-    })
-}
-
-/// Applies available fixes from already computed lint results.
-pub fn fix_with_results(content: &str, results: &[LintResult]) -> FixResult {
-    fix::apply(results, content, false)
-}
-
-/// Applies available fixes from already computed lint results, including unsafe fixes.
-///
-/// Callers are responsible for presenting an explicit confirmation flow before using this helper
-/// with user-authored content.
-pub fn fix_with_results_including_unsafe(content: &str, results: &[LintResult]) -> FixResult {
-    fix::apply(results, content, true)
-}
-
-/// Returns the set of available rules.
-pub fn available_rules() -> Vec<RuleMeta> {
-    static AVAILABLE_RULES: OnceLock<Vec<RuleMeta>> = OnceLock::new();
-    AVAILABLE_RULES
-        .get_or_init(|| catalog::RuleCatalog::build().to_rule_meta())
-        .clone()
-}
-
-/// Returns the set of available rules with descriptions localized by language code.
-pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta> {
-    available_rules()
-        .into_iter()
-        .map(|rule| rule.localized(language_code))
-        .collect()
-}
-
-/// Returns the set of rules that are currently executed by the linter.
-pub fn implemented_rules() -> Vec<RuleMeta> {
-    let configurable_meta =
-        crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
-
-    rules::markdown::MarkdownLinterOps::official_rules()
-        .iter()
-        .filter_map(|rule| rule.official_meta())
-        .map(|value| {
-            let aliases = configurable_meta
-                .get(value.code)
-                .map(|meta| {
-                    meta.aliases
-                        .iter()
-                        .map(|s| s.to_string())
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            RuleMeta {
-                id: value.code.to_string(),
-                name: value.title.to_string(),
-                description: value.description.to_string(),
-                docs_url: value.docs_url.to_string(),
-                fixable: value.is_fixable,
-                aliases,
-            }
-        })
-        .collect()
-}
-
-/// Returns the set of official rules that are exposed to configuration but not yet linted.
-pub fn missing_rules() -> Vec<RuleMeta> {
-    let configurable_meta =
-        crate::rules::markdown::MarkdownLinterOps::user_configurable_rule_meta_map();
-
-    catalog::RuleCatalog::build()
-        .missing_check_rules()
-        .into_iter()
-        .map(|entry| {
-            let aliases = configurable_meta
-                .get(entry.id.as_str())
-                .map(|meta| {
-                    meta.aliases
-                        .iter()
-                        .map(|s| s.to_string())
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            RuleMeta {
-                id: entry.id.clone(),
-                name: entry.name.clone(),
-                description: entry.description.clone(),
-                docs_url: entry.docs_url.clone(),
-                fixable: entry.fixable,
-                aliases,
-            }
-        })
-        .collect()
-}
-
-/// Returns a structured catalog of active, deprecated, and removed rules.
-pub fn rule_catalog() -> catalog::RuleCatalog {
-    catalog::RuleCatalog::build()
-}
-
-/// Returns a structured catalog with descriptions localized by language code.
-pub fn localized_rule_catalog(language_code: &str) -> catalog::RuleCatalog {
-    catalog::RuleCatalog::build().localized(language_code)
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Error {
-    message: String,
-}
-
-impl Error {
-    pub fn new(message: impl Into<String>) -> Self {
-        Self {
-            message: message.into(),
-        }
-    }
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.message)
-    }
-}
-
-impl std::error::Error for Error {}
-
-impl From<rules::markdown::MarkdownDiagnostic> for LintResult {
-    fn from(value: rules::markdown::MarkdownDiagnostic) -> Self {
-        let fix = value.fix_info.map(|fix_info| Fix {
-            range: Range {
-                start_line: fix_info.start_line,
-                start_column: fix_info.start_column,
-                end_line: fix_info.end_line,
-                end_column: fix_info.end_column,
-            },
-            replacement: fix_info.replacement,
-            safety: fix_safety_for_rule(&value.rule_id),
-        });
-        Self {
-            message_id: crate::i18n::diagnostic_message_id(&value.rule_id, &value.message),
-            message_params: crate::i18n::diagnostic_message_params(
-                &value.rule_id,
-                value
-                    .official_meta
-                    .as_ref()
-                    .map(|meta| meta.title)
-                    .unwrap_or_default(),
-                &value.message,
-            ),
-            rule_id: value.rule_id,
-            rule_name: value
-                .official_meta
-                .as_ref()
-                .map(|meta| meta.title.to_string())
-                .unwrap_or_default(),
-            message: value.message,
-            severity: match value.severity {
-                rules::markdown::DiagnosticSeverity::Error => Severity::Error,
-                rules::markdown::DiagnosticSeverity::Warning => Severity::Warning,
-                rules::markdown::DiagnosticSeverity::Info => Severity::Info,
-            },
-            line: value.range.start_line,
-            column: value.range.start_column,
-            end_line: value.range.end_line,
-            end_column: value.range.end_column,
-            fix,
-        }
-    }
-}
-
-fn fix_safety_for_rule(rule_id: &str) -> FixSafety {
-    if is_unsafe_fix_rule(rule_id) {
-        FixSafety::Unsafe
-    } else {
-        FixSafety::Safe
-    }
-}
-
-fn is_unsafe_fix_rule(rule_id: &str) -> bool {
-    matches!(rule_id, "MD036")
-}
-
-impl From<rules::markdown::OfficialRuleMeta> for RuleMeta {
-    fn from(value: rules::markdown::OfficialRuleMeta) -> Self {
-        Self {
-            id: value.code.to_string(),
-            name: value.title.to_string(),
-            description: value.description.to_string(),
-            docs_url: value.docs_url.to_string(),
-            fixable: value.is_fixable,
-            aliases: value.aliases.iter().map(|s| s.to_string()).collect(),
-        }
-    }
-}
-
-fn build_severity_map(
-    options: &LintOptions,
-) -> std::collections::HashMap<&str, Option<rules::markdown::DiagnosticSeverity>> {
-    options
-        .rules
-        .iter()
-        .map(|(rule_id, rule_config)| {
-            let severity = if rule_config.enabled {
-                Some(match options.default_severity {
-                    Severity::Error => rules::markdown::DiagnosticSeverity::Error,
-                    Severity::Warning => rules::markdown::DiagnosticSeverity::Warning,
-                    Severity::Info => rules::markdown::DiagnosticSeverity::Info,
-                })
-            } else {
-                None
-            };
-            (rule_id.as_str(), severity)
-        })
-        .collect()
-}
-
-fn build_fix_severity_map(
-    options: &LintOptions,
-) -> std::collections::HashMap<&'static str, Option<rules::markdown::DiagnosticSeverity>> {
-    rules::markdown::MarkdownLinterOps::official_rules()
-        .iter()
-        .map(|rule| {
-            let severity = if is_safe_fix_rule(rule.id()) {
-                options
-                    .rules
-                    .get(rule.id())
-                    .map(|rule_config| rule_config.enabled)
-                    .unwrap_or(true)
-                    .then_some(match options.default_severity {
-                        Severity::Error => rules::markdown::DiagnosticSeverity::Error,
-                        Severity::Warning => rules::markdown::DiagnosticSeverity::Warning,
-                        Severity::Info => rules::markdown::DiagnosticSeverity::Info,
-                    })
-            } else {
-                None
-            };
-            (rule.id(), severity)
-        })
-        .collect()
-}
-
-fn is_safe_fix_rule(rule_id: &str) -> bool {
-    matches!(
-        rule_id,
-        "MD003"
-            | "MD004"
-            | "MD005"
-            | "MD007"
-            | "MD009"
-            | "MD010"
-            | "MD011"
-            | "MD012"
-            | "MD014"
-            | "MD018"
-            | "MD019"
-            | "MD020"
-            | "MD021"
-            | "MD022"
-            | "MD023"
-            | "MD025"
-            | "MD026"
-            | "MD027"
-            | "MD029"
-            | "MD030"
-            | "MD031"
-            | "MD032"
-            | "MD034"
-            | "MD035"
-            | "MD037"
-            | "MD038"
-            | "MD039"
-            | "MD040"
-            | "MD044"
-            | "MD046"
-            | "MD047"
-            | "MD048"
-            | "MD049"
-            | "MD050"
-            | "MD051"
-            | "MD052"
-            | "MD053"
-            | "MD054"
-            | "MD055"
-            | "MD056"
-            | "MD058"
-            | "MD060"
-    )
-}
 
 #[cfg(test)]
 mod tests {
@@ -380,7 +33,7 @@ mod tests {
 
     #[test]
     fn available_rules_exposes_official_rules() {
-        let rules = available_rules();
+        let rules = RuleCatalogService::available_rules();
         assert!(rules.iter().any(|rule| rule.id == "MD001"));
         assert!(rules.iter().any(|rule| rule.id == "MD060"));
         let ids = rules.iter().map(|rule| rule.id.clone()).collect::<Vec<_>>();
@@ -392,7 +45,7 @@ mod tests {
 
     #[test]
     fn rule_meta_exposes_localized_description_helper() {
-        let rule = available_rules()
+        let rule = RuleCatalogService::available_rules()
             .into_iter()
             .find(|rule| rule.id == "MD003")
             .expect("MD003 should be in public catalog");
@@ -405,13 +58,13 @@ mod tests {
             rule.localized_description("fr-FR"),
             "Conservez un style de titre cohérent"
         );
-        assert_eq!(resolve_locale_code_or("sv", Locale::Ja), Locale::Ja);
+        assert_eq!(LocaleService::resolve_code_or("sv", Locale::Ja), Locale::Ja);
     }
 
     #[test]
     fn localized_catalog_api_preserves_metadata_and_localizes_descriptions() {
-        let english = rule_catalog();
-        let japanese = localized_rule_catalog("ja-JP");
+        let english = RuleCatalogService::rule_catalog();
+        let japanese = RuleCatalogService::localized_rule_catalog("ja-JP");
         let en_md003 = english
             .active
             .iter()
@@ -427,7 +80,7 @@ mod tests {
         assert_eq!(en_md003.docs_url, ja_md003.docs_url);
         assert_eq!(ja_md003.description, "見出しのスタイルを統一してください");
 
-        let rules = localized_available_rules("ja");
+        let rules = RuleCatalogService::localized_available_rules("ja");
         assert!(rules
             .iter()
             .any(|rule| rule.id == "MD003"
@@ -436,7 +89,7 @@ mod tests {
 
     #[test]
     fn rule_catalog_exposes_active_and_empty_lifecycle_buckets() {
-        let catalog = rule_catalog();
+        let catalog = RuleCatalogService::rule_catalog();
         assert!(catalog.active_rules().any(|rule| rule.id == "MD001"));
         assert!(catalog.deprecated.is_empty());
         assert!(catalog.removed.is_empty());
@@ -485,13 +138,13 @@ mod tests {
     fn lint_reports_heading_increment_violation() {
         let content = "# title\n\n### skipped heading";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD001"));
     }
 
     #[test]
     fn implemented_rules_and_error_display_are_public_api() {
-        let rules = implemented_rules();
+        let rules = RuleCatalogService::implemented_rules();
         assert!(rules.iter().any(|rule| rule.id == "MD001"));
         assert!(rules.iter().any(|rule| !rule.docs_url.is_empty()));
 
@@ -513,15 +166,15 @@ mod tests {
             },
         );
 
-        let error_results =
-            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        let error_results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
+            .expect("lint should succeed");
         assert!(error_results.iter().any(|result| {
             result.rule_id == "MD001" && matches!(result.severity, Severity::Error)
         }));
 
         options.default_severity = Severity::Info;
-        let info_results =
-            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        let info_results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
+            .expect("lint should succeed");
         assert!(info_results.iter().any(|result| {
             result.rule_id == "MD001" && matches!(result.severity, Severity::Info)
         }));
@@ -531,8 +184,8 @@ mod tests {
             .get_mut("MD001")
             .expect("MD001 config should exist")
             .enabled = false;
-        let disabled_results =
-            lint("# title\n\n### skipped heading", &options).expect("lint should succeed");
+        let disabled_results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
+            .expect("lint should succeed");
         assert!(!disabled_results
             .iter()
             .any(|result| result.rule_id == "MD001"));
@@ -542,7 +195,7 @@ mod tests {
     fn lint_reports_regex_based_rule_violations() {
         let content = "\n\n\nReversed (link)[https://example.com]\n\nhttps://example.com";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD011"));
         assert!(results.iter().any(|result| result.rule_id == "MD034"));
     }
@@ -551,7 +204,7 @@ mod tests {
     fn lint_reports_atx_heading_spacing_violations() {
         let content = "#Title\n##  Title";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD018"));
         assert!(results.iter().any(|result| result.rule_id == "MD019"));
     }
@@ -560,7 +213,7 @@ mod tests {
     fn lint_reports_closed_atx_spacing_variants() {
         let content = "#Title#\n##  Title  ##";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD020"));
         assert!(results.iter().any(|result| result.rule_id == "MD021"));
     }
@@ -569,7 +222,7 @@ mod tests {
     fn lint_reports_blockquote_spacing_variants() {
         let content = ">  too many";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD027"));
     }
 
@@ -578,7 +231,7 @@ mod tests {
         let content =
             "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefgh";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD013"));
     }
 
@@ -586,7 +239,7 @@ mod tests {
     fn lint_reports_list_indentation_violation() {
         let content = "   - item";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD007"));
     }
 
@@ -594,7 +247,7 @@ mod tests {
     fn lint_reports_list_indent_rule_violation() {
         let content = "- item\n  - nested\n   - inconsistent";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD005"));
     }
 
@@ -602,7 +255,7 @@ mod tests {
     fn lint_reports_multiple_blank_lines() {
         let content = "first\n\n\nsecond\n";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD012"));
     }
 
@@ -610,7 +263,7 @@ mod tests {
     fn lint_reports_blockquote_spacing_violation() {
         let content = ">  quote";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD027"));
     }
 
@@ -618,7 +271,7 @@ mod tests {
     fn lint_reports_table_rules() {
         let content = "Intro\n| a | b |\n| --- | --- |\n| 1 | 2 | 3 |\n\n|x| y |\n|---|---|\n| z | q |\n[click here](#target)";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD056"));
         assert!(results.iter().any(|result| result.rule_id == "MD058"));
         assert!(results.iter().any(|result| result.rule_id == "MD059"));
@@ -629,7 +282,7 @@ mod tests {
     fn lint_reports_style_and_link_variants() {
         let content = "No heading here.\n\n```rust\ncode\n```\n~~~\ncode\n~~~\n    indented\n*em* and _em_\n**strong** and __strong__\nmarkdownlint and github\nlink [fragment](#frag)\n[ref][]\n[dup]: https://example.com\n[dup]: https://example.com/2\ninline [link](https://example.com)\n| a | b |\n|---|---\n  c | d\n";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD046"));
         assert!(results.iter().any(|result| result.rule_id == "MD048"));
         assert!(results.iter().any(|result| result.rule_id == "MD049"));
@@ -666,7 +319,7 @@ mod tests {
             },
         );
 
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD044"));
         assert!(results.iter().any(|result| result.rule_id == "MD054"));
     }
@@ -675,7 +328,7 @@ mod tests {
     fn lint_reports_spacing_inside_emphasis_and_code() {
         let content = "This is * spaced * text and ` code ` span.";
         let options = LintOptions::default();
-        let results = lint(content, &options).expect("lint should succeed");
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
         assert!(results.iter().any(|result| result.rule_id == "MD037"));
         assert!(results.iter().any(|result| result.rule_id == "MD038"));
     }
@@ -684,7 +337,7 @@ mod tests {
     fn fix_keeps_unmodified_content_when_no_fixes_apply() {
         let content = "# title\n\nParagraph\n";
         let options = LintOptions::default();
-        let result = fix(content, &options).expect("fix should succeed");
+        let result = MarkdownLinter::fix(content, &options).expect("fix should succeed");
         assert_eq!(result.content, content);
         assert_eq!(result.applied_fixes, 0);
     }
@@ -700,9 +353,10 @@ mod tests {
                 properties: std::collections::HashMap::new(),
             },
         );
-        let result = fix(content, &options).expect("fix should succeed");
+        let result = MarkdownLinter::fix(content, &options).expect("fix should succeed");
         assert_ne!(result.content, content);
-        let results = lint(&result.content, &options).expect("re-lint should succeed");
+        let results =
+            MarkdownLinter::lint(&result.content, &options).expect("re-lint should succeed");
         assert!(!results.iter().any(|result| result.rule_id == "MD004"));
     }
 
@@ -710,7 +364,7 @@ mod tests {
     fn fix_applies_multiple_bare_url_fixes_idempotently() {
         let content = "# Title\n\nSee https://example.com and (https://example.org).\n";
         let options = LintOptions::default();
-        let result = fix(content, &options).expect("fix should succeed");
+        let result = MarkdownLinter::fix(content, &options).expect("fix should succeed");
 
         assert_eq!(result.applied_fixes, 2);
         assert_eq!(
@@ -718,7 +372,8 @@ mod tests {
             "# Title\n\nSee <https://example.com> and (<https://example.org>).\n"
         );
 
-        let second = fix(&result.content, &options).expect("second fix should succeed");
+        let second =
+            MarkdownLinter::fix(&result.content, &options).expect("second fix should succeed");
         assert_eq!(second.applied_fixes, 0);
         assert_eq!(second.content, result.content);
     }
@@ -734,9 +389,9 @@ mod tests {
                 properties: std::collections::HashMap::new(),
             },
         );
-        let results = lint(content, &options).expect("lint should succeed");
-        let direct = fix(content, &options).expect("fix should succeed");
-        let reused = fix_with_results(content, &results);
+        let results = MarkdownLinter::lint(content, &options).expect("lint should succeed");
+        let direct = MarkdownLinter::fix(content, &options).expect("fix should succeed");
+        let reused = MarkdownLinter::fix_with_results(content, &results);
         assert_eq!(direct, reused);
     }
 
@@ -756,7 +411,7 @@ mod tests {
 
     #[test]
     fn missing_rules_exposes_stubbed_official_rules() {
-        let rules = missing_rules();
+        let rules = RuleCatalogService::missing_rules();
         assert!(!rules.iter().any(|rule| rule.id == "MD001"));
         assert!(!rules.iter().any(|rule| rule.id == "MD024"));
         assert!(!rules.iter().any(|rule| rule.id == "MD030"));
@@ -767,6 +422,6 @@ mod tests {
 
     #[test]
     fn missing_rules_are_empty() {
-        assert!(missing_rules().is_empty());
+        assert!(RuleCatalogService::missing_rules().is_empty());
     }
 }

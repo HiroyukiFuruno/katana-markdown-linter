@@ -1,90 +1,95 @@
 use crate::types::{FixDetail, FixResult, LintResult, Range};
 
-pub fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
-    let mut applied_fixes = 0;
-    let line_index = LineOffsetIndex::new(content);
+pub(crate) struct FixApplicator;
 
-    struct Edit<'a> {
-        byte_start: usize,
-        byte_end: usize,
-        replacement: &'a str,
-        rule_id: &'a str,
-        range: Range,
-    }
+impl FixApplicator {
+    pub(crate) fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
+        let mut applied_fixes = 0;
+        let line_index = LineOffsetIndex::new(content);
 
-    let mut edits = results
-        .iter()
-        .filter_map(|result| {
-            let fix = result.fix.as_ref()?;
-            if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
-                return None;
-            }
-            let byte_start =
-                line_index.offset_for_position(fix.range.start_line, fix.range.start_column)?;
-            let byte_end =
-                line_index.offset_for_position(fix.range.end_line, fix.range.end_column)?;
-            if byte_start > byte_end {
-                return None;
-            }
-            Some(Edit {
-                byte_start,
-                byte_end,
-                replacement: fix.replacement.as_str(),
-                rule_id: result.rule_id.as_str(),
-                range: fix.range.clone(),
-            })
-        })
-        .collect::<Vec<_>>();
-
-    edits.sort_by(|l, r| {
-        r.byte_start
-            .cmp(&l.byte_start)
-            .then_with(|| r.byte_end.cmp(&l.byte_end))
-    });
-
-    let mut accepted: Vec<Edit<'_>> = Vec::new();
-    let mut skipped: Vec<Edit<'_>> = Vec::new();
-    let mut previous_start = content.len();
-    for edit in edits {
-        if edit.byte_end > previous_start {
-            skipped.push(edit);
-            continue;
+        struct Edit<'a> {
+            byte_start: usize,
+            byte_end: usize,
+            replacement: &'a str,
+            rule_id: &'a str,
+            range: Range,
         }
-        previous_start = edit.byte_start;
-        applied_fixes += 1;
-        accepted.push(edit);
-    }
-    accepted.reverse();
 
-    let mut details: Vec<FixDetail> = accepted
-        .iter()
-        .map(|e| FixDetail {
-            rule_id: e.rule_id.to_string(),
-            range: e.range.clone(),
-            applied: true,
-        })
-        .collect();
-    for e in &skipped {
-        details.push(FixDetail {
-            rule_id: e.rule_id.to_string(),
-            range: e.range.clone(),
-            applied: false,
+        let mut edits = results
+            .iter()
+            .filter_map(|result| {
+                let fix = result.fix.as_ref()?;
+                if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
+                    return None;
+                }
+                let byte_start =
+                    line_index.offset_for_position(fix.range.start_line, fix.range.start_column)?;
+                let byte_end =
+                    line_index.offset_for_position(fix.range.end_line, fix.range.end_column)?;
+                if byte_start > byte_end {
+                    return None;
+                }
+                Some(Edit {
+                    byte_start,
+                    byte_end,
+                    replacement: fix.replacement.as_str(),
+                    rule_id: result.rule_id.as_str(),
+                    range: fix.range.clone(),
+                })
+            })
+            .collect::<Vec<_>>();
+
+        edits.sort_by(|left, right| {
+            right
+                .byte_start
+                .cmp(&left.byte_start)
+                .then_with(|| right.byte_end.cmp(&left.byte_end))
         });
-    }
 
-    let mut fixed = String::with_capacity(content.len());
-    let mut cursor = 0;
-    for edit in &accepted {
-        fixed.push_str(&content[cursor..edit.byte_start]);
-        fixed.push_str(edit.replacement);
-        cursor = edit.byte_end;
-    }
-    fixed.push_str(&content[cursor..]);
+        let mut accepted: Vec<Edit<'_>> = Vec::new();
+        let mut skipped: Vec<Edit<'_>> = Vec::new();
+        let mut previous_start = content.len();
+        for edit in edits {
+            if edit.byte_end > previous_start {
+                skipped.push(edit);
+                continue;
+            }
+            previous_start = edit.byte_start;
+            applied_fixes += 1;
+            accepted.push(edit);
+        }
+        accepted.reverse();
 
-    FixResult {
-        content: fixed,
-        applied_fixes,
-        details,
+        let mut details: Vec<FixDetail> = accepted
+            .iter()
+            .map(|edit| FixDetail {
+                rule_id: edit.rule_id.to_string(),
+                range: edit.range.clone(),
+                applied: true,
+            })
+            .collect();
+        for edit in &skipped {
+            details.push(FixDetail {
+                rule_id: edit.rule_id.to_string(),
+                range: edit.range.clone(),
+                applied: false,
+            });
+        }
+
+        let mut fixed = String::with_capacity(content.len());
+        let mut cursor = 0;
+        for edit in &accepted {
+            fixed.push_str(&content[cursor..edit.byte_start]);
+            fixed.push_str(edit.replacement);
+            cursor = edit.byte_end;
+        }
+        fixed.push_str(&content[cursor..]);
+
+        FixResult {
+            content: fixed,
+            applied_fixes,
+            details,
+        }
     }
 }
 
@@ -159,7 +164,7 @@ mod tests {
             rule_name: String::new(),
             message: String::new(),
             message_id: "rule.generic".to_string(),
-            message_params: crate::i18n::diagnostic_message_params(rule_id, "", ""),
+            message_params: crate::i18n::MessageCatalog::diagnostic_message_params(rule_id, "", ""),
             severity: Severity::Warning,
             line: range.start_line,
             column: range.start_column,
@@ -176,7 +181,7 @@ mod tests {
     #[test]
     fn applies_multi_line_fix_ranges() {
         let content = "# Title\n\n\nParagraph\n";
-        let fixed = apply(
+        let fixed = FixApplicator::apply(
             &[result(
                 "MD012",
                 Range {
@@ -198,7 +203,7 @@ mod tests {
     #[test]
     fn skips_overlapping_fix_ranges() {
         let content = "#Title\n";
-        let fixed = apply(
+        let fixed = FixApplicator::apply(
             &[
                 result(
                     "A",
@@ -238,7 +243,7 @@ mod tests {
             end_line: 4,
             end_column: 1,
         };
-        let fixed = apply(&[result("MD012", range.clone(), "")], content, false);
+        let fixed = FixApplicator::apply(&[result("MD012", range.clone(), "")], content, false);
 
         assert_eq!(fixed.applied_fixes, 1);
         assert_eq!(fixed.details.len(), 1);
@@ -250,7 +255,7 @@ mod tests {
     #[test]
     fn fix_detail_applied_false_for_skipped_edit() {
         let content = "#Title\n";
-        let fixed = apply(
+        let fixed = FixApplicator::apply(
             &[
                 result(
                     "A",

@@ -7,5 +7,5 @@ mod shared;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    remote::run_from_env().await
+    remote::KmlMcpRemoteRuntime::run_from_env().await
 }

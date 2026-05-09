@@ -2,9 +2,9 @@ use super::super::args::Cli;
 use super::super::reporter::{
     output_report, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
-use crate::config::validate_effective_config;
+use crate::config::ConfigLoader;
 use crate::i18n::Locale;
-use crate::{format_markdown, FormatOptions};
+use crate::{FormatOptions, MarkdownFormatter};
 use std::fs;
 use std::io::{self, Read};
 use std::path::Path;
@@ -39,7 +39,7 @@ pub(super) fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
             }
         };
 
-        match validate_effective_config(&path, cli.config.as_deref()) {
+        match ConfigLoader::validate_effective_config(&path, cli.config.as_deref()) {
             Ok(errors) if errors.is_empty() => {}
             Ok(errors) => {
                 for error in errors {
@@ -55,8 +55,8 @@ pub(super) fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
             }
         }
 
-        let formatted =
-            format_markdown(&content, &FormatOptions::default()).map_err(|err| err.to_string())?;
+        let formatted = MarkdownFormatter::format_markdown(&content, &FormatOptions::default())
+            .map_err(|err| err.to_string())?;
         let changed = formatted.content != content;
         if changed {
             if cli.diff {
@@ -88,7 +88,7 @@ fn run_stdin_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
     io::stdin()
         .read_to_string(&mut content)
         .map_err(|err| err.to_string())?;
-    match validate_effective_config(Path::new("<stdin>"), cli.config.as_deref()) {
+    match ConfigLoader::validate_effective_config(Path::new("<stdin>"), cli.config.as_deref()) {
         Ok(errors) if errors.is_empty() => {}
         Ok(errors) => {
             let mut report = CliReport {
@@ -127,7 +127,9 @@ fn run_stdin_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
 }
 
 pub(super) fn format_stdin_content(content: &str) -> Result<String, String> {
-    Ok(format_markdown(content, &FormatOptions::default())
-        .map_err(|err| err.to_string())?
-        .content)
+    Ok(
+        MarkdownFormatter::format_markdown(content, &FormatOptions::default())
+            .map_err(|err| err.to_string())?
+            .content,
+    )
 }

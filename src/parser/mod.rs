@@ -4,9 +4,13 @@ pub struct MarkdownAst {
     pub content: String,
 }
 
-pub fn parse(content: &str) -> MarkdownAst {
-    MarkdownAst {
-        content: content.to_owned(),
+pub struct MarkdownParser;
+
+impl MarkdownParser {
+    pub fn parse(content: &str) -> MarkdownAst {
+        MarkdownAst {
+            content: content.to_owned(),
+        }
     }
 }
 
@@ -16,7 +20,7 @@ mod tests {
 
     #[test]
     fn parse_preserves_source_content() {
-        let ast = parse("# Title\n\nParagraph\n");
+        let ast = MarkdownParser::parse("# Title\n\nParagraph\n");
 
         assert_eq!(ast.content, "# Title\n\nParagraph\n");
     }

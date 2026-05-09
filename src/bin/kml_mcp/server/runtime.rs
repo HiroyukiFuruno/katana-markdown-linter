@@ -3,13 +3,17 @@ use crate::workspace::Workspace;
 use rmcp::ServiceExt;
 use std::path::PathBuf;
 
-pub(crate) async fn run_from_env() -> Result<(), Box<dyn std::error::Error>> {
-    let workspace = Workspace::new(parse_workspace_root()?)?;
-    let service = KmlMcpServer::with_workspace(workspace)
-        .serve(rmcp::transport::stdio())
-        .await?;
-    service.waiting().await?;
-    Ok(())
+pub(crate) struct KmlMcpRuntime;
+
+impl KmlMcpRuntime {
+    pub(crate) async fn run_from_env() -> Result<(), Box<dyn std::error::Error>> {
+        let workspace = Workspace::new(parse_workspace_root()?)?;
+        let service = KmlMcpServer::with_workspace(workspace)
+            .serve(rmcp::transport::stdio())
+            .await?;
+        service.waiting().await?;
+        Ok(())
+    }
 }
 
 fn parse_workspace_root() -> Result<PathBuf, String> {
