@@ -11,7 +11,7 @@ check / fix / fmt / config の 4 コマンドフローが一枚岩で実装さ�
 
 `src/cli/workflow.rs` を `src/cli/workflow/` ディレクトリに変換し、責務別に 4 ファイルへ分割します。
 
-```
+```text
 src/cli/workflow/
   mod.rs          # pub use re-export のみ（スコア ≤20）
   common.rs       # 共有型・共有関数（UnsafeFixPolicy, FixedContent,
@@ -43,7 +43,7 @@ src/cli/workflow/
 ### 1.4 目標スコア
 
 | ファイル | 目標 size_score |
-|---|---|
+| --- | --- |
 | src/cli/workflow/mod.rs | ≤20 |
 | src/cli/workflow/common.rs | ≤250 |
 | src/cli/workflow/check.rs | ≤400 |

@@ -1,4 +1,5 @@
 ## Definition of Ready
+
 - [x] phase2 の rule / config quality が固まっていること
 - [x] phase1 と phase2 の `tasks.md` が全て完了していること
 - [x] `Cargo.toml` に入れる publish metadata の項目一覧が確定していること
@@ -25,6 +26,7 @@
 - [x] 3.3 publish 失敗時の復旧手順を release runbook に記載する
 
 ## Definition of Done
+
 - [x] crates.io 公開に必要な条件が README または release runbook に文書化されていること
 - [x] publish 前の dry-run が CI で検証されること
 - [x] `cargo install` 可能な binary target 名と executable 名が `kml` として固定されていること
