@@ -29,6 +29,8 @@ impl ReleaseVersionCommand {
     fn run(&self) -> Output {
         let mut command = Command::new("bash");
         command.current_dir(workspace_root());
+        command.env("MSYS2_ARG_CONV_EXCL", "*");
+        command.env("MSYS_NO_PATHCONV", "1");
         for arg in &self.args {
             command.arg(arg);
         }

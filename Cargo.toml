@@ -15,6 +15,7 @@ include = [
     "LICENSE",
     "Markfile",
     "build.rs",
+    "build/**",
     "server.json",
     "docs/**",
     "examples/**",
