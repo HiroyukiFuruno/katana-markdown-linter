@@ -46,3 +46,30 @@ fn md050_ignores_markers_that_start_and_end_in_separate_inline_code_spans() {
     assert!(diagnostics.is_empty());
     assert_eq!(fixed.content, content);
 }
+
+#[test]
+fn md037_does_not_merge_separate_strong_spans_on_one_line() {
+    let content = "**Note:** Neovim support is provided as a **docs-only sample**.\n";
+    let options = only_rule("MD037");
+
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
+
+    assert!(diagnostics.is_empty());
+    assert_eq!(fixed.content, content);
+}
+
+#[test]
+fn md037_trims_spaced_emphasis_next_to_separate_strong_span() {
+    let content = "**Note:** Neovim support is provided as * docs-only sample *.\n";
+    let options = only_rule("MD037");
+
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(
+        fixed.content,
+        "**Note:** Neovim support is provided as *docs-only sample*.\n"
+    );
+}
