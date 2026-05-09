@@ -1,9 +1,9 @@
-use katana_markdown_linter::{fix, implemented_rules, lint, LintOptions, RuleConfig};
+use katana_markdown_linter::{LintOptions, MarkdownLinter, RuleCatalogService, RuleConfig};
 use std::collections::HashMap;
 
 fn md052_options() -> LintOptions {
     let mut options = LintOptions::default();
-    for rule in implemented_rules() {
+    for rule in RuleCatalogService::implemented_rules() {
         options.rules.insert(
             rule.id,
             RuleConfig {
@@ -25,7 +25,7 @@ fn md052_options() -> LintOptions {
 #[test]
 fn reports_missing_full_and_collapsed_reference_definitions() {
     let content = concat!("[text][missing]\n", "![alt][missing-image]\n", "[ref][]\n");
-    let diagnostics = lint(content, &md052_options()).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(content, &md052_options()).expect("lint should run");
 
     let locations = diagnostics
         .iter()
@@ -46,7 +46,7 @@ fn ignores_defined_reference_labels() {
         "[image-target]: https://example.com/image.png\n",
         "[ref]: https://example.com/ref\n",
     );
-    let diagnostics = lint(content, &md052_options()).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(content, &md052_options()).expect("lint should run");
 
     assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
 }
@@ -61,11 +61,13 @@ fn reports_shortcut_syntax_only_when_enabled() {
         .properties
         .insert("shortcut_syntax".to_string(), "true".to_string());
 
-    let diagnostics = lint("## [release] - released\n", &options).expect("lint should run");
+    let diagnostics =
+        MarkdownLinter::lint("## [release] - released\n", &options).expect("lint should run");
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(diagnostics[0].rule_id, "MD052");
 
-    let diagnostics = lint("## [0.22.8] - released\n", &md052_options()).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint("## [0.22.8] - released\n", &md052_options())
+        .expect("lint should run");
     assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
 }
 
@@ -83,7 +85,7 @@ fn ignores_changelog_version_headings_with_shortcut_syntax() {
         "## [0.1.2] - 2026-03-20 01:54:57 (JST)\n",
         "### [v1.2.3-beta.1] - released\n",
     );
-    let diagnostics = lint(content, &options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
 
     assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
 }
@@ -98,7 +100,7 @@ fn does_not_double_report_full_reference_when_shortcut_syntax_is_enabled() {
         .properties
         .insert("shortcut_syntax".to_string(), "true".to_string());
 
-    let diagnostics = lint("[text][missing]\n", &options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint("[text][missing]\n", &options).expect("lint should run");
 
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(diagnostics[0].rule_id, "MD052");
@@ -126,7 +128,7 @@ fn ignores_reference_like_text_inside_indented_code_blocks() {
         "[text][missing]\n",
     );
 
-    let diagnostics = lint(content, &options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
 
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(diagnostics[0].rule_id, "MD052");
@@ -148,14 +150,15 @@ fn respects_ignored_labels_for_shortcut_syntax() {
         "[\"x\", \"!tip\"]".to_string(),
     );
 
-    let diagnostics = lint("> [!TIP]\n> text\n- [x] done\n", &options).expect("lint should run");
+    let diagnostics =
+        MarkdownLinter::lint("> [!TIP]\n> text\n- [x] done\n", &options).expect("lint should run");
 
     assert!(diagnostics.is_empty(), "MD052 diagnostics: {diagnostics:?}");
 }
 
 #[test]
 fn does_not_apply_unsafe_missing_reference_fix() {
-    let result = fix("[ref][]\n", &md052_options()).expect("fix should run");
+    let result = MarkdownLinter::fix("[ref][]\n", &md052_options()).expect("fix should run");
 
     assert_eq!(result.content, "[ref][]\n");
     assert_eq!(result.applied_fixes, 0);

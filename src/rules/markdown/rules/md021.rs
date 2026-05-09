@@ -4,6 +4,8 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
+const MAX_ATX_HEADING_LEVEL: usize = 6;
+
 /// MD021 / no-multiple-space-closed-atx — Multiple spaces inside hashes on closed atx heading.
 pub struct NoMultipleSpaceClosedAtxRule;
 
@@ -65,7 +67,7 @@ impl<'a> ClosedAtxHeading<'a> {
             .bytes()
             .take_while(|byte| *byte == b'#')
             .count();
-        if !(1..=6).contains(&opening_count) {
+        if !(1..=MAX_ATX_HEADING_LEVEL).contains(&opening_count) {
             return None;
         }
 

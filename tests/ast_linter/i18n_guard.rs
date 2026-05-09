@@ -13,7 +13,7 @@ use i18n_catalog::{
 
 #[test]
 fn ast_linter_supported_locales_match_katana_language_set() {
-    let actual = katana_markdown_linter::supported_locales()
+    let actual = katana_markdown_linter::LocaleService::supported_locales()
         .iter()
         .map(|locale| locale.code())
         .collect::<Vec<_>>();
@@ -69,7 +69,7 @@ fn ast_linter_localized_rule_docs_exist_and_match_locale_json() {
         let Some(catalog) = read_catalog(&locale_dir, &language.code, &mut violations) else {
             continue;
         };
-        for rule in katana_markdown_linter::available_rules() {
+        for rule in katana_markdown_linter::RuleCatalogService::available_rules() {
             let english_path = root
                 .join("upstream_docs")
                 .join(format!("{}.md", rule.id.to_lowercase()));
@@ -100,7 +100,7 @@ fn validate_english_canonical_descriptions(
     english: Option<&i18n_catalog::LocaleCatalog>,
     violations: &mut Vec<String>,
 ) {
-    for rule in katana_markdown_linter::available_rules() {
+    for rule in katana_markdown_linter::RuleCatalogService::available_rules() {
         if english
             .and_then(|catalog| catalog.rule_descriptions.get(&rule.id))
             .is_some_and(|description| description != &rule.description)

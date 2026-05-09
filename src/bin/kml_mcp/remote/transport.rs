@@ -14,6 +14,8 @@ use rmcp::transport::{
 use std::{sync::Arc, time::Duration};
 use tokio::sync::Semaphore;
 
+const SSE_KEEP_ALIVE_SECONDS: u64 = 15;
+
 type RemoteMcpService = StreamableHttpService<KmlMcpRemoteServer, NeverSessionManager>;
 
 #[derive(Clone)]
@@ -33,7 +35,7 @@ impl RemoteHttpState {
                 .with_allowed_hosts(allowed_hosts)
                 .with_stateful_mode(false)
                 .with_json_response(true)
-                .with_sse_keep_alive(Some(Duration::from_secs(15))),
+                .with_sse_keep_alive(Some(Duration::from_secs(SSE_KEEP_ALIVE_SECONDS))),
         );
         Self {
             auth,

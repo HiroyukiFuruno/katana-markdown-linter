@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.19.1
+
+- Fixes `MD037` so separate emphasis spans on the same line are not merged by `kml check --fix`.
+- Adds regression coverage for the release-blocking `MD037` corruption case.
+- Fixes the local pre-push file filter to use the repository's `master` branch.
+- Synchronizes project version to `v0.19.1` across all components.
+
 ## v0.19.0
 
 - Implements project-specific configuration awareness in the LSP server.

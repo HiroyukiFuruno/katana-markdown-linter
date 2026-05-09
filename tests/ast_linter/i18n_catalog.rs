@@ -117,7 +117,7 @@ pub(crate) fn compare_sets(
 }
 
 pub(crate) fn active_rule_ids() -> BTreeSet<String> {
-    katana_markdown_linter::available_rules()
+    katana_markdown_linter::RuleCatalogService::available_rules()
         .into_iter()
         .map(|rule| rule.id)
         .collect()

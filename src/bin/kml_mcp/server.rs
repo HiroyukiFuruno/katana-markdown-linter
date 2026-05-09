@@ -22,7 +22,7 @@ use rmcp::{
     model::{Implementation, ServerCapabilities, ServerInfo},
     tool, tool_handler, tool_router, Json, ServerHandler,
 };
-pub(crate) use runtime::run_from_env;
+pub(crate) use runtime::KmlMcpRuntime;
 
 #[derive(Debug, Clone)]
 pub(crate) struct KmlMcpServer {

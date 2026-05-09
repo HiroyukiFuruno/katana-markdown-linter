@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::{render_message, Locale};
+use super::{Locale, MessageCatalog};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct LocalizedDiagnostic {
@@ -20,7 +20,7 @@ pub struct LocalizedDiagnostic {
 impl LocalizedDiagnostic {
     pub fn from_result(result: &crate::LintResult, locale: Locale) -> Self {
         let mut localized = result.clone();
-        localized.message = render_message(
+        localized.message = MessageCatalog::render_message(
             locale,
             result.message_id.as_str(),
             &result.message_params,

@@ -31,27 +31,17 @@ impl MarkdownRule for ListIndentRule {
             let trimmed = line.trim_start();
             if RuleHelpers::is_list_item(trimmed) {
                 let leading = line.len() - trimmed.len();
-                if let Some(previous) = previous_list_indent {
-                    if let Some(expected) = safe_expected_indent(previous, leading) {
-                        let fix = crate::rules::markdown::types::DiagnosticFix {
-                            start_line: i + 1,
-                            start_column: 1,
-                            end_line: i + 1,
-                            end_column: leading + 1,
-                            replacement: " ".repeat(expected),
-                        };
-                        RuleHelpers::push_diag_with_fix(
-                            &mut diagnostics,
-                            file_path,
-                            i,
-                            line,
-                            &meta,
-                            DiagnosticSeverity::Warning,
-                            Some(fix),
-                        );
-                        previous_list_indent = Some(expected);
-                        continue;
-                    }
+                if let Some(expected) = push_indent_diagnostic(
+                    &mut diagnostics,
+                    file_path,
+                    i,
+                    line,
+                    &meta,
+                    previous_list_indent,
+                    leading,
+                ) {
+                    previous_list_indent = Some(expected);
+                    continue;
                 }
                 previous_list_indent = Some(leading);
             } else {
@@ -61,6 +51,35 @@ impl MarkdownRule for ListIndentRule {
 
         diagnostics
     }
+}
+
+fn push_indent_diagnostic(
+    diagnostics: &mut Vec<MarkdownDiagnostic>,
+    file_path: &Path,
+    line_index: usize,
+    line: &str,
+    meta: &OfficialRuleMeta,
+    previous_list_indent: Option<usize>,
+    leading: usize,
+) -> Option<usize> {
+    let expected = safe_expected_indent(previous_list_indent?, leading)?;
+    let fix = crate::rules::markdown::types::DiagnosticFix {
+        start_line: line_index + 1,
+        start_column: 1,
+        end_line: line_index + 1,
+        end_column: leading + 1,
+        replacement: " ".repeat(expected),
+    };
+    RuleHelpers::push_diag_with_fix(
+        diagnostics,
+        file_path,
+        line_index,
+        line,
+        meta,
+        DiagnosticSeverity::Warning,
+        Some(fix),
+    );
+    Some(expected)
 }
 
 fn safe_expected_indent(previous: usize, current: usize) -> Option<usize> {

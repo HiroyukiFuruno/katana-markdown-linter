@@ -1,51 +1,56 @@
 use serde_json::{json, Value};
 use std::io::{BufRead, Write};
 
-pub(crate) fn read_message(reader: &mut impl BufRead) -> Result<Option<Value>, String> {
-    let Some(length) = read_content_length(reader)? else {
-        return Ok(None);
-    };
-    let mut payload = vec![0; length];
-    reader
-        .read_exact(&mut payload)
-        .map_err(|err| format!("failed to read LSP payload: {err}"))?;
-    serde_json::from_slice(&payload)
-        .map(Some)
-        .map_err(|err| format!("failed to parse LSP payload: {err}"))
-}
+pub(crate) struct LspProtocol;
 
-pub(crate) fn write_message(writer: &mut impl Write, message: &Value) -> Result<(), String> {
-    let payload = serde_json::to_vec(message).map_err(|err| err.to_string())?;
-    write!(writer, "Content-Length: {}\r\n\r\n", payload.len()).map_err(|err| err.to_string())?;
-    writer.write_all(&payload).map_err(|err| err.to_string())?;
-    writer.flush().map_err(|err| err.to_string())
-}
+impl LspProtocol {
+    pub(crate) fn read_message(reader: &mut impl BufRead) -> Result<Option<Value>, String> {
+        let Some(length) = read_content_length(reader)? else {
+            return Ok(None);
+        };
+        let mut payload = vec![0; length];
+        reader
+            .read_exact(&mut payload)
+            .map_err(|err| format!("failed to read LSP payload: {err}"))?;
+        serde_json::from_slice(&payload)
+            .map(Some)
+            .map_err(|err| format!("failed to parse LSP payload: {err}"))
+    }
 
-pub(crate) fn response(id: Value, result: Value) -> Value {
-    json!({
-        "jsonrpc": "2.0",
-        "id": id,
-        "result": result
-    })
-}
+    pub(crate) fn write_message(writer: &mut impl Write, message: &Value) -> Result<(), String> {
+        let payload = serde_json::to_vec(message).map_err(|err| err.to_string())?;
+        write!(writer, "Content-Length: {}\r\n\r\n", payload.len())
+            .map_err(|err| err.to_string())?;
+        writer.write_all(&payload).map_err(|err| err.to_string())?;
+        writer.flush().map_err(|err| err.to_string())
+    }
 
-pub(crate) fn error_response(id: Value, code: i32, message: &str) -> Value {
-    json!({
-        "jsonrpc": "2.0",
-        "id": id,
-        "error": {
-            "code": code,
-            "message": message
-        }
-    })
-}
+    pub(crate) fn response(id: Value, result: Value) -> Value {
+        json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": result
+        })
+    }
 
-pub(crate) fn notification(method: &str, params: Value) -> Value {
-    json!({
-        "jsonrpc": "2.0",
-        "method": method,
-        "params": params
-    })
+    pub(crate) fn error_response(id: Value, code: i32, message: &str) -> Value {
+        json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "error": {
+                "code": code,
+                "message": message
+            }
+        })
+    }
+
+    pub(crate) fn notification(method: &str, params: Value) -> Value {
+        json!({
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params
+        })
+    }
 }
 
 fn read_content_length(reader: &mut impl BufRead) -> Result<Option<usize>, String> {

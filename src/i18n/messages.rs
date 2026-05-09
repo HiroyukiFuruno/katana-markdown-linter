@@ -4,52 +4,60 @@ use super::Locale;
 
 pub type MessageParams = BTreeMap<String, String>;
 
-pub fn diagnostic_message_id(rule_id: &str, message: &str) -> String {
-    if rule_id == "MD001" && message.contains("[Expected: h") {
-        "rule.MD001.heading_increment".to_string()
-    } else {
-        "rule.generic".to_string()
-    }
-}
+pub struct MessageCatalog;
 
-pub fn diagnostic_message_params(rule_id: &str, rule_name: &str, message: &str) -> MessageParams {
-    let mut params = MessageParams::new();
-    params.insert("rule_id".to_string(), rule_id.to_string());
-    params.insert("rule_name".to_string(), rule_name.to_string());
-    params.insert("message".to_string(), message.to_string());
-
-    if rule_id == "MD001" {
-        if let Some((expected, actual)) = parse_heading_levels(message) {
-            params.insert("expected".to_string(), expected);
-            params.insert("actual".to_string(), actual);
+impl MessageCatalog {
+    pub fn diagnostic_message_id(rule_id: &str, message: &str) -> String {
+        if rule_id == "MD001" && message.contains("[Expected: h") {
+            "rule.MD001.heading_increment".to_string()
+        } else {
+            "rule.generic".to_string()
         }
     }
 
-    params
-}
+    pub fn diagnostic_message_params(
+        rule_id: &str,
+        rule_name: &str,
+        message: &str,
+    ) -> MessageParams {
+        let mut params = MessageParams::new();
+        params.insert("rule_id".to_string(), rule_id.to_string());
+        params.insert("rule_name".to_string(), rule_name.to_string());
+        params.insert("message".to_string(), message.to_string());
 
-pub fn render_message(
-    locale: Locale,
-    message_id: &str,
-    params: &MessageParams,
-    fallback: &str,
-) -> String {
-    if message_id == "rule.generic" {
-        return super::localized_rule_message(
-            param(params, "rule_id", "unknown"),
-            fallback,
-            locale,
-        );
+        if rule_id == "MD001" {
+            if let Some((expected, actual)) = parse_heading_levels(message) {
+                params.insert("expected".to_string(), expected);
+                params.insert("actual".to_string(), actual);
+            }
+        }
+
+        params
     }
 
-    match locale {
-        Locale::Ja => render_japanese_message(message_id, params, fallback),
-        _ => fallback.to_string(),
-    }
-}
+    pub fn render_message(
+        locale: Locale,
+        message_id: &str,
+        params: &MessageParams,
+        fallback: &str,
+    ) -> String {
+        if message_id == "rule.generic" {
+            return super::I18nRuleDescriptionService::localized_rule_message(
+                param(params, "rule_id", "unknown"),
+                fallback,
+                locale,
+            );
+        }
 
-pub fn catalog_keys(_locale: Locale) -> &'static [&'static str] {
-    &CATALOG_KEYS
+        match locale {
+            Locale::Ja => render_japanese_message(message_id, params, fallback),
+            _ => fallback.to_string(),
+        }
+    }
+
+    pub fn catalog_keys(_locale: Locale) -> &'static [&'static str] {
+        &CATALOG_KEYS
+    }
 }
 
 fn render_japanese_message(message_id: &str, params: &MessageParams, fallback: &str) -> String {

@@ -1,21 +1,21 @@
 use crate::model::{Diagnostic, RuleMetadata};
-use katana_markdown_linter::{rule_catalog, LintResult, Locale};
+use katana_markdown_linter::{LintResult, Locale, RuleCatalogService};
 
-pub(crate) fn request_locale(locale: Option<&str>) -> Locale {
+pub(super) fn request_locale(locale: Option<&str>) -> Locale {
     locale
-        .map(katana_markdown_linter::resolve_locale_code)
+        .map(katana_markdown_linter::LocaleService::resolve_code)
         .unwrap_or(Locale::En)
 }
 
-pub(crate) fn diagnostics(results: Vec<LintResult>, locale: Locale) -> Vec<Diagnostic> {
+pub(super) fn diagnostics(results: Vec<LintResult>, locale: Locale) -> Vec<Diagnostic> {
     results
         .into_iter()
         .map(|result| Diagnostic::from_result(result, locale))
         .collect()
 }
 
-pub(crate) fn catalog_rules(locale: Locale) -> Vec<RuleMetadata> {
-    let catalog = rule_catalog();
+pub(super) fn catalog_rules(locale: Locale) -> Vec<RuleMetadata> {
+    let catalog = RuleCatalogService::rule_catalog();
     catalog
         .active
         .into_iter()

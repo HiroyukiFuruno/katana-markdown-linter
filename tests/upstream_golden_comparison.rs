@@ -1,4 +1,4 @@
-use katana_markdown_linter::{fix, lint, LintOptions, LintResult};
+use katana_markdown_linter::{LintOptions, LintResult, MarkdownLinter};
 use serde::Deserialize;
 use std::collections::BTreeSet;
 
@@ -63,7 +63,7 @@ fn deterministic_golden_diagnostics_match_locked_upstream_baseline() {
     for case in baseline.cases {
         let actual = normalize_for_rule(
             &case.rule_id,
-            lint(&case.source, &options).expect("lint should run"),
+            MarkdownLinter::lint(&case.source, &options).expect("lint should run"),
         );
         let failure = compare_case(&case, &actual, &deltas);
         assert!(failure.is_none(), "{}", failure.unwrap_or_default());
@@ -77,7 +77,7 @@ fn deterministic_golden_fix_outputs_match_locked_upstream_baseline() {
         let Some(expected) = case.expected_fixed_output else {
             continue;
         };
-        let actual = fix(&case.source, &options).expect("fix should run");
+        let actual = MarkdownLinter::fix(&case.source, &options).expect("fix should run");
         assert_eq!(
             actual.content, expected,
             "{} / {} fixed output differed",

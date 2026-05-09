@@ -3,5 +3,5 @@ pub(crate) mod input;
 pub(crate) mod reporter;
 pub(crate) mod workflow;
 
-pub use args::{parse_args, Cli, Command, ConfigCommand, OutputFormat};
-pub use workflow::{run, run_from_env};
+pub use args::{Cli, CliArgsParser, Command, ConfigCommand, OutputFormat};
+pub use workflow::CliWorkflow;

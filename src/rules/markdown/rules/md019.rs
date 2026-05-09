@@ -4,6 +4,8 @@ use crate::rules::markdown::{
 };
 use std::path::Path;
 
+const DOUBLE_SPACE_WIDTH: usize = 2;
+
 /// MD019 / no-multiple-space-atx — Multiple spaces after hash on ATX heading.
 pub struct NoMultipleSpaceAtxRule;
 
@@ -35,7 +37,7 @@ impl MarkdownRule for NoMultipleSpaceAtxRule {
                     start_line: i + 1,
                     start_column: line.len() - trimmed.len() + hash_count + 1,
                     end_line: i + 1,
-                    end_column: line.len() - trimmed.len() + hash_count + 3,
+                    end_column: line.len() - trimmed.len() + hash_count + DOUBLE_SPACE_WIDTH + 1,
                     replacement: " ".to_string(),
                 };
                 RuleHelpers::push_diag_with_fix(

@@ -134,7 +134,6 @@ mod tests {
     #[test]
     fn fix_preserves_pipe_style_no_leading_or_trailing() {
         let rule = TableColumnCountRule;
-        // 先頭・末尾パイプなし: 3列ヘッダーに対して2列行
         let diagnostics = rule.evaluate(Path::new("doc.md"), "a | b | c\n---|---|---\n1 | 2\n");
         assert_eq!(diagnostics.len(), 1);
         let fix = diagnostics[0]
@@ -147,7 +146,6 @@ mod tests {
     #[test]
     fn fix_skips_unsafe_row_with_escaped_pipe() {
         let rule = TableColumnCountRule;
-        // escaped pipe を含む行は safe_to_fix=false — 3列ヘッダーに対して2列行（\| で分割されるセル）
         let diagnostics = rule.evaluate(
             Path::new("doc.md"),
             "| a | b | c |\n|---|---|---|\n| 1 \\| 2 |\n",

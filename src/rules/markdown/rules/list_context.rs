@@ -1,5 +1,7 @@
 use crate::rules::markdown::DocumentContext;
 
+const LAZY_CONTINUATION_INDENT_WIDTH: usize = 4;
+
 #[derive(Clone, Copy)]
 struct ListItemContext {
     content_indent: usize,
@@ -23,7 +25,11 @@ impl ListContext {
         }
 
         stack.iter().rev().any(|item| {
-            leading >= item.content_indent && leading < item.content_indent.saturating_add(4)
+            leading >= item.content_indent
+                && leading
+                    < item
+                        .content_indent
+                        .saturating_add(LAZY_CONTINUATION_INDENT_WIDTH)
         })
     }
 

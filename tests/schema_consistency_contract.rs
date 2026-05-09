@@ -1,4 +1,4 @@
-use katana_markdown_linter::available_rules;
+use katana_markdown_linter::RuleCatalogService;
 use serde_json::Value;
 
 #[test]
@@ -41,7 +41,7 @@ fn test_schema_rule_metadata_consistency() {
         serde_json::from_str(&schema_content).expect("Failed to parse schema JSON");
     let properties = schema_json["properties"].as_object().unwrap();
 
-    for rule in available_rules() {
+    for rule in RuleCatalogService::available_rules() {
         let rule_id = &rule.id;
         assert!(
             properties.contains_key(rule_id),

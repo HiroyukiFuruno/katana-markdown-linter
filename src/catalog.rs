@@ -22,7 +22,11 @@ pub struct RuleCatalogEntry {
 
 impl RuleCatalogEntry {
     pub fn localized_description(&self, language_code: &str) -> String {
-        crate::i18n::localized_rule_description(&self.id, &self.description, language_code)
+        crate::i18n::I18nRuleDescriptionService::localized_rule_description(
+            &self.id,
+            &self.description,
+            language_code,
+        )
     }
 
     pub fn localized(&self, language_code: &str) -> Self {

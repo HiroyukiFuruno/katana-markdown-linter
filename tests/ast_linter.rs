@@ -14,8 +14,40 @@ mod open_spec_command_portability_guard;
 mod workflow_portability_guard;
 
 #[test]
+fn ast_linter_repository_standard_rules_are_clean() {
+    katana_ast_lint::KatanaAstLint::from_workspace().assert_clean();
+}
+
+#[test]
+fn ast_linter_test_sources_do_not_contain_lazy_macros() {
+    let root = workspace_root();
+    let violations = scan_rust_sources(&[root.join("tests")], |path, line_idx, line| {
+        let path_normalized = path.to_string_lossy().replace('\\', "/");
+        if path_normalized.ends_with("tests/ast_linter.rs")
+            || path_normalized.contains("tests/ast_linter/")
+        {
+            return None;
+        }
+        let banned = ["todo!(", "unimplemented!(", "dbg!("];
+        banned
+            .iter()
+            .find(|token| line.contains(**token))
+            .map(|token| {
+                format!(
+                    "{}:{}: remove lazy macro `{}` and implement the behavior",
+                    path.display(),
+                    line_idx + 1,
+                    token.trim_end_matches('(')
+                )
+            })
+    });
+
+    assert_no_violations("test-lazy-macros", violations);
+}
+
+#[test]
 fn ast_linter_parses_rule_doc_fixture() {
-    let document = katana_markdown_linter::upstream::parse_rule_document(
+    let document = katana_markdown_linter::upstream::UpstreamDocumentService::parse_rule_document(
         r#"# `MD001` - Heading levels should only increment by one level at a time
 
 Tags: `headings`
@@ -36,35 +68,70 @@ Parameters:
 }
 
 #[test]
-fn ast_linter_no_lazy_macros_in_source() {
-    let root = workspace_root();
-    let violations = scan_rust_sources(
-        &[root.join("src"), root.join("tests"), root.join("build.rs")],
-        |path, line_idx, line| {
-            // Skip this file itself — it defines the banned token strings as literals.
-            // Normalize separators for Windows compatibility.
-            let path_normalized = path.to_string_lossy().replace('\\', "/");
-            if path_normalized.ends_with("tests/ast_linter.rs")
-                || path_normalized.contains("tests/ast_linter/")
-            {
-                return None;
-            }
-            let banned = ["todo!(", "unimplemented!(", "dbg!("];
-            banned
-                .iter()
-                .find(|token| line.contains(**token))
-                .map(|token| {
-                    format!(
-                        "{}:{}: remove lazy macro `{}` and implement the behavior",
-                        path.display(),
-                        line_idx + 1,
-                        token.trim_end_matches('(')
-                    )
-                })
-        },
-    );
+fn ast_linter_kal_dependency_is_declared() {
+    let manifest = read_workspace_file("Cargo.toml");
+    let violations = [
+        (
+            manifest.contains("[dev-dependencies]")
+                && manifest.contains("katana-ast-lint = \"0.5.1\""),
+            "Cargo.toml: add `katana-ast-lint = \"0.5.1\"` to dev-dependencies",
+        ),
+        (
+            manifest.contains("edition = \"2021\""),
+            "Cargo.toml: keep this crate edition unchanged while adopting KAL",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
 
-    assert_no_violations("lazy-macros", violations);
+    assert_no_violations("kal-dependency", violations);
+}
+
+#[test]
+fn ast_linter_uses_kal_standard_runner_with_i18n_opt_in() {
+    let config = read_workspace_json("kal.json");
+    let violations = [
+        (
+            config["rules"]["i18n"]["enabled"] == Value::Bool(true),
+            "kal.json: this repository has an i18n surface, so enable KAL i18n explicitly",
+        ),
+        (
+            !config.to_string().contains("\"enabled\":false"),
+            "kal.json: do not disable KAL rules to pass the gate",
+        ),
+        (
+            config["rules"]
+                .as_object()
+                .is_some_and(|rules| rules.keys().all(|rule| rule == "i18n")),
+            "kal.json: keep repository-specific opt-in narrow; do not turn this into a local rule profile",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
+
+    assert_no_violations("kal-i18n-opt-in", violations);
+}
+
+#[test]
+fn ast_linter_kal_replaces_source_lazy_macro_scan() {
+    let ast_linter = read_workspace_file("tests/ast_linter.rs");
+    let violations = [
+        (
+            ast_linter.contains("katana_ast_lint::KatanaAstLint::from_workspace().assert_clean();"),
+            "tests/ast_linter.rs: use the KAL one-line repository runner",
+        ),
+        (
+            !ast_linter.contains("[root.join(\"src\"), root.join(\"tests\"), root.join(\"build.rs\")]"),
+            "tests/ast_linter.rs: remove the old source/build.rs lazy macro scan now covered by KAL",
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(ok, message)| (!ok).then_some(message.to_string()))
+    .collect();
+
+    assert_no_violations("kal-source-lazy-scan-migration", violations);
 }
 
 #[test]
@@ -117,7 +184,7 @@ fn ast_linter_fixture_matrix_covers_active_rule_catalog() {
         .iter()
         .filter_map(|rule| rule["rule_id"].as_str())
         .collect::<BTreeSet<_>>();
-    let catalog = katana_markdown_linter::rule_catalog();
+    let catalog = katana_markdown_linter::RuleCatalogService::rule_catalog();
     let catalog_ids = catalog
         .active_rules()
         .map(|rule| rule.id.as_str())
@@ -750,7 +817,7 @@ fn ast_linter_readme_rule_map_matches_public_catalog() {
         .as_array()
         .expect("fixture matrix rules should be an array");
 
-    let active_rules = katana_markdown_linter::available_rules();
+    let active_rules = katana_markdown_linter::RuleCatalogService::available_rules();
     let active_rule_ids = active_rules
         .iter()
         .map(|rule| rule.id.as_str())
@@ -838,7 +905,7 @@ fn has_manual_required_reason(rules: &[Value], rule_id: &str) -> bool {
 
 #[test]
 fn ast_linter_markdown_rule_catalog_has_unique_rule_ids() {
-    let rules = katana_markdown_linter::rule_catalog();
+    let rules = katana_markdown_linter::RuleCatalogService::rule_catalog();
     let mut seen = std::collections::BTreeSet::new();
     let duplicates = rules
         .active_rules()
@@ -857,41 +924,49 @@ fn ast_linter_markdown_rule_catalog_has_unique_rule_ids() {
 #[test]
 fn ast_linter_public_api_surface_is_explicit() {
     let lib = read_workspace_file("src/lib.rs");
+    let linter_core = read_workspace_file("src/linter/core.rs");
+    let linter_catalog = read_workspace_file("src/linter/catalog.rs");
+    let formatter = read_workspace_file("src/formatter.rs");
+    let i18n = read_workspace_file("src/i18n.rs");
     let required = [
-        "pub fn lint(content: &str, options: &LintOptions) -> Result<Vec<LintResult>, Error>",
-        "pub fn fix(content: &str, options: &LintOptions) -> Result<FixResult, Error>",
-        "pub use formatter::{format_markdown, layout_lint_options, FormatOptions, FormatResult};",
-        "pub fn available_rules() -> Vec<RuleMeta>",
-        "pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta>",
-        "pub fn implemented_rules() -> Vec<RuleMeta>",
-        "pub fn missing_rules() -> Vec<RuleMeta>",
-        "pub fn rule_catalog() -> catalog::RuleCatalog",
-        "pub fn localized_rule_catalog(language_code: &str) -> catalog::RuleCatalog",
-        "pub use config::{ConfigError, ConfigErrorKind, MarkdownLintConfig};",
-        "pub use i18n::{",
-        "has_rule_description_translation",
-        "localized_rule_description",
-        "resolve_locale_code",
-        "resolve_locale_code_or",
-        "supported_locales",
-        "Locale, LocaleError",
-        "LocalizedDiagnostic",
-        "Fix, FixDetail, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta,",
+        (&linter_core, "pub struct MarkdownLinter;"),
+        (&linter_core, "pub fn lint(content: &str, options: &LintOptions)"),
+        (&linter_core, "pub fn fix(content: &str, options: &LintOptions)"),
+        (&linter_core, "pub fn fix_with_results(content: &str, results: &[LintResult])"),
+        (&linter_catalog, "pub struct RuleCatalogService;"),
+        (&linter_catalog, "pub fn available_rules() -> Vec<RuleMeta>"),
+        (
+            &linter_catalog,
+            "pub fn localized_available_rules(language_code: &str) -> Vec<RuleMeta>",
+        ),
+        (&linter_catalog, "pub fn implemented_rules() -> Vec<RuleMeta>"),
+        (&linter_catalog, "pub fn missing_rules() -> Vec<RuleMeta>"),
+        (&linter_catalog, "pub fn rule_catalog() -> catalog::RuleCatalog"),
+        (&formatter, "pub struct MarkdownFormatter;"),
+        (&formatter, "pub fn format_markdown("),
+        (&formatter, "pub fn layout_lint_options() -> LintOptions"),
+        (&i18n, "pub struct I18nRuleDescriptionService;"),
+        (&i18n, "pub fn localized_rule_description("),
+        (&lib, "pub use config::{ConfigError, ConfigErrorKind, ConfigLoader, MarkdownLintConfig};"),
+        (&lib, "pub use i18n::{"),
+        (&lib, "Locale, LocaleError, LocaleService"),
+        (&lib, "LocalizedDiagnostic"),
+        (&lib, "Fix, FixDetail, FixResult, FixSafety, LintOptions, LintResult, Range, RuleConfig, RuleMeta,"),
     ];
     let mut violations = required
         .iter()
-        .filter(|required| !lib.contains(**required))
-        .map(|required| format!("src/lib.rs: public API surface missing `{required}`"))
+        .filter(|(content, required)| !content.contains(*required))
+        .map(|(_, required)| format!("public API surface missing `{required}`"))
         .collect::<Vec<_>>();
 
-    let catalog = katana_markdown_linter::rule_catalog();
+    let catalog = katana_markdown_linter::RuleCatalogService::rule_catalog();
     if !catalog.active_rules().any(|rule| rule.id == "MD001") {
         violations.push("rule catalog: missing MD001 active rule".to_string());
     }
     if !catalog.active_rules().any(|rule| rule.id == "MD060") {
         violations.push("rule catalog: missing MD060 active rule".to_string());
     }
-    if !katana_markdown_linter::missing_rules().is_empty() {
+    if !katana_markdown_linter::RuleCatalogService::missing_rules().is_empty() {
         violations
             .push("public API: missing_rules must stay empty after full rule parity".to_string());
     }
@@ -902,9 +977,10 @@ fn ast_linter_public_api_surface_is_explicit() {
 #[test]
 fn ast_linter_i18n_translation_coverage_is_complete_for_supported_locales() {
     let mut violations = Vec::new();
-    for locale in katana_markdown_linter::supported_locales() {
-        if katana_markdown_linter::i18n::catalog_keys(katana_markdown_linter::Locale::En)
-            != katana_markdown_linter::i18n::catalog_keys(*locale)
+    for locale in katana_markdown_linter::LocaleService::supported_locales() {
+        if katana_markdown_linter::i18n::MessageCatalog::catalog_keys(
+            katana_markdown_linter::Locale::En,
+        ) != katana_markdown_linter::i18n::MessageCatalog::catalog_keys(*locale)
         {
             violations.push(format!(
                 "i18n: catalog key set differs for {}",
@@ -913,12 +989,14 @@ fn ast_linter_i18n_translation_coverage_is_complete_for_supported_locales() {
         }
     }
 
-    for rule in katana_markdown_linter::available_rules() {
-        for locale in katana_markdown_linter::supported_locales() {
+    for rule in katana_markdown_linter::RuleCatalogService::available_rules() {
+        for locale in katana_markdown_linter::LocaleService::supported_locales() {
             if *locale == katana_markdown_linter::Locale::En {
                 continue;
             }
-            if !katana_markdown_linter::has_rule_description_translation(&rule.id, *locale) {
+            if !katana_markdown_linter::I18nRuleDescriptionService::has_rule_description_translation(
+                &rule.id, *locale,
+            ) {
                 violations.push(format!(
                     "i18n: missing {} rule description for {}",
                     locale.code(),
@@ -945,6 +1023,10 @@ fn workspace_root() -> PathBuf {
 
 fn read_workspace_file(path: &str) -> String {
     std::fs::read_to_string(workspace_root().join(path)).expect("workspace file should be readable")
+}
+
+fn read_workspace_json(path: &str) -> Value {
+    serde_json::from_str(&read_workspace_file(path)).expect("workspace JSON should be valid")
 }
 
 fn workflow_section<'a>(workflow: &'a str, start: &str, end_markers: &[&str]) -> &'a str {

@@ -5,6 +5,8 @@ use crate::rules::markdown::{
 use crate::types::RuleConfig;
 use std::path::Path;
 
+const MIN_FENCE_MARKER_LENGTH: usize = 3;
+
 /// MD048 / code-fence-style — Code fence style.
 pub struct CodeFenceStyleRule;
 
@@ -135,7 +137,7 @@ fn replace_fence_marker(line: &str, expected: FenceKind) -> Option<String> {
         FenceKind::Tilde => b'~',
     };
     let marker_len = trimmed.bytes().take_while(|byte| *byte == source).count();
-    if marker_len < 3 {
+    if marker_len < MIN_FENCE_MARKER_LENGTH {
         return None;
     }
     let target = match expected {
@@ -152,7 +154,7 @@ fn replace_fence_marker(line: &str, expected: FenceKind) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{fix_with_results, lint, LintOptions, RuleConfig};
+    use crate::{LintOptions, MarkdownLinter, RuleConfig};
     use std::collections::HashMap;
 
     fn md048_options(style: &str) -> LintOptions {
@@ -173,7 +175,7 @@ mod tests {
     #[test]
     fn fixes_mixed_fence_style_to_first_style_when_consistent() {
         let content = "```rust\ncode\n```\n\n~~~text\ncode\n~~~\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
         let md048 = results
             .iter()
             .find(|result| result.rule_id == "MD048")
@@ -181,14 +183,14 @@ mod tests {
 
         assert_eq!(md048.line, 5);
         assert!(md048.fix.is_some());
-        let fixed = fix_with_results(content, &results);
+        let fixed = MarkdownLinter::fix_with_results(content, &results);
         assert_eq!(fixed.content, "```rust\ncode\n```\n\n```text\ncode\n```\n");
     }
 
     #[test]
     fn fixes_configured_tilde_style() {
         let content = "```rust\ncode\n```\n";
-        let results = lint(content, &md048_options("tilde")).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &md048_options("tilde")).expect("lint runs");
 
         assert!(results
             .iter()
@@ -196,23 +198,23 @@ mod tests {
             .expect("MD048 diagnostic exists")
             .fix
             .is_some());
-        let fixed = fix_with_results(content, &results);
+        let fixed = MarkdownLinter::fix_with_results(content, &results);
         assert_eq!(fixed.content, "~~~rust\ncode\n~~~\n");
     }
 
     #[test]
     fn fixes_configured_backtick_style() {
         let content = "~~~rust\ncode\n~~~\n";
-        let results = lint(content, &md048_options("backtick")).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &md048_options("backtick")).expect("lint runs");
 
-        let fixed = fix_with_results(content, &results);
+        let fixed = MarkdownLinter::fix_with_results(content, &results);
         assert_eq!(fixed.content, "```rust\ncode\n```\n");
     }
 
     #[test]
     fn keeps_diagnostic_but_skips_fix_when_target_marker_collides_inside_block() {
         let content = "```rust\ncode\n```\n\n~~~~\n```text\nnested\n```\n~~~~\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
         let md048 = results
             .iter()
             .find(|result| result.rule_id == "MD048")
@@ -224,7 +226,7 @@ mod tests {
     #[test]
     fn keeps_diagnostic_but_skips_fix_for_unclosed_fence() {
         let content = "```rust\ncode\n```\n\n~~~text\ncode\n";
-        let results = lint(content, &LintOptions::default()).expect("lint runs");
+        let results = MarkdownLinter::lint(content, &LintOptions::default()).expect("lint runs");
         let md048 = results
             .iter()
             .find(|result| result.rule_id == "MD048")

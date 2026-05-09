@@ -1,6 +1,8 @@
 use crate::rules::markdown::DocumentContext;
 use std::collections::HashSet;
 
+const INDENTED_CODE_PREFIX: &str = "    ";
+
 pub(super) fn indented_code_line_indexes(ctx: &DocumentContext<'_>) -> HashSet<usize> {
     let mut indexes = HashSet::new();
     let mut in_block = false;
@@ -12,11 +14,12 @@ pub(super) fn indented_code_line_indexes(ctx: &DocumentContext<'_>) -> HashSet<u
         if line.text.trim().is_empty() {
             continue;
         }
-        if !line.text.starts_with("    ") {
+        if !line.text.starts_with(INDENTED_CODE_PREFIX) {
             in_block = false;
             continue;
         }
-        if is_list_marker_line(&line.text[4..]) || is_definition_list_continuation(ctx, line_index)
+        if is_list_marker_line(&line.text[INDENTED_CODE_PREFIX.len()..])
+            || is_definition_list_continuation(ctx, line_index)
         {
             in_block = false;
             continue;
@@ -42,7 +45,7 @@ fn is_definition_list_continuation(ctx: &DocumentContext<'_>, line_index: usize)
     for previous_index in (0..line_index).rev() {
         let previous = ctx.lines()[previous_index].text;
         if previous.trim().is_empty()
-            || previous.starts_with("    ")
+            || previous.starts_with(INDENTED_CODE_PREFIX)
             || ctx.is_code_line(previous_index)
         {
             continue;

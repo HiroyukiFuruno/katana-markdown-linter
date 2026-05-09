@@ -1,6 +1,6 @@
 [package]
 name = "katana-markdown-linter"
-version = "0.19.0"
+version = "0.19.1"
 
 edition = "2021"
 license = "MIT"
@@ -15,6 +15,7 @@ include = [
     "LICENSE",
     "Markfile",
     "build.rs",
+    "build/**",
     "server.json",
     "docs/**",
     "examples/**",
@@ -69,3 +70,6 @@ percent-encoding = "2.3"
 tokio = { version = "1", optional = true, features = ["macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3", optional = true, features = ["env-filter", "fmt"] }
 unicode-width = "0.2"
+
+[dev-dependencies]
+katana-ast-lint = "0.5.1"

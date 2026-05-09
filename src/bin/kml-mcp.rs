@@ -9,5 +9,5 @@ mod workspace;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    server::run_from_env().await
+    server::KmlMcpRuntime::run_from_env().await
 }

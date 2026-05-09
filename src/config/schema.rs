@@ -6,13 +6,17 @@ use serde_json::{json, Map, Value};
 pub const MARKDOWNLINT_CONFIG_SCHEMA_ID: &str =
     "https://schemas.katana.tools/kml/markdownlint.schema.json";
 
-pub fn markdownlint_config_schema() -> Value {
-    ConfigSchemaGenerator::new().build()
+pub struct ConfigSchema;
+
+impl ConfigSchema {
+    pub fn markdownlint_config_schema() -> Value {
+        ConfigSchemaGenerator::new().build()
+    }
 }
 
 impl MarkdownLintConfig {
     pub fn schema() -> Value {
-        markdownlint_config_schema()
+        ConfigSchema::markdownlint_config_schema()
     }
 
     pub fn validate_against_schema(&self) -> Vec<crate::ConfigError> {
@@ -161,7 +165,7 @@ mod tests {
 
     #[test]
     fn schema_contains_rule_property_metadata() {
-        let schema = markdownlint_config_schema();
+        let schema = ConfigSchema::markdownlint_config_schema();
 
         assert_eq!(schema["properties"]["default"]["type"], "boolean");
         assert_eq!(

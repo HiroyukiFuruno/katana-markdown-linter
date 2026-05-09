@@ -1,7 +1,6 @@
 use katana_markdown_linter::rules::markdown::MarkdownLinterOps;
 use katana_markdown_linter::{
-    fix, fix_with_results_including_unsafe, lint, ConfigErrorKind, LintOptions, LintResult,
-    MarkdownLintConfig, Range, RuleConfig,
+    ConfigErrorKind, LintOptions, LintResult, MarkdownLintConfig, MarkdownLinter, Range, RuleConfig,
 };
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -119,7 +118,8 @@ fn check_pass_and_fail_fixtures_execute() {
     for rule in rules(&matrix) {
         for case in cases(rule, "check_pass") {
             let options = options_for_case(case);
-            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            let diagnostics =
+                MarkdownLinter::lint(case_source(case), &options).expect("lint should run");
             assert!(
                 diagnostics
                     .iter()
@@ -131,7 +131,8 @@ fn check_pass_and_fail_fixtures_execute() {
         }
         for case in cases(rule, "check_fail") {
             let options = options_for_case(case);
-            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            let diagnostics =
+                MarkdownLinter::lint(case_source(case), &options).expect("lint should run");
             assert!(
                 diagnostics
                     .iter()
@@ -151,7 +152,7 @@ fn fix_fixtures_compare_before_and_after() {
     for rule in rules(&matrix) {
         for case in cases(rule, "fix") {
             let options = options_for_case(case);
-            let fixed = fix(case_source(case), &options).expect("fix should run");
+            let fixed = MarkdownLinter::fix(case_source(case), &options).expect("fix should run");
             assert_eq!(
                 fixed.content,
                 case["expected"].as_str().unwrap_or_default(),
@@ -159,7 +160,8 @@ fn fix_fixtures_compare_before_and_after() {
                 rule_id(rule),
                 case_name(case)
             );
-            let fixed_again = fix(&fixed.content, &options).expect("second fix should run");
+            let fixed_again =
+                MarkdownLinter::fix(&fixed.content, &options).expect("second fix should run");
             assert_eq!(
                 fixed_again.content,
                 fixed.content,
@@ -178,7 +180,8 @@ fn unsafe_fix_fixtures_compare_before_and_after() {
     for rule in rules(&matrix) {
         for case in optional_cases(rule, "unsafe_fix") {
             let options = options_for_case(case);
-            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            let diagnostics =
+                MarkdownLinter::lint(case_source(case), &options).expect("lint should run");
             assert!(
                 diagnostics.iter().any(|diagnostic| {
                     diagnostic.rule_id == rule_id(rule)
@@ -190,7 +193,8 @@ fn unsafe_fix_fixtures_compare_before_and_after() {
                 rule_id(rule),
                 case_name(case)
             );
-            let fixed = fix_with_results_including_unsafe(case_source(case), &diagnostics);
+            let fixed =
+                MarkdownLinter::fix_with_results_including_unsafe(case_source(case), &diagnostics);
             assert_eq!(
                 fixed.content,
                 case["expected"].as_str().unwrap_or_default(),
@@ -243,7 +247,8 @@ fn edge_case_fixtures_execute() {
     for rule in rules(&matrix) {
         for case in cases(rule, "edge") {
             let options = options_for_case(case);
-            let diagnostics = lint(case_source(case), &options).expect("lint should run");
+            let diagnostics =
+                MarkdownLinter::lint(case_source(case), &options).expect("lint should run");
             match case["expected"].as_str() {
                 Some(expected) => assert!(
                     diagnostics
@@ -283,7 +288,7 @@ fn config_alias_and_lifecycle_behavior_is_fixed() {
         .iter()
         .any(|error| matches!(error.kind, ConfigErrorKind::UnknownRule)));
 
-    let catalog = katana_markdown_linter::rule_catalog();
+    let catalog = katana_markdown_linter::RuleCatalogService::rule_catalog();
     assert!(catalog.deprecated.is_empty());
     assert!(catalog.removed.is_empty());
 }
@@ -315,43 +320,46 @@ fn config_property_error_shapes_are_fixed() {
 #[test]
 fn edge_cases_cover_empty_no_newline_long_code_fence_and_html() {
     let options = LintOptions::default();
-    let empty = lint("", &options).expect("lint should run");
+    let empty = MarkdownLinter::lint("", &options).expect("lint should run");
     assert!(empty.iter().all(|diagnostic| diagnostic.rule_id != "MD043"));
 
-    let missing_newline = lint("text", &options).expect("lint should run");
+    let missing_newline = MarkdownLinter::lint("text", &options).expect("lint should run");
     assert!(missing_newline
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD047"));
 
     let long_line = format!("{} b c\n", "a".repeat(78));
-    let long_line_diagnostics = lint(&long_line, &options).expect("lint should run");
+    let long_line_diagnostics =
+        MarkdownLinter::lint(&long_line, &options).expect("lint should run");
     assert!(long_line_diagnostics
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD013"));
 
-    let fenced_heading =
-        lint("# Title\n\n```\n### skipped\n```\n", &options).expect("lint should run");
+    let fenced_heading = MarkdownLinter::lint("# Title\n\n```\n### skipped\n```\n", &options)
+        .expect("lint should run");
     assert!(fenced_heading
         .iter()
         .all(|diagnostic| diagnostic.rule_id != "MD001"));
 
-    let html = lint("<span>text</span>\n", &options).expect("lint should run");
+    let html = MarkdownLinter::lint("<span>text</span>\n", &options).expect("lint should run");
     assert!(html.iter().any(|diagnostic| diagnostic.rule_id == "MD033"));
 }
 
 #[test]
 fn edge_cases_cover_list_heading_and_table_boundaries() {
     let options = LintOptions::default();
-    let list = lint("- one\n  - nested\n   - off\n", &options).expect("lint should run");
+    let list =
+        MarkdownLinter::lint("- one\n  - nested\n   - off\n", &options).expect("lint should run");
     assert!(list.iter().any(|diagnostic| diagnostic.rule_id == "MD005"));
     assert!(list.iter().any(|diagnostic| diagnostic.rule_id == "MD007"));
 
-    let heading = lint("# H1\n\n### H3\n", &options).expect("lint should run");
+    let heading = MarkdownLinter::lint("# H1\n\n### H3\n", &options).expect("lint should run");
     assert!(heading
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD001"));
 
-    let table = lint("| a | b |\n|---|---|\n| 1 | 2 | 3 |\n", &options).expect("lint should run");
+    let table = MarkdownLinter::lint("| a | b |\n|---|---|\n| 1 | 2 | 3 |\n", &options)
+        .expect("lint should run");
     assert!(table.iter().any(|diagnostic| diagnostic.rule_id == "MD056"));
 }
 
@@ -359,7 +367,7 @@ fn edge_cases_cover_list_heading_and_table_boundaries() {
 fn front_matter_and_gfm_extension_behavior_is_explicit() {
     let options = LintOptions::default();
     let front_matter = "---\ntitle: Doc\n---\n\n# Doc\n";
-    let diagnostics = lint(front_matter, &options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(front_matter, &options).expect("lint should run");
     assert!(
         diagnostics
             .iter()
@@ -368,7 +376,7 @@ fn front_matter_and_gfm_extension_behavior_is_explicit() {
     );
 
     let gfm_table = "|a| b |\n|---|---|\n| c | d |\n";
-    let table_diagnostics = lint(gfm_table, &options).expect("lint should run");
+    let table_diagnostics = MarkdownLinter::lint(gfm_table, &options).expect("lint should run");
     assert!(table_diagnostics
         .iter()
         .any(|diagnostic| diagnostic.rule_id == "MD060"));
@@ -395,7 +403,7 @@ fn fixable_rule_set_is_explicit_in_matrix() {
         .filter(|rule| rule["fixable"].as_bool() == Some(true))
         .map(|rule| rule_id(rule).to_string())
         .collect::<BTreeSet<_>>();
-    let expected = katana_markdown_linter::available_rules()
+    let expected = katana_markdown_linter::RuleCatalogService::available_rules()
         .into_iter()
         .filter(|rule| rule.fixable)
         .map(|rule| rule.id)
@@ -421,8 +429,10 @@ fn matrix_markdown_summary_matches_json_counts() {
 fn fixture_matrix_parameters_match_upstream_docs() {
     let matrix = matrix();
     let upstream =
-        katana_markdown_linter::upstream::load_catalog_from_dir(Path::new("upstream_docs"))
-            .expect("upstream docs should load");
+        katana_markdown_linter::upstream::UpstreamDocumentService::load_catalog_from_dir(
+            Path::new("upstream_docs"),
+        )
+        .expect("upstream docs should load");
     let upstream_params = upstream
         .rules
         .iter()
@@ -544,7 +554,7 @@ fn overlapping_fix_ranges_are_detectable_before_application() {
         rule_name: "first".to_string(),
         message: "first".to_string(),
         message_id: "rule.generic".to_string(),
-        message_params: katana_markdown_linter::i18n::diagnostic_message_params(
+        message_params: katana_markdown_linter::i18n::MessageCatalog::diagnostic_message_params(
             "TEST001", "first", "first",
         ),
         severity: Default::default(),

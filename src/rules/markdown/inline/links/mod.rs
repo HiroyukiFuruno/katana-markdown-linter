@@ -1,16 +1,18 @@
 mod autolink;
 mod bracket;
 mod destination;
+mod reference;
 
 use super::reference_definitions::reference_definition_on_line;
-use super::scan::{find_unescaped, inside_code_span};
+use super::scan::inside_code_span;
 use super::types::{InlineCodeSpan, InlineLink, InlineLinkKind};
 use crate::rules::markdown::document::{LineInfo, SourceRange};
 use autolink::autolinks_on_line;
 use bracket::matching_bracket;
 use destination::parse_inline_destination;
+use reference::reference_link;
 
-pub(crate) fn extract_inline_links<'a>(
+pub(in crate::rules::markdown) fn extract_inline_links<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
     code_spans: &[InlineCodeSpan],
@@ -49,38 +51,54 @@ fn markdown_links_on_line<'a>(
             continue;
         };
         let after_text = text_close_local + 1;
-        if bytes.get(after_text) == Some(&b'(') {
-            if let Some(link) = inline_destination_link(
-                line_index,
-                line,
-                full_start_local,
-                text_start_local,
-                text_close_local,
-                after_text,
-                image,
-            ) {
-                cursor = link.full_range.end - line.content_range.start;
-                links.push(link);
-                continue;
-            }
-        } else if bytes.get(after_text) == Some(&b'[') {
-            if let Some(link) = reference_link(
-                line_index,
-                line,
-                full_start_local,
-                text_start_local,
-                text_close_local,
-                after_text,
-                image,
-            ) {
-                cursor = link.full_range.end - line.content_range.start;
-                links.push(link);
-                continue;
-            }
+        if let Some(link) = link_after_text(
+            line_index,
+            line,
+            full_start_local,
+            text_start_local,
+            text_close_local,
+            after_text,
+            image,
+        ) {
+            cursor = link.full_range.end - line.content_range.start;
+            links.push(link);
+            continue;
         }
         cursor = after_text;
     }
     links
+}
+
+fn link_after_text<'a>(
+    line_index: usize,
+    line: &LineInfo<'a>,
+    full_start_local: usize,
+    text_start_local: usize,
+    text_close_local: usize,
+    after_text: usize,
+    image: bool,
+) -> Option<InlineLink<'a>> {
+    match line.text.as_bytes().get(after_text) {
+        Some(b'(') => inline_destination_link(
+            line_index,
+            line,
+            full_start_local,
+            text_start_local,
+            text_close_local,
+            after_text,
+            image,
+        ),
+        Some(b'[') => reference_link(
+            line_index,
+            line,
+            full_start_local,
+            text_start_local,
+            text_close_local,
+            after_text,
+            image,
+        ),
+        _ => None,
+    }
 }
 
 fn next_link_open(
@@ -141,48 +159,4 @@ fn inline_destination_link<'a>(
             end: line.content_range.start + destination.full_end,
         },
     })
-}
-
-fn reference_link<'a>(
-    line_index: usize,
-    line: &LineInfo<'a>,
-    full_start_local: usize,
-    text_start_local: usize,
-    text_close_local: usize,
-    label_open_local: usize,
-    image: bool,
-) -> Option<InlineLink<'a>> {
-    let label_start = label_open_local + 1;
-    let label_close = find_unescaped(line.text, label_start, b']')?;
-    let collapsed = label_start == label_close;
-    let label = (!collapsed).then_some(&line.text[label_start..label_close]);
-    Some(InlineLink {
-        line: line_index,
-        kind: reference_kind(image, collapsed),
-        text: Some(&line.text[text_start_local..text_close_local]),
-        label,
-        destination: None,
-        text_range: Some(SourceRange {
-            start: line.content_range.start + text_start_local,
-            end: line.content_range.start + text_close_local,
-        }),
-        label_range: (!collapsed).then_some(SourceRange {
-            start: line.content_range.start + label_start,
-            end: line.content_range.start + label_close,
-        }),
-        destination_range: None,
-        full_range: SourceRange {
-            start: line.content_range.start + full_start_local,
-            end: line.content_range.start + label_close + 1,
-        },
-    })
-}
-
-fn reference_kind(image: bool, collapsed: bool) -> InlineLinkKind {
-    match (image, collapsed) {
-        (true, true) => InlineLinkKind::ImageReferenceCollapsed,
-        (true, false) => InlineLinkKind::ImageReferenceFull,
-        (false, true) => InlineLinkKind::ReferenceCollapsed,
-        (false, false) => InlineLinkKind::ReferenceFull,
-    }
 }

@@ -17,7 +17,7 @@ impl From<String> for InputExpandError {
     }
 }
 
-pub(crate) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError> {
+pub(super) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError> {
     let inputs = &cli.inputs;
     if inputs.is_empty() {
         return filter_paths(
@@ -34,16 +34,7 @@ pub(crate) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
 
     let mut paths = Vec::new();
     for input in inputs {
-        if has_glob_chars(input) {
-            for entry in glob(input).map_err(|err| InputExpandError::Glob(err.to_string()))? {
-                match entry {
-                    Ok(path) => paths.push(path),
-                    Err(err) => return Err(InputExpandError::Glob(err.to_string())),
-                }
-            }
-        } else {
-            paths.push(PathBuf::from(input));
-        }
+        collect_input_path(&mut paths, input)?;
     }
 
     let mut expanded = Vec::new();
@@ -65,6 +56,22 @@ pub(crate) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
 
 fn has_glob_chars(input: &str) -> bool {
     input.contains('*') || input.contains('?') || input.contains('[')
+}
+
+fn collect_input_path(paths: &mut Vec<PathBuf>, input: &str) -> Result<(), InputExpandError> {
+    if has_glob_chars(input) {
+        return collect_glob_paths(paths, input);
+    }
+    paths.push(PathBuf::from(input));
+    Ok(())
+}
+
+fn collect_glob_paths(paths: &mut Vec<PathBuf>, input: &str) -> Result<(), InputExpandError> {
+    for entry in glob(input).map_err(|err| InputExpandError::Glob(err.to_string()))? {
+        let path = entry.map_err(|err| InputExpandError::Glob(err.to_string()))?;
+        paths.push(path);
+    }
+    Ok(())
 }
 
 fn markdown_files_in_dir(

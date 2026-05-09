@@ -6,7 +6,7 @@ mod path;
 mod walk;
 
 use diff::unified_line_diff;
-use katana_markdown_linter::{fix, lint, LintOptions, MarkdownLintConfig};
+use katana_markdown_linter::{LintOptions, MarkdownLintConfig, MarkdownLinter};
 use path::{clean_relative_path, read_markdown_file, reject_symlink_components};
 use std::path::{Path, PathBuf};
 use walk::collect_markdown_files;
@@ -54,7 +54,8 @@ impl Workspace {
         let path = self.resolve_existing(relative_path)?;
         let content = read_markdown_file(&path)?;
         let options = self.load_options(config_path)?;
-        let diagnostics = lint(&content, &options).map_err(|error| error.to_string())?;
+        let diagnostics =
+            MarkdownLinter::lint(&content, &options).map_err(|error| error.to_string())?;
         Ok(FileLint { path, diagnostics })
     }
 
@@ -73,9 +74,9 @@ impl Workspace {
         let mut files = Vec::new();
         let mut errors = Vec::new();
         for path in collect_markdown_files(&directory, respect_gitignore)? {
-            match read_markdown_file(&path)
-                .and_then(|content| lint(&content, &options).map_err(|error| error.to_string()))
-            {
+            match read_markdown_file(&path).and_then(|content| {
+                MarkdownLinter::lint(&content, &options).map_err(|error| error.to_string())
+            }) {
                 Ok(diagnostics) => files.push(FileLint { path, diagnostics }),
                 Err(message) => errors.push(FileError { path, message }),
             }
@@ -91,8 +92,9 @@ impl Workspace {
         let path = self.resolve_existing(relative_path)?;
         let content = read_markdown_file(&path)?;
         let options = self.load_options(config_path)?;
-        let fixed = fix(&content, &options).map_err(|error| error.to_string())?;
-        let remaining = lint(&fixed.content, &options).map_err(|error| error.to_string())?;
+        let fixed = MarkdownLinter::fix(&content, &options).map_err(|error| error.to_string())?;
+        let remaining =
+            MarkdownLinter::lint(&fixed.content, &options).map_err(|error| error.to_string())?;
         Ok(FileFixPreview {
             path,
             diff: unified_line_diff(&content, &fixed.content),

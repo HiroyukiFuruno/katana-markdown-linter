@@ -5,15 +5,11 @@ use serde::Deserialize;
 
 use super::Locale;
 
-pub(crate) fn rule_description(locale: Locale, rule_id: &str) -> Option<&'static str> {
+pub(super) fn rule_description(locale: Locale, rule_id: &str) -> Option<&'static str> {
     catalog(locale)?
         .rule_descriptions
         .get(rule_id)
         .map(String::as_str)
-}
-
-pub fn has_rule_description_translation(rule_id: &str, locale: Locale) -> bool {
-    locale == Locale::En || rule_description(locale, rule_id).is_some()
 }
 
 #[derive(Debug, Deserialize)]

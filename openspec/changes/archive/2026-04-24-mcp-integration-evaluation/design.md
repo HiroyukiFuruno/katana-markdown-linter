@@ -6,8 +6,8 @@ MCP は agent が外部 tool / resource / prompt を呼び出すための protoc
 
 References:
 
-- https://modelcontextprotocol.io/docs/sdk
-- https://github.com/modelcontextprotocol/rust-sdk
+- <https://modelcontextprotocol.io/docs/sdk>
+- <https://github.com/modelcontextprotocol/rust-sdk>
 
 ## Goals / Non-Goals
 

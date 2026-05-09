@@ -19,7 +19,7 @@ pub(super) fn render_rule(
     format: OutputFormat,
     locale: Locale,
 ) -> Result<String, String> {
-    let rules = crate::available_rules();
+    let rules = crate::RuleCatalogService::available_rules();
     if let Some(rule_id) = rule_id {
         let Some(rule) = rules.iter().find(|rule| rule.id == rule_id) else {
             return Err(format!("unknown rule: {rule_id}"));

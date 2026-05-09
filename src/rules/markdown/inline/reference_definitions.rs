@@ -2,7 +2,9 @@ use super::scan::{find_unescaped, skip_ascii_whitespace};
 use super::types::ReferenceDefinition;
 use crate::rules::markdown::document::{LineInfo, SourceRange};
 
-pub(crate) fn extract_reference_definitions<'a>(
+const MAX_REFERENCE_DEFINITION_INDENT: usize = 3;
+
+pub(in crate::rules::markdown) fn extract_reference_definitions<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
 ) -> Vec<ReferenceDefinition<'a>> {
@@ -19,7 +21,7 @@ pub(super) fn reference_definition_on_line<'a>(
     line: &LineInfo<'a>,
 ) -> Option<ReferenceDefinition<'a>> {
     let indent = line.text.len() - line.text.trim_start_matches(' ').len();
-    if indent > 3 || line.text.as_bytes().get(indent) != Some(&b'[') {
+    if indent > MAX_REFERENCE_DEFINITION_INDENT || line.text.as_bytes().get(indent) != Some(&b'[') {
         return None;
     }
     let label_start = indent + 1;

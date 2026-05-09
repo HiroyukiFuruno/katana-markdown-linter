@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "i18n": {
+      "enabled": true
+    }
+  }
+}

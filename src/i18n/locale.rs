@@ -90,8 +90,20 @@ impl Locale {
     }
 }
 
-pub fn supported_locales() -> &'static [Locale] {
-    &SUPPORTED_LOCALES
+pub struct LocaleService;
+
+impl LocaleService {
+    pub fn supported_locales() -> &'static [Locale] {
+        &SUPPORTED_LOCALES
+    }
+
+    pub fn resolve_code(value: &str) -> Locale {
+        Locale::resolve_code(value)
+    }
+
+    pub fn resolve_code_or(value: &str, fallback: Locale) -> Locale {
+        Locale::resolve_code_or(value, fallback)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

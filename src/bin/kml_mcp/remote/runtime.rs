@@ -5,26 +5,30 @@ use super::{
 use axum::{routing::any, Router};
 use std::io;
 
-pub(crate) async fn run_from_env() -> Result<(), Box<dyn std::error::Error>> {
-    let config = RemoteConfig::from_env().map_err(invalid_input)?;
-    init_logging();
+pub(crate) struct KmlMcpRemoteRuntime;
 
-    let state = RemoteHttpState::new(
-        config.auth.clone(),
-        config.limits.clone(),
-        config.allowed_hosts.clone(),
-    );
-    let app = Router::new()
-        .route(&config.endpoint, any(handle_mcp))
-        .with_state(state);
+impl KmlMcpRemoteRuntime {
+    pub(crate) async fn run_from_env() -> Result<(), Box<dyn std::error::Error>> {
+        let config = RemoteConfig::from_env().map_err(invalid_input)?;
+        init_logging();
 
-    eprintln!(
-        "kml-mcp-remote listening on http://{}{}",
-        config.addr, config.endpoint
-    );
-    let listener = tokio::net::TcpListener::bind(config.addr).await?;
-    axum::serve(listener, app).await?;
-    Ok(())
+        let state = RemoteHttpState::new(
+            config.auth.clone(),
+            config.limits.clone(),
+            config.allowed_hosts.clone(),
+        );
+        let app = Router::new()
+            .route(&config.endpoint, any(handle_mcp))
+            .with_state(state);
+
+        eprintln!(
+            "kml-mcp-remote listening on http://{}{}",
+            config.addr, config.endpoint
+        );
+        let listener = tokio::net::TcpListener::bind(config.addr).await?;
+        axum::serve(listener, app).await?;
+        Ok(())
+    }
 }
 
 fn init_logging() {

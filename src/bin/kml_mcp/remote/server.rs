@@ -1,10 +1,10 @@
 use crate::model::{
-    validate_config, CheckTextRequest, CheckTextResponse, ConfigValidateRequest,
-    ConfigValidateResponse, FixTextRequest, FixTextResponse, RuleDocRequest, RuleDocResponse,
+    CheckTextRequest, CheckTextResponse, ConfigValidateRequest, ConfigValidateResponse,
+    ConfigValidator, FixTextRequest, FixTextResponse, RuleDocRequest, RuleDocResponse,
     RuleGetRequest, RuleListRequest, RuleListResponse, RuleMetadata,
 };
 use crate::shared::{catalog_rules, diagnostics, request_locale};
-use katana_markdown_linter::{fix, lint, upstream};
+use katana_markdown_linter::{upstream, MarkdownLinter};
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::{Implementation, ServerCapabilities, ServerInfo},
@@ -45,7 +45,8 @@ impl KmlMcpRemoteServer {
         Parameters(request): Parameters<CheckTextRequest>,
     ) -> Result<Json<CheckTextResponse>, String> {
         let options = katana_markdown_linter::LintOptions::default();
-        let diagnostics = lint(&request.content, &options).map_err(|err| err.to_string())?;
+        let diagnostics =
+            MarkdownLinter::lint(&request.content, &options).map_err(|err| err.to_string())?;
         Ok(Json(CheckTextResponse::from_results(
             diagnostics,
             request_locale(request.locale.as_deref()),
@@ -62,8 +63,10 @@ impl KmlMcpRemoteServer {
     ) -> Result<Json<FixTextResponse>, String> {
         let options = katana_markdown_linter::LintOptions::default();
         let locale = request_locale(request.locale.as_deref());
-        let fix_result = fix(&request.content, &options).map_err(|err| err.to_string())?;
-        let remaining = lint(&fix_result.content, &options).map_err(|err| err.to_string())?;
+        let fix_result =
+            MarkdownLinter::fix(&request.content, &options).map_err(|err| err.to_string())?;
+        let remaining =
+            MarkdownLinter::lint(&fix_result.content, &options).map_err(|err| err.to_string())?;
         Ok(Json(FixTextResponse {
             content: fix_result.content,
             applied_fixes: fix_result.applied_fixes,
@@ -81,7 +84,7 @@ impl KmlMcpRemoteServer {
         Parameters(request): Parameters<ConfigValidateRequest>,
     ) -> Json<ConfigValidateResponse> {
         let locale = request_locale(request.locale.as_deref());
-        let errors = validate_config(request.config, locale);
+        let errors = ConfigValidator::validate_config(request.config, locale);
         Json(ConfigValidateResponse {
             valid: errors.is_empty(),
             error_count: errors.len(),
@@ -132,7 +135,8 @@ impl KmlMcpRemoteServer {
         Parameters(request): Parameters<RuleDocRequest>,
     ) -> Result<Json<RuleDocResponse>, String> {
         let locale = request_locale(request.locale.as_deref());
-        let content = upstream::get_rule_documentation(&request.rule_id, locale)?;
+        let content =
+            upstream::UpstreamDocumentService::get_rule_documentation(&request.rule_id, locale)?;
         Ok(Json(RuleDocResponse {
             rule_id: request.rule_id,
             locale: locale.code().to_string(),

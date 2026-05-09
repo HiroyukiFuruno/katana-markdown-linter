@@ -4,9 +4,13 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
+const EXPECTED_ARG_COUNT: usize = 5;
+const KNOWN_DELTAS_ARG_INDEX: usize = 3;
+const OUTPUT_ARG_INDEX: usize = 4;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = env::args().collect::<Vec<_>>();
-    if args.len() != 5 {
+    if args.len() != EXPECTED_ARG_COUNT {
         eprintln!(
             "usage: rule_coverage_dashboard <matrix.json> <golden-baseline.json> <known-deltas.json> <output.md>"
         );
@@ -15,9 +19,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let matrix: Value = serde_json::from_str(&fs::read_to_string(&args[1])?)?;
     let baseline: Value = serde_json::from_str(&fs::read_to_string(&args[2])?)?;
-    let known_deltas: Value = serde_json::from_str(&fs::read_to_string(&args[3])?)?;
+    let known_deltas: Value =
+        serde_json::from_str(&fs::read_to_string(&args[KNOWN_DELTAS_ARG_INDEX])?)?;
     let output = render_dashboard(&matrix, &baseline, &known_deltas)?;
-    fs::write(Path::new(&args[4]), output)?;
+    fs::write(Path::new(&args[OUTPUT_ARG_INDEX]), output)?;
     Ok(())
 }
 

@@ -1,4 +1,4 @@
-use katana_markdown_linter::{implemented_rules, lint, LintOptions, RuleConfig};
+use katana_markdown_linter::{LintOptions, MarkdownLinter, RuleCatalogService, RuleConfig};
 use std::collections::HashMap;
 
 const CONTEXT_SENSITIVE_RULES: &[&str] = &[
@@ -16,7 +16,7 @@ fn only_rules(rule_ids: &[&str]) -> LintOptions {
         },
     );
 
-    for rule in implemented_rules() {
+    for rule in RuleCatalogService::implemented_rules() {
         options.rules.insert(
             rule.id,
             RuleConfig {
@@ -129,7 +129,7 @@ graph TD
         "~~~\n",
     );
 
-    let diagnostics = lint(content, &options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
     let reported = diagnostics
         .iter()
         .map(|diagnostic| {
@@ -168,7 +168,8 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
     ];
 
     for (rule_id, content) in cases {
-        let diagnostics = lint(content, &only_rule(rule_id)).expect("lint should run");
+        let diagnostics =
+            MarkdownLinter::lint(content, &only_rule(rule_id)).expect("lint should run");
         assert!(
             diagnostics
                 .iter()
@@ -184,7 +185,7 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
         .expect("MD054 is enabled")
         .properties
         .insert("collapsed".to_string(), "false".to_string());
-    let diagnostics = lint(
+    let diagnostics = MarkdownLinter::lint(
         "[inline](target)\n[ref][]\n[ref]: https://example.com\n",
         &md054_options,
     )
@@ -197,8 +198,8 @@ fn context_sensitive_rules_still_report_real_markdown_violations() {
 
 #[test]
 fn md033_ignores_inline_html_inside_code_spans() {
-    let diagnostics =
-        lint("``<span>html</span>``\n`<img>\n", &only_rule("MD033")).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint("``<span>html</span>``\n`<img>\n", &only_rule("MD033"))
+        .expect("lint should run");
 
     assert!(diagnostics.is_empty(), "MD033 diagnostics: {diagnostics:?}");
 }
@@ -212,7 +213,8 @@ fn configured_context_exclusions_are_honored() {
         .expect("MD010 is enabled")
         .properties
         .insert("code_blocks".to_string(), "false".to_string());
-    let diagnostics = lint("```\na\tb\n```\n`a\tb`\n", &md010_options).expect("lint should run");
+    let diagnostics =
+        MarkdownLinter::lint("```\na\tb\n```\n`a\tb`\n", &md010_options).expect("lint should run");
     assert!(diagnostics.is_empty(), "MD010 diagnostics: {diagnostics:?}");
 
     let mut md013_options = only_rule("MD013");
@@ -232,7 +234,7 @@ fn configured_context_exclusions_are_honored() {
     let long_token = "a".repeat(120);
     let content =
         format!("# {long_token}\n\n| H |\n| --- |\n| {long_token} |\n\n```\n{long_token}\n```\n");
-    let diagnostics = lint(&content, &md013_options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint(&content, &md013_options).expect("lint should run");
     assert!(diagnostics.is_empty(), "MD013 diagnostics: {diagnostics:?}");
 
     let mut md044_options = only_rule("MD044");
@@ -246,7 +248,7 @@ fn configured_context_exclusions_are_honored() {
     md044_config
         .properties
         .insert("code_blocks".to_string(), "false".to_string());
-    let diagnostics =
-        lint("```\ngithub\n```\n`github`\n", &md044_options).expect("lint should run");
+    let diagnostics = MarkdownLinter::lint("```\ngithub\n```\n`github`\n", &md044_options)
+        .expect("lint should run");
     assert!(diagnostics.is_empty(), "MD044 diagnostics: {diagnostics:?}");
 }
