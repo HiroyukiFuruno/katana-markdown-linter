@@ -27,8 +27,10 @@ impl ReleaseVersionCommand {
     }
 
     fn run(&self) -> Output {
-        let mut command = Command::new("bash");
+        let mut command = Command::new(bash_executable());
         command.current_dir(workspace_root());
+        command.env("MSYS2_ARG_CONV_EXCL", "*");
+        command.env("MSYS_NO_PATHCONV", "1");
         for arg in &self.args {
             command.arg(arg);
         }
@@ -73,18 +75,39 @@ fn release_pull_request_branch_must_not_include_suffix() {
         env!("CARGO_PKG_VERSION")
     ))
     .run();
+    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     assert!(
         !output.status.success(),
-        "expected suffix release branch to fail"
+        "expected suffix release branch to fail, stdout: {stdout}, stderr: {stderr}"
     );
     assert!(
         stderr.contains("Release branch must be exactly release/vX.Y.Z"),
-        "expected branch format error, stderr: {stderr}"
+        "expected branch format error, stdout: {stdout}, stderr: {stderr}"
     );
 }
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+#[cfg(windows)]
+fn bash_executable() -> PathBuf {
+    if let Some(program_files) = std::env::var_os("ProgramFiles") {
+        let candidate = PathBuf::from(program_files)
+            .join("Git")
+            .join("bin")
+            .join("bash.exe");
+        if candidate.is_file() {
+            return candidate;
+        }
+    }
+
+    PathBuf::from("bash")
+}
+
+#[cfg(not(windows))]
+fn bash_executable() -> PathBuf {
+    PathBuf::from("bash")
 }

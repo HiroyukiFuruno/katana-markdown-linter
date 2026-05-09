@@ -162,9 +162,10 @@ fn space_fix(
 }
 
 fn valid_start(line: &str, marker_start: usize) -> bool {
-    marker_start == 0
-        || line[..marker_start]
-            .ends_with(|char: char| char.is_whitespace() || "([{\"'.!?,;:".contains(char))
+    let Some(previous) = line[..marker_start].chars().next_back() else {
+        return true;
+    };
+    previous.is_whitespace() || "([{\"'".contains(previous)
 }
 
 fn matching_end_marker(markers: &[EmphasisMarker], marker_index: usize) -> Option<EmphasisMarker> {

@@ -1,6 +1,6 @@
 [package]
 name = "katana-markdown-linter"
-version = "0.19.0"
+version = "0.19.1"
 
 edition = "2021"
 license = "MIT"
@@ -15,6 +15,7 @@ include = [
     "LICENSE",
     "Markfile",
     "build.rs",
+    "build/**",
     "server.json",
     "docs/**",
     "examples/**",
