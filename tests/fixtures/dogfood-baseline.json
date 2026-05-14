@@ -1,14 +1,6 @@
 {
   "schema_version": 1,
   "description": "Known kml dogfood diagnostics. New diagnostics fail just dogfood.",
-  "total_diagnostics": 1,
-  "diagnostics": [
-    {
-      "path": "docs/editor-integration.md",
-      "rule_id": "MD037",
-      "message": "Spaces inside emphasis markers",
-      "line_text": "**Note:** Neovim support is provided as a **docs-only sample**. There is no official Neovim plugin; instead, we recommend using the built-in LSP client with the configuration below.",
-      "count": 1
-    }
-  ]
+  "total_diagnostics": 0,
+  "diagnostics": []
 }

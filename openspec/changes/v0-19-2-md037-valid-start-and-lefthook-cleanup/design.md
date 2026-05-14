@@ -9,11 +9,13 @@ PR #98 (v0.19.1) は、`**Note:** ... **docs-only sample**` のように同一�
 ## Goals / Non-Goals
 
 **Goals:**
+
 - MD037 が CommonMark 準拠の left-flanking 条件で強調記号開始位置を判定する。句読点直後のスペース付き強調も検出できる。
 - `**Note:** ... **docs-only sample**` の連結バグが回帰テストで再発しないことを保証する。
 - `lefthook.yml` pre-push の構成が必要最小限で、意図が読み取れる。
 
 **Non-Goals:**
+
 - MD049 / MD050 など他の強調系ルールの判定ロジック変更。
 - lefthook の他フック（pre-commit など）の整理。
 - CommonMark 仕様への完全準拠（必要最小限の left-flanking のみ扱う）。
@@ -31,6 +33,7 @@ CommonMark の left-flanking delimiter run は「直前が空白 / 句読点 / �
 これにより `Hello.* spaced *` の `*` は (1)/(2) で opener 候補になり MD037 が検出する。`**Note:**` の閉じ `**` は (3) で除外され、後続独立強調との誤マッチを防ぐ。
 
 **Alternatives considered:**
+
 - (A) 現状の保守的縮小をそのまま据え置き → 句読点直後のスペース付き強調を見逃す副作用が残る。却下。
 - (B) `matching_end_marker` 側で「直前 opener と直後候補のペア距離」を制約する → 判定責務が分散し maintainability が低下。却下。
 
@@ -42,13 +45,14 @@ lefthook は `files: <command>` で生成したファイル一覧を `glob` で�
 - 確認 NG の場合: `sh -c '...' -- {files}` を残し、`# {files} は lefthook の glob skip を発火させるためだけに必要` といった意図コメントを近接行に追加する。
 
 **Alternatives considered:**
+
 - (A) lefthook を捨てて Makefile/just script で代替 → 影響範囲が大きく Non-Goal。
 
 ## Risks / Trade-offs
 
-- [Risk] `valid_start` のロジック拡張が既存の MD037 / MD049 / MD050 fixture に予期せぬ差分を生む可能性 → Mitigation: `cargo test --test rule_fixture_harness MD037 MD049 MD050` で fixture 全件 pass を確認し、差分があれば fixture 側を意図的に更新するか、判定ロジックを再調整する。
-- [Risk] lefthook 構成変更によりローカル pre-push が誤動作 → Mitigation: 変更後に `lefthook run pre-push` をローカルで実行し、Markdown のみ変更時に skip、Rust 変更時に check が走ることを確認する。
-- [Trade-off] CommonMark の完全な flanking 規則ではなく必要十分な近似実装になるため、極端なケース（複合句読点の連続など）で見逃しが残る可能性。Non-Goal として許容。
+- **Risk:** `valid_start` のロジック拡張が既存の MD037 / MD049 / MD050 fixture に予期せぬ差分を生む可能性 → Mitigation: `cargo test --test rule_fixture_harness MD037 MD049 MD050` で fixture 全件 pass を確認し、差分があれば fixture 側を意図的に更新するか、判定ロジックを再調整する。
+- **Risk:** lefthook 構成変更によりローカル pre-push が誤動作 → Mitigation: 変更後に `lefthook run pre-push` をローカルで実行し、Markdown のみ変更時に skip、Rust 変更時に check が走ることを確認する。
+- **Trade-off:** CommonMark の完全な flanking 規則ではなく必要十分な近似実装になるため、極端なケース（複合句読点の連続など）で見逃しが残る可能性。Non-Goal として許容。
 
 ## Migration Plan
 
