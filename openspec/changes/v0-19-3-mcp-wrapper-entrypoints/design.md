@@ -73,16 +73,16 @@ npm package の `bin` は以下を提供する。
 
 これにより次の形を公式にする。
 
-```bash
+~~~bash
 npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
 bunx katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
-```
+~~~
 
 direct bin を使う client では次の形も許可する。
 
-```bash
+~~~bash
 npx --yes --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
-```
+~~~
 
 **理由:** `npx <package> <args...>` と `bunx <package> <args...>` は package-name の executable を使う形が最も利用者に説明しやすい。direct bin も残すことで MCP client の command / args 生成に合わせやすくする。
 
@@ -96,9 +96,9 @@ PyPI package は以下の console scripts を提供する。
 
 公式の one-off 実行は次の形にする。
 
-```bash
+~~~bash
 uvx --from katana-markdown-linter==0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
-```
+~~~
 
 **理由:** `uvx` は package 名と executable 名を分離できるため、Python 側は dispatcher より console script の明示が自然。
 
