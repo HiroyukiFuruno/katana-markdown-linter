@@ -98,8 +98,8 @@ the same channel.
 
 ### npm
 
-The npm package is a thin launcher that downloads the matching `kml` release
-archive on first use:
+The npm package is a thin launcher that downloads the matching GitHub Release
+archive for `kml`, `kml-mcp`, or `kml-mcp-remote` on first use:
 
 ~~~bash
 npm install -g katana-markdown-linter
@@ -109,13 +109,15 @@ kml version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.18.0 check README.md
+npx --yes katana-markdown-linter@0.19.3 check README.md
+npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+bunx --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
 ~~~
 
 ### PyPI
 
-The PyPI package is a thin Python launcher that downloads the matching `kml`
-release archive on first use:
+The PyPI package is a thin Python launcher that downloads the matching GitHub
+Release archive for `kml`, `kml-mcp`, or `kml-mcp-remote` on first use:
 
 ~~~bash
 pipx install katana-markdown-linter
@@ -128,7 +130,8 @@ Use `uvx` for one-off runs without installing the launcher into your active
 environment:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.18.0 kml check README.md
+uvx --from katana-markdown-linter==0.19.3 kml check README.md
+uvx --from katana-markdown-linter==0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
 ~~~
 
 ### GitHub Releases
@@ -137,10 +140,10 @@ Standalone `kml` archives are attached to GitHub Releases. Choose the archive
 that matches your Rust target triple:
 
 ~~~bash
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.18.0/kml-v0.18.0-aarch64-apple-darwin.tar.gz
-curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.18.0/kml-v0.18.0-aarch64-apple-darwin.tar.gz.sha256
-shasum -a 256 -c kml-v0.18.0-aarch64-apple-darwin.tar.gz.sha256
-tar -xzf kml-v0.18.0-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.19.3/kml-v0.19.3-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/download/v0.19.3/kml-v0.19.3-aarch64-apple-darwin.tar.gz.sha256
+shasum -a 256 -c kml-v0.19.3-aarch64-apple-darwin.tar.gz.sha256
+tar -xzf kml-v0.19.3-aarch64-apple-darwin.tar.gz
 ~~~
 
 ### Homebrew
@@ -426,6 +429,15 @@ cargo build --bin kml-mcp --features mcp --locked
 cargo install katana-markdown-linter --locked --features mcp --bin kml-mcp
 ~~~
 
+After `v0.19.3`, the npm and PyPI wrappers can launch the same stdio server
+without a Rust toolchain:
+
+~~~bash
+npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+bunx --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+uvx --from katana-markdown-linter==0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+~~~
+
 The server exposes text, config, rule metadata, and workspace-safe file tools:
 
 - `check_text`
@@ -454,6 +466,15 @@ cargo build --bin kml-mcp-remote --features mcp-remote --locked
 KML_MCP_REMOTE_TOKEN=change-me target/debug/kml-mcp-remote
 ~~~
 
+Wrapper entrypoints are available for self-hosted remote MCP as well:
+
+~~~bash
+KML_MCP_REMOTE_TOKEN=change-me \
+  npx --yes --package katana-markdown-linter@0.19.3 kml-mcp-remote
+KML_MCP_REMOTE_TOKEN=change-me \
+  uvx --from katana-markdown-linter==0.19.3 kml-mcp-remote
+~~~
+
 Run `just mcp-remote-smoke` to verify bearer authentication, text-only tool
 capabilities, text diagnostics, and the request body limit.
 
@@ -462,7 +483,7 @@ Registry metadata for the local stdio server. Build the bundle and exercise the
 bundled `kml-mcp` binary before publication:
 
 ~~~bash
-just VERSION=v0.18.0 mcpb-smoke
+just VERSION=v0.19.3 mcpb-smoke
 ~~~
 
 See [MCP server documentation](docs/mcp-server.md), the

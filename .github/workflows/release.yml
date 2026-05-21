@@ -108,23 +108,29 @@ jobs:
       - name: Package binary artifact
         shell: bash
         run: |
-          python scripts/release/binary_artifacts.py package \
-            --version "${{ steps.version.outputs.version }}" \
-            --target "${{ matrix.target }}"
+          for executable in kml kml-mcp kml-mcp-remote; do
+            python scripts/release/binary_artifacts.py package \
+              --version "${{ steps.version.outputs.version }}" \
+              --target "${{ matrix.target }}" \
+              --executable "$executable"
+          done
 
       - name: Smoke binary artifact
         shell: bash
         run: |
-          python scripts/release/binary_artifacts.py smoke \
-            --version "${{ steps.version.outputs.version }}" \
-            --target "${{ matrix.target }}"
+          for executable in kml kml-mcp kml-mcp-remote; do
+            python scripts/release/binary_artifacts.py smoke \
+              --version "${{ steps.version.outputs.version }}" \
+              --target "${{ matrix.target }}" \
+              --executable "$executable"
+          done
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: binary-${{ matrix.target }}
           path: |
-            target/binary/kml-${{ steps.version.outputs.version }}-${{ matrix.target }}.*
+            target/binary/*-${{ steps.version.outputs.version }}-${{ matrix.target }}.*
 
   release:
     name: Release
@@ -327,6 +333,12 @@ jobs:
           path: target/binary
           merge-multiple: true
 
+      - name: Install uv
+        run: python3 -m pip install --upgrade uv
+
+      - name: Wrapper MCP smoke
+        run: scripts/release/smoke-wrappers.sh "${{ steps.version.outputs.version }}" target/binary
+
       - name: Generate Homebrew formula
         run: |
           python3 scripts/release/homebrew_formula.py generate \
@@ -378,9 +390,22 @@ jobs:
           tag_target="$(git rev-list -n 1 "$TAG")"
           schema_asset="markdownlint.schema.${TAG}.json"
           cp "schema/markdownlint.schema.json" "$schema_asset"
-          binary_assets=(target/binary/kml-${TAG}-*.tar.gz target/binary/kml-${TAG}-*.tar.gz.sha256 target/binary/kml-${TAG}-*.zip target/binary/kml-${TAG}-*.zip.sha256)
-          if [[ "${#binary_assets[@]}" -ne 8 ]]; then
-            echo "Expected 8 binary assets, found ${#binary_assets[@]}." >&2
+          binary_assets=(
+            target/binary/kml-${TAG}-*.tar.gz
+            target/binary/kml-${TAG}-*.tar.gz.sha256
+            target/binary/kml-${TAG}-*.zip
+            target/binary/kml-${TAG}-*.zip.sha256
+            target/binary/kml-mcp-${TAG}-*.tar.gz
+            target/binary/kml-mcp-${TAG}-*.tar.gz.sha256
+            target/binary/kml-mcp-${TAG}-*.zip
+            target/binary/kml-mcp-${TAG}-*.zip.sha256
+            target/binary/kml-mcp-remote-${TAG}-*.tar.gz
+            target/binary/kml-mcp-remote-${TAG}-*.tar.gz.sha256
+            target/binary/kml-mcp-remote-${TAG}-*.zip
+            target/binary/kml-mcp-remote-${TAG}-*.zip.sha256
+          )
+          if [[ "${#binary_assets[@]}" -ne 24 ]]; then
+            echo "Expected 24 binary assets, found ${#binary_assets[@]}." >&2
             printf '%s\n' "${binary_assets[@]}" >&2
             exit 1
           fi

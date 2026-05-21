@@ -1,10 +1,10 @@
 # katana-markdown-linter
 
-`katana-markdown-linter` is a thin npm launcher for the `kml` Markdown linter.
-The package does not contain independent lint logic. On first use, it downloads
-the matching `kml` binary archive from GitHub Releases, verifies the neighboring
-SHA-256 checksum, installs the binary into the wrapper cache, and then delegates
-all commands to that binary, including localized CLI help.
+`katana-markdown-linter` is a thin launcher over GitHub Release binary
+archives for npm. The package does not contain independent lint or MCP server
+logic. On first use, it downloads the matching `kml`, `kml-mcp`, or `kml-mcp-remote`
+binary archive, verifies the neighboring SHA-256 checksum, installs the binary
+into the wrapper cache, and delegates to that binary.
 
 ## Install
 
@@ -16,8 +16,8 @@ kml --version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.18.0 --version
-npx --yes katana-markdown-linter@0.18.0 check README.md
+npx --yes katana-markdown-linter@0.19.3 --version
+npx --yes katana-markdown-linter@0.19.3 check README.md
 ~~~
 
 ## Basic Usage
@@ -45,6 +45,23 @@ kml fix README.md
 kml fmt
 ~~~
 
+## MCP server entrypoints
+
+Use `kml-mcp` for local stdio MCP clients:
+
+~~~bash
+npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+bunx --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+npx --yes --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+~~~
+
+Use `kml-mcp-remote` only for self-hosted Streamable HTTP:
+
+~~~bash
+KML_MCP_REMOTE_TOKEN=change-me \
+  npx --yes --package katana-markdown-linter@0.19.3 kml-mcp-remote
+~~~
+
 ## Supported Platforms
 
 The npm launcher uses the same binary archives as the GitHub Release channel.
@@ -60,12 +77,12 @@ Unsupported platforms fail before download with an explicit platform error.
 ## Wrapper Contract
 
 - The package version selects the GitHub Release tag.
-- The launcher downloads `kml-vX.Y.Z-<target>.tar.gz` or
-  `kml-vX.Y.Z-<target>.zip`.
+- The launcher downloads the matching `kml-vX.Y.Z-<target>`,
+  `kml-mcp-vX.Y.Z-<target>`, or `kml-mcp-remote-vX.Y.Z-<target>` archive.
 - The launcher downloads the matching `.sha256` file and verifies the archive
   before extraction.
-- The installed binary is cached under the package-local `vendor` directory by
-  default.
+- The installed binary is cached by version, platform, and executable role.
+- MCP launchers do not write wrapper logs to stdout, preserving JSON-RPC stdio.
 
 For full CLI usage, rule coverage, and other install channels, see the
 [repository README](https://github.com/HiroyukiFuruno/katana-markdown-linter).

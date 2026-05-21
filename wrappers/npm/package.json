@@ -1,13 +1,15 @@
 {
   "name": "katana-markdown-linter",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "description": "Fast Markdown linter and formatter with localized CLI help and version aliases.",
   "keywords": [
     "markdown",
     "markdownlint",
     "linter",
     "kml",
-    "cli"
+    "cli",
+    "mcp",
+    "model-context-protocol"
   ],
   "homepage": "https://github.com/HiroyukiFuruno/katana-markdown-linter#readme",
   "bugs": {
@@ -19,7 +21,10 @@
     "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter.git"
   },
   "bin": {
-    "kml": "bin/kml.js"
+    "katana-markdown-linter": "bin/katana-markdown-linter.js",
+    "kml": "bin/kml.js",
+    "kml-mcp": "bin/kml-mcp.js",
+    "kml-mcp-remote": "bin/kml-mcp-remote.js"
   },
   "scripts": {
     "postinstall": "node lib/installer.js"

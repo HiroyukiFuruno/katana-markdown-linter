@@ -13,6 +13,7 @@ class NpmPackageVerifier {
   run() {
     this.verifyMetadata();
     this.verifyNoRuntimeDependencies();
+    this.verifyReadme();
     this.verifyTarballContents();
     console.log(`npm package check passed for ${this.packageJson.name}@${this.packageJson.version}`);
   }
@@ -41,8 +42,16 @@ class NpmPackageVerifier {
     if (!this.packageJson.bugs.url) {
       throw new Error("package.json: bugs.url is required");
     }
-    if (this.packageJson.bin.kml !== "bin/kml.js") {
-      throw new Error("package.json: bin.kml must point to bin/kml.js");
+    const requiredBins = {
+      "katana-markdown-linter": "bin/katana-markdown-linter.js",
+      "kml": "bin/kml.js",
+      "kml-mcp": "bin/kml-mcp.js",
+      "kml-mcp-remote": "bin/kml-mcp-remote.js"
+    };
+    for (const [name, target] of Object.entries(requiredBins)) {
+      if (this.packageJson.bin[name] !== target) {
+        throw new Error(`package.json: bin.${name} must point to ${target}`);
+      }
     }
   }
 
@@ -51,6 +60,22 @@ class NpmPackageVerifier {
     const names = Object.keys(dependencies);
     if (names.length > 0) {
       throw new Error(`package.json: runtime dependencies must stay empty: ${names.join(", ")}`);
+    }
+  }
+
+  verifyReadme() {
+    const readme = fs.readFileSync(path.join(this.packageRoot, "README.md"), "utf8");
+    const requiredFragments = [
+      "npx --yes katana-markdown-linter@",
+      "bunx --package katana-markdown-linter@",
+      "kml-mcp --workspace-root",
+      "kml-mcp-remote",
+      "thin launcher over GitHub Release binary"
+    ];
+    for (const fragment of requiredFragments) {
+      if (!readme.includes(fragment)) {
+        throw new Error(`wrappers/npm/README.md is missing \`${fragment}\``);
+      }
     }
   }
 
@@ -65,7 +90,17 @@ class NpmPackageVerifier {
     }
 
     const files = new Set(packages[0].files.map((file) => file.path));
-    for (const required of ["README.md", "package.json", "bin/kml.js", "lib/installer.js"]) {
+    const requiredFiles = [
+      "README.md",
+      "package.json",
+      "bin/katana-markdown-linter.js",
+      "bin/kml.js",
+      "bin/kml-mcp.js",
+      "bin/kml-mcp-remote.js",
+      "lib/installer.js",
+      "lib/launcher.js"
+    ];
+    for (const required of requiredFiles) {
       if (!files.has(required)) {
         throw new Error(`npm tarball is missing ${required}`);
       }

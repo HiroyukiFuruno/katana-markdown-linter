@@ -5,9 +5,9 @@
 | Channel | Status | Verification | Policy |
 | --- | --- | --- | --- |
 | Cargo crate | Official | `just release-check`, install smoke test, crates.io publish verification | Primary library and CLI package |
-| Standalone binary artifacts | Official from `v0.17.1` | `just binary-smoke`, release asset checksum, `just release-verify` asset check | Rust-toolchain-free CLI installs from GitHub Releases |
-| npm wrapper | Official from `v0.17.3` | npm registry version, `npx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
-| PyPI wrapper | Official from `v0.17.1` | PyPI JSON version, `uvx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
+| Standalone binary artifacts | Official from `v0.17.1` | `just binary-smoke`, `just mcp-binary-smoke`, release asset checksum, `just release-verify` asset check | Rust-toolchain-free CLI and MCP server installs from GitHub Releases |
+| npm wrapper | Official from `v0.17.3`; MCP entrypoints from `v0.19.3` | npm registry version, `npx` / `bunx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
+| PyPI wrapper | Official from `v0.17.1`; MCP entrypoints from `v0.19.3` | PyPI JSON version, `uvx` launch smoke, package README / metadata check, `just release-verify` | Thin launcher over GitHub Release binary archives |
 | Homebrew formula | Official from `v0.17.1` | `just homebrew-formula-check`, release archive checksum, formula test block, actual tap check in `just release-verify` | Release workflow updates latest and versioned formulae in `homebrew-katana` after release assets exist |
 | GitHub Action | Official from `v0.11.0` | `just action-smoke`, CI action smoke, release action smoke | CI integration over the published `kml` CLI |
 | MCPB bundle | Official from `v0.14.0` | `just mcpb-smoke`, `just server-json-validate`, release asset checksum | Local stdio MCP package for `kml-mcp` |
@@ -37,17 +37,20 @@ waiting for crates.io publication.
 | editor/LSP entrypoint | Deferred | `kml fmt --stdin` is editor-friendly, but a dedicated editor entrypoint should follow after distribution smoke coverage remains stable. |
 
 Standalone release archives use stable names such as
-`kml-v0.17.7-aarch64-apple-darwin.tar.gz` and always ship a neighboring
-`.sha256` file. The Homebrew formula is generated from the same release assets
-and is published to `HiroyukiFuruno/homebrew-katana` by the release workflow
-with `HOMEBREW_KATANA_GIT_TOKEN`. Each release updates the latest `kml`
-formula and adds a versioned `kml@X.Y.Z` formula.
+`kml-v0.19.3-aarch64-apple-darwin.tar.gz`,
+`kml-mcp-v0.19.3-aarch64-apple-darwin.tar.gz`, and
+`kml-mcp-remote-v0.19.3-aarch64-apple-darwin.tar.gz`. Each archive ships a
+neighboring `.sha256` file. The Homebrew formula is generated from the `kml`
+release assets and is published to `HiroyukiFuruno/homebrew-katana` by the
+release workflow with `HOMEBREW_KATANA_GIT_TOKEN`. Each release updates the
+latest `kml` formula and adds a versioned `kml@X.Y.Z` formula.
 
-The npm and PyPI packages do not contain independent lint logic. They download
-the matching GitHub Release archive for the package version, verify the archive
-checksum, and launch the bundled `kml` binary. Both wrapper packages ship
-registry README and metadata that are verified by `just npm-package-check` and
-`just pypi-package-check` before publication.
+The npm and PyPI packages do not contain independent lint or MCP server logic.
+They download the matching GitHub Release archive for the package version,
+target platform, and executable role, verify the archive checksum, and launch
+the bundled `kml`, `kml-mcp`, or `kml-mcp-remote` binary. Both wrapper packages
+ship registry README and metadata that are verified by `just npm-package-check`
+and `just pypi-package-check` before publication.
 
 `kml-mcp-remote` is not a hosted service and is not described by the MCPB
 Registry metadata. Operators deploy it themselves, keep bearer authentication

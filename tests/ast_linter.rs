@@ -355,7 +355,14 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
     let release_notes = read_workspace_file("scripts/release/release-notes.sh");
     let crate_guard = read_workspace_file("scripts/release/assert-crate-not-published.sh");
     let tag_verifier = read_workspace_file("scripts/release/verify-tag-verified.sh");
-    let published_verifier = read_workspace_file("scripts/release/verify-release-published.sh");
+    let published_verifier = [
+        read_workspace_file("scripts/release/verify-release-published.sh"),
+        read_workspace_file("scripts/release/verify-release-common.sh"),
+        read_workspace_file("scripts/release/verify-release-assets.sh"),
+        read_workspace_file("scripts/release/verify-release-registries.sh"),
+        read_workspace_file("scripts/release/verify-release-homebrew.sh"),
+    ]
+    .join("\n");
     let wrapper_smoke = read_workspace_file("scripts/release/smoke-wrappers.sh");
     let npm_installer = read_workspace_file("wrappers/npm/lib/installer.js");
     let python_installer =
@@ -381,14 +388,14 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
             &release_just,
             "scripts/release/recover-accidental-release.py",
         ),
-        ("just/release.just", &release_just, "release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate homebrew-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check"),
+        ("just/release.just", &release_just, "release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke mcp-binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate homebrew-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check"),
         ("just/release.just", &release_just, "binary-smoke: binary-package"),
         (
             "just/release.just",
             &release_just,
             "homebrew-formula-check: homebrew-formula",
         ),
-        ("just/release.just", &release_just, "wrapper-smoke: binary-package"),
+        ("just/release.just", &release_just, "wrapper-smoke: binary-package mcp-binary-package"),
         ("just/release.just", &release_just, "npm-package-check:"),
         (
             "just/release.just",
@@ -586,11 +593,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ("scripts/release/verify-tag-verified.sh", &tag_verifier, "git fetch --quiet origin \"refs/tags/${TAG}:refs/tags/${TAG}\""),
         ("scripts/release/verify-release-published.sh", &published_verifier, "release_asset_exists"),
         ("scripts/release/smoke-wrappers.sh", &wrapper_smoke, "reused an unversioned stale cache"),
-        ("wrappers/npm/lib/installer.js", &npm_installer, "this.version, this.target"),
-        ("wrappers/python/src/katana_markdown_linter/installer.py", &python_installer, "self.version / self.target"),
+        ("wrappers/npm/lib/installer.js", &npm_installer, "this.role.executable"),
+        ("wrappers/python/src/katana_markdown_linter/installer.py", &python_installer, "self.role.executable"),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_title="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "github_release_target="),
-        ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release is missing binary archive"),
+        ("scripts/release/verify-release-published.sh", &published_verifier, "GitHub Release is missing ${label} archive"),
         ("scripts/release/verify-release-published.sh", &published_verifier, "crates_io_version="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "npm_registry_version="),
         ("scripts/release/verify-release-published.sh", &published_verifier, "pypi_registry_version="),

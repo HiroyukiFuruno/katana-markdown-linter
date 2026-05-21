@@ -33,8 +33,8 @@ homebrew-formula-check: homebrew-formula
     python3 scripts/release/homebrew_formula.py check --version "{{VERSION}}" --formula-name kml --output "{{HOMEBREW_FORMULA}}"
     python3 scripts/release/homebrew_formula.py check --version "{{VERSION}}" --formula-name "kml@{{VERSION_BARE}}" --output "{{HOMEBREW_VERSIONED_FORMULA}}"
 
-# Exercise npm and Python wrapper launchers against local binary archive
-wrapper-smoke: binary-package
+# Exercise npm and Python wrapper launchers against local binary archives
+wrapper-smoke: binary-package mcp-binary-package
     scripts/release/smoke-wrappers.sh "{{VERSION}}" "{{BINARY_DIST_DIR}}"
 
 # Verify npm wrapper package README, metadata, and tarball contents
@@ -83,7 +83,7 @@ release-recover: bad-version-required
     python3 scripts/release/recover-accidental-release.py --bad-version "{{BAD_VERSION}}" $replacement_arg --execute
 
 # Run local release preflight gates except upstream drift (VERSION=vX.Y.Z)
-release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate homebrew-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check
+release-check: release-target-check fmt-check lint ast-lint schema-check release-test dogfood coverage-blocking examples mcp-build mcp-stdio-smoke mcp-remote-build mcp-remote-smoke mcpb-smoke server-json-validate action-smoke binary-smoke mcp-binary-smoke homebrew-formula-check wrapper-smoke npm-package-check npm-publish-target-check pypi-package-check wrapper-publish-gate homebrew-publish-gate editor-publish-gate document-answer-fix public-confidence editor-extension-check
     cargo publish --dry-run --locked --allow-dirty
     cargo install --path . --locked --force --root "${TMPDIR:-/tmp}/kml-release-install-check" --bin kml
     "${TMPDIR:-/tmp}/kml-release-install-check/bin/kml" init-config --config "${TMPDIR:-/tmp}/kml-release-install-check/.markdownlint.json"
@@ -100,14 +100,14 @@ release-package:
 # Dispatch GitHub Release workflow without crates.io publish
 release-github: release-tag
     scripts/release/verify-version.sh "{{VERSION}}"
-    gh workflow run release.yml --repo {{RELEASE_REPO}} --ref main -f version="{{TAG}}" -f publish_crate=false
+    gh workflow run release.yml --repo {{RELEASE_REPO}} --ref master -f version="{{TAG}}" -f publish_crate=false
 
 # Dispatch GitHub Release workflow with crates.io publish
 release-publish: release-tag
     scripts/release/verify-version.sh "{{VERSION}}"
     scripts/release/assert-crate-not-published.sh "{{VERSION_BARE}}"
     gh secret list --repo {{RELEASE_REPO}} | grep -q '^CARGO_REGISTRY_TOKEN[[:space:]]' || { echo "CARGO_REGISTRY_TOKEN secret is required" >&2; exit 1; }
-    gh workflow run release.yml --repo {{RELEASE_REPO}} --ref main -f version="{{TAG}}" -f publish_crate=true -f publish_npm_wrapper=true -f publish_pypi_wrapper=true
+    gh workflow run release.yml --repo {{RELEASE_REPO}} --ref master -f version="{{TAG}}" -f publish_crate=true -f publish_npm_wrapper=true -f publish_pypi_wrapper=true
 
 # Dispatch the full release workflow (GitHub Release + crates.io, VERSION=vX.Y.Z)
 release: release-publish

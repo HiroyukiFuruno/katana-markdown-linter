@@ -4,8 +4,18 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
+const BINARY_ROLES = {
+  cli: { executable: "kml", archivePrefix: "kml" },
+  kml: { executable: "kml", archivePrefix: "kml" },
+  "kml-mcp": { executable: "kml-mcp", archivePrefix: "kml-mcp" },
+  mcp: { executable: "kml-mcp", archivePrefix: "kml-mcp" },
+  "kml-mcp-remote": { executable: "kml-mcp-remote", archivePrefix: "kml-mcp-remote" },
+  "mcp-remote": { executable: "kml-mcp-remote", archivePrefix: "kml-mcp-remote" }
+};
+
 class KmlInstaller {
-  constructor() {
+  constructor(binaryRole = "cli") {
+    this.role = this.resolveRole(binaryRole);
     this.packageRoot = path.resolve(__dirname, "..");
     this.packageJson = require(path.join(this.packageRoot, "package.json"));
     this.version = process.env.KML_WRAPPER_VERSION || `v${this.packageJson.version}`;
@@ -15,7 +25,14 @@ class KmlInstaller {
   }
 
   ensureBinary() {
-    const binaryPath = path.join(this.installRoot, this.version, this.target, "bin", this.binaryName());
+    const binaryPath = path.join(
+      this.installRoot,
+      this.version,
+      this.target,
+      this.role.executable,
+      "bin",
+      this.binaryName()
+    );
     if (fs.existsSync(binaryPath)) {
       return binaryPath;
     }
@@ -83,7 +100,15 @@ class KmlInstaller {
 
   resolveArchiveName() {
     const suffix = this.target.includes("windows") ? "zip" : "tar.gz";
-    return `kml-${this.version}-${this.target}.${suffix}`;
+    return `${this.role.archivePrefix}-${this.version}-${this.target}.${suffix}`;
+  }
+
+  resolveRole(binaryRole) {
+    const role = BINARY_ROLES[binaryRole];
+    if (!role) {
+      throw new Error(`Unsupported kml wrapper binary role: ${binaryRole}`);
+    }
+    return role;
   }
 
   resolveTarget() {
@@ -101,7 +126,7 @@ class KmlInstaller {
   }
 
   binaryName() {
-    return this.target.includes("windows") ? "kml.exe" : "kml";
+    return this.target.includes("windows") ? `${this.role.executable}.exe` : this.role.executable;
   }
 }
 

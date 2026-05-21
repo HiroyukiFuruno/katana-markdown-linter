@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "katana-markdown-linter"
-version = "0.19.2"
+version = "0.19.3"
 description = "Fast Markdown linter and formatter with localized CLI help and version aliases."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-keywords = ["markdown", "markdownlint", "linter", "cli", "kml"]
+keywords = ["markdown", "markdownlint", "linter", "cli", "kml", "mcp", "model-context-protocol"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",
@@ -33,3 +33,5 @@ Changelog = "https://github.com/HiroyukiFuruno/katana-markdown-linter/blob/main/
 
 [project.scripts]
 kml = "katana_markdown_linter.cli:main"
+kml-mcp = "katana_markdown_linter.cli:main_mcp"
+kml-mcp-remote = "katana_markdown_linter.cli:main_mcp_remote"
