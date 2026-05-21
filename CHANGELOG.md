@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.19.2
+
+- Restores `MD037` detection for spaced emphasis that starts immediately after supported punctuation.
+- Keeps normal emphasis spans from being reused as `MD037` start markers, preventing same-line span corruption.
+- Simplifies the local pre-push hook while preserving Rust/TOML/lock-file filtering.
+- Synchronizes project version to `v0.19.2` across all components.
+
 ## v0.19.1
 
 - Fixes `MD037` so separate emphasis spans on the same line are not merged by `kml check --fix`.

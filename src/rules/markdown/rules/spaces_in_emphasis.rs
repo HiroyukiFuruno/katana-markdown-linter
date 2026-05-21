@@ -3,16 +3,10 @@ use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
     SourceRange,
 };
+use markers::{emphasis_markers, matching_end_marker, valid_start, EmphasisMarker};
 use std::path::Path;
 
-const MAX_EMPHASIS_MARKER_LEN: usize = 2;
-
-#[derive(Clone, Copy)]
-struct EmphasisMarker {
-    start: usize,
-    len: usize,
-    kind: char,
-}
+mod markers;
 
 struct EmphasisEnvironment<'a, 'doc> {
     file_path: &'a Path,
@@ -74,37 +68,6 @@ impl MarkdownRule for SpacesInEmphasisRule {
     }
 }
 
-fn emphasis_markers(line: &str) -> Vec<EmphasisMarker> {
-    let mut markers = Vec::new();
-    let mut chars = line.char_indices().peekable();
-    while let Some((start, kind)) = chars.next() {
-        if !is_emphasis_marker(kind) {
-            continue;
-        }
-        let len = marker_run_len(kind, &mut chars);
-        if len <= MAX_EMPHASIS_MARKER_LEN {
-            markers.push(EmphasisMarker { start, len, kind });
-        }
-    }
-    markers
-}
-
-fn marker_run_len(kind: char, chars: &mut std::iter::Peekable<std::str::CharIndices<'_>>) -> usize {
-    let mut len = 1;
-    while let Some(&(_, next_kind)) = chars.peek() {
-        if next_kind != kind {
-            break;
-        }
-        len += 1;
-        chars.next();
-    }
-    len
-}
-
-fn is_emphasis_marker(kind: char) -> bool {
-    kind == '*' || kind == '_'
-}
-
 fn push_space_diagnostic(
     diagnostics: &mut Vec<MarkdownDiagnostic>,
     env: &EmphasisEnvironment<'_, '_>,
@@ -133,7 +96,9 @@ fn space_fix(
     let line = line_context.line;
     let marker = line_context.markers[marker_index];
     let after_marker = marker.start + marker.len;
-    if !line[after_marker..].starts_with(' ') || !valid_start(line, marker.start) {
+    if !line[after_marker..].starts_with(' ')
+        || !valid_start(line, line_context.markers, marker_index)
+    {
         return None;
     }
     let end_marker = matching_end_marker(line_context.markers, marker_index)?;
@@ -159,22 +124,6 @@ fn space_fix(
         end_column: end_marker.start + end_marker.len + 1,
         replacement: format!("{}{}{}", marker_str, inner_text.trim(), marker_str),
     })
-}
-
-fn valid_start(line: &str, marker_start: usize) -> bool {
-    let Some(previous) = line[..marker_start].chars().next_back() else {
-        return true;
-    };
-    previous.is_whitespace() || "([{\"'".contains(previous)
-}
-
-fn matching_end_marker(markers: &[EmphasisMarker], marker_index: usize) -> Option<EmphasisMarker> {
-    let marker = markers[marker_index];
-    markers
-        .iter()
-        .skip(marker_index + 1)
-        .find(|candidate| candidate.kind == marker.kind && candidate.len == marker.len)
-        .copied()
 }
 
 #[cfg(test)]

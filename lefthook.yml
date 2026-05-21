@@ -14,5 +14,8 @@ pre-push:
   files: git diff --name-only HEAD master
   commands:
     check-strict:
+      # {files} は lefthook の files/glob 判定を発火させるためにのみ参照する。
       run: sh -c 'just JOBS=2 check' -- {files}
-      glob: "*.{rs,toml,lock}"
+      glob:
+        - "*.{rs,toml,lock}"
+        - "**/*.{rs,toml,lock}"
