@@ -60,6 +60,21 @@ fn md037_does_not_merge_separate_strong_spans_on_one_line() {
 }
 
 #[test]
+fn md037_trims_spaced_emphasis_after_supported_punctuation() {
+    let options = only_rule("MD037");
+
+    for punctuation in ['.', '!', '?', ',', ';', ':'] {
+        let content = format!("Hello{punctuation}* spaced *.\n");
+        let expected = format!("Hello{punctuation}*spaced*.\n");
+        let diagnostics = MarkdownLinter::lint(&content, &options).expect("lint should run");
+        let fixed = MarkdownLinter::fix(&content, &options).expect("fix should run");
+
+        assert_eq!(diagnostics.len(), 1, "punctuation {punctuation}");
+        assert_eq!(fixed.content, expected, "punctuation {punctuation}");
+    }
+}
+
+#[test]
 fn md037_trims_spaced_emphasis_next_to_separate_strong_span() {
     let content = "**Note:** Neovim support is provided as * docs-only sample *.\n";
     let options = only_rule("MD037");
@@ -71,5 +86,20 @@ fn md037_trims_spaced_emphasis_next_to_separate_strong_span() {
     assert_eq!(
         fixed.content,
         "**Note:** Neovim support is provided as *docs-only sample*.\n"
+    );
+}
+
+#[test]
+fn md037_trims_spaced_emphasis_after_matching_single_emphasis_span() {
+    let content = "*Note:* Neovim support is provided as * docs-only sample *.\n";
+    let options = only_rule("MD037");
+
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+    let fixed = MarkdownLinter::fix(content, &options).expect("fix should run");
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(
+        fixed.content,
+        "*Note:* Neovim support is provided as *docs-only sample*.\n"
     );
 }

@@ -1,7 +1,10 @@
 use serde_json::Value;
 use std::fs::File;
 use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static LSP_INPUT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[test]
 fn lsp_initialize_reports_diagnostics_and_formats_open_document() {
@@ -551,9 +554,11 @@ fn lsp_handles_malformed_config() {
 }
 
 fn run_lsp(input: &str) -> std::process::Output {
+    let input_id = LSP_INPUT_COUNTER.fetch_add(1, Ordering::Relaxed);
     let input_path = std::env::temp_dir().join(format!(
-        "katana-markdown-linter-lsp-{}-{}.input",
+        "katana-markdown-linter-lsp-{}-{}-{}.input",
         std::process::id(),
+        input_id,
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("time should be monotonic")
