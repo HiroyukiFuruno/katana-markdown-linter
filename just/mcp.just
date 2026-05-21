@@ -36,6 +36,21 @@ mcp-remote-install-smoke:
 mcp-remote-smoke: mcp-remote-install-smoke
     python3 scripts/ci/mcp-remote-smoke.py --bin "{{MCP_REMOTE_INSTALL_SMOKE_DIR}}/bin/kml-mcp-remote"
 
+# Build MCP server binary archives and checksums for VERSION
+mcp-binary-package:
+    scripts/release/verify-version.sh "{{VERSION}}"
+    target_arg=""; \
+    if [ -n "{{BINARY_TARGET}}" ]; then target_arg="--target {{BINARY_TARGET}}"; fi; \
+    python3 scripts/release/binary_artifacts.py package --version "{{VERSION}}" --dist-dir "{{BINARY_DIST_DIR}}" --executable kml-mcp $target_arg; \
+    python3 scripts/release/binary_artifacts.py package --version "{{VERSION}}" --dist-dir "{{BINARY_DIST_DIR}}" --executable kml-mcp-remote $target_arg
+
+# Exercise MCP server binary archives after extraction
+mcp-binary-smoke: mcp-binary-package
+    target_arg=""; \
+    if [ -n "{{BINARY_TARGET}}" ]; then target_arg="--target {{BINARY_TARGET}}"; fi; \
+    python3 scripts/release/binary_artifacts.py smoke --version "{{VERSION}}" --dist-dir "{{BINARY_DIST_DIR}}" --executable kml-mcp $target_arg; \
+    python3 scripts/release/binary_artifacts.py smoke --version "{{VERSION}}" --dist-dir "{{BINARY_DIST_DIR}}" --executable kml-mcp-remote $target_arg
+
 # Build .mcpb bundle and sha256 checksum for VERSION
 mcpb-package: mcp-release-build
     scripts/release/package-mcpb.sh "{{VERSION}}"

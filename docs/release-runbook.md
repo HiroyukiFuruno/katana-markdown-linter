@@ -36,10 +36,12 @@ For MCP distribution changes, the release check includes:
 
 - `just VERSION=vX.Y.Z mcpb-smoke`
 - `just VERSION=vX.Y.Z server-json-validate`
+- `just VERSION=vX.Y.Z mcp-binary-smoke`
 
 For binary distribution changes, the release check includes:
 
 - `just VERSION=vX.Y.Z binary-smoke`
+- `just VERSION=vX.Y.Z mcp-binary-smoke`
 - [ ] Run `just VERSION=vX.Y.Z editor-extension-check`
 - `just VERSION=vX.Y.Z homebrew-formula-check`
 - `just VERSION=v0.18.5 release-partial-publish-test`
@@ -126,6 +128,8 @@ The workflow creates or updates:
 - `kml-vX.Y.Z-x86_64-apple-darwin.tar.gz` and checksum
 - `kml-vX.Y.Z-aarch64-apple-darwin.tar.gz` and checksum
 - `kml-vX.Y.Z-x86_64-pc-windows-msvc.zip` and checksum
+- matching `kml-mcp-vX.Y.Z-<target>` archives and checksums
+- matching `kml-mcp-remote-vX.Y.Z-<target>` archives and checksums
 - `.mcpb` package artifact for `kml-mcp`
 - `.mcpb.sha256` checksum
 - rendered MCP Registry `server.json`
@@ -215,6 +219,10 @@ Keep these conditions true before publishing a wrapper version:
 - `just npm-package-check` confirms the npm README, metadata, and tarball file list.
 - `just npm-publish-target-check` confirms the npm version is not already published. If npm returns `Unpublished on`, treat it as a soft signal and continue to publish attempt.
 - `just pypi-package-check` confirms the PyPI README, metadata, source distribution, wheel, and wheel metadata.
+- `just VERSION=vX.Y.Z wrapper-smoke` verifies `kml`, `kml-mcp`, and `kml-mcp-remote` through local wrapper launchers.
+- `npx --yes katana-markdown-linter@X.Y.Z kml-mcp --workspace-root <path>` is the documented npm stdio MCP form.
+- `bunx --package katana-markdown-linter@X.Y.Z kml-mcp --workspace-root <path>` is documented only while it passes smoke in the release environment.
+- `uvx --from katana-markdown-linter==X.Y.Z kml-mcp --workspace-root <path>` is the documented PyPI stdio MCP form.
 
 Use these trusted publisher settings:
 
@@ -251,8 +259,8 @@ If an extension publication is deferred, it will not block the core linter relea
 The PyPI project name must match `wrappers/python/pyproject.toml`. Change the
 wrapper metadata first if the package name is changed before publication.
 After wrapper publication, `just VERSION=vX.Y.Z release-verify` checks the npm
-registry version, PyPI JSON version, `npx` launcher output, and `uvx` launcher
-output.
+registry version, PyPI JSON version, `npx` launcher output, `uvx` launcher
+output, MCP binary release assets, and MCP wrapper JSON-RPC smoke.
 
 ## Required Secrets
 
@@ -362,6 +370,13 @@ preserve evidence and publish a corrected version instead.
   `scripts/ci/mcpb-smoke.py`.
 - Keep the manifest aligned with local stdio execution; do not claim remote MCP
   transport.
+
+### MCP wrapper smoke fails
+
+- Re-run `just VERSION=vX.Y.Z wrapper-smoke`.
+- Inspect `wrappers/npm/lib/installer.js`, `wrappers/python/src/katana_markdown_linter/installer.py`, and `scripts/release/smoke-wrappers.sh`.
+- Keep wrapper output off stdout for `kml-mcp`; stdout is reserved for MCP JSON-RPC messages.
+- Confirm `kml`, `kml-mcp`, and `kml-mcp-remote` caches are separated by version, target, and executable role.
 
 ### MCP remote smoke fails
 

@@ -16,13 +16,20 @@ After publication, install from crates.io:
 
     cargo install katana-markdown-linter --locked --features mcp --bin kml-mcp
 
+After `v0.19.3`, launch the same server through official wrappers without a
+Rust toolchain:
+
+    npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+    bunx --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+    uvx --from katana-markdown-linter==0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+
 Run the local stdio smoke test:
 
     just mcp-stdio-smoke
 
 Build and smoke test the MCPB bundle:
 
-    just VERSION=v0.17.7 mcpb-smoke
+    just VERSION=v0.19.3 mcpb-smoke
 
 ## Run
 
@@ -117,8 +124,15 @@ Use an absolute workspace path in shared configuration. The examples below use
 Add the server to `~/.codex/config.toml`:
 
     [mcp_servers.kml]
-    command = "kml-mcp"
-    args = ["--workspace-root", "/absolute/path/to/workspace"]
+    command = "npx"
+    args = ["--yes", "katana-markdown-linter@0.19.3", "kml-mcp", "--workspace-root", "/absolute/path/to/workspace"]
+    default_tools_approval_mode = "prompt"
+
+`uvx` is also valid:
+
+    [mcp_servers.kml]
+    command = "uvx"
+    args = ["--from", "katana-markdown-linter==0.19.3", "kml-mcp", "--workspace-root", "/absolute/path/to/workspace"]
     default_tools_approval_mode = "prompt"
 
 ### Claude Code
@@ -126,12 +140,12 @@ Add the server to `~/.codex/config.toml`:
 Register a local stdio server:
 
     claude mcp add --transport stdio --scope project kml -- \
-      kml-mcp --workspace-root /absolute/path/to/workspace
+      npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
 
 Equivalent JSON form:
 
     claude mcp add-json kml \
-      '{"type":"stdio","command":"kml-mcp","args":["--workspace-root","/absolute/path/to/workspace"]}'
+      '{"type":"stdio","command":"npx","args":["--yes","katana-markdown-linter@0.19.3","kml-mcp","--workspace-root","/absolute/path/to/workspace"]}'
 
 ### Antigravity
 
@@ -141,8 +155,8 @@ configuration. Add:
     {
       "mcpServers": {
         "kml": {
-          "command": "kml-mcp",
-          "args": ["--workspace-root", "/absolute/path/to/workspace"]
+          "command": "npx",
+          "args": ["--yes", "katana-markdown-linter@0.19.3", "kml-mcp", "--workspace-root", "/absolute/path/to/workspace"]
         }
       }
     }
@@ -152,17 +166,17 @@ configuration. Add:
 From `v0.14.0`, the local stdio server is published as an MCPB bundle attached
 to each GitHub Release:
 
-    katana-markdown-linter-0.17.7.mcpb
-    katana-markdown-linter-0.17.7.mcpb.sha256
+    katana-markdown-linter-0.19.3.mcpb
+    katana-markdown-linter-0.19.3.mcpb.sha256
 
 The committed `server.json` is the source metadata. During release,
-`just VERSION=v0.17.7 mcp-server-json` renders `target/mcpb/server.json` with
+`just VERSION=v0.19.3 mcp-server-json` renders `target/mcpb/server.json` with
 the final GitHub Release artifact URL and computed `fileSha256` value. The
 rendered file is the MCP Registry publication input.
 
 Validate the rendered metadata:
 
-    just VERSION=v0.17.7 server-json-validate
+    just VERSION=v0.19.3 server-json-validate
 
 The MCP Registry server name is `io.github.HiroyukiFuruno/kml`. The metadata
 uses only a package-based stdio transport and does not declare remote MCP

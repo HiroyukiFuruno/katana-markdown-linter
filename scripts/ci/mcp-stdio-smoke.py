@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 class McpStdioSmoke:
-    def __init__(self, binary: Path):
-        self.binary = binary
+    def __init__(self, command: list[str]):
+        self.command = command
         self.process = None
 
     def run(self) -> None:
@@ -32,7 +32,7 @@ class McpStdioSmoke:
 
     def start_server(self, workspace: Path) -> subprocess.Popen[str]:
         return subprocess.Popen(
-            [str(self.binary), "--workspace-root", str(workspace)],
+            [*self.command, "--workspace-root", str(workspace)],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -163,16 +163,24 @@ class McpStdioSmoke:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke test kml-mcp over MCP stdio JSON-RPC.")
-    parser.add_argument("--bin", required=True, type=Path, help="Path to kml-mcp executable.")
+    parser.add_argument("--bin", type=Path, help="Path to kml-mcp executable.")
+    parser.add_argument("--command", nargs=argparse.REMAINDER, help="Command that starts kml-mcp.")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    if not args.bin.exists():
+    if args.command:
+        command = args.command[1:] if args.command[0] == "--" else args.command
+    elif args.bin:
+        command = [str(args.bin)]
+    else:
+        print("--bin or --command is required", file=sys.stderr)
+        return 1
+    if args.bin and not args.bin.exists():
         print(f"kml-mcp binary not found: {args.bin}", file=sys.stderr)
         return 1
-    McpStdioSmoke(args.bin).run()
+    McpStdioSmoke(command).run()
     print("MCP stdio smoke passed")
     return 0
 

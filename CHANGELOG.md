@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.19.3
+
+- Adds target-specific GitHub Release archives for `kml-mcp` and `kml-mcp-remote`.
+- Extends npm and PyPI thin wrappers with `kml-mcp` and `kml-mcp-remote` entrypoints.
+- Adds wrapper smoke coverage for MCP JSON-RPC calls through npm, bun, and uv launch paths.
+- Updates MCP distribution docs and release verification for the wrapper entrypoints.
+- Synchronizes project version to `v0.19.3` across all components.
+
 ## v0.19.2
 
 - Restores `MD037` detection for spaced emphasis that starts immediately after supported punctuation.

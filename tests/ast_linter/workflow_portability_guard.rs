@@ -28,7 +28,7 @@ impl WorkflowPortabilityGuard {
             release: read_workspace_file(".github/workflows/release.yml"),
             homebrew_formula: read_workspace_file("scripts/release/homebrew_formula.py"),
             homebrew_tap_updater: read_workspace_file("scripts/release/update_homebrew_tap.py"),
-            release_verifier: read_workspace_file("scripts/release/verify-release-published.sh"),
+            release_verifier: read_release_verifier_surface(),
         }
     }
 
@@ -225,6 +225,17 @@ fn require_absent(violations: &mut Vec<String>, path: &str, content: &str, forbi
 
 fn read_workspace_file(path: &str) -> String {
     std::fs::read_to_string(workspace_root().join(path)).expect("workspace file should be readable")
+}
+
+fn read_release_verifier_surface() -> String {
+    [
+        read_workspace_file("scripts/release/verify-release-published.sh"),
+        read_workspace_file("scripts/release/verify-release-common.sh"),
+        read_workspace_file("scripts/release/verify-release-assets.sh"),
+        read_workspace_file("scripts/release/verify-release-registries.sh"),
+        read_workspace_file("scripts/release/verify-release-homebrew.sh"),
+    ]
+    .join("\n")
 }
 
 fn workspace_root() -> PathBuf {

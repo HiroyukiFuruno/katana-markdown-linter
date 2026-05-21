@@ -99,6 +99,9 @@ jobs:
       - name: Partial publish simulation
         run: just release-partial-publish-test
 
+      - name: Install uv
+        run: python3 -m pip install --upgrade uv
+
       - name: Wrapper smoke
         run: just wrapper-smoke
 

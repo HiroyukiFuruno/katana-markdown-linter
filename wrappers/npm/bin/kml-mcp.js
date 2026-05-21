@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 const { KmlLauncher } = require("../lib/launcher");
 
-process.exit(new KmlLauncher("kml", process.argv.slice(2)).run());
+process.exit(new KmlLauncher("kml-mcp", process.argv.slice(2)).run());

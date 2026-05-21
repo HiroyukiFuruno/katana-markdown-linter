@@ -11,8 +11,32 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 
+class BinaryRole:
+    def __init__(self, executable: str, archive_prefix: str) -> None:
+        self.executable = executable
+        self.archive_prefix = archive_prefix
+
+
+class BinaryRoles:
+    roles = {
+        "cli": BinaryRole("kml", "kml"),
+        "kml": BinaryRole("kml", "kml"),
+        "kml-mcp": BinaryRole("kml-mcp", "kml-mcp"),
+        "mcp": BinaryRole("kml-mcp", "kml-mcp"),
+        "kml-mcp-remote": BinaryRole("kml-mcp-remote", "kml-mcp-remote"),
+        "mcp-remote": BinaryRole("kml-mcp-remote", "kml-mcp-remote"),
+    }
+
+    @classmethod
+    def resolve(cls, binary_role: str) -> BinaryRole:
+        if binary_role not in cls.roles:
+            raise SystemExit(f"Unsupported kml wrapper binary role: {binary_role}")
+        return cls.roles[binary_role]
+
+
 class KmlInstaller:
-    def __init__(self) -> None:
+    def __init__(self, binary_role: str = "cli") -> None:
+        self.role = BinaryRoles.resolve(binary_role)
         self.version = self._resolve_version()
         self.target = self._resolve_target()
         self.archive_name = self._archive_name()
@@ -21,7 +45,14 @@ class KmlInstaller:
         )
 
     def ensure_binary(self) -> Path:
-        binary_path = self.install_root / self.version / self.target / "bin" / self._binary_name()
+        binary_path = (
+            self.install_root
+            / self.version
+            / self.target
+            / self.role.executable
+            / "bin"
+            / self._binary_name()
+        )
         if binary_path.is_file():
             return binary_path
         with tempfile.TemporaryDirectory(prefix="kml-python-wrapper-") as temp_dir:
@@ -39,14 +70,15 @@ class KmlInstaller:
 
     def _archive_name(self) -> str:
         suffix = "zip" if self.target.endswith("msvc") else "tar.gz"
-        return f"kml-{self.version}-{self.target}.{suffix}"
+        return f"{self.role.archive_prefix}-{self.version}-{self.target}.{suffix}"
 
     def _archive_url(self, name: str) -> str:
         repo = "HiroyukiFuruno/katana-markdown-linter"
         return f"https://github.com/{repo}/releases/download/{self.version}/{name}"
 
     def _binary_name(self) -> str:
-        return "kml.exe" if self.target.endswith("msvc") else "kml"
+        suffix = ".exe" if self.target.endswith("msvc") else ""
+        return f"{self.role.executable}{suffix}"
 
     def _download(self, url: str, output_path: Path) -> None:
         urllib.request.urlretrieve(url, output_path)
@@ -95,7 +127,7 @@ class KmlInstaller:
         try:
             package_version = version("katana-markdown-linter")
         except PackageNotFoundError:
-            package_version = "0.17.7"
+            package_version = "0.19.3"
         return f"v{package_version}"
 
     def _verify_checksum(self, archive_path: Path) -> None:

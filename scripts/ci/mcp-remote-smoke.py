@@ -14,8 +14,8 @@ class McpRemoteSmoke:
     token = "kml-remote-smoke-token"
     endpoint = "/mcp"
 
-    def __init__(self, binary: Path):
-        self.binary = binary
+    def __init__(self, command: list[str]):
+        self.command = command
         self.port = self.find_port()
         self.process = None
 
@@ -39,7 +39,7 @@ class McpRemoteSmoke:
         env["KML_MCP_REMOTE_TIMEOUT_MS"] = "5000"
         env["KML_MCP_REMOTE_MAX_CONCURRENCY"] = "2"
         return subprocess.Popen(
-            [str(self.binary)],
+            self.command,
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -173,16 +173,24 @@ class McpRemoteSmoke:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke test kml-mcp-remote over Streamable HTTP.")
-    parser.add_argument("--bin", required=True, type=Path, help="Path to kml-mcp-remote executable.")
+    parser.add_argument("--bin", type=Path, help="Path to kml-mcp-remote executable.")
+    parser.add_argument("--command", nargs=argparse.REMAINDER, help="Command that starts kml-mcp-remote.")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    if not args.bin.exists():
+    if args.command:
+        command = args.command[1:] if args.command[0] == "--" else args.command
+    elif args.bin:
+        command = [str(args.bin)]
+    else:
+        print("--bin or --command is required", file=sys.stderr)
+        return 1
+    if args.bin and not args.bin.exists():
         print(f"kml-mcp-remote binary not found: {args.bin}", file=sys.stderr)
         return 1
-    McpRemoteSmoke(args.bin).run()
+    McpRemoteSmoke(command).run()
     print("MCP remote smoke passed")
     return 0
 
