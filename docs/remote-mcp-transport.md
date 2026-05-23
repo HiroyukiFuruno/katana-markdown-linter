@@ -17,8 +17,8 @@ Install after publication:
 
 After `v0.19.3`, launch through official wrappers without a Rust toolchain:
 
-    KML_MCP_REMOTE_TOKEN=change-me npx --yes --package katana-markdown-linter@0.19.3 kml-mcp-remote
-    KML_MCP_REMOTE_TOKEN=change-me uvx --from katana-markdown-linter==0.19.3 kml-mcp-remote
+    KML_MCP_REMOTE_TOKEN=change-me npx --yes --package katana-markdown-linter@0.19.4 kml-mcp-remote
+    KML_MCP_REMOTE_TOKEN=change-me uvx --from katana-markdown-linter==0.19.4 kml-mcp-remote
 
 Run the smoke test:
 

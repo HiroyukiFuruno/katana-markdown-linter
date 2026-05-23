@@ -16,8 +16,8 @@ kml --version
 Use `uvx` for one-off runs:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.19.3 kml --version
-uvx --from katana-markdown-linter==0.19.3 kml check README.md
+uvx --from katana-markdown-linter==0.19.4 kml --version
+uvx --from katana-markdown-linter==0.19.4 kml check README.md
 ~~~
 
 ## Basic Usage
@@ -50,14 +50,14 @@ kml fmt
 Use `kml-mcp` for local stdio MCP clients:
 
 ~~~bash
-uvx --from katana-markdown-linter==0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+uvx --from katana-markdown-linter==0.19.4 kml-mcp --workspace-root /absolute/path/to/workspace
 ~~~
 
 Use `kml-mcp-remote` only for self-hosted Streamable HTTP:
 
 ~~~bash
 KML_MCP_REMOTE_TOKEN=change-me \
-  uvx --from katana-markdown-linter==0.19.3 kml-mcp-remote
+  uvx --from katana-markdown-linter==0.19.4 kml-mcp-remote
 ~~~
 
 ## Supported Platforms
