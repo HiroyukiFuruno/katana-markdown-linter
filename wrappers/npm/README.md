@@ -16,8 +16,8 @@ kml --version
 Use `npx` for one-off runs:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.19.3 --version
-npx --yes katana-markdown-linter@0.19.3 check README.md
+npx --yes katana-markdown-linter@0.19.4 --version
+npx --yes katana-markdown-linter@0.19.4 check README.md
 ~~~
 
 ## Basic Usage
@@ -50,16 +50,16 @@ kml fmt
 Use `kml-mcp` for local stdio MCP clients:
 
 ~~~bash
-npx --yes katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
-bunx --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
-npx --yes --package katana-markdown-linter@0.19.3 kml-mcp --workspace-root /absolute/path/to/workspace
+npx --yes katana-markdown-linter@0.19.4 kml-mcp --workspace-root /absolute/path/to/workspace
+bunx --package katana-markdown-linter@0.19.4 kml-mcp --workspace-root /absolute/path/to/workspace
+npx --yes --package katana-markdown-linter@0.19.4 kml-mcp --workspace-root /absolute/path/to/workspace
 ~~~
 
 Use `kml-mcp-remote` only for self-hosted Streamable HTTP:
 
 ~~~bash
 KML_MCP_REMOTE_TOKEN=change-me \
-  npx --yes --package katana-markdown-linter@0.19.3 kml-mcp-remote
+  npx --yes --package katana-markdown-linter@0.19.4 kml-mcp-remote
 ~~~
 
 ## Supported Platforms

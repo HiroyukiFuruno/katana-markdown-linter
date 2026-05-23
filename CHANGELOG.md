@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.4
+
+- Refreshes locked Rust dependencies after the `v0.19.3` release.
+- Synchronizes project version to `v0.19.4` across all components.
+
 ## v0.19.3
 
 - Adds target-specific GitHub Release archives for `kml-mcp` and `kml-mcp-remote`.

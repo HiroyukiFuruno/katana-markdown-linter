@@ -37,9 +37,9 @@ waiting for crates.io publication.
 | editor/LSP entrypoint | Deferred | `kml fmt --stdin` is editor-friendly, but a dedicated editor entrypoint should follow after distribution smoke coverage remains stable. |
 
 Standalone release archives use stable names such as
-`kml-v0.19.3-aarch64-apple-darwin.tar.gz`,
-`kml-mcp-v0.19.3-aarch64-apple-darwin.tar.gz`, and
-`kml-mcp-remote-v0.19.3-aarch64-apple-darwin.tar.gz`. Each archive ships a
+`kml-v0.19.4-aarch64-apple-darwin.tar.gz`,
+`kml-mcp-v0.19.4-aarch64-apple-darwin.tar.gz`, and
+`kml-mcp-remote-v0.19.4-aarch64-apple-darwin.tar.gz`. Each archive ships a
 neighboring `.sha256` file. The Homebrew formula is generated from the `kml`
 release assets and is published to `HiroyukiFuruno/homebrew-katana` by the
 release workflow with `HOMEBREW_KATANA_GIT_TOKEN`. Each release updates the
