@@ -446,6 +446,11 @@
               "description": "Enable or disable MD022.",
               "type": "boolean"
             },
+            "include_front_matter": {
+              "default": false,
+              "description": "Include front matter",
+              "type": "boolean"
+            },
             "lines_above": {
               "anyOf": [
                 {
@@ -1551,6 +1556,11 @@
           "properties": {
             "enabled": {
               "description": "Enable or disable MD022.",
+              "type": "boolean"
+            },
+            "include_front_matter": {
+              "default": false,
+              "description": "Include front matter",
               "type": "boolean"
             },
             "lines_above": {
