@@ -100,6 +100,13 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: just ast-lint
 
+      - name: Run issue-driven hook contract checks
+        if: matrix.os != 'windows-latest'
+        env:
+          KATANA_HOOK_BRANCH_OVERRIDE: ${{ github.head_ref || github.ref_name }}
+          KATANA_HOOK_COMMIT_SUBJECT_OVERRIDE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+        run: just issue-driven-hook-contract-check
+
       - name: Run tests
         if: matrix.os != 'windows-latest'
         run: cargo test --workspace --locked

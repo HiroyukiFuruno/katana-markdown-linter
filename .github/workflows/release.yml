@@ -142,6 +142,8 @@ jobs:
         startsWith(github.event.pull_request.head.ref, 'release/v')
       )
     runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -493,6 +495,38 @@ jobs:
           fi
           scripts/release/assert-crate-not-published.sh "${{ steps.version.outputs.version_bare }}"
           cargo publish --locked --allow-dirty --token "$CARGO_REGISTRY_TOKEN"
+
+  release-cleanup:
+    name: Release branch cleanup
+    needs:
+      - release
+      - publish-npm-wrapper
+      - publish-pypi-wrapper
+    if: >
+      needs.release.result == 'success' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.merged == true &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          startsWith(github.event.pull_request.head.ref, 'release/v')
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref }}
+          fetch-depth: 0
+      - name: Run release cleanup
+        env:
+          CLEANUP_RELEASE_TAG: ${{ needs.release.outputs.release_version }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/release/release-cleanup.sh
 
   publish-npm-wrapper:
     name: Publish npm wrapper
