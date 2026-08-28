@@ -61,7 +61,7 @@ pub(super) async fn handle_mcp(
     };
     let request = match read_limited_body(request, state.limits.max_body_bytes).await {
         Ok(request) => request,
-        Err(response) => return response,
+        Err(error) => return error.into_response(),
     };
     match tokio::time::timeout(state.limits.request_timeout, state.service.handle(request)).await {
         Ok(response) => {
@@ -89,14 +89,25 @@ fn authorized(auth: &AuthConfig, request: &Request<Body>) -> bool {
 async fn read_limited_body(
     request: Request<Body>,
     max_body_bytes: usize,
-) -> Result<Request<Body>, Response<Body>> {
+) -> Result<Request<Body>, ReadLimitedBodyError> {
     let (parts, body) = request.into_parts();
     match to_bytes(body, max_body_bytes).await {
         Ok(bytes) => Ok(Request::from_parts(parts, Body::from(bytes))),
-        Err(_) => Err(plain_response(
+        Err(_) => Err(ReadLimitedBodyError::PayloadTooLarge),
+    }
+}
+
+#[derive(Debug)]
+enum ReadLimitedBodyError {
+    PayloadTooLarge,
+}
+
+impl ReadLimitedBodyError {
+    fn into_response(self) -> Response<Body> {
+        plain_response(
             StatusCode::PAYLOAD_TOO_LARGE,
             "request body exceeds KML_MCP_REMOTE_MAX_BODY_BYTES",
-        )),
+        )
     }
 }
 
@@ -106,4 +117,21 @@ fn plain_response(status: StatusCode, message: &str) -> Response<Body> {
         .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
         .body(Body::from(message.to_string()))
         .expect("valid response")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn read_limited_body_rejects_payload_over_limit() {
+        let request = Request::builder()
+            .body(Body::from(vec![0u8; 10]))
+            .expect("valid request");
+        let err = read_limited_body(request, 1)
+            .await
+            .expect_err("request should exceed limit");
+        let response = err.into_response();
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    }
 }

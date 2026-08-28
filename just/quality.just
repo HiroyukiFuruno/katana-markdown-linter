@@ -42,6 +42,10 @@ upstream-golden-live:
 rule-dashboard:
     cargo run --quiet --example rule_coverage_dashboard --locked -- tests/fixtures/rule-fixture-matrix.json tests/fixtures/upstream-golden-baseline.json tests/fixtures/upstream-golden-known-deltas.json docs/rule-coverage-dashboard.md
 
+# Verify issue-driven dependency update/branch contract behavior.
+issue-driven-hook-contract-check:
+    bash scripts/ci/issue-driven-hook-contracts.sh
+
 # Run unit tests
 test:
     cargo test --workspace
@@ -55,7 +59,7 @@ coverage-blocking:
     COVERAGE_MODE=blocking JOBS={{JOBS}} scripts/ci/coverage.sh
 
 # Fast impacted verification (local default)
-check: fmt-check lint ast-lint test dogfood
+check: fmt-check lint ast-lint test dogfood issue-driven-hook-contract-check
     @echo "All checks passed"
 
 # Compile public Rust embedding examples
