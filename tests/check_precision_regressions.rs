@@ -55,6 +55,30 @@ fn md022_treats_html_comment_line_as_blank() {
 }
 
 #[test]
+fn md022_ignores_front_matter_by_default() {
+    let content = "---\ntitle: Doc\n---\n# Doc\n";
+    let diagnostics = MarkdownLinter::lint(content, &only_rule("MD022")).expect("lint should run");
+
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn md022_can_include_front_matter_when_enabled() {
+    let mut options = only_rule("MD022");
+    options
+        .rules
+        .get_mut("MD022")
+        .expect("MD022 should be present")
+        .properties
+        .insert("include_front_matter".to_string(), "true".to_string());
+    let content = "---\ntitle: Doc\n---\n# Doc\n";
+    let diagnostics = MarkdownLinter::lint(content, &options).expect("lint should run");
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(diagnostics[0].line, 4);
+}
+
+#[test]
 fn md007_reports_unordered_item_indented_too_shallow_for_ordered_parent() {
     let content = "1. Verify:\n  - Sub-item\n";
     let diagnostics = MarkdownLinter::lint(content, &only_rule("MD007")).expect("lint should run");

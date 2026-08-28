@@ -1,3 +1,4 @@
+use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
@@ -29,17 +30,31 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
     fn evaluate_context(
         &self,
         ctx: &DocumentContext<'_>,
-        _config: Option<&RuleConfig>,
+        config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD022");
+        let include_front_matter = bool_property(config, "include_front_matter", false);
         let mut diagnostics = Vec::new();
         for heading in ctx.headings() {
+            if !include_front_matter && is_front_matter_line(ctx, heading.line) {
+                continue;
+            }
             let i = heading.line;
             let line = &ctx.lines()[i];
-            let needs_blank_before =
-                i > 0 && !is_blank_for_heading_spacing(ctx.lines()[i - 1].text);
-            let needs_blank_after =
-                i + 1 < ctx.lines().len() && !is_blank_for_heading_spacing(ctx.lines()[i + 1].text);
+            let needs_blank_before = i > 0
+                && !is_blank_for_heading_spacing(
+                    &ctx.lines()[i - 1],
+                    i - 1,
+                    ctx,
+                    include_front_matter,
+                );
+            let needs_blank_after = i + 1 < ctx.lines().len()
+                && !is_blank_for_heading_spacing(
+                    &ctx.lines()[i + 1],
+                    i + 1,
+                    ctx,
+                    include_front_matter,
+                );
             if needs_blank_before || needs_blank_after {
                 let mut replacement = String::new();
                 if needs_blank_before {
@@ -71,9 +86,33 @@ impl MarkdownRule for BlanksAroundHeadingsRule {
     }
 }
 
-fn is_blank_for_heading_spacing(line: &str) -> bool {
-    let trimmed = line.trim();
+fn bool_property(config: Option<&RuleConfig>, key: &str, default: bool) -> bool {
+    config
+        .and_then(|config| config.properties.get(key))
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(default)
+}
+
+fn is_blank_for_heading_spacing(
+    line: &LineInfo<'_>,
+    line_index: usize,
+    ctx: &DocumentContext<'_>,
+    include_front_matter: bool,
+) -> bool {
+    if !include_front_matter && is_front_matter_line(ctx, line_index) {
+        return true;
+    }
+    let trimmed = line.text.trim();
     trimmed.is_empty() || (trimmed.starts_with("<!--") && trimmed.ends_with("-->"))
+}
+
+fn is_front_matter_line(ctx: &DocumentContext<'_>, line_index: usize) -> bool {
+    let Some(front_matter) = ctx.front_matter() else {
+        return false;
+    };
+    ctx.lines().get(line_index).is_some_and(|line| {
+        front_matter.start <= line.content_range.start && line.full_range.end <= front_matter.end
+    })
 }
 
 /// MD023 / heading-start-left — Headings must start at the beginning of the line.

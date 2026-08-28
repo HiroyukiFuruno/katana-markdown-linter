@@ -1180,6 +1180,12 @@
           "value_type": "integer|integer[]",
           "default_value": "1",
           "values": []
+        },
+        {
+          "key": "include_front_matter",
+          "value_type": "boolean",
+          "default_value": "false",
+          "values": []
         }
       ],
       "fixable": true,
@@ -1219,6 +1225,11 @@
           "name": "lines_below_valid",
           "source": "{ \"MD022\": { \"lines_below\": [1, 1] } }",
           "expected": null
+        },
+        {
+          "name": "include_front_matter_valid",
+          "source": "{ \"MD022\": { \"include_front_matter\": true } }",
+          "expected": null
         }
       ],
       "config_invalid": [
@@ -1235,6 +1246,11 @@
         {
           "name": "lines_below_invalid_type",
           "source": "{ \"MD022\": { \"lines_below\": null } }",
+          "expected": "invalid type"
+        },
+        {
+          "name": "include_front_matter_invalid_type",
+          "source": "{ \"MD022\": { \"include_front_matter\": null } }",
           "expected": "invalid type"
         }
       ],

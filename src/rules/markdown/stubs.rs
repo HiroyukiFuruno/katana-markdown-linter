@@ -37,6 +37,7 @@ official_rule!(RuleMD021, "MD021", "https://github.com/DavidAnson/markdownlint/b
 official_rule!(RuleMD022, "MD022", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md022.md", &[
     crate::rule_prop!(Number, "lines_above", "Blank lines above heading", "1"),
     crate::rule_prop!(Number, "lines_below", "Blank lines below heading", "1"),
+    crate::rule_prop!(Boolean, "include_front_matter", "Include front matter", "false"),
 ]);
 official_rule!(RuleMD023, "MD023", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md023.md", &[]);
 official_rule!(RuleMD024, "MD024", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md024.md", &[
@@ -141,4 +142,3 @@ official_rule!(RuleMD060, "MD060", "https://github.com/DavidAnson/markdownlint/b
     crate::rule_prop_enum!("style", "Table column style", "any", &["any", "aligned", "compact", "tight"]),
     crate::rule_prop!(Boolean, "aligned_delimiter", "Aligned delimiter columns", "false"),
 ]);
-

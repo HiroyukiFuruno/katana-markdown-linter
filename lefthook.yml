@@ -18,4 +18,7 @@ pre-push:
       run: sh -c 'just JOBS=2 check' -- {files}
       glob:
         - "*.{rs,toml,lock}"
+    issue-driven:
+      run: bash scripts/hooks/issue-driven-git-hook.sh -- {files}
+      glob:
         - "**/*.{rs,toml,lock}"
