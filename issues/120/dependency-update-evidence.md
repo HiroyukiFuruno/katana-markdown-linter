@@ -1,6 +1,6 @@
 # Dependency update evidence
 
-upstream release: `rmcp` 3.4.1 was selected by `just update` from crates.io.
+upstream release: `rmcp` 3.4.1 and `katana-ast-lint` 0.5.2 were selected from crates.io.
 
 api migration note: Replaced deprecated `ServerInfo` with `ServerConfig` and
 mapped the removed stateless transport setting to `with_legacy_session_mode(false)`.

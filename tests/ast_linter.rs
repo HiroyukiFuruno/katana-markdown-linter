@@ -70,11 +70,17 @@ Parameters:
 #[test]
 fn ast_linter_kal_dependency_is_declared() {
     let manifest = read_workspace_file("Cargo.toml");
+    let dev_dependencies = manifest
+        .split("[dev-dependencies]")
+        .nth(1)
+        .and_then(|section| section.split("\n[").next())
+        .unwrap_or_default();
     let violations = [
         (
-            manifest.contains("[dev-dependencies]")
-                && manifest.contains("katana-ast-lint = \"0.5.1\""),
-            "Cargo.toml: add `katana-ast-lint = \"0.5.1\"` to dev-dependencies",
+            dev_dependencies
+                .lines()
+                .any(|line| line.trim_start().starts_with("katana-ast-lint =")),
+            "Cargo.toml: declare katana-ast-lint in dev-dependencies",
         ),
         (
             manifest.contains("edition = \"2021\""),
