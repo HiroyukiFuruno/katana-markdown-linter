@@ -22,3 +22,4 @@ pre-push:
       run: bash scripts/hooks/issue-driven-git-hook.sh -- {files}
       glob:
         - "**/*.{rs,toml,lock}"
+        - "issues/*/dependency-update-evidence.md"
