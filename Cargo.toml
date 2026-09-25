@@ -72,4 +72,4 @@ tracing-subscriber = { version = "0.3", optional = true, features = ["env-filter
 unicode-width = "0.2"
 
 [dev-dependencies]
-katana-ast-lint = "0.5.1"
+katana-ast-lint = "0.5.2"
