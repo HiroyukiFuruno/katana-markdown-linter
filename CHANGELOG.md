@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.5
+
+- Updates dependencies to their latest compatible versions.
+- Synchronizes project version to `v0.19.5` across all components.
+
 ## v0.19.4
 
 - Refreshes locked Rust dependencies after the `v0.19.3` release.

@@ -33,7 +33,7 @@ impl RemoteHttpState {
             Arc::new(NeverSessionManager::default()),
             StreamableHttpServerConfig::default()
                 .with_allowed_hosts(allowed_hosts)
-                .with_stateful_mode(false)
+                .with_legacy_session_mode(false)
                 .with_json_response(true)
                 .with_sse_keep_alive(Some(Duration::from_secs(SSE_KEEP_ALIVE_SECONDS))),
         );

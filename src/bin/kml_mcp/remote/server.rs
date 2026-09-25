@@ -7,7 +7,7 @@ use crate::shared::{catalog_rules, diagnostics, request_locale};
 use katana_markdown_linter::{upstream, MarkdownLinter};
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{Implementation, ServerCapabilities, ServerInfo},
+    model::{Implementation, ServerCapabilities, ServerConfig},
     tool, tool_handler, tool_router, Json, ServerHandler,
 };
 
@@ -147,8 +147,8 @@ impl KmlMcpRemoteServer {
 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for KmlMcpRemoteServer {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::new(
                 "kml-mcp-remote",
                 env!("CARGO_PKG_VERSION"),

@@ -127,7 +127,7 @@ class KmlInstaller:
         try:
             package_version = version("katana-markdown-linter")
         except PackageNotFoundError:
-            package_version = "0.19.4"
+            package_version = "0.19.5"
         return f"v{package_version}"
 
     def _verify_checksum(self, archive_path: Path) -> None:
