@@ -89,7 +89,7 @@ official_rule!(RuleMD041, "MD041", "https://github.com/DavidAnson/markdownlint/b
 ]);
 official_rule!(RuleMD042, "MD042", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md042.md", &[]);
 official_rule!(RuleMD043, "MD043", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md043.md", &[
-    crate::rule_prop!(StringArray, "headings", "List of headings", "[]"),
+    crate::rule_prop!(StringArray, "headings", "List of headings", "null"),
     crate::rule_prop!(Boolean, "match_case", "Match case of headings", "false"),
 ]);
 official_rule!(RuleMD044, "MD044", "https://github.com/DavidAnson/markdownlint/blob/main/doc/md044.md", &[

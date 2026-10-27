@@ -511,7 +511,11 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         ),
         (".github/workflows/release.yml", &workflow, "Publish PyPI wrapper"),
         (".github/workflows/release.yml", &workflow, "environment: pypi"),
-        (".github/workflows/release.yml", &workflow, "pypa/gh-action-pypi-publish@release/v1"),
+        (
+            ".github/workflows/release.yml",
+            &workflow,
+            "pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3",
+        ),
         (".github/workflows/release.yml", &workflow, "Publish MCP Registry metadata"),
         (".github/workflows/release.yml", &workflow, "mcp-publisher login github-oidc"),
         (".github/workflows/release.yml", &workflow, "schema_asset=\"markdownlint.schema.${TAG}.json\""),

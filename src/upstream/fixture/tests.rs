@@ -75,6 +75,36 @@ bad
 }
 
 #[test]
+fn generates_nullable_and_nonnullable_array_config_fixtures() {
+    let rule = UpstreamDocumentService::parse_rule_document(
+        r#"# `MD043` - Required heading structure
+
+Parameters:
+
+- `headings`: List of headings (`string[]|null`, default `null`)
+- `other`: Another list (`string[]`, default `[]`)
+"#,
+    )
+    .expect("document should parse");
+    let entry = super::entry::rule_fixture_entry(&rule);
+    let sources = entry
+        .config_valid
+        .iter()
+        .map(|case| case.source.as_str())
+        .collect::<Vec<_>>();
+    assert!(sources.contains(&r#"{ "MD043": { "headings": null } }"#));
+    assert!(sources.contains(&r#"{ "MD043": { "headings": [] } }"#));
+    assert!(sources.contains(&r#"{ "MD043": { "other": [] } }"#));
+    let invalid = entry
+        .config_invalid
+        .iter()
+        .map(|case| case.source.as_str())
+        .collect::<Vec<_>>();
+    assert!(invalid.contains(&r#"{ "MD043": { "headings": 1 } }"#));
+    assert!(invalid.contains(&r#"{ "MD043": { "other": null } }"#));
+}
+
+#[test]
 fn fixture_matrix_reports_missing_stale_and_manual_required_items() {
     let catalog = UpstreamCatalog {
         source: "test".to_string(),

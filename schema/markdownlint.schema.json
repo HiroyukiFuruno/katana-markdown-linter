@@ -1017,12 +1017,15 @@
               "type": "boolean"
             },
             "headings": {
-              "default": [],
+              "default": null,
               "description": "List of headings",
               "items": {
                 "type": "string"
               },
-              "type": "array"
+              "type": [
+                "array",
+                "null"
+              ]
             },
             "match_case": {
               "default": false,
@@ -2821,12 +2824,15 @@
               "type": "boolean"
             },
             "headings": {
-              "default": [],
+              "default": null,
               "description": "List of headings",
               "items": {
                 "type": "string"
               },
-              "type": "array"
+              "type": [
+                "array",
+                "null"
+              ]
             },
             "match_case": {
               "default": false,

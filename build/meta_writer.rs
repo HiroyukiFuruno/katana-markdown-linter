@@ -76,7 +76,9 @@ fn property_type(property: &UpstreamRuleProperty) -> String {
     match property.value_type.as_str() {
         "boolean" => "crate::rules::markdown::RulePropertyType::Boolean".to_string(),
         "integer" => "crate::rules::markdown::RulePropertyType::Number".to_string(),
-        "array" => "crate::rules::markdown::RulePropertyType::StringArray".to_string(),
+        "array" | "string[]|null" => {
+            "crate::rules::markdown::RulePropertyType::StringArray".to_string()
+        }
         "integer|integer[]" | "number|number[]" => {
             "crate::rules::markdown::RulePropertyType::NumberOrNumberArray".to_string()
         }

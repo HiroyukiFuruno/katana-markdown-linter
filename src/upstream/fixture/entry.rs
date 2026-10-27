@@ -15,15 +15,23 @@ pub(super) fn rule_fixture_entry(rule: &UpstreamRuleDocument) -> RuleFixtureEntr
     let config_valid = rule
         .properties
         .iter()
-        .map(|property| RuleFixtureCase {
-            name: format!("{}_valid", property.key),
-            source: format!(
-                "{{ \"{}\": {{ \"{}\": {} }} }}",
-                rule.id,
-                property.key,
-                config_value_for(property)
-            ),
-            expected: None,
+        .flat_map(|property| {
+            let values = if property.value_type == "string[]|null" {
+                vec![
+                    ("null_valid", "null".to_string()),
+                    ("array_valid", "[]".to_string()),
+                ]
+            } else {
+                vec![("valid", config_value_for(property))]
+            };
+            values.into_iter().map(|(suffix, value)| RuleFixtureCase {
+                name: format!("{}_{suffix}", property.key),
+                source: format!(
+                    "{{ \"{}\": {{ \"{}\": {} }} }}",
+                    rule.id, property.key, value
+                ),
+                expected: None,
+            })
         })
         .collect::<Vec<_>>();
     let config_invalid = rule
@@ -31,7 +39,16 @@ pub(super) fn rule_fixture_entry(rule: &UpstreamRuleDocument) -> RuleFixtureEntr
         .iter()
         .map(|property| RuleFixtureCase {
             name: format!("{}_invalid_type", property.key),
-            source: format!("{{ \"{}\": {{ \"{}\": null }} }}", rule.id, property.key),
+            source: format!(
+                "{{ \"{}\": {{ \"{}\": {} }} }}",
+                rule.id,
+                property.key,
+                if property.value_type == "string[]|null" {
+                    "1"
+                } else {
+                    "null"
+                }
+            ),
             expected: Some("invalid type".to_string()),
         })
         .collect::<Vec<_>>();

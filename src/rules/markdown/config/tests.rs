@@ -184,13 +184,8 @@ fn validate_covers_root_rule_property_and_enum_errors() {
                 }
             )
     }));
-    assert!(errors.iter().any(|error| {
-        error.rule_id.as_deref() == Some("MD043")
-            && error.property.as_deref() == Some("headings")
-            && matches!(
-                error.kind,
-                ConfigErrorKind::InvalidType { actual: "null", .. }
-            )
+    assert!(!errors.iter().any(|error| {
+        error.rule_id.as_deref() == Some("MD043") && error.property.as_deref() == Some("headings")
     }));
     assert!(errors.iter().any(|error| {
         error.rule_id.as_deref() == Some("MD043")
@@ -209,6 +204,22 @@ fn validate_covers_root_rule_property_and_enum_errors() {
                     actual: "number",
                     ..
                 }
+            )
+    }));
+}
+
+#[test]
+fn nullable_headings_does_not_allow_null_for_other_array_properties() {
+    let rules = crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
+    let config = MarkdownLintConfig {
+        raw: json!({ "MD033": { "table_allowed_elements": null } }),
+    };
+    assert!(config.validate(&rules).iter().any(|error| {
+        error.rule_id.as_deref() == Some("MD033")
+            && error.property.as_deref() == Some("table_allowed_elements")
+            && matches!(
+                error.kind,
+                ConfigErrorKind::InvalidType { actual: "null", .. }
             )
     }));
 }

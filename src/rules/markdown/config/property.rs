@@ -1,13 +1,13 @@
 use super::error::ConfigErrorKind;
-use crate::rules::markdown::RulePropertyType;
+use crate::rules::markdown::{RuleProperty, RulePropertyType};
 use serde_json::Value;
 use std::collections::HashMap;
 
 pub(super) fn validate_property_value(
-    prop_type: RulePropertyType,
+    property: &RuleProperty,
     value: &Value,
 ) -> Option<ConfigErrorKind> {
-    match prop_type {
+    match property.prop_type {
         RulePropertyType::Boolean => expected_type(value.is_boolean(), "boolean", value),
         RulePropertyType::Number => expected_type(value.is_number(), "number", value),
         RulePropertyType::NumberOrNumberArray => expected_type(
@@ -21,10 +21,11 @@ pub(super) fn validate_property_value(
         ),
         RulePropertyType::String => expected_type(value.is_string(), "string", value),
         RulePropertyType::StringArray => expected_type(
-            value
-                .as_array()
-                .map(|items| items.iter().all(Value::is_string))
-                .unwrap_or(false),
+            (property.accepts_null() && value.is_null())
+                || value
+                    .as_array()
+                    .map(|items| items.iter().all(Value::is_string))
+                    .unwrap_or(false),
             "string array",
             value,
         ),
