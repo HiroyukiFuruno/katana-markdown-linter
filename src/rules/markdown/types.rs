@@ -130,3 +130,9 @@ pub struct RuleProperty {
     pub description: &'static str,
     pub default_value: &'static str,
 }
+
+impl RuleProperty {
+    pub(crate) fn accepts_null(&self) -> bool {
+        self.prop_type == RulePropertyType::StringArray && self.default_value == "null"
+    }
+}

@@ -38,7 +38,7 @@ impl MarkdownLintConfig {
                             .iter()
                             .find(|meta| meta.key == property.as_str())
                             .is_some_and(|property_meta| {
-                                validate_property_value(property_meta.prop_type, value).is_none()
+                                validate_property_value(property_meta, value).is_none()
                             })
                     })
                     .map(|(property, value)| (property.clone(), property_value(value)))

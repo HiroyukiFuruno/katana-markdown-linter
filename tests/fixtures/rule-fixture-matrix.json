@@ -2592,8 +2592,8 @@
       "parameters": [
         {
           "key": "headings",
-          "value_type": "array",
-          "default_value": "[]",
+          "value_type": "string[]|null",
+          "default_value": "null",
           "values": []
         },
         {
@@ -2650,6 +2650,11 @@
           "expected": null
         },
         {
+          "name": "headings_null_valid",
+          "source": "{ \"MD043\": { \"headings\": null } }",
+          "expected": null
+        },
+        {
           "name": "match_case_valid",
           "source": "{ \"MD043\": { \"match_case\": false } }",
           "expected": null
@@ -2663,7 +2668,7 @@
         },
         {
           "name": "headings_invalid_type",
-          "source": "{ \"MD043\": { \"headings\": null } }",
+          "source": "{ \"MD043\": { \"headings\": 1 } }",
           "expected": "invalid type"
         },
         {
@@ -2674,7 +2679,7 @@
       ],
       "edge": [],
       "manual_required": [
-        "check requires configured MD043.headings; default markdownlint headings is empty",
+        "check requires configured MD043.headings; default markdownlint headings is null",
         "fix requires author intent: required headings require author-provided sections and order"
       ]
     },

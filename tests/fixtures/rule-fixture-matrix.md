@@ -44,7 +44,7 @@
 | MD040 | 1 | 1 | 1 | 0 | 3 | 3 | 0 |  |
 | MD041 | 1 | 1 | 0 | 0 | 4 | 4 | 0 | fix requires author intent: first heading text cannot be inferred safely |
 | MD042 | 1 | 1 | 0 | 0 | 1 | 1 | 0 | fix requires author intent: empty link or image targets require author-provided destinations |
-| MD043 | 2 | 1 | 0 | 0 | 3 | 3 | 0 | check requires configured MD043.headings; default markdownlint headings is empty<br>fix requires author intent: required headings require author-provided sections and order |
+| MD043 | 2 | 1 | 0 | 0 | 4 | 3 | 0 | check requires configured MD043.headings; default markdownlint headings is null<br>fix requires author intent: required headings require author-provided sections and order |
 | MD044 | 2 | 1 | 1 | 0 | 4 | 4 | 0 | check requires configured MD044.names; default markdownlint names is empty; fix requires: configured MD044.names to avoid guessing product capitalization |
 | MD045 | 1 | 1 | 0 | 0 | 1 | 1 | 0 | fix requires author intent: alt text requires image-specific author knowledge |
 | MD046 | 1 | 1 | 1 | 0 | 2 | 2 | 0 |  |

@@ -7,6 +7,7 @@ GitHub Actions and Rust dependencies have newer upstream releases. Refresh them 
 - Update workflow actions to verified upstream revisions.
 - Update direct and transitive Rust dependencies in the root and Zed packages.
 - Synchronize all release metadata and installation examples to v0.19.6.
+- Fix the MD043 nullable headings contract exposed by the required live upstream drift gate; retain strict validation and add regression coverage.
 
 ## Capabilities
 

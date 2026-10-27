@@ -4,7 +4,7 @@ The published release and clean master checkout start at v0.19.5. The next patch
 
 ## Goals / Non-Goals
 
-Refresh GitHub Actions and Rust dependencies without changing public linting behavior. Do not publish editor marketplaces, change compatibility gates, edit sibling repositories, or create worktrees.
+Refresh GitHub Actions and Rust dependencies. Correct the existing MD043 incompatibility detected by required upstream CI: omitted/null headings disable this rule, while explicit empty headings forbid headings. Do not publish editor marketplaces, weaken compatibility gates, edit sibling repositories, or create worktrees.
 
 ## Decisions
 
@@ -13,6 +13,8 @@ Use upstream stable action releases and immutable commit revisions where appropr
 ## Risks / Trade-offs
 
 Dependency changes can affect MCP transport and code generation. The full existing release-check, coverage threshold, MCP smoke tests, packaging checks, and PR CI remain mandatory.
+
+The live upstream gate at markdownlint commit 5dd44fe44481cfbc8c6fee955719773fa17dc5d5 detected MD043 headings type/default mismatches. Correct the nullable string-array metadata, config validation, schema and execution together; never suppress the drift. Preserve null rejection for other array properties and preserve the historical schema fixture.
 
 ## Migration Plan
 

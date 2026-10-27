@@ -19,7 +19,7 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | MD019 | 2 | 1 | 0 | 2 | 0 | pending: not locked | no | - |
 | MD020 | 2 | 1 | 0 | 2 | 0 | pending: not locked | no | - |
 | MD021 | 2 | 1 | 0 | 2 | 0 | pending: not locked | no | - |
-| MD022 | 2 | 1 | 0 | 6 | 0 | baseline | no | - |
+| MD022 | 2 | 1 | 0 | 8 | 0 | baseline | no | - |
 | MD023 | 2 | 1 | 0 | 2 | 0 | pending: not locked | no | - |
 | MD024 | 2 | 0 | 0 | 4 | 0 | pending: not locked | no | fix requires author intent: duplicate heading fixes require choosing new heading text |
 | MD025 | 2 | 1 | 0 | 6 | 0 | pending: not locked | no | - |
@@ -40,7 +40,7 @@ Generated from `tests/fixtures/rule-fixture-matrix.json`.
 | MD040 | 2 | 1 | 0 | 6 | 0 | pending: not locked | no | - |
 | MD041 | 2 | 0 | 0 | 8 | 0 | pending: not locked | no | fix requires author intent: first heading text cannot be inferred safely |
 | MD042 | 2 | 0 | 0 | 2 | 0 | pending: not locked | no | fix requires author intent: empty link or image targets require author-provided destinations |
-| MD043 | 3 | 0 | 0 | 6 | 0 | pending: not locked | no | check requires configured MD043.headings; default markdownlint headings is empty<br>fix requires author intent: required headings require author-provided sections and order |
+| MD043 | 3 | 0 | 0 | 7 | 0 | pending: not locked | no | check requires configured MD043.headings; default markdownlint headings is null<br>fix requires author intent: required headings require author-provided sections and order |
 | MD044 | 3 | 1 | 0 | 8 | 0 | pending: not locked | no | check requires configured MD044.names; default markdownlint names is empty<br>fix requires: configured MD044.names to avoid guessing product capitalization |
 | MD045 | 2 | 0 | 0 | 2 | 0 | pending: not locked | no | fix requires author intent: alt text requires image-specific author knowledge |
 | MD046 | 2 | 1 | 0 | 4 | 0 | pending: not locked | no | - |

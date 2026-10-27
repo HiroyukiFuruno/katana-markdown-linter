@@ -130,7 +130,7 @@ fn collect_property_error(
         return;
     };
 
-    if let Some(kind_err) = validate_property_value(prop_meta.prop_type, prop_value) {
+    if let Some(kind_err) = validate_property_value(prop_meta, prop_value) {
         errors.push(ConfigError::new(
             Some(rule_id.to_string()),
             Some(prop_key.to_string()),

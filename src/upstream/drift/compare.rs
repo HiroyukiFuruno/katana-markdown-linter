@@ -96,7 +96,11 @@ fn compare_rule_properties(
             continue;
         };
 
-        let local_type = property_type_name(local_property.prop_type);
+        let local_type = if local_property.accepts_null() {
+            "string[]|null"
+        } else {
+            property_type_name(local_property.prop_type)
+        };
         if upstream_property.value_type != local_type {
             items.push(DriftItem {
                 rule_id: upstream.id.clone(),

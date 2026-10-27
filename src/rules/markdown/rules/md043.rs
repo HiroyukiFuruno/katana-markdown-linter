@@ -27,8 +27,10 @@ impl MarkdownRule for RequiredHeadingsRule {
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD043");
-        let required = required_headings(config);
-        if required.is_empty() || heading_structure_matches(ctx, &required, match_case(config)) {
+        let Some(required) = required_headings(config) else {
+            return Vec::new();
+        };
+        if heading_structure_matches(ctx, &required, match_case(config)) {
             return Vec::new();
         }
 
@@ -44,11 +46,10 @@ impl MarkdownRule for RequiredHeadingsRule {
     }
 }
 
-fn required_headings(config: Option<&RuleConfig>) -> Vec<String> {
+fn required_headings(config: Option<&RuleConfig>) -> Option<Vec<String>> {
     config
         .and_then(|config| config.properties.get("headings"))
         .and_then(|raw| serde_json::from_str::<Vec<String>>(raw).ok())
-        .unwrap_or_default()
 }
 
 fn match_case(config: Option<&RuleConfig>) -> bool {

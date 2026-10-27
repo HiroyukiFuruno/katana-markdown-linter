@@ -130,7 +130,14 @@ fn property_schema(property: &RuleProperty) -> Value {
             schema.insert("type".to_string(), Value::String("string".to_string()));
         }
         RulePropertyType::StringArray => {
-            schema.insert("type".to_string(), Value::String("array".to_string()));
+            schema.insert(
+                "type".to_string(),
+                if property.accepts_null() {
+                    json!(["array", "null"])
+                } else {
+                    json!("array")
+                },
+            );
             schema.insert("items".to_string(), json!({ "type": "string" }));
         }
         RulePropertyType::Enum(options) => {
@@ -166,8 +173,25 @@ mod tests {
     #[test]
     fn schema_contains_rule_property_metadata() {
         let schema = ConfigSchema::markdownlint_config_schema();
+        let metadata = crate::rules::markdown::catalog::get_official_meta("MD043")
+            .expect("MD043 metadata should be generated");
+        let headings = metadata
+            .properties
+            .iter()
+            .find(|property| property.key == "headings")
+            .expect("MD043 headings metadata should be generated");
+        assert_eq!(headings.prop_type, RulePropertyType::StringArray);
+        assert_eq!(headings.default_value, "null");
 
         assert_eq!(schema["properties"]["default"]["type"], "boolean");
+        assert_eq!(
+            schema["properties"]["MD043"]["anyOf"][1]["properties"]["headings"]["type"],
+            json!(["array", "null"])
+        );
+        assert!(
+            schema["properties"]["MD043"]["anyOf"][1]["properties"]["headings"]["default"]
+                .is_null()
+        );
         assert_eq!(
             schema["properties"]["MD007"]["anyOf"][1]["properties"]["indent"]["default"],
             2
