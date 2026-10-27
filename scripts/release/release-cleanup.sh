@@ -14,7 +14,7 @@ fi
 
 RELEASE_TAG="${CLEANUP_RELEASE_TAG:-${CLEANUP_TAG:-}}"
 DRY_RUN="${CLEANUP_DRY_RUN:-0}"
-SKIP_REMOTE="${CLEANUP_SKIP_REMOTE:-0}"
+SKIP_REMOTE="${CLEANUP_SKIP_REMOTE:-1}"
 SKIP_RELEASE_GUARD="${CLEANUP_SKIP_RELEASE_GUARD:-0}"
 
 require_release_published() {
@@ -40,12 +40,37 @@ require_release_published() {
 }
 
 default_branch() {
-  local symbol
-  if symbol="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || true)"; then
-    echo "${symbol##*/}"
-    return
+  local remote_head
+  local remote_ref=""
+  local marker target name
+  local branch
+
+  if ! remote_head="$(git ls-remote --symref origin HEAD 2>/dev/null)"; then
+    echo "Could not determine default branch: failed to read origin's remote HEAD." >&2
+    return 1
   fi
-  echo "master"
+
+  while IFS=$' \t' read -r marker target name; do
+    if [[ "${marker}" == "ref:" && "${name}" == "HEAD" ]]; then
+      remote_ref="${target}"
+      break
+    fi
+  done <<<"${remote_head}"
+
+  if [[ "${remote_ref}" != refs/heads/* ]]; then
+    echo "Could not determine default branch: origin does not advertise a branch for its remote HEAD." >&2
+    return 1
+  fi
+
+  branch="${remote_ref#refs/heads/}"
+  if [[ -z "${branch}" ]] \
+    || ! git rev-parse --verify --quiet "refs/remotes/origin/${branch}^{commit}" >/dev/null; then
+    echo "Could not determine default branch: origin HEAD points to ${branch}, which is not a fetched commit." >&2
+    return 1
+  fi
+
+  echo "${branch}"
+  return 0
 }
 
 used_by_worktree() {
@@ -141,10 +166,10 @@ cleanup_remote_branches() {
 
 main() {
   local base
-  base="$(default_branch)"
 
   require_release_published "${RELEASE_TAG}"
   git fetch --all --prune
+  base="$(default_branch)"
   git switch "${base}"
   git pull --ff-only origin "${base}"
 
