@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.19.6
+
+- Update GitHub Actions to current upstream releases and pinned revisions.
+- Upgrade Rust dependencies, including rmcp 3.8.0 and zed_extension_api 0.7.0, and refresh both Cargo lockfiles.
+- Synchronize release packages and installation examples to v0.19.6.
+
 ## v0.19.5
 
 - Updates dependencies to their latest compatible versions.
