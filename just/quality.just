@@ -34,6 +34,10 @@ upstream-drift:
 upstream-golden:
     cargo test --test upstream_golden_comparison --locked
 
+# Verify shared Markdown syntax and deterministic fix boundaries
+markdown-spec-check:
+    cargo test --test markdown_spec_regressions --test fix_engine_regressions --test shared_engine_boundary_contract --locked
+
 # Run live upstream markdownlint oracle against golden corpus
 upstream-golden-live:
     sh scripts/upstream/markdownlint-oracle.sh tests/fixtures/upstream-golden-corpus

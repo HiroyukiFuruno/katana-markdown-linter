@@ -1,8 +1,40 @@
 use crate::types::{FixDetail, FixResult, LintResult, Range};
 
+mod engine;
+mod position;
+pub(crate) use engine::{FixEngine, DEFAULT_MAX_FIX_PASSES};
+use position::LineOffsetIndex;
+
 pub(crate) struct FixApplicator;
 
 impl FixApplicator {
+    pub(crate) fn has_effective(
+        results: &[LintResult],
+        content: &str,
+        include_unsafe: bool,
+    ) -> bool {
+        let line_index = LineOffsetIndex::new(content);
+        results.iter().any(|result| {
+            let Some(fix) = result.fix.as_ref() else {
+                return false;
+            };
+            if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
+                return false;
+            }
+            let Some(start) =
+                line_index.offset_for_position(fix.range.start_line, fix.range.start_column)
+            else {
+                return false;
+            };
+            let Some(end) =
+                line_index.offset_for_position(fix.range.end_line, fix.range.end_column)
+            else {
+                return false;
+            };
+            start <= end && content.get(start..end) != Some(fix.replacement.as_str())
+        })
+    }
+
     pub(crate) fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
         let mut applied_fixes = 0;
         let line_index = LineOffsetIndex::new(content);
@@ -44,12 +76,24 @@ impl FixApplicator {
                 .byte_start
                 .cmp(&left.byte_start)
                 .then_with(|| right.byte_end.cmp(&left.byte_end))
+                .then_with(|| left.rule_id.cmp(right.rule_id))
+                .then_with(|| left.replacement.cmp(right.replacement))
         });
 
         let mut accepted: Vec<Edit<'_>> = Vec::new();
         let mut skipped: Vec<Edit<'_>> = Vec::new();
+        let mut ineffective: Vec<Edit<'_>> = Vec::new();
+        let mut insertion_offsets = std::collections::HashSet::new();
         let mut previous_start = content.len();
         for edit in edits {
+            if content.get(edit.byte_start..edit.byte_end) == Some(edit.replacement) {
+                ineffective.push(edit);
+                continue;
+            }
+            if edit.byte_start == edit.byte_end && !insertion_offsets.insert(edit.byte_start) {
+                skipped.push(edit);
+                continue;
+            }
             if edit.byte_end > previous_start {
                 skipped.push(edit);
                 continue;
@@ -75,6 +119,13 @@ impl FixApplicator {
                 applied: false,
             });
         }
+        for edit in &ineffective {
+            details.push(FixDetail {
+                rule_id: edit.rule_id.to_string(),
+                range: edit.range.clone(),
+                applied: false,
+            });
+        }
 
         let mut fixed = String::with_capacity(content.len());
         let mut cursor = 0;
@@ -93,64 +144,9 @@ impl FixApplicator {
     }
 }
 
-struct LineOffsetIndex<'a> {
-    content: &'a str,
-    line_starts: Vec<usize>,
-}
-
-impl<'a> LineOffsetIndex<'a> {
-    fn new(content: &'a str) -> Self {
-        let mut line_starts = Vec::with_capacity(
-            content
-                .as_bytes()
-                .iter()
-                .filter(|byte| **byte == b'\n')
-                .count()
-                + 1,
-        );
-        line_starts.push(0);
-        for (index, byte) in content.bytes().enumerate() {
-            if byte == b'\n' {
-                line_starts.push(index + 1);
-            }
-        }
-        Self {
-            content,
-            line_starts,
-        }
-    }
-
-    fn offset_for_position(&self, line: usize, column: usize) -> Option<usize> {
-        if line == 0 || column == 0 {
-            return None;
-        }
-
-        let line_start = if let Some(line_start) = self.line_starts.get(line - 1) {
-            *line_start
-        } else if line == self.line_starts.len() + 1 && column == 1 {
-            return Some(self.content.len());
-        } else {
-            return None;
-        };
-
-        let raw = line_start.saturating_add(column.saturating_sub(1));
-        Some(previous_char_boundary(
-            self.content,
-            raw.min(self.content.len()),
-        ))
-    }
-}
-
 #[cfg(test)]
 fn offset_for_position(content: &str, line: usize, column: usize) -> Option<usize> {
     LineOffsetIndex::new(content).offset_for_position(line, column)
-}
-
-fn previous_char_boundary(content: &str, mut offset: usize) -> usize {
-    while offset > 0 && !content.is_char_boundary(offset) {
-        offset -= 1;
-    }
-    offset
 }
 
 #[cfg(test)]
@@ -292,6 +288,110 @@ mod tests {
             fixed.applied_fixes,
             fixed.details.iter().filter(|d| d.applied).count()
         );
+    }
+
+    #[test]
+    fn no_op_fix_is_not_counted_as_applied() {
+        let content = "# Title\n";
+        let fixed = FixApplicator::apply(
+            &[result(
+                "MD018",
+                Range {
+                    start_line: 1,
+                    start_column: 1,
+                    end_line: 1,
+                    end_column: 2,
+                },
+                "#",
+            )],
+            content,
+            false,
+        );
+
+        assert_eq!(fixed.content, content);
+        assert_eq!(fixed.applied_fixes, 0);
+        assert_eq!(fixed.details.len(), 1);
+        assert!(!fixed.details[0].applied);
+    }
+
+    #[test]
+    fn applies_identical_insertions_at_the_same_offset_once() {
+        let content = "abc";
+        let insertion = Range {
+            start_line: 1,
+            start_column: 2,
+            end_line: 1,
+            end_column: 2,
+        };
+        let fixed = FixApplicator::apply(
+            &[
+                result("MD018", insertion.clone(), "X"),
+                result("MD019", insertion, "X"),
+            ],
+            content,
+            false,
+        );
+
+        assert_eq!(fixed.content, "aXbc");
+        assert_eq!(fixed.applied_fixes, 1);
+        assert_eq!(
+            fixed.details.iter().filter(|detail| detail.applied).count(),
+            1
+        );
+    }
+
+    #[test]
+    fn conflicting_same_offset_insertions_choose_deterministically() {
+        let content = "abc";
+        let insertion = Range {
+            start_line: 1,
+            start_column: 2,
+            end_line: 1,
+            end_column: 2,
+        };
+        let first = result("RULE_Z", insertion.clone(), "z");
+        let second = result("RULE_A", insertion, "a");
+        let forward = FixApplicator::apply(&[first.clone(), second.clone()], content, false);
+        let reverse = FixApplicator::apply(&[second, first], content, false);
+
+        assert_eq!(forward.content, "aabc");
+        assert_eq!(reverse.content, forward.content);
+        assert_eq!(forward.applied_fixes, 1);
+        assert_eq!(reverse.applied_fixes, 1);
+    }
+
+    #[test]
+    fn adjacent_non_overlapping_edits_are_both_applied() {
+        let content = "ab";
+        let fixed = FixApplicator::apply(
+            &[
+                result(
+                    "RULE_A",
+                    Range {
+                        start_line: 1,
+                        start_column: 1,
+                        end_line: 1,
+                        end_column: 2,
+                    },
+                    "A",
+                ),
+                result(
+                    "RULE_B",
+                    Range {
+                        start_line: 1,
+                        start_column: 2,
+                        end_line: 1,
+                        end_column: 3,
+                    },
+                    "B",
+                ),
+            ],
+            content,
+            false,
+        );
+
+        assert_eq!(fixed.content, "AB");
+        assert_eq!(fixed.applied_fixes, 2);
     }
 
     #[test]

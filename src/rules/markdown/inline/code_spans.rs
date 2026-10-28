@@ -4,23 +4,52 @@ use crate::rules::markdown::document::{LineInfo, SourceRange};
 pub(in crate::rules::markdown) fn extract_inline_code_spans<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
+    mut spans: Vec<InlineCodeSpan>,
 ) -> Vec<InlineCodeSpan> {
-    let mut spans = Vec::new();
+    let mut unclosed = Vec::new();
     for (idx, line) in lines.iter().enumerate() {
         if code_line_flags[idx] {
             continue;
         }
-        spans.extend(inline_code_spans_on_line(idx, line));
+        for span in inline_code_spans_on_line(idx, line) {
+            if span.closed {
+                continue;
+            }
+            let next = spans.partition_point(|known| known.full_range.end <= span.full_range.start);
+            if spans
+                .get(next)
+                .is_none_or(|known| known.full_range.start >= span.full_range.end)
+            {
+                unclosed.push(span);
+            }
+        }
     }
+    spans.extend(unclosed);
+    spans.sort_by_key(|span| span.full_range.start);
     spans
 }
 
-fn inline_code_spans_on_line(line_index: usize, line: &LineInfo<'_>) -> Vec<InlineCodeSpan> {
+pub(in crate::rules::markdown) fn inline_code_spans_on_line(
+    line_index: usize,
+    line: &LineInfo<'_>,
+) -> Vec<InlineCodeSpan> {
     let mut spans = Vec::new();
     let bytes = line.text.as_bytes();
     let mut cursor = 0;
     while cursor < bytes.len() {
         if bytes[cursor] != b'`' {
+            cursor += 1;
+            continue;
+        }
+        if bytes[..cursor]
+            .iter()
+            .rev()
+            .take_while(|byte| **byte == b'\\')
+            .count()
+            % 2
+            == 1
+        {
+            /* WHY: エスケープされるのは直後の1文字だけで、残りのrunは構文になり得る。 */
             cursor += 1;
             continue;
         }

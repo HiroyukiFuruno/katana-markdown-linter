@@ -47,7 +47,7 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 - `v0.18.6`: (released) v0.18.6 では marketplace 公開の事前条件（account/publisher/package）と docs-only 方針を実装可レベルで固定した。
 - `v0.18.7`: 永久欠番。公開事故により同一版番号の再公開を試みず、`v0.18.8` へも進めない。
 - `v0.19.0`: `v0-19-0-editor-capability-completion` で扱う。VS Code / Zed の未提供 editor 機能を実用水準へ引き上げ、最終 editor dogfood まで完了する開発ライン。
-- `v0.20.0`: `v0-20-0-editor-marketplace-publication` で扱う。editor dogfood と公開前提条件が通過した後の Marketplace 公開ライン。
+- `v0.21.0`: `v0-21-0-editor-marketplace-publication` で扱う。editor dogfood と公開前提条件が通過した後の Marketplace 公開ライン。
 - `v0.17.7`: `check --fix --unsafe --yes` の既存挙動を CLI help と README で発見できるようにし、unsafe fix opt-in の契約を回帰テストで固定する。
 
 | Priority | Work Area | Change | Why Now |
@@ -60,9 +60,9 @@ This file maps visible post-`v0.3.0` work areas to OpenSpec changes.
 | Done | Release gate finalization for `v0.18.4` | `v0-18-4-editor-release-gate-finalization` | `release-verify` で editor artifact の published/deferred を固定し、公開証跡を release gate へ結合する。 |
 | Done | release verification hardening for `v0.18.5` | `v0-18-5-release-verification-hardening` | partial publish（GitHub Release 先行など）を fail-fast にし、workflow と release-check の分岐整合を固定する。 |
 | Done | Publish preconditions for `v0.18.6` | `archive/2026-05-05-v0-18-6-editor-publication-prerequisites` | Completed for `v0.18.6`; marketplace 前提条件（account / publisher / package）と docs-only 方針を実装可レベルへ整えた。 |
-| P0 | Editor publication readiness triage | `assess-editor-publication-readiness` | `v0.18.7` 永久欠番を前提に、現行 VS Code / Zed 拡張の公開可否を調査し、`v0.19.0` 系と `v0.20.0` の別 change 作成タスクへ分割する。 |
+| P0 | Editor publication readiness triage | `assess-editor-publication-readiness` | `v0.18.7` 永久欠番を前提に、現行 VS Code / Zed 拡張の公開可否を調査し、`v0.19.0` 系と `v0.21.0` の別 change 作成タスクへ分割する。 |
 | P0 | Editor capability completion for `v0.19.0` | `v0-19-0-editor-capability-completion` | VS Code / Zed が config 反映済み diagnostics / formatting / safe quick fixes を提供し、最終 editor dogfood で release blocker 0 件にする。 |
-| P0 | Editor marketplace publication for `v0.20.0` | `v0-20-0-editor-marketplace-publication` | `v0.19.0` の editor capability evidence と final dogfood を前提に、VS Code / Zed Marketplace 公開と公開後 verification だけを扱う。 |
+| P0 | Editor marketplace publication for `v0.21.0` | `v0-21-0-editor-marketplace-publication` | `v0.19.0` の editor capability evidence と final dogfood を前提に、VS Code / Zed Marketplace 公開と公開後 verification だけを扱う。 |
 | P0 | CLI unsafe fix help for `v0.17.7` | `v0-17-7-cli-unsafe-fix-help` | `check --fix --unsafe --yes` already works but was not discoverable from `kml check --help`; release this help contract fix before further schema/editor work. |
 | P2 | Release verification hardening | TBD: `release-verification-hardening` | `v0.17.0` exposed that external registry verification is broader than GitHub Release + crates.io. Add npm, PyPI, wrapper launch, and tap formula checks to the post-release verification path before the next distribution release. |
 | Done | Golden and edge coverage for `v0.4.0` | `golden-edge-coverage-expansion` | Completed for `v0.4.0`; dashboard now derives golden status from the locked baseline and records edge coverage. |
@@ -160,9 +160,9 @@ Archived completed changes:
 5. `v0-18-4-editor-release-gate-finalization`: fix release state definition for `v0.18.4`.
 6. `v0-18-5-release-verification-hardening`: harden partial publish stop conditions for `v0.18.5`.
 7. `v0-18-6-editor-publication-prerequisites`: fix manual publication preconditions and docs-only policy for `v0.18.6`.
-8. `assess-editor-publication-readiness`: record the `v0.18.7` permanent skip, current editor capability gaps, and the task split needed before separate `v0.19.0` and `v0.20.0` changes.
+8. `assess-editor-publication-readiness`: record the `v0.18.7` permanent skip, current editor capability gaps, and the task split needed before separate `v0.19.0` and `v0.21.0` changes.
 9. `v0-19-0-editor-capability-completion`: complete config-aware editor diagnostics, formatting, safe quick fixes, and final editor dogfood before marketplace publication.
-10. `v0-20-0-editor-marketplace-publication`: publish VS Code / Zed only after `v0-19-0-editor-capability-completion` is complete.
+10. `v0-21-0-editor-marketplace-publication`: publish VS Code / Zed only after `v0-19-0-editor-capability-completion` is complete.
 11. `release-verification-hardening`: can run alongside the above if its write set stays limited to release scripts, `Justfile`, and release docs.
 
 ## Deferred Until v0.12.8 Stable Acceptance
@@ -181,3 +181,7 @@ Archived completed changes:
 - `unsafe-fix-mode-and-confirmation` must not be mixed into `v0.7.0` or `v0.8.0`; it changes CLI safety semantics and belongs to `v0.9.0`.
 - Registry publication must not be mixed into `v0-13-0-mcp-registry-and-distribution-planning`; `v0.13.0` decides the gate and `v0.14.0` executes it.
 - Remote MCP transport must not be used as a replacement for local stdio distribution; it has a different auth and workspace safety boundary.
+
+## v0.20.0 Markdown syntax and fixing
+
+`v0-20-0-markdown-spec-logic` implements the requested Markdown specification tracking, shared parsing boundaries, deterministic safe-fix convergence, dependency and Action updates. The unshipped editor Marketplace plan moves to v0.21.0 and remains a separate publication change.

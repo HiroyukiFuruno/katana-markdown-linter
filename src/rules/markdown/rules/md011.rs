@@ -33,6 +33,12 @@ impl MarkdownRule for NoReversedLinksRule {
                 continue;
             }
             for reversed in reversed_link_ranges(line.text) {
+                if ctx.overlaps_inline_code(crate::rules::markdown::SourceRange {
+                    start: line.content_range.start + reversed.start,
+                    end: line.content_range.start + reversed.end,
+                }) {
+                    continue;
+                }
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
@@ -70,15 +76,10 @@ fn reversed_link_ranges(line: &str) -> Vec<ReversedLink<'_>> {
     let bytes = line.as_bytes();
     let mut ranges = Vec::new();
     let mut cursor = 0;
-    let mut in_code = false;
 
     while cursor < bytes.len() {
         match bytes[cursor] {
-            b'`' => {
-                in_code = !in_code;
-                cursor += 1;
-            }
-            b'(' if !in_code => {
+            b'(' => {
                 let Some(close_paren) = line[cursor + 1..]
                     .find(')')
                     .map(|offset| cursor + 1 + offset)

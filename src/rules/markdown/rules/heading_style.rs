@@ -2,7 +2,7 @@ use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticFix, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta,
+    OfficialRuleMeta, RuleConfig,
 };
 use std::path::Path;
 
@@ -21,12 +21,20 @@ impl MarkdownRule for HeadingStyleRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD003");
         let mut diagnostics = Vec::new();
-        let ctx = DocumentContext::new(file_path, content);
         let ctx_lines = ctx.lines();
         for i in 0..ctx_lines.len() {
-            if ctx.is_code_line(i) || is_front_matter_line(&ctx, i) {
+            if ctx.is_code_line(i) || is_front_matter_line(ctx, i) {
                 continue;
             }
             /* WHY: Setext heading markers only count when attached to paragraph text.
@@ -36,12 +44,12 @@ impl MarkdownRule for HeadingStyleRule {
                 let heading_line = ctx_lines[i - 1].text;
                 RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i - 1,
                     heading_line,
                     &meta,
                     DiagnosticSeverity::Warning,
-                    setext_heading_fix(&ctx, i - 1, i),
+                    setext_heading_fix(ctx, i - 1, i),
                 );
             }
         }

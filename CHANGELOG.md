@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.20.0
+
+- Share Markdown code boundaries and source ranges across lint rules, including CommonMark multiline code, valid fence termination, tab-separated headings, and GFM escaped table pipes.
+- Consolidate library, CLI, and formatter fixing into one staged engine with deterministic conflict handling, fresh checks, cycle detection, and explicit convergence failures.
+- Preserve whitespace-only code spans, Unicode, and internal CRLF lines; honor the MD012 maximum setting.
+- Expand reviewed document answers to 258 cases and verify three repeated fix runs, remaining diagnostics, and answer stability. Correct eleven legacy answers that had modified literal fenced examples.
+- Reuse cached document contexts and optimize block lookup while retaining the existing strict performance baseline.
+- Refresh Rust dependencies and pinned GitHub Actions; migrate editor development tooling while preserving the minimum supported editor version.
+- Synchronize all distribution metadata and installation examples to v0.20.0.
+
 ## v0.19.6
 
 - Update GitHub Actions to current upstream releases and pinned revisions.

@@ -1,9 +1,14 @@
 use super::args::Cli;
-use glob::{glob, Pattern};
+use glob::glob;
 use ignore::{WalkBuilder, WalkState};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
+
+mod filter;
+use filter::filter_paths;
+
+const MAX_DIRECTORY_WALK_THREADS: usize = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum InputExpandError {
@@ -100,6 +105,11 @@ fn collect_markdown_files(
         .git_ignore(respect_gitignore)
         .git_global(respect_gitignore)
         .git_exclude(respect_gitignore)
+        .threads(
+            std::thread::available_parallelism()
+                .map_or(1, |count| count.get())
+                .min(MAX_DIRECTORY_WALK_THREADS),
+        )
         .require_git(false);
     if !include_reserved {
         builder.filter_entry(|entry| !is_reserved_directory(entry.path()));
@@ -132,32 +142,6 @@ fn collect_markdown_files(
         }
     }
     Ok(())
-}
-
-fn filter_paths(
-    paths: Vec<PathBuf>,
-    cli: &Cli,
-    explicit: bool,
-) -> Result<Vec<PathBuf>, InputExpandError> {
-    let includes = compile_patterns(&cli.include)?;
-    let excludes = compile_patterns(&cli.exclude)?;
-    Ok(paths
-        .into_iter()
-        .filter(|path| {
-            let text = path.to_string_lossy();
-            let included =
-                includes.is_empty() || includes.iter().any(|pattern| pattern.matches(&text));
-            let excluded = excludes.iter().any(|pattern| pattern.matches(&text));
-            included && (!excluded || (explicit && !cli.force_exclude))
-        })
-        .collect())
-}
-
-fn compile_patterns(patterns: &[String]) -> Result<Vec<Pattern>, InputExpandError> {
-    patterns
-        .iter()
-        .map(|pattern| Pattern::new(pattern).map_err(|err| InputExpandError::Glob(err.to_string())))
-        .collect()
 }
 
 fn is_markdown_file(path: &Path) -> bool {

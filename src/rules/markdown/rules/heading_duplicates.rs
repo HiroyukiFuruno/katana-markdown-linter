@@ -1,7 +1,7 @@
-use crate::rules::markdown::document::LineInfo;
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::collections::HashSet;
 use std::path::Path;
@@ -19,10 +19,18 @@ impl MarkdownRule for NoDuplicateHeadingRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD024");
         let mut diagnostics = Vec::new();
         let mut seen = HashSet::new();
-        let ctx = DocumentContext::new(file_path, content);
         let ctx_lines = ctx.lines();
 
         for (i, line_info) in ctx_lines.iter().enumerate() {
@@ -30,11 +38,11 @@ impl MarkdownRule for NoDuplicateHeadingRule {
                 continue;
             }
 
-            if let Some(heading_text) = extract_heading_text(ctx_lines, i) {
+            if let Some(heading_text) = extract_heading_text(ctx, i) {
                 if !seen.insert(heading_text.clone()) {
                     RuleHelpers::push_diag(
                         &mut diagnostics,
-                        file_path,
+                        ctx.file_path(),
                         i,
                         line_info.text,
                         &meta,
@@ -48,11 +56,16 @@ impl MarkdownRule for NoDuplicateHeadingRule {
     }
 }
 
-fn extract_heading_text(lines: &[LineInfo<'_>], idx: usize) -> Option<String> {
+fn extract_heading_text(ctx: &DocumentContext<'_>, idx: usize) -> Option<String> {
+    let lines = ctx.lines();
     let line = lines[idx].text;
-    let trimmed = line.trim_start();
-    if RuleHelpers::is_atx_heading(trimmed) {
-        return Some(trimmed.trim_start_matches('#').trim().to_string());
+    let heading = ctx
+        .headings()
+        .binary_search_by_key(&idx, |heading| heading.line)
+        .ok()
+        .map(|index| &ctx.headings()[index]);
+    if let Some(heading) = heading {
+        return Some(heading.text.trim().to_owned());
     }
 
     if idx + 1 < lines.len() && is_setext_underline(lines[idx + 1].text.trim()) {

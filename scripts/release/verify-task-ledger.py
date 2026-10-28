@@ -54,7 +54,7 @@ def resolve_task_path(args: argparse.Namespace) -> pathlib.Path:
 def open_task_violations(lines: list[str], allow_open_containing: list[str]) -> list[str]:
     violations = []
     for line_number, line in enumerate(lines, start=1):
-        if not re.match(r"\s*-\s+\[[ /]\]", line):
+        if not re.match(r"\s*-\s+\[ \]", line):
             continue
         if any(token in line for token in allow_open_containing):
             continue

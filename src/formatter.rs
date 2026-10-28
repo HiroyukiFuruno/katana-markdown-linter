@@ -1,8 +1,10 @@
-use crate::{Error, FixResult, LintOptions, MarkdownLinter, RuleConfig};
+use crate::{
+    fix::{FixEngine, DEFAULT_MAX_FIX_PASSES},
+    Error, LintOptions, MarkdownLinter, RuleConfig,
+};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
-const MAX_FORMAT_PASSES: usize = 8;
 const LAYOUT_RULES: [&str; 9] = [
     "MD005", "MD007", "MD012", "MD022", "MD030", "MD031", "MD032", "MD047", "MD058",
 ];
@@ -15,7 +17,7 @@ pub struct FormatOptions {
 impl Default for FormatOptions {
     fn default() -> Self {
         Self {
-            max_passes: MAX_FORMAT_PASSES,
+            max_passes: DEFAULT_MAX_FIX_PASSES,
         }
     }
 }
@@ -55,24 +57,16 @@ impl MarkdownFormatter {
             content = terminal_normalized;
         }
 
-        let max_passes = options.max_passes.max(1);
-        for _ in 0..max_passes {
-            let diagnostics = MarkdownLinter::lint(&content, lint_options)?;
-            if !diagnostics
-                .iter()
-                .any(|diagnostic| diagnostic.fix.is_some())
-            {
-                break;
-            }
-
-            let fixed: FixResult = MarkdownLinter::fix_with_results(&content, &diagnostics);
-            if fixed.applied_fixes == 0 || fixed.content == content {
-                break;
-            }
-
-            applied_operations += fixed.applied_fixes;
-            content = fixed.content;
-        }
+        let diagnostics = MarkdownLinter::lint(&content, lint_options)?;
+        let fixed = FixEngine::run(
+            &content,
+            diagnostics,
+            options.max_passes,
+            false,
+            |current| MarkdownLinter::lint(current, lint_options),
+        )?;
+        applied_operations += fixed.applied_fixes;
+        content = fixed.content;
 
         let terminal_normalized = normalize_terminal_newline(&content);
         if terminal_normalized != content {

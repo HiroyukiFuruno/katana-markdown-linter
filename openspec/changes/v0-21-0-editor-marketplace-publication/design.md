@@ -2,7 +2,7 @@
 
 ## 方針
 
-`v0.20.0` は editor marketplace 公開専用の change とする。editor 機能の不足修正や dogfood のバグ修正は、この change へ混ぜない。`v0-19-0-editor-capability-completion` が完了し、final editor dogfood の release-blocking finding が 0 件であることを DoR にする。
+`v0.21.0` は editor marketplace 公開専用の change とする。editor 機能の不足修正や dogfood のバグ修正は、この change へ混ぜない。`v0-19-0-editor-capability-completion` が完了し、final editor dogfood の release-blocking finding が 0 件であることを DoR にする。
 
 ## 公開前提
 
@@ -21,7 +21,7 @@
 
 ## CI/CD variable contract
 
-`v0.20.0` で使う公開用の値は以下に固定する。実装中に追加の secret / env / workflow input が必要に見えた場合は、自己判断で増やさず設計差分として報告する。
+`v0.21.0` で使う公開用の値は以下に固定する。実装中に追加の secret / env / workflow input が必要に見えた場合は、自己判断で増やさず設計差分として報告する。
 
 | 種別 | 名前 | 用途 | 必須条件 |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ Zed extension registry への公開は、`zed-industries/extensions` の PR merg
 
 - `release-target-check` は target version の既存公開状態を editor marketplaces まで確認する。
 - `release-verify` は publication flag に応じて `published` / `deferred` / `failed` を説明する。
-- VS Code Marketplace と Zed registry の両方で target version が確認できるまで、`v0.20.0` は完了扱いにしない。
+- VS Code Marketplace と Zed registry の両方で target version が確認できるまで、`v0.21.0` は完了扱いにしない。
 
 ## 非対象
 

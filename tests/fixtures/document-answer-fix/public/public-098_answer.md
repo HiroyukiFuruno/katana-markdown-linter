@@ -29,16 +29,14 @@ Usa las claves de configuración anteriores para ajustar el comportamiento de es
 ```
 
 ````markdown
-
-```text
+```
 
 ```
 
-```text
-
 ```
 
-```text
+```
+```
 
 ## Motivo
 

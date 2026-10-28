@@ -1,7 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    SourceRange,
+    RuleConfig, SourceRange,
 };
 use markers::{emphasis_markers, matching_end_marker, valid_start, EmphasisMarker};
 use std::path::Path;
@@ -35,13 +35,21 @@ impl MarkdownRule for SpacesInEmphasisRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD037");
         let mut diagnostics = Vec::new();
 
-        let ctx = DocumentContext::new(file_path, content);
         let env = EmphasisEnvironment {
-            file_path,
-            ctx: &ctx,
+            file_path: ctx.file_path(),
+            ctx,
             meta: &meta,
         };
         for (i, line) in ctx.lines().iter().enumerate() {

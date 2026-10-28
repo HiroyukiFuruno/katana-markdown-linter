@@ -17,11 +17,20 @@ impl MarkdownRule for ListIndentRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&crate::types::RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD005");
         let mut diagnostics = Vec::new();
         let mut previous_list_indent: Option<usize> = None;
 
-        let ctx = DocumentContext::new(file_path, content);
+        let file_path = ctx.file_path();
         for (i, line) in ctx.lines().iter().enumerate() {
             if ctx.is_code_line(i) {
                 previous_list_indent = None;

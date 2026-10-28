@@ -1,5 +1,6 @@
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::path::Path;
 
@@ -16,26 +17,31 @@ impl MarkdownRule for NoSpaceInCodeRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD038");
         let mut diagnostics = Vec::new();
 
-        let ctx = DocumentContext::new(file_path, content);
         for span in ctx.inline_code_spans() {
             if !span.closed {
                 continue;
             }
-            let line = &ctx.lines()[span.line];
-            let inner_start = span.content_range.start - line.content_range.start;
-            let inner_end = span.content_range.end - line.content_range.start;
-            let inner_text = &line.text[inner_start..inner_end];
+            let inner_text = &ctx.content()[span.content_range.start..span.content_range.end];
             if !(inner_text.starts_with(' ') || inner_text.ends_with(' ')) {
                 continue;
             }
-            if trim_requires_padding_space(inner_text) {
+            if trim_requires_padding_space(inner_text) || inner_text.trim().is_empty() {
                 continue;
             }
             let marker = "`".repeat(span.marker_len);
-            let replacement = format!("{marker}{}{marker}", inner_text.trim());
+            let replacement = format!("{marker}{}{marker}", inner_text.trim_matches(' '));
             let range = ctx.diagnostic_range(span.full_range);
             let fix = crate::rules::markdown::types::DiagnosticFix {
                 start_line: range.start_line,
@@ -45,7 +51,7 @@ impl MarkdownRule for NoSpaceInCodeRule {
                 replacement,
             };
             diagnostics.push(MarkdownDiagnostic {
-                file: file_path.to_path_buf(),
+                file: ctx.file_path().to_path_buf(),
                 severity: DiagnosticSeverity::Warning,
                 range,
                 message: meta.description.to_string(),

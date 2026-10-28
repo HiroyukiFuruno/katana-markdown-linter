@@ -16,10 +16,19 @@ impl MarkdownRule for UlStyleRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&crate::types::RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD004");
         let mut diagnostics = Vec::new();
         let mut first_bullet: Option<char> = None;
-        let ctx = DocumentContext::new(file_path, content);
+        let file_path = ctx.file_path();
         for (index, line) in ctx.lines().iter().enumerate() {
             if ctx.is_code_line(index) {
                 continue;

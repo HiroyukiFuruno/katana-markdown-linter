@@ -22,7 +22,7 @@ pub(super) fn collect_cases(args: &Args) -> BenchResult<Vec<Case>> {
     let check_workspace = workspace::prepare_cli_workspace(
         "check",
         "{ \"default\": true }\n",
-        "# Document\n\nParagraph text.\n\n",
+        "# Document\n\nParagraph text.\n",
     )?;
     let config_path = workspace::prepare_config_fixture()?;
     let mut cases = Vec::new();

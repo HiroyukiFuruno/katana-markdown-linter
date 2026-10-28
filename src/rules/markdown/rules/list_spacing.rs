@@ -18,7 +18,8 @@ impl MarkdownRule for ListMarkerSpaceRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        self.evaluate_configured(file_path, content, None)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
     }
 
     fn evaluate_configured(
@@ -27,9 +28,18 @@ impl MarkdownRule for ListMarkerSpaceRule {
         content: &str,
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD030");
         let mut diagnostics = Vec::new();
-        let ctx = DocumentContext::new(file_path, content);
+        let file_path = ctx.file_path();
 
         for (i, line) in ctx.lines().iter().enumerate() {
             if ctx.is_code_line(i) {
@@ -40,7 +50,7 @@ impl MarkdownRule for ListMarkerSpaceRule {
             if let Some(marker) = list_marker(line) {
                 let mut after = line[marker.spaces_start..].chars();
                 let spaces = after.by_ref().take_while(|c| c.is_whitespace()).count();
-                let target = configured_target_spaces(config, marker.kind, is_multiline(&ctx, i));
+                let target = configured_target_spaces(config, marker.kind, is_multiline(ctx, i));
                 if spaces != target {
                     let fix = crate::rules::markdown::types::DiagnosticFix {
                         start_line: i + 1,

@@ -56,9 +56,9 @@
 ## 5. 検証
 
 - [ ] 5.1 `just release-check`
-- [ ] 5.2 `PUBLISH_VSCODE_EXTENSION=true PUBLISH_ZED_EXTENSION=true ZED_EXTENSION_PUBLICATION_PR_URL=<url> just VERSION=v0.20.0 release-verify`
+- [ ] 5.2 `PUBLISH_VSCODE_EXTENSION=true PUBLISH_ZED_EXTENSION=true ZED_EXTENSION_PUBLICATION_PR_URL=<url> just VERSION=v0.21.0 release-verify`
 - [ ] 5.3 `just ast-lint`
-- [ ] 5.4 `scripts/openspec validate v0-20-0-editor-marketplace-publication --strict`
+- [ ] 5.4 `scripts/openspec validate v0-21-0-editor-marketplace-publication --strict`
 
 ## Definition of Done
 

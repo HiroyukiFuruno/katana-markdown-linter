@@ -1,0 +1,170 @@
+{
+  "candidate_version": "0.20.0",
+  "checkpoint_commit": "6538722",
+  "release_preflight": "passed: just VERSION=v0.20.0 release-check; final structured-error regressions passed separately",
+  "document_answers": {
+    "total": 258,
+    "public": 200,
+    "original": 58,
+    "mismatches": 0,
+    "answer_diagnostics": 0,
+    "answer_fix_changes": 0,
+    "answer_safe_fixable_remaining": 0,
+    "kml_exit_code": 0,
+    "fix_pass_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "safe_fixable_remaining": 0,
+    "answer_check_exit_code": 0,
+    "answer_fix_exit_code": 0,
+    "elapsed_ms": 4506.939
+  },
+  "performance": {
+    "threshold_ratio": 1.4,
+    "historical_baseline_modified": false,
+    "cases": [
+      {
+        "name": "api_lint_large_document",
+        "median_ms": 4.0548778,
+        "baseline_median_ms": 6.914010449999999,
+        "ratio": 0.5864726166273007
+      },
+      {
+        "name": "api_lint_clean_large_document",
+        "median_ms": 2.608465266666667,
+        "baseline_median_ms": 4.2145542,
+        "ratio": 0.6189184295379726
+      },
+      {
+        "name": "api_fix_large_document",
+        "median_ms": 17.99910553333333,
+        "baseline_median_ms": 20.775125,
+        "ratio": 0.8663777249635481
+      },
+      {
+        "name": "api_format_large_document",
+        "median_ms": 3.0337680666666667,
+        "baseline_median_ms": 6.516318749999999,
+        "ratio": 0.46556471269406013
+      },
+      {
+        "name": "api_lint_many_small_documents",
+        "median_ms": 1.3486638999999998,
+        "baseline_median_ms": 2.1089854000000003,
+        "ratio": 0.6394847019803929
+      },
+      {
+        "name": "api_lint_link_heavy_document",
+        "median_ms": 3.0975097333333337,
+        "baseline_median_ms": 4.438458349999999,
+        "ratio": 0.6978796440285024
+      },
+      {
+        "name": "api_lint_inline_code_heavy_document",
+        "median_ms": 1.5935208333333333,
+        "baseline_median_ms": 2.20947915,
+        "ratio": 0.7212201270753487
+      },
+      {
+        "name": "api_lint_reference_heavy_document",
+        "median_ms": 1.9206347333333333,
+        "baseline_median_ms": 2.5487208000000003,
+        "ratio": 0.75356811673265
+      },
+      {
+        "name": "api_lint_table_heavy_document",
+        "median_ms": 2.4381722,
+        "baseline_median_ms": 2.7597708499999998,
+        "ratio": 0.8834690749777288
+      },
+      {
+        "name": "api_fix_parser_heavy_document",
+        "median_ms": 9.121509733333333,
+        "baseline_median_ms": 8.2370083,
+        "ratio": 1.1073813939623363
+      },
+      {
+        "name": "api_format_parser_heavy_document",
+        "median_ms": 0.9355972333333333,
+        "baseline_median_ms": 0.87627085,
+        "ratio": 1.0677032487538907
+      },
+      {
+        "name": "context_build_large_document",
+        "median_ms": 0.062090266666666664,
+        "baseline_median_ms": 0.0772125,
+        "ratio": 0.8041478603421294
+      },
+      {
+        "name": "context_heading_index_large_document",
+        "median_ms": 0.5726125,
+        "baseline_median_ms": 1.0902208500000001,
+        "ratio": 0.5252261502795511
+      },
+      {
+        "name": "context_table_index_large_document",
+        "median_ms": 0.6889000000000001,
+        "baseline_median_ms": 1.1041832999999999,
+        "ratio": 0.6239000354379569
+      },
+      {
+        "name": "context_inline_token_index_large_document",
+        "median_ms": 1.0208541666666666,
+        "baseline_median_ms": 0.89114375,
+        "ratio": 1.1455549866861172
+      },
+      {
+        "name": "cli_check_many_small_files",
+        "median_ms": 11.655390266666668,
+        "baseline_median_ms": 9.313895849999998,
+        "ratio": 1.2513979600348086
+      },
+      {
+        "name": "cli_fix_many_small_files",
+        "median_ms": 43.81532083333333,
+        "baseline_median_ms": 31.764635400000003,
+        "ratio": 1.379374272097999
+      },
+      {
+        "name": "cli_fmt_many_small_files",
+        "median_ms": 37.30286806666666,
+        "baseline_median_ms": 32.748368750000004,
+        "ratio": 1.1390756086642226
+      },
+      {
+        "name": "config_validate_representative",
+        "median_ms": 0.03701408333333333,
+        "baseline_median_ms": 0.033796709,
+        "ratio": 1.0951978588605573
+      },
+      {
+        "name": "api_rule_catalog",
+        "median_ms": 0.008144222666666666,
+        "baseline_median_ms": 0.006206583,
+        "ratio": 1.312191050480863
+      }
+    ]
+  },
+  "coverage": {
+    "uncovered_lines": 826,
+    "baseline": 881,
+    "command": "just coverage-blocking"
+  },
+  "specification_sources": {
+    "CommonMark": "https://spec.commonmark.org/0.31.2/",
+    "GFM": "https://github.github.com/gfm/"
+  },
+  "reports": {
+    "target/document-answer-fix-report.json": "24cecbb7c9492f5bf0008e19fdb215b6e5715b675e2907b3cb5d646fef795c9e",
+    "target/perf-report.json": "917653d4d54ed63cc07bc8621ca0ae30612b37b6a1902a06407086b7c5a1a443",
+    "target/coverage-markdown-spec.log": "d290d467086e970055ffce6096844b459938fda6a868ab7f79adae02f1adb1a2"
+  },
+  "editor": {
+    "version": "0.20.0",
+    "minimum_vscode_tested": "1.75.0",
+    "npm_audit_vulnerabilities": 0,
+    "test_runner": "@vscode/test-electron 3.1.0 with Node built-in assertions"
+  }
+}

@@ -4,6 +4,7 @@ use std::sync::OnceLock;
 pub struct RuleCatalogService;
 
 impl RuleCatalogService {
+    #[inline]
     pub fn available_rules() -> Vec<RuleMeta> {
         static AVAILABLE_RULES: OnceLock<Vec<RuleMeta>> = OnceLock::new();
         AVAILABLE_RULES

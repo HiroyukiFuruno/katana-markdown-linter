@@ -26,20 +26,16 @@ Mit den oben aufgeführten Konfigurationsschlüsseln lässt sich das Verhalten d
 ```
 
 ````markdown
-
-```text
-
 ```
 
-```text
+```
+```
 
 ````markdown
-
-```text
-
 ```
 
-```text
+```
+```
 
 ## Begründung
 
