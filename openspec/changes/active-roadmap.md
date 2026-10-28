@@ -182,6 +182,6 @@ Archived completed changes:
 - Registry publication must not be mixed into `v0-13-0-mcp-registry-and-distribution-planning`; `v0.13.0` decides the gate and `v0.14.0` executes it.
 - Remote MCP transport must not be used as a replacement for local stdio distribution; it has a different auth and workspace safety boundary.
 
-## v0.20.0 Markdown syntax and fixing
+## v0.20.0 Markdown syntax and fixing (released)
 
-`v0-20-0-markdown-spec-logic` implements the requested Markdown specification tracking, shared parsing boundaries, deterministic safe-fix convergence, dependency and Action updates. The unshipped editor Marketplace plan moves to v0.21.0 and remains a separate publication change.
+[v0.20.0](https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.0) shipped Markdown specification tracking, shared parsing boundaries, deterministic safe-fix convergence, dependency and Action updates. The [completed change](archive/2026-10-29-v0-20-0-markdown-spec-logic/tasks.md) records review, CI, 258 document answers and public distribution verification. The unshipped editor Marketplace plan remains a separate v0.21.0 publication change.

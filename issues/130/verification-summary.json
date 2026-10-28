@@ -1,7 +1,7 @@
 {
   "candidate_version": "0.20.0",
   "checkpoint_commit": "6538722",
-  "release_preflight": "passed: just VERSION=v0.20.0 release-check; final structured-error regressions passed separately",
+  "release_preflight": "passed: just VERSION=v0.20.0 release-check exited 0; coverage gate recorded 804 uncovered lines <= baseline 881",
   "document_answers": {
     "total": 258,
     "public": 200,
@@ -19,136 +19,141 @@
     "safe_fixable_remaining": 0,
     "answer_check_exit_code": 0,
     "answer_fix_exit_code": 0,
-    "elapsed_ms": 4506.939
+    "elapsed_ms": 2644.358
   },
   "performance": {
     "threshold_ratio": 1.4,
     "historical_baseline_modified": false,
+    "iterations": 30,
+    "samples": 7,
+    "warmup_iterations": 1,
     "cases": [
       {
         "name": "api_lint_large_document",
-        "median_ms": 4.0548778,
+        "median_ms": 4.026398633333334,
         "baseline_median_ms": 6.914010449999999,
-        "ratio": 0.5864726166273007
+        "ratio": 0.5823535649028899
       },
       {
         "name": "api_lint_clean_large_document",
-        "median_ms": 2.608465266666667,
+        "median_ms": 2.5943305666666663,
         "baseline_median_ms": 4.2145542,
-        "ratio": 0.6189184295379726
+        "ratio": 0.6155646465921986
       },
       {
         "name": "api_fix_large_document",
-        "median_ms": 17.99910553333333,
+        "median_ms": 21.825274999999998,
         "baseline_median_ms": 20.775125,
-        "ratio": 0.8663777249635481
+        "ratio": 1.0505484323199017
       },
       {
         "name": "api_format_large_document",
-        "median_ms": 3.0337680666666667,
+        "median_ms": 3.0385527666666667,
         "baseline_median_ms": 6.516318749999999,
-        "ratio": 0.46556471269406013
+        "ratio": 0.4662989769594477
       },
       {
         "name": "api_lint_many_small_documents",
-        "median_ms": 1.3486638999999998,
+        "median_ms": 1.3576263666666668,
         "baseline_median_ms": 2.1089854000000003,
-        "ratio": 0.6394847019803929
+        "ratio": 0.6437343599754966
       },
       {
         "name": "api_lint_link_heavy_document",
-        "median_ms": 3.0975097333333337,
+        "median_ms": 3.2411222333333334,
         "baseline_median_ms": 4.438458349999999,
-        "ratio": 0.6978796440285024
+        "ratio": 0.7302360364231725
       },
       {
         "name": "api_lint_inline_code_heavy_document",
-        "median_ms": 1.5935208333333333,
+        "median_ms": 1.6057097333333332,
         "baseline_median_ms": 2.20947915,
-        "ratio": 0.7212201270753487
+        "ratio": 0.7267367665964773
       },
       {
         "name": "api_lint_reference_heavy_document",
-        "median_ms": 1.9206347333333333,
+        "median_ms": 2.0496486,
         "baseline_median_ms": 2.5487208000000003,
-        "ratio": 0.75356811673265
+        "ratio": 0.8041871828408979
       },
       {
         "name": "api_lint_table_heavy_document",
-        "median_ms": 2.4381722,
+        "median_ms": 2.5386389,
         "baseline_median_ms": 2.7597708499999998,
-        "ratio": 0.8834690749777288
+        "ratio": 0.9198730756939476
       },
       {
         "name": "api_fix_parser_heavy_document",
-        "median_ms": 9.121509733333333,
+        "median_ms": 9.501281933333333,
         "baseline_median_ms": 8.2370083,
-        "ratio": 1.1073813939623363
+        "ratio": 1.153486992763299
       },
       {
         "name": "api_format_parser_heavy_document",
-        "median_ms": 0.9355972333333333,
+        "median_ms": 0.9145847333333333,
         "baseline_median_ms": 0.87627085,
-        "ratio": 1.0677032487538907
+        "ratio": 1.043723790804331
       },
       {
         "name": "context_build_large_document",
-        "median_ms": 0.062090266666666664,
+        "median_ms": 0.061024999999999996,
         "baseline_median_ms": 0.0772125,
-        "ratio": 0.8041478603421294
+        "ratio": 0.7903513032216285
       },
       {
         "name": "context_heading_index_large_document",
-        "median_ms": 0.5726125,
+        "median_ms": 0.5647778,
         "baseline_median_ms": 1.0902208500000001,
-        "ratio": 0.5252261502795511
+        "ratio": 0.5180398081728119
       },
       {
         "name": "context_table_index_large_document",
-        "median_ms": 0.6889000000000001,
+        "median_ms": 0.6820611333333334,
         "baseline_median_ms": 1.1041832999999999,
-        "ratio": 0.6239000354379569
+        "ratio": 0.6177064381732033
       },
       {
         "name": "context_inline_token_index_large_document",
-        "median_ms": 1.0208541666666666,
+        "median_ms": 1.0180152666666666,
         "baseline_median_ms": 0.89114375,
-        "ratio": 1.1455549866861172
+        "ratio": 1.1423693053636594
       },
       {
         "name": "cli_check_many_small_files",
-        "median_ms": 11.655390266666668,
+        "median_ms": 12.823193066666667,
         "baseline_median_ms": 9.313895849999998,
-        "ratio": 1.2513979600348086
+        "ratio": 1.3767808093609581
       },
       {
         "name": "cli_fix_many_small_files",
-        "median_ms": 43.81532083333333,
+        "median_ms": 42.319226400000005,
         "baseline_median_ms": 31.764635400000003,
-        "ratio": 1.379374272097999
+        "ratio": 1.3322748983921913
       },
       {
         "name": "cli_fmt_many_small_files",
-        "median_ms": 37.30286806666666,
+        "median_ms": 42.495259733333334,
         "baseline_median_ms": 32.748368750000004,
-        "ratio": 1.1390756086642226
+        "ratio": 1.2976298165487503
       },
       {
         "name": "config_validate_representative",
-        "median_ms": 0.03701408333333333,
+        "median_ms": 0.043160861333333335,
         "baseline_median_ms": 0.033796709,
-        "ratio": 1.0951978588605573
+        "ratio": 1.2770729047415041
       },
       {
         "name": "api_rule_catalog",
-        "median_ms": 0.008144222666666666,
+        "median_ms": 0.008650222666666667,
         "baseline_median_ms": 0.006206583,
-        "ratio": 1.312191050480863
+        "ratio": 1.393717391142061
       }
-    ]
+    ],
+    "max_ratio": 1.393717391142061,
+    "max_ratio_case": "api_rule_catalog"
   },
   "coverage": {
-    "uncovered_lines": 826,
+    "uncovered_lines": 804,
     "baseline": 881,
     "command": "just coverage-blocking"
   },
@@ -157,14 +162,74 @@
     "GFM": "https://github.github.com/gfm/"
   },
   "reports": {
-    "target/document-answer-fix-report.json": "24cecbb7c9492f5bf0008e19fdb215b6e5715b675e2907b3cb5d646fef795c9e",
-    "target/perf-report.json": "917653d4d54ed63cc07bc8621ca0ae30612b37b6a1902a06407086b7c5a1a443",
-    "target/coverage-markdown-spec.log": "d290d467086e970055ffce6096844b459938fda6a868ab7f79adae02f1adb1a2"
+    "target/document-answer-fix-report.json": "7f27bdeca69df87642413e51466fb1d51da837ecd02d0c5bb93b234ceefc4a82",
+    "target/perf-report.json": "93e0a689eb854deeb403ae6f0e0aa583c507e30f5d8090530b004b6077d1007e",
+    "target/review-fixes-release-check.log": "dc429f0b9c0227a96e4d0c92504c63391c7b17bccd0c37b1c88e511139bf3086",
+    "target/final-release-verify.log": "85efacbaba4846c989bad7970d785381fbe0dff6f96c3399043c5e60f9bc4694"
   },
   "editor": {
     "version": "0.20.0",
     "minimum_vscode_tested": "1.75.0",
     "npm_audit_vulnerabilities": 0,
     "test_runner": "@vscode/test-electron 3.1.0 with Node built-in assertions"
+  },
+  "checkpoint_history": [
+    {
+      "commit": "6538722",
+      "release_preflight": "passed: just VERSION=v0.20.0 release-check; final structured-error regressions passed separately",
+      "report_hashes": {
+        "target/document-answer-fix-report.json": "24cecbb7c9492f5bf0008e19fdb215b6e5715b675e2907b3cb5d646fef795c9e",
+        "target/perf-report.json": "917653d4d54ed63cc07bc8621ca0ae30612b37b6a1902a06407086b7c5a1a443",
+        "target/coverage-markdown-spec.log": "d290d467086e970055ffce6096844b459938fda6a868ab7f79adae02f1adb1a2"
+      },
+      "status": "historical pre-merge checkpoint; retained for traceability"
+    }
+  ],
+  "source_head": "a024276c05f9c4dba3727df015a51193e88d1fd7",
+  "merged_commit": "1277353eee9cb5a8903cfc8f405a56ad661b0db6",
+  "working_branch": "release/cleanup-v0.20.0",
+  "pull_request": {
+    "number": 131,
+    "review": "re-review completed with no findings",
+    "p2_review_threads": {
+      "total": 2,
+      "replied": 2,
+      "resolved": 2
+    },
+    "ci_runs": [
+      {
+        "id": 40753342786,
+        "status": "passed"
+      },
+      {
+        "id": 40753342777,
+        "status": "passed"
+      }
+    ]
+  },
+  "publication": {
+    "status": "verified",
+    "published": true,
+    "version": "0.20.0",
+    "workflow_run": 40754506735,
+    "workflow_conclusion": "success",
+    "tag_github_verified": true,
+    "tag_target": "1277353eee9cb5a8903cfc8f405a56ad661b0db6",
+    "verification_command": "just VERSION=v0.20.0 release-verify",
+    "verification_exit_code": 0,
+    "github_release": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.0",
+    "crates_io": "https://crates.io/crates/katana-markdown-linter/0.20.0",
+    "npm": "https://www.npmjs.com/package/katana-markdown-linter/v/0.20.0",
+    "pypi": "https://pypi.org/project/katana-markdown-linter/0.20.0/",
+    "smoke": [
+      "current-platform release binary/checksum",
+      "MCP stdio/remote release binaries",
+      "npm CLI/MCP stdio/remote wrappers",
+      "PyPI CLI/MCP stdio/remote wrappers",
+      "Homebrew default/versioned formulas"
+    ],
+    "editor_marketplace": "deferred to independent v0.21.0 plan",
+    "observed_at": "2026-10-28T19:46:35.989038+00:00",
+    "initial_verification_note": "npm packument briefly omitted the just-published version; direct version endpoint and subsequent unmodified release-verify passed."
   }
 }
