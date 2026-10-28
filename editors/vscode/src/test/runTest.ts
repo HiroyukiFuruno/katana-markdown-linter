@@ -1,34 +1,21 @@
 import * as path from 'path';
-import Mocha from 'mocha';
-import { glob } from 'glob';
+import { runTests } from '@vscode/test-electron';
 
-export function run(): Promise<void> {
-	// Create the mocha test
-	const mocha = new Mocha({
-		ui: 'tdd',
-		color: true
-	});
-
-	const testsRoot = path.resolve(__dirname, '..');
-
-	return new Promise((c, e) => {
-		const files = glob.sync('**/**.test.js', { cwd: testsRoot });
-
-		// Add files to the test suite
-		files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
-
-		try {
-			// Run the mocha test
-			mocha.run((failures: number) => {
-				if (failures > 0) {
-					e(new Error(`${failures} tests failed.`));
-				} else {
-					c();
-				}
-			});
-		} catch (err) {
-			console.error(err);
-			e(err);
-		}
+async function main(): Promise<void> {
+	await runTests({
+		version: '1.75.0',
+		extensionDevelopmentPath: path.resolve(__dirname, '../..'),
+		extensionTestsPath: path.resolve(__dirname, 'suite/index'),
+		launchArgs: [
+			'--disable-extensions',
+			'--disable-gpu',
+			'--user-data-dir=/tmp/kml-vscode-test-user-data'
+		]
 	});
 }
+
+main().catch((error: unknown) => {
+	console.error('Failed to run VS Code extension tests');
+	console.error(error);
+	process.exitCode = 1;
+});

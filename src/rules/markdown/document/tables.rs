@@ -1,7 +1,7 @@
 use super::blocks::line_in_blocks;
 use super::types::{BlockRange, LineInfo, SourceRange, TableBlock, TableCell, TableRow};
 
-const MIN_DELIMITER_CELL_WIDTH: usize = 3;
+const MIN_DELIMITER_CELL_WIDTH: usize = 1;
 
 pub(super) fn extract_tables<'a>(
     lines: &[LineInfo<'a>],
@@ -66,7 +66,7 @@ fn parse_table_row<'a>(line_index: usize, line: &LineInfo<'a>) -> Option<TableRo
         return None;
     }
     let leading_pipe = trimmed.starts_with('|');
-    let trailing_pipe = trimmed.ends_with('|');
+    let trailing_pipe = trimmed.ends_with('|') && !pipe_is_escaped(trimmed, trimmed.len() - 1);
     let safe_to_fix = !trimmed.contains("\\|") && !trimmed.contains('`');
     let mut inner = trimmed;
     let leading_trim = line.text.find(trimmed).unwrap_or(0);
@@ -97,7 +97,12 @@ fn parse_table_row<'a>(line_index: usize, line: &LineInfo<'a>) -> Option<TableRo
 fn parse_table_cells<'a>(inner: &'a str, inner_start: usize) -> Vec<TableCell<'a>> {
     let mut cells = Vec::new();
     let mut cell_start = inner_start;
-    for raw in inner.split('|') {
+    let separators = inner
+        .match_indices('|')
+        .filter_map(|(index, _)| (!pipe_is_escaped(inner, index)).then_some(index));
+    let mut relative_start = 0;
+    for end in separators.chain(std::iter::once(inner.len())) {
+        let raw = &inner[relative_start..end];
         let left_trim = raw.len() - raw.trim_start().len();
         let text = raw.trim();
         let start = cell_start + left_trim;
@@ -109,14 +114,24 @@ fn parse_table_cells<'a>(inner: &'a str, inner_start: usize) -> Vec<TableCell<'a
             },
         });
         cell_start += raw.len() + 1;
+        relative_start = end + 1;
     }
     cells
 }
 
+fn pipe_is_escaped(text: &str, index: usize) -> bool {
+    text.as_bytes()[..index]
+        .iter()
+        .rev()
+        .take_while(|byte| **byte == b'\\')
+        .count()
+        % 2
+        == 1
+}
+
 fn is_delimiter_cell(cell: &str) -> bool {
     let trimmed = cell.trim();
-    let core = trimmed.trim_matches(':');
-    core.len() >= MIN_DELIMITER_CELL_WIDTH
-        && core.bytes().all(|byte| byte == b'-')
-        && trimmed.bytes().all(|byte| byte == b'-' || byte == b':')
+    let core = trimmed.strip_prefix(':').unwrap_or(trimmed);
+    let core = core.strip_suffix(':').unwrap_or(core);
+    core.len() >= MIN_DELIMITER_CELL_WIDTH && core.bytes().all(|byte| byte == b'-')
 }

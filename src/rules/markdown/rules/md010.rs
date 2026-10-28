@@ -33,7 +33,16 @@ impl MarkdownRule for NoHardTabsRule {
             if ctx.is_code_line(i) && !options.code_blocks {
                 continue;
             }
-            for column in hard_tab_columns(line.text, !options.code_blocks) {
+            for column in hard_tab_columns(line.text) {
+                let start = line.content_range.start + column;
+                if !options.code_blocks
+                    && ctx.is_inside_inline_code(crate::rules::markdown::SourceRange {
+                        start,
+                        end: start + 1,
+                    })
+                {
+                    continue;
+                }
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
@@ -80,17 +89,8 @@ impl NoHardTabsOptions {
     }
 }
 
-fn hard_tab_columns(line: &str, skip_code_spans: bool) -> Vec<usize> {
-    let mut columns = Vec::new();
-    let mut in_code = false;
-    for (idx, byte) in line.bytes().enumerate() {
-        match byte {
-            b'`' if skip_code_spans => in_code = !in_code,
-            b'\t' if !in_code => columns.push(idx),
-            _ => {}
-        }
-    }
-    columns
+fn hard_tab_columns(line: &str) -> Vec<usize> {
+    line.match_indices('\t').map(|(index, _)| index).collect()
 }
 
 #[cfg(test)]

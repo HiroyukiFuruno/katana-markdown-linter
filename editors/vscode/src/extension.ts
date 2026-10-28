@@ -29,20 +29,24 @@ export function extractKmlVersion(versionOutput: string): string | null {
     return match ? match[0] : null;
 }
 
-export function isCompatible(version: string): boolean {
-    const kmlVersion = extractKmlVersion(version);
-    if (!kmlVersion) {
-        return false;
+export function getVersionLine(versionOutput: string): string | null {
+    const version = extractKmlVersion(versionOutput);
+    if (!version) {
+        return null;
     }
 
-    const parts = kmlVersion.split('.');
-    const major = Number.parseInt(parts[0], 10);
-    const minor = Number.parseInt(parts[1], 10);
-
-    return major === 0 && minor === 19;
+    return version.split('.').slice(0, 2).join('.');
 }
 
-export async function activate(_context: vscode.ExtensionContext) {
+export function isCompatible(version: string, extensionVersion: string): boolean {
+    const versionLine = getVersionLine(version);
+    const extensionVersionLine = getVersionLine(extensionVersion);
+
+    return versionLine !== null && versionLine === extensionVersionLine;
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+    const extensionVersion = String(context.extension.packageJSON.version);
     const outputChannel = vscode.window.createOutputChannel('KatanA Markdown Linter');
     const config = vscode.workspace.getConfiguration('kml');
     let executablePath = config.get<string>('executablePath') || 'kml';
@@ -59,9 +63,11 @@ export async function activate(_context: vscode.ExtensionContext) {
     const version = await getKmlVersion(executablePath);
     if (version) {
         outputChannel.appendLine(`Found kml version: ${version}`);
-        if (!isCompatible(version)) {
+        if (!isCompatible(version, extensionVersion)) {
+            const versionLine = getVersionLine(extensionVersion);
+            const expectedVersion = versionLine ? `^${versionLine}.0` : 'the version declared by this extension';
             vscode.window.showWarningMessage(
-                `KatanA Markdown Linter version ${version} might be incompatible with this extension. Expected ^0.19.0.`,
+                `KatanA Markdown Linter version ${version} might be incompatible with this extension. Expected ${expectedVersion}.`,
                 'Open Settings'
             ).then(selection => {
                 if (selection === 'Open Settings') {

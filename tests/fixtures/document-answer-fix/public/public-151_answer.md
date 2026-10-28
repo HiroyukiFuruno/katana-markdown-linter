@@ -29,16 +29,14 @@ Utilisez les clés de configuration ci-dessus pour ajuster le comportement de ce
 ```
 
 ````markdown
-
-```text
+```
 
 ```
 
-```text
-
 ```
 
-```text
+```
+```
 
 ## Raison
 

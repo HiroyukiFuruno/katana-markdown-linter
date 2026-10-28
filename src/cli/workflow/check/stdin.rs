@@ -102,13 +102,26 @@ fn run_stdin_fix(
         );
     }
     let results = MarkdownLinter::lint(&content, &options).map_err(|err| err.to_string())?;
-    let fixed = apply_fixes_until_stable(
+    let fixed = match apply_fixes_until_stable(
         &content,
         Path::new("<stdin>"),
         results,
         &options,
         cli.unsafe_fixes,
-    )?;
+    ) {
+        Ok(fixed) => fixed,
+        Err(message) => {
+            let mut report = CliReport {
+                command,
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: vec![CliError::rule(Path::new("<stdin>"), message)],
+            };
+            report.recompute_summary();
+            output_report(&report, true, cli, locale)?;
+            return Ok(2);
+        }
+    };
     if matches!(cli.format, OutputFormat::Json) {
         let mut report = CliReport {
             command,

@@ -1,7 +1,7 @@
 use crate::rules::markdown::rules::list_context::ListContext;
 use crate::rules::markdown::{
     DiagnosticFix, DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic,
-    MarkdownRule, OfficialRuleMeta,
+    MarkdownRule, OfficialRuleMeta, RuleConfig,
 };
 use std::path::Path;
 
@@ -21,19 +21,27 @@ impl MarkdownRule for CodeBlockStyleRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        let meta = self.official_meta().expect("always Some for MD046");
         let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let meta = self.official_meta().expect("always Some for MD046");
 
         if ctx.code_blocks().is_empty() {
             return Vec::new();
         }
 
-        indented_code_block_groups(&ctx)
+        indented_code_block_groups(ctx)
             .into_iter()
             .map(|(start_line, end_line, last_line_len, block_lines)| {
                 let replacement = build_fenced_replacement(&block_lines);
                 MarkdownDiagnostic {
-                    file: file_path.to_path_buf(),
+                    file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
                     range: DiagnosticRange {
                         start_line,

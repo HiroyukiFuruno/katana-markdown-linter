@@ -32,7 +32,7 @@ fixes. That means the editor surface is not yet equivalent to `kml check` or
 Created separate OpenSpec changes for:
 
 - `v0-19-0-editor-capability-completion`: editor LSP configuration loading, configuration-aware diagnostics, editor safe fixes, formatting validation, and final editor dogfood
-- `v0-20-0-editor-marketplace-publication`: marketplace publication after the editor capability and dogfood evidence pass
+- `v0-21-0-editor-marketplace-publication`: marketplace publication after the editor capability and dogfood evidence pass; retargeted after v0.20.0 was assigned to Markdown syntax and fixing improvements
 
 ## Local Evidence
 

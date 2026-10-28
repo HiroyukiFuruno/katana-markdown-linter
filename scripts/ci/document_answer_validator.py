@@ -37,6 +37,7 @@ class AnswerValidationRunner:
                 ),
                 "answer_check_exit_code": check_completed.returncode,
                 "answer_fix_exit_code": fix_completed.returncode,
+                "answer_safe_fixable_remaining": self._safe_fixable_count(check_report),
             },
             "samples": sample_reports,
             "release_blocking_issues": self._blocking_issues(
@@ -45,6 +46,7 @@ class AnswerValidationRunner:
                 fix_completed,
                 fix_report,
                 sample_reports,
+                copied,
             ),
         }
 
@@ -156,16 +158,35 @@ class AnswerValidationRunner:
         fix_completed: subprocess.CompletedProcess[str],
         fix_report: dict[str, object],
         sample_reports: list[dict[str, object]],
+        copied: list[tuple[Sample, pathlib.Path]],
     ) -> list[str]:
         issues = []
         if self._command_has_blocking_error(check_completed, check_report):
             issues.append("answer fixture check failed before diagnostics")
         if self._command_has_blocking_error(fix_completed, fix_report):
             issues.append("answer fixture fix check failed before idempotence comparison")
+        for label, report in [("check", check_report), ("fix", fix_report)]:
+            report_paths = self._file_reports(report)
+            if any(answer_copy.resolve() not in report_paths for _, answer_copy in copied):
+                issues.append(f"answer fixture {label} report omitted one or more samples")
+        safe_fixable_remaining = self._safe_fixable_count(check_report)
+        if safe_fixable_remaining is None:
+            issues.append("answer fixture check report is missing a valid safe_fixable_issues count")
+        elif safe_fixable_remaining > 0:
+            issues.append(
+                f"answer fixtures contain {safe_fixable_remaining} remaining safe-fixable diagnostics"
+            )
         for item in sample_reports:
             if item["fix_changed"]:
                 issues.append(f"{item['id']}: answer fixture changes when fixed again")
         return issues
+
+    def _safe_fixable_count(self, report: dict[str, object]) -> int | None:
+        summary = report.get("summary")
+        if not isinstance(summary, dict):
+            return None
+        count = summary.get("safe_fixable_issues")
+        return count if isinstance(count, int) and not isinstance(count, bool) else None
 
     def _command_has_blocking_error(
         self,
@@ -173,8 +194,10 @@ class AnswerValidationRunner:
         report: dict[str, object],
     ) -> bool:
         errors = report.get("errors")
+        if not isinstance(errors, list) or not isinstance(report.get("files"), list):
+            return True
         if isinstance(errors, list) and errors:
             return True
         if completed.returncode in ACCEPTED_KML_EXIT_CODES:
             return False
-        return not (isinstance(errors, list) and "files" in report)
+        return True

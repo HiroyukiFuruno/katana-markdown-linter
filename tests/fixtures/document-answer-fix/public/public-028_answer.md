@@ -31,20 +31,18 @@ Some more text
 ```
 
 ````markdown
-
 Some text
-
-```text
 
 ```
 
-```text
+```
+
+```
 
 ```
 
 Some more text
-
-```text
+```
 
 ## Begründung
 

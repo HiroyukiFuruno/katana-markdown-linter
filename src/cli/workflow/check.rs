@@ -90,18 +90,25 @@ pub(super) fn run_check_like(
         };
 
         if fix_mode {
-            let FixedContent {
-                content: fixed_content,
-                diagnostics,
-                applied_fixes,
-                fix_details,
-            } = apply_fixes_until_stable(
+            let fixed = match apply_fixes_until_stable(
                 &content,
                 &path,
                 results,
                 &options,
                 unsafe_policy.include_unsafe,
-            )?;
+            ) {
+                Ok(fixed) => fixed,
+                Err(message) => {
+                    report.errors.push(CliError::rule(&path, message));
+                    continue;
+                }
+            };
+            let FixedContent {
+                content: fixed_content,
+                diagnostics,
+                applied_fixes,
+                fix_details,
+            } = fixed;
             let changed = match write_fixed_content(&path, &content, &fixed_content, cli.diff) {
                 Ok(changed) => changed,
                 Err(err) => {

@@ -26,20 +26,16 @@ Usa le chiavi di configurazione elencate sopra per regolare il comportamento di 
 ```
 
 ````markdown
-
-```text
-
 ```
 
-```text
+```
+```
 
 ````markdown
-
-```text
-
 ```
 
-```text
+```
+```
 
 ## Motivo
 

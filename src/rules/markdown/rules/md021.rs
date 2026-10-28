@@ -1,6 +1,7 @@
 use crate::rules::markdown::helpers::RuleHelpers;
 use crate::rules::markdown::{
     DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::path::Path;
 
@@ -19,9 +20,17 @@ impl MarkdownRule for NoMultipleSpaceClosedAtxRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD021");
         let mut diagnostics = Vec::new();
-        let ctx = DocumentContext::new(file_path, content);
         for (i, line) in ctx.lines().iter().enumerate() {
             if ctx.is_code_line(i) {
                 continue;
@@ -34,7 +43,7 @@ impl MarkdownRule for NoMultipleSpaceClosedAtxRule {
                 let fix = whole_line_fix(i, line, heading.normalized_line());
                 RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
-                    file_path,
+                    ctx.file_path(),
                     i,
                     line,
                     &meta,

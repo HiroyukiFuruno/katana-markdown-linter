@@ -17,13 +17,23 @@ impl MarkdownRule for UnorderedListIndentRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        self.evaluate_configured(file_path, content, None)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
     }
 
     fn evaluate_configured(
         &self,
         file_path: &Path,
         content: &str,
+        config: Option<&crate::types::RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
         config: Option<&crate::types::RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD007");
@@ -35,7 +45,7 @@ impl MarkdownRule for UnorderedListIndentRule {
         let mut ordered_parent_indents = Vec::<OrderedParentIndent>::new();
         let mut unordered_parent_indents = Vec::<UnorderedParentIndent>::new();
 
-        let ctx = DocumentContext::new(file_path, content);
+        let file_path = ctx.file_path();
         for (i, line) in ctx.lines().iter().enumerate() {
             let line = line.text;
             let trimmed = line.trim_start();

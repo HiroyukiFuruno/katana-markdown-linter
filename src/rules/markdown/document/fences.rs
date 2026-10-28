@@ -1,61 +1,11 @@
-use super::types::{BlockRange, FenceKind, FenceLineMarker, LineInfo, SourceRange};
+use super::types::{FenceKind, FenceLineMarker};
 
 const MIN_FENCE_MARKER_LENGTH: usize = 3;
 const UNORDERED_LIST_MARKER_LEN: usize = 2;
 
-pub(super) fn extract_code_blocks(lines: &[LineInfo<'_>]) -> Vec<BlockRange> {
-    let mut blocks = Vec::new();
-    let mut open: Option<(usize, FenceKind, usize)> = None;
-    for (index, line) in lines.iter().enumerate() {
-        let Some(marker) = fence_line_marker(line.text) else {
-            continue;
-        };
-        if let Some((start, start_kind, start_length)) = open {
-            if start_kind == marker.kind && marker.length >= start_length {
-                blocks.push(BlockRange {
-                    start_line: start,
-                    end_line: index,
-                    range: SourceRange {
-                        start: lines[start].content_range.start,
-                        end: line.full_range.end,
-                    },
-                    fence: marker.kind,
-                });
-                open = None;
-            }
-        } else {
-            open = Some((index, marker.kind, marker.length));
-        }
-    }
-    if let Some((start, kind, _)) = open {
-        push_unclosed_block(&mut blocks, lines, start, kind);
-    }
-    blocks
-}
-
 pub(in crate::rules::markdown) fn fence_line_marker(line: &str) -> Option<FenceLineMarker> {
     let (rest, offset) = strip_blockquote_prefix(line);
     direct_fence_marker(rest, offset).or_else(|| list_item_fence_marker(rest, offset))
-}
-
-fn push_unclosed_block(
-    blocks: &mut Vec<BlockRange>,
-    lines: &[LineInfo<'_>],
-    start: usize,
-    kind: FenceKind,
-) {
-    let Some(last) = lines.last() else {
-        return;
-    };
-    blocks.push(BlockRange {
-        start_line: start,
-        end_line: lines.len() - 1,
-        range: SourceRange {
-            start: lines[start].content_range.start,
-            end: last.full_range.end,
-        },
-        fence: kind,
-    });
 }
 
 fn strip_blockquote_prefix(mut rest: &str) -> (&str, usize) {

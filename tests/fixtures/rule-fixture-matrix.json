@@ -4004,9 +4004,9 @@
           "expected": "MD060"
         },
         {
-          "name": "escaped_pipe_is_not_a_table",
+          "name": "escaped_pipe_table_retains_spacing_diagnostic",
           "source": "| A \\| B | C |\n|---|---|\n",
-          "expected": null
+          "expected": "MD060"
         }
       ],
       "manual_required": []

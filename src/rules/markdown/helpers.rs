@@ -8,8 +8,6 @@ use std::path::Path;
   Grouped into struct+impl per coding-rules §1.1 (no public free functions).
   Extracted to stay within 200-line file limits per coding-rules §2.1. */
 
-const MAX_HEADING_LEVEL: usize = 6;
-
 pub struct RuleHelpers;
 
 impl RuleHelpers {
@@ -20,11 +18,7 @@ impl RuleHelpers {
 
     /// Detect whether a line is an ATX-style heading.
     pub fn is_atx_heading(trimmed: &str) -> bool {
-        if !trimmed.starts_with('#') {
-            return false;
-        }
-        let count = trimmed.chars().take_while(|c| *c == '#').count();
-        count <= MAX_HEADING_LEVEL && trimmed[count..].starts_with(' ')
+        Self::get_heading_level(trimmed).is_some()
     }
 
     /// Detect whether a line is a list item (bullet or ordered).
@@ -92,15 +86,20 @@ impl RuleHelpers {
 
     /// Returns ATX heading level (1-6) for a line, or None if not a heading.
     pub fn get_heading_level(line: &str) -> Option<usize> {
-        if !line.starts_with('#') {
-            return None;
-        }
-        let count = line.chars().take_while(|c| *c == '#').count();
-        if line[count..].starts_with(' ') {
-            Some(count)
-        } else {
-            None
-        }
+        let range = crate::rules::markdown::SourceRange {
+            start: 0,
+            end: line.len(),
+        };
+        crate::rules::markdown::document::parse_heading(
+            0,
+            &crate::rules::markdown::LineInfo {
+                number: 1,
+                text: line,
+                content_range: range,
+                full_range: range,
+            },
+        )
+        .map(|heading| heading.level)
     }
 }
 

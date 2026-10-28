@@ -541,7 +541,7 @@
         "default-true-answer-update"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output records the default-true second example fence edits, including blank-line and missing-language fixes with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-029",
@@ -703,7 +703,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-038",
@@ -847,7 +847,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-046",
@@ -1495,7 +1495,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-082",
@@ -1657,7 +1657,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-091",
@@ -1801,7 +1801,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-099",
@@ -2449,7 +2449,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-135",
@@ -2611,7 +2611,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-144",
@@ -2755,7 +2755,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-152",
@@ -3403,7 +3403,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-188",
@@ -3565,7 +3565,7 @@
         "safe-fix-false-positive-guard"
       ],
       "answer_reviewed": true,
-      "answer_review_note": "Expected output is the reviewed result of the configured default-true fix pass with MD013 disabled."
+      "answer_review_note": "Re-reviewed 2026-10-29 against CommonMark 0.31.2 section 4.5: a fence with an info suffix cannot close the outer quadruple fence. The original input is already correct and every code-example byte must remain unchanged; the old answer incorrectly inserted language labels and blank lines inside literal code."
     },
     {
       "id": "public-197",
@@ -4738,6 +4738,169 @@
       ],
       "answer_reviewed": true,
       "answer_review_note": "Expected output was authored as the intended Markdown structure, preserving code, image, Markdown link, table, and Unicode anchor boundaries while applying safe fixes."
+    },
+    {
+      "id": "original-051",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-051.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-051_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-051.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored nested-fences regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD031",
+        "MD040",
+        "nested-fence-content"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-052",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-052.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-052_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-052.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored multiline-code regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD011",
+        "MD034",
+        "MD039",
+        "multiline-code"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-053",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-053.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-053_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-053.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored escaped-table regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD055",
+        "MD056",
+        "escaped-pipe"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-054",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-054.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-054_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-054.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored fence-suffix regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD031",
+        "MD040",
+        "fence-closer-suffix"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-055",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-055.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-055_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-055.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored all-space-code regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD038",
+        "MD039",
+        "whitespace-code"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-056",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-056.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-056_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-056.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored syntax-before-layout regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD022",
+        "MD039",
+        "phase-order"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-057",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-057.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-057_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-057.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored unicode-code regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD039",
+        "unicode-range"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-058",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-058.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-058_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "0898b9336b9f0aa36438b6a6620907b397257ecb",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-058.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Authored inline-spacing regression on the recorded repository base; expected output specified independently of engine output.",
+      "historical_patterns": [
+        "MD018",
+        "MD037",
+        "MD038",
+        "MD039",
+        "phase-order"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
     }
-  ]
+  ],
+  "original_corpus_policy": {
+    "newly_authored_samples": "For original-051 through original-058, source_commit records the repository base on which these original documents were authored. source_path records the fixture introduced by this change; the fixture is not claimed to exist at the authoring-base commit. Expected outputs are independently specified, not generated from kml."
+  }
 }

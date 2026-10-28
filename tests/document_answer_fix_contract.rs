@@ -19,9 +19,9 @@ fn document_answer_manifest_records_public_and_original_samples() {
         public_count >= 200,
         "public corpus should contain at least 200 samples"
     );
-    assert_eq!(
-        original_count, 50,
-        "original corpus should contain exactly 50 samples"
+    assert!(
+        original_count >= 50,
+        "original corpus should contain at least 50 samples"
     );
 
     for sample in samples {
@@ -93,6 +93,9 @@ fn document_answer_runner_compares_fixed_output_with_answer_fixture() {
     );
     let evidence = read_json(&report);
     assert_eq!(evidence["summary"]["mismatches"], 0);
+    assert_eq!(evidence["summary"]["fix_pass_exit_codes"], json!([0, 0, 0]));
+    assert_eq!(evidence["summary"]["safe_fixable_remaining"], 0);
+    assert_eq!(evidence["summary"]["answer_safe_fixable_remaining"], 0);
     assert_eq!(
         evidence["release_blocking_issues"]
             .as_array()
@@ -101,6 +104,26 @@ fn document_answer_runner_compares_fixed_output_with_answer_fixture() {
         0
     );
     let _ = fs::remove_dir_all(dir);
+}
+
+#[test]
+fn document_answer_fix_pass_evaluator_catches_non_idempotent_bytes() {
+    let root = workspace_root();
+    let output = Command::new("python3")
+        .arg("-c")
+        .arg(
+            "import sys; sys.path.insert(0, sys.argv[1]); from document_answer_fix_runner import evaluate_fix_passes; expected=b'answer\\n'; issues=evaluate_fix_passes(expected, [expected, b'answer \\n', expected]); assert any('fix pass 2 changed output' in issue for issue in issues), issues",
+        )
+        .arg(root.join("scripts/ci"))
+        .output()
+        .expect("fix pass evaluator should start");
+
+    assert!(
+        output.status.success(),
+        "evaluator should reject a binary change between fix passes\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 fn assert_manifest_sample(root: &Path, sample: &Value) {

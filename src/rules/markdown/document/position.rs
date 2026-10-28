@@ -13,7 +13,7 @@ impl<'a> DocumentContext<'a> {
                     .map(super::types::AstBlock::Heading),
             );
             blocks.extend(
-                self.code_blocks
+                self.code_blocks()
                     .iter()
                     .cloned()
                     .map(super::types::AstBlock::CodeBlock),
@@ -68,7 +68,7 @@ impl<'a> DocumentContext<'a> {
     }
 
     pub fn is_code_line(&self, line_index: usize) -> bool {
-        self.code_line_flags
+        self.code_line_flags()
             .get(line_index)
             .copied()
             .unwrap_or(false)

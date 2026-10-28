@@ -1,6 +1,6 @@
 ## Why
 
-VS Code / Zed 拡張は、editor 上で設定反映済みの診断・整形・安全な修正が使える状態になってから公開する必要がある。`v0.20.0` は、`v0.19.0` 系の機能完了と最終 dogfood evidence を前提に、Marketplace 公開だけを扱う release change とする。
+VS Code / Zed 拡張は、editor 上で設定反映済みの診断・整形・安全な修正が使える状態になってから公開する必要がある。`v0.21.0` は、`v0.19.0` 系の機能完了と最終 dogfood evidence を前提に、Marketplace 公開だけを扱う release change とする。
 
 ## What Changes
 
@@ -9,7 +9,7 @@ VS Code / Zed 拡張は、editor 上で設定反映済みの診断・整形・�
 - Zed extension registry 公開はこの repository から直接 publish せず、`zed-industries/extensions` の merged PR URL で検証する。
 - CI/CD の公開 input / env / secret の責務を固定し、実装者が独自判断で変数を増やさないようにする。
 - release workflow / runbook / release verification が editor marketplace の published / failed 状態を説明できるようにする。
-- 公開後に VS Code Marketplace と Zed extension registry の両方で `v0.20.0` を確認する。
+- 公開後に VS Code Marketplace と Zed extension registry の両方で `v0.21.0` を確認する。
 
 ## Capabilities
 

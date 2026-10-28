@@ -31,7 +31,8 @@ impl MarkdownRule for NoMultipleSpaceBlockquoteRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        self.evaluate_with_list_items(file_path, content, true)
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, None)
     }
 
     fn evaluate_configured(
@@ -40,31 +41,38 @@ impl MarkdownRule for NoMultipleSpaceBlockquoteRule {
         content: &str,
         config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
+        let ctx = DocumentContext::new(file_path, content);
+        self.evaluate_context(&ctx, config)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
         let include_list_items = config
             .and_then(|config| config.properties.get("list_items"))
             .map(|value| value != "false")
             .unwrap_or(true);
-        self.evaluate_with_list_items(file_path, content, include_list_items)
+        self.evaluate_with_list_items(ctx, include_list_items)
     }
 }
 
 impl NoMultipleSpaceBlockquoteRule {
     fn evaluate_with_list_items(
         &self,
-        file_path: &Path,
-        content: &str,
+        ctx: &DocumentContext<'_>,
         include_list_items: bool,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD027");
         let mut diagnostics = Vec::new();
-        let ctx = DocumentContext::new(file_path, content);
         for (index, line) in ctx.lines().iter().enumerate() {
             if ctx.is_code_line(index) {
                 continue;
             }
             push_blockquote_diagnostic(
                 &mut diagnostics,
-                file_path,
+                ctx.file_path(),
                 index,
                 line.text,
                 &meta,
