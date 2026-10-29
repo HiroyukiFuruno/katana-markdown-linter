@@ -9,6 +9,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Sample:
     id: str
+    execution_stem: str
     kind: str
     input_path: pathlib.Path
     answer_path: pathlib.Path
@@ -23,9 +24,15 @@ class Sample:
     answer_review_note: str
 
     @classmethod
-    def from_payload(cls, payload: dict[str, object], root: pathlib.Path) -> "Sample":
+    def from_payload(
+        cls,
+        payload: dict[str, object],
+        root: pathlib.Path,
+        ordinal: int,
+    ) -> "Sample":
         return cls(
             id=cls.string(payload, "id"),
+            execution_stem=f"sample-{ordinal:06d}",
             kind=cls.string(payload, "kind"),
             input_path=cls.path(payload, root, "input_path"),
             answer_path=cls.path(payload, root, "answer_path"),
@@ -79,8 +86,46 @@ class Manifest:
             errors.append(f"public sample count is {public_count}, expected {minimum_public}+")
         if original_count < minimum_original:
             errors.append(f"original sample count is {original_count}, expected {minimum_original}+")
+        errors.extend(self._identity_errors())
         for sample in self.samples:
             errors.extend(self._sample_errors(sample))
+        return errors
+
+    def _identity_errors(self) -> list[str]:
+        errors: list[str] = []
+        ids: set[str] = set()
+        inputs: dict[pathlib.Path, str] = {}
+        answers: dict[pathlib.Path, str] = {}
+        for sample in self.samples:
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", sample.id):
+                errors.append(
+                    f"{sample.id}: sample id must be a safe filename component"
+                )
+            if sample.id in ids:
+                errors.append(f"{sample.id}: duplicate sample id")
+            ids.add(sample.id)
+
+            input_path = sample.input_path.resolve()
+            answer_path = sample.answer_path.resolve()
+            if input_path in inputs:
+                errors.append(
+                    f"{sample.id}: input path is also used by {inputs[input_path]}"
+                )
+            else:
+                inputs[input_path] = sample.id
+            if answer_path in answers:
+                errors.append(
+                    f"{sample.id}: answer path is also used by {answers[answer_path]}"
+                )
+            else:
+                answers[answer_path] = sample.id
+            if input_path == answer_path:
+                errors.append(f"{sample.id}: input and answer paths must be distinct")
+
+        for path in sorted(inputs.keys() & answers.keys()):
+            errors.append(
+                f"{inputs[path]}: input path is also an answer path for {answers[path]}"
+            )
         return errors
 
     def _allowlist(self) -> set[str]:
@@ -94,10 +139,10 @@ class Manifest:
         if not isinstance(samples, list):
             raise SystemExit("manifest samples should be an array")
         loaded: list[Sample] = []
-        for payload in samples:
+        for ordinal, payload in enumerate(samples, start=1):
             if not isinstance(payload, dict):
                 raise SystemExit("manifest sample should be an object")
-            loaded.append(Sample.from_payload(payload, self.root))
+            loaded.append(Sample.from_payload(payload, self.root, ordinal))
         return loaded
 
     def _sample_errors(self, sample: Sample) -> list[str]:
@@ -129,3 +174,8 @@ class Manifest:
         if len(sample.historical_patterns) < 2:
             errors.append(f"{sample.id}: original sample should combine two or more patterns")
         return errors
+
+
+def execution_path(sample: Sample, root: pathlib.Path, *, answer: bool = False) -> pathlib.Path:
+    suffix = "_answer.md" if answer else ".md"
+    return root / f"{sample.execution_stem}{suffix}"

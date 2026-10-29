@@ -10,7 +10,7 @@ use super::super::reporter::{
     output_report, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
 use super::common::{apply_fixes_until_stable, FixedContent, UnsafeFixPolicy};
-use crate::config::ConfigLoader;
+use crate::config::ConfigSession;
 use crate::i18n::Locale;
 use crate::MarkdownLinter;
 use std::fs;
@@ -22,6 +22,7 @@ pub(super) fn run_check_like(
     cli: &Cli,
     locale: Locale,
 ) -> Result<i32, String> {
+    let mut config_session = ConfigSession::new(cli.config.as_deref());
     let mut report = CliReport {
         command,
         files: Vec::new(),
@@ -29,7 +30,7 @@ pub(super) fn run_check_like(
         summary: CliSummary::default(),
     };
     if cli.stdin {
-        return run_stdin_check_like(command, fix_mode, cli, locale);
+        return run_stdin_check_like(command, fix_mode, cli, locale, &mut config_session);
     }
 
     let files = match super::super::input::expand_inputs(cli) {
@@ -53,7 +54,7 @@ pub(super) fn run_check_like(
         return Ok(1);
     }
 
-    let config_errors = collect_config_validation_errors(&files, cli.config.as_deref());
+    let config_errors = collect_config_validation_errors(&files, &mut config_session);
     if !config_errors.is_empty() {
         report.errors.extend(config_errors);
         if !cli.ignore_config_errors {
@@ -72,7 +73,7 @@ pub(super) fn run_check_like(
             }
         };
 
-        let config = match ConfigLoader::load_effective_config(&path, cli.config.as_deref()) {
+        let config = match config_session.load_for_path(&path) {
             Ok(config) => config,
             Err(err) => {
                 report.errors.push(CliError::config(&path, err));
@@ -80,8 +81,8 @@ pub(super) fn run_check_like(
             }
         };
 
-        let options = config.to_lint_options();
-        let results = match MarkdownLinter::lint_for_path(&path, &content, &options) {
+        let options = &config.lint_options;
+        let results = match MarkdownLinter::lint_for_path(&path, &content, options) {
             Ok(results) => results,
             Err(err) => {
                 report.errors.push(CliError::rule(&path, err.to_string()));
@@ -94,7 +95,7 @@ pub(super) fn run_check_like(
                 &content,
                 &path,
                 results,
-                &options,
+                options,
                 unsafe_policy.include_unsafe,
             ) {
                 Ok(fixed) => fixed,

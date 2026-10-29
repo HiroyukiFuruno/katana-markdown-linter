@@ -1,0 +1,19 @@
+{
+  "review_thread": "PRRT_kwDOSJyZZc6xbvvW",
+  "prechange_head": "5e8a2cd4ef3a0135839bb11619652e9bfadc0bd5",
+  "input": "[***a*** ***b***]\n\n[_**a**_ _**b**_]: /new\n",
+  "config": {
+    "default": false,
+    "MD049": {
+      "enabled": true,
+      "style": "underscore"
+    }
+  },
+  "old_cli_exit": 0,
+  "old_cli_actual": "[_**a**_ _**b**_]\n\n[_**a**_ _**b**_]: /new\n",
+  "reviewed_expected": "[_**a**_ ***b***]\n\n[_**a**_ _**b**_]: /new\n",
+  "old_output_matches_answer": false,
+  "regression": "tests/batch_fix_semantics_contract.rs",
+  "green": "6 tests passed; iterative/single-pass/file/stdin exact answers, CLI exit1, three passes,128 independent edits",
+  "conflict_scale": "real parser unit:128 candidates,127 accepted,first retained/second rejected,at most15 full comparisons"
+}

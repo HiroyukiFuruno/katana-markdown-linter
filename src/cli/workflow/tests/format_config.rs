@@ -62,8 +62,11 @@ fn fmt_does_not_apply_non_layout_safe_fixes_or_return_one_for_lint_issues() {
 
 #[test]
 fn fmt_stdin_contract_formats_markdown_only() {
-    let formatted = crate::cli::workflow::fmt::format_stdin_content("# Title\r\nText\n\n\n")
-        .expect("stdin format should run");
+    let formatted = crate::cli::workflow::fmt::format_stdin_content(
+        "# Title\r\nText\n\n\n",
+        &crate::MarkdownFormatter::layout_lint_options(),
+    )
+    .expect("stdin format should run");
 
     assert_eq!(formatted, "# Title\n\nText\n");
 }

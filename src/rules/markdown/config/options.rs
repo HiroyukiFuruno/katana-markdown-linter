@@ -1,4 +1,4 @@
-use super::property::{resolve_rule_key, validate_property_value};
+use super::property::{resolve_rule_key, validate_property_value, ENABLED_RULE_PROPERTY};
 use super::types::MarkdownLintConfig;
 use crate::{LintOptions, RuleConfig};
 use serde_json::Value;
@@ -32,7 +32,7 @@ impl MarkdownLintConfig {
             if let Value::Object(properties) = value {
                 entry.properties = properties
                     .iter()
-                    .filter(|(property, _)| property.as_str() != "enabled")
+                    .filter(|(property, _)| property.as_str() != ENABLED_RULE_PROPERTY.key)
                     .filter(|(property, value)| {
                         meta.properties
                             .iter()
@@ -68,7 +68,7 @@ fn rule_enabled(value: &Value, default_enabled: bool) -> bool {
     match value {
         Value::Bool(enabled) => *enabled,
         Value::Object(properties) => properties
-            .get("enabled")
+            .get(ENABLED_RULE_PROPERTY.key)
             .and_then(Value::as_bool)
             .unwrap_or(default_enabled),
         _ => default_enabled,

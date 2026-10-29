@@ -1,0 +1,11 @@
+{
+  "default": false,
+  "MD049": {
+    "enabled": true,
+    "style": "asterisk"
+  },
+  "MD050": {
+    "enabled": true,
+    "style": "asterisk"
+  }
+}

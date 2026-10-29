@@ -1,1 +1,4 @@
 *.rs text eol=lf
+
+# Preserve exact fixture bytes, including intentional CRLF line endings.
+tests/fixtures/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

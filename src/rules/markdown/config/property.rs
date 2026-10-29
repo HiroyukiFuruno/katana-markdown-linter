@@ -3,6 +3,13 @@ use crate::rules::markdown::{RuleProperty, RulePropertyType};
 use serde_json::Value;
 use std::collections::HashMap;
 
+pub(crate) const ENABLED_RULE_PROPERTY: RuleProperty = RuleProperty {
+    key: "enabled",
+    prop_type: RulePropertyType::Boolean,
+    description: "Enable or disable the rule.",
+    default_value: "true",
+};
+
 pub(super) fn validate_property_value(
     property: &RuleProperty,
     value: &Value,

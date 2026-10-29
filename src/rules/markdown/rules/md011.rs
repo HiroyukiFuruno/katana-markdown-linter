@@ -1,3 +1,4 @@
+use crate::rules::markdown::inline::reversed_links_on_line;
 use crate::rules::markdown::{
     DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
     OfficialRuleMeta, RuleConfig,
@@ -32,13 +33,7 @@ impl MarkdownRule for NoReversedLinksRule {
             if ctx.is_code_line(i) {
                 continue;
             }
-            for reversed in reversed_link_ranges(line.text) {
-                if ctx.overlaps_inline_code(crate::rules::markdown::SourceRange {
-                    start: line.content_range.start + reversed.start,
-                    end: line.content_range.start + reversed.end,
-                }) {
-                    continue;
-                }
+            for reversed in reversed_links_on_line(line, ctx) {
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
@@ -63,57 +58,6 @@ impl MarkdownRule for NoReversedLinksRule {
         }
         diagnostics
     }
-}
-
-struct ReversedLink<'a> {
-    start: usize,
-    end: usize,
-    text: &'a str,
-    destination: &'a str,
-}
-
-fn reversed_link_ranges(line: &str) -> Vec<ReversedLink<'_>> {
-    let bytes = line.as_bytes();
-    let mut ranges = Vec::new();
-    let mut cursor = 0;
-
-    while cursor < bytes.len() {
-        match bytes[cursor] {
-            b'(' => {
-                let Some(close_paren) = line[cursor + 1..]
-                    .find(')')
-                    .map(|offset| cursor + 1 + offset)
-                else {
-                    break;
-                };
-                if bytes.get(close_paren + 1) != Some(&b'[') {
-                    cursor += 1;
-                    continue;
-                }
-                let Some(close_bracket) = line[close_paren + 2..]
-                    .find(']')
-                    .map(|offset| close_paren + 2 + offset)
-                else {
-                    break;
-                };
-
-                let text = &line[cursor + 1..close_paren];
-                let destination = &line[close_paren + 2..close_bracket];
-                if !text.trim().is_empty() && !destination.starts_with('^') {
-                    ranges.push(ReversedLink {
-                        start: cursor,
-                        end: close_bracket + 1,
-                        text,
-                        destination,
-                    });
-                }
-                cursor = close_bracket + 1;
-            }
-            _ => cursor += 1,
-        }
-    }
-
-    ranges
 }
 
 #[cfg(test)]

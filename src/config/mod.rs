@@ -1,9 +1,11 @@
 mod schema;
+mod session;
 
 use std::path::{Path, PathBuf};
 
 pub use crate::rules::markdown::config::*;
 pub use schema::{ConfigSchema, MARKDOWNLINT_CONFIG_SCHEMA_ID};
+pub(crate) use session::ConfigSession;
 
 pub struct EffectiveConfig {
     pub config: MarkdownLintConfig,
@@ -24,42 +26,44 @@ impl ConfigLoader {
         path: &Path,
         explicit: Option<&Path>,
     ) -> Result<EffectiveConfig, String> {
-        if let Some(path) = explicit {
-            if !path.exists() {
-                return Err(format!("config file not found: {}", path.display()));
+        let source = Self::resolve_source(path, explicit)?;
+        let config = Self::load_config_from_source(source.as_deref())?;
+        Ok(EffectiveConfig { config, source })
+    }
+
+    pub(super) fn resolve_source(
+        path: &Path,
+        explicit: Option<&Path>,
+    ) -> Result<Option<PathBuf>, String> {
+        if let Some(explicit) = explicit {
+            if !explicit.exists() {
+                return Err(format!("config file not found: {}", explicit.display()));
             }
-            let config = MarkdownLintConfig::load(path).map_err(|err| err.to_string())?;
-            return Ok(EffectiveConfig {
-                config,
-                source: Some(path.to_path_buf()),
-            });
+            return Ok(Some(explicit.to_path_buf()));
         }
 
         let mut current = path.parent();
         while let Some(dir) = current {
             let json = dir.join(".markdownlint.json");
             if json.exists() {
-                let config = MarkdownLintConfig::load(&json).map_err(|err| err.to_string())?;
-                return Ok(EffectiveConfig {
-                    config,
-                    source: Some(json),
-                });
+                return Ok(Some(json));
             }
             let jsonc = dir.join(".markdownlint.jsonc");
             if jsonc.exists() {
-                let config = MarkdownLintConfig::load(&jsonc).map_err(|err| err.to_string())?;
-                return Ok(EffectiveConfig {
-                    config,
-                    source: Some(jsonc),
-                });
+                return Ok(Some(jsonc));
             }
             current = dir.parent();
         }
+        Ok(None)
+    }
 
-        Ok(EffectiveConfig {
-            config: MarkdownLintConfig::default(),
-            source: None,
-        })
+    pub(super) fn load_config_from_source(
+        source: Option<&Path>,
+    ) -> Result<MarkdownLintConfig, String> {
+        source.map_or_else(
+            || Ok(MarkdownLintConfig::default()),
+            |path| MarkdownLintConfig::load(path).map_err(|err| err.to_string()),
+        )
     }
 
     pub fn validate_effective_config(

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "md007-indent-four",
+      "mode": "formatter",
+      "config": "md007-indent-four.json",
+      "input": "md007-indent-four.md",
+      "answer": "md007-indent-four_answer.md"
+    },
+    {
+      "id": "md007-disabled",
+      "mode": "formatter",
+      "config": "md007-disabled.json",
+      "input": "md007-disabled.md",
+      "answer": "md007-disabled_answer.md"
+    },
+    {
+      "id": "enabled-true-md049",
+      "mode": "style-only",
+      "config": "enabled-true-md049.json",
+      "input": "enabled-true-md049.md",
+      "answer": "enabled-true-md049_answer.md"
+    },
+    {
+      "id": "escaped-unicode-crlf-nesting",
+      "mode": "fix",
+      "config": "escaped-unicode-crlf-nesting.json",
+      "input": "escaped-unicode-crlf-nesting.md",
+      "answer": "escaped-unicode-crlf-nesting_answer.md",
+      "line_ending": "crlf"
+    },
+    {
+      "id": "flanking-literals-unicode-crlf",
+      "mode": "style-only",
+      "config": "flanking-literals-unicode-crlf.json",
+      "input": "flanking-literals-unicode-crlf.md",
+      "answer": "flanking-literals-unicode-crlf_answer.md",
+      "line_ending": "crlf"
+    },
+    {
+      "id": "md050-styleunderscore-nested-triple",
+      "mode": "style-only",
+      "config": "md050-styleunderscore-nested-triple.json",
+      "input": "md050-styleunderscore-nested-triple.md",
+      "answer": "md050-styleunderscore-nested-triple_answer.md"
+    },
+    {
+      "id": "md049-md050-styleunderscore-nested-triple",
+      "mode": "style-only",
+      "config": "md049-md050-styleunderscore-nested-triple.json",
+      "input": "md049-md050-styleunderscore-nested-triple.md",
+      "answer": "md049-md050-styleunderscore-nested-triple_answer.md"
+    },
+    {
+      "id": "reference-style-preservation",
+      "mode": "style-only",
+      "config": "reference-style-preservation.json",
+      "input": "reference-style-preservation.md",
+      "answer": "reference-style-preservation_answer.md",
+      "remaining_diagnostics": {
+        "MD049": 4,
+        "MD050": 4
+      }
+    }
+  ]
+}

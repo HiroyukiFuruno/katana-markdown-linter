@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20.1
+
+- Share escape-aware inline source scanners across reversed links, emphasis, strong emphasis, and existing link/code adapters to preserve escaped literal content.
+- Apply resolved layout configuration consistently in CLI file/stdin formatting and editor formatting.
+- Derive common rule enable configuration from shared metadata for schema generation, validation, and option conversion.
+- Reject duplicate or unsafe document-answer identities and ambiguous fixture mappings before executing the linter.
+- Extend independent document answers and configuration/structure regressions, including repeated-fix equality and style-only meaning preservation.
+- Refresh compatible editor type definitions and the pinned tool installer action; synchronize distribution metadata to v0.20.1.
+
 ## v0.20.0
 
 - Share Markdown code boundaries and source ranges across lint rules, including CommonMark multiline code, valid fence termination, tab-separated headings, and GFM escaped table pipes.

@@ -1,5 +1,7 @@
 use super::error::{ConfigError, ConfigErrorKind};
-use super::property::{resolve_rule_key, validate_property_value, value_kind};
+use super::property::{
+    resolve_rule_key, validate_property_value, value_kind, ENABLED_RULE_PROPERTY,
+};
 use super::types::MarkdownLintConfig;
 use crate::rules::markdown::MarkdownRule;
 use std::collections::HashMap;
@@ -116,6 +118,18 @@ fn collect_property_error(
     prop_value: &serde_json::Value,
     errors: &mut Vec<ConfigError>,
 ) {
+    if prop_key == ENABLED_RULE_PROPERTY.key {
+        if let Some(kind_err) = validate_property_value(&ENABLED_RULE_PROPERTY, prop_value) {
+            errors.push(ConfigError::new(
+                Some(rule_id.to_string()),
+                Some(prop_key.to_string()),
+                kind_err,
+                "invalid rule property value",
+            ));
+        }
+        return;
+    }
+
     let Some(prop_meta) = meta
         .properties
         .iter()

@@ -4,6 +4,7 @@ pub mod broken_link;
 pub mod catalog;
 pub mod document;
 pub use broken_link::*;
+pub(crate) use document::MarkdownSemanticSignature;
 pub use document::*;
 pub mod inline;
 pub use inline::*;

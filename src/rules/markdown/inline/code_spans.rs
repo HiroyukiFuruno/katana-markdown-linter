@@ -1,3 +1,4 @@
+use super::scan::is_escaped;
 use super::types::InlineCodeSpan;
 use crate::rules::markdown::document::{LineInfo, SourceRange};
 
@@ -41,14 +42,7 @@ pub(in crate::rules::markdown) fn inline_code_spans_on_line(
             cursor += 1;
             continue;
         }
-        if bytes[..cursor]
-            .iter()
-            .rev()
-            .take_while(|byte| **byte == b'\\')
-            .count()
-            % 2
-            == 1
-        {
+        if is_escaped(line.text, cursor) {
             /* WHY: エスケープされるのは直後の1文字だけで、残りのrunは構文になり得る。 */
             cursor += 1;
             continue;

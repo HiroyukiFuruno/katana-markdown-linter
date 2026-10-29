@@ -1,0 +1,7 @@
+{
+  "default": false,
+  "MD007": {
+    "enabled": true,
+    "indent": 4
+  }
+}
