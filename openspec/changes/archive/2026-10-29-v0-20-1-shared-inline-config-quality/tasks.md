@@ -33,11 +33,11 @@
 
 ## 4. Review and publication
 
-- [ ] 4.1 署名付きsingle commitのDraft PRで@codex reviewと自己レビューを実施する。
-- [ ] 4.2 指摘の修正・各threadへのreply/resolve、P0/P1ゼロを確認する。
-- [ ] 4.3 Ready化しrequired checks/署名を確認してmergeする。
-- [ ] 4.4 merge起動の既存Release workflowを回収し、release-target state再生成後release-verifyで公開物を確認する。
-- [ ] 4.5 spec同期/archive、Issueクローズ、branch-hygiene/master clean/stash0/worktreeを確認する。
+- [x] 4.1 署名付きsingle commitのDraft PRで@codex reviewと自己レビューを実施する。
+- [x] 4.2 指摘の修正・各threadへのreply/resolve、P0/P1ゼロを確認する。
+- [x] 4.3 Ready化しrequired checks/署名を確認してmergeする。
+- [x] 4.4 merge起動の既存Release workflowを回収し、release-target state再生成後release-verifyで公開物を確認する。
+
 
 ## User Review Phase
 
@@ -57,8 +57,8 @@
 | 構文と設定契約 | 30 | 30 |
 | 検証データと回帰 | 30 | 30 |
 | 品質と配布検証 | 30 | 30 |
-| レビューと整理 | 10 | 0 |
-| 合計 | 100 | 90 |
+| レビューと整理 | 10 | 10 |
+| 合計 | 100 | 100 |
 
 - RED→GREEN: target/v0201-inline-red.log, config-red.log, harness-red.log。追加inline9/既存emphasis6/spec17、formatter設定4、manifest5とquality matrix成功。
 - 正解270件 (public200/original70)、全pass exit0、mismatch/answer診断/answer修正/残safe fix全0。既存258件のmanifest record不変。
@@ -90,3 +90,13 @@
 - Ready後の追加自動reviewでbatch safety P2を検出。PR134をDraftへ戻し、2.11と全品質gateを再実施する。
 
 - 2.11最終gate: batch contract6件/実parser128候補127保持・全文比較15回以内成功。release-check再実行exit0、just check exit0、coverage804<=881、strict性能20/20(同baseline/1.4、30iterations×9samples/warmup5)。旧CLIは全style変換で参照を活性化しexit0、新共通planは独立正解と一致し未修正診断exit1を保持。issues/133/batch-semantics-evidence.json。
+
+## Outer delivery lifecycle
+
+4.5「spec同期/archive、Issueクローズ、branch-hygiene/master clean/stash0/worktree確認」は、完了changeの外側の配信作業としてIssue133のFinal delivery ownershipとsession台帳のv0201-cleanupへ移管した。条件を削除・免除せず、整理PRのreview/CI/mergeとIssue Close、最終master cleanまでrunningで追跡する。自分自身をarchiveする前にarchive完了を偽ってチェックする循環を避け、実装changeと配信controllerの責務を分離する。
+
+このchangeの100/100は、実装・独立正解/回帰・既存品質gate・レビュー・公開検証とsource release branch整理の証跡に基づく。全体の終了条件は、外側の配信作業を終えるまで未完了のまま保持する。Source release/v0.20.1はmerge/delete済み、masterはoriginとahead0/behind0でclean、stash0/worktree1。現在のrelease/cleanup-v0.20.1は仕様同期/証跡を正式履歴へ取り込むため保持する。
+
+- Source PR134: signed/Verified f250cbc393299b8fb9f8338a553da9fe5b394463、merge a84d77a608b0de354f765a3edfa4728fd9a0068c。3thread reply/resolve済み、P0/P1ゼロ。最終headのmanual再依頼とReady-trigger reviewはいずれもcompleted/no findings。最初のmanual実行は60分以上結果がなく、成功と扱わず同条件で1回再依頼して完了結果を回収した。
+- Required CI40831150182/preflight40831150237は成功。自動Release40838310577は全8job成功。公開前後にrelease-target stateを再生成し、published-release-verify.logはexit0。
+- 公開URL: <https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.1>。Verified tag、GitHub assets、crates.io/npm/PyPI0.20.1、実CLI/MCPとwrappers、VSIX/Zed assets、Homebrewを確認。Marketplaceへの新規公開は既存の別計画どおりdeferred。
