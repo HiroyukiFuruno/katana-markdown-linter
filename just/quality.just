@@ -36,7 +36,7 @@ upstream-golden:
 
 # Verify shared Markdown syntax and deterministic fix boundaries
 markdown-spec-check:
-    cargo test --test markdown_spec_regressions --test fix_engine_regressions --test shared_engine_boundary_contract --locked
+    cargo test --test markdown_spec_regressions --test inline_escape_regressions --test emphasis_semantics_contract --test fix_engine_regressions --test shared_engine_boundary_contract --locked
 
 # Run live upstream markdownlint oracle against golden corpus
 upstream-golden-live:

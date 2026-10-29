@@ -1,5 +1,5 @@
 use crate::rules::markdown::inline::{
-    InlineCodeSpan, InlineHtmlElement, InlineLink, ReferenceDefinition,
+    InlineCodeSpan, InlineEmphasisKind, InlineHtmlElement, InlineLink, ReferenceDefinition,
 };
 use std::path::Path;
 use std::sync::OnceLock;
@@ -8,6 +8,14 @@ use std::sync::OnceLock;
 pub struct SourceRange {
     pub start: usize,
     pub end: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(in crate::rules::markdown) struct ParsedEmphasisSpan {
+    pub(in crate::rules::markdown) kind: InlineEmphasisKind,
+    pub(in crate::rules::markdown) range: SourceRange,
+    pub(in crate::rules::markdown) semantic_scope: usize,
+    pub(in crate::rules::markdown) block_scope: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

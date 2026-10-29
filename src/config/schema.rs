@@ -1,3 +1,4 @@
+use crate::rules::markdown::config::ENABLED_RULE_PROPERTY;
 use crate::rules::markdown::{
     MarkdownLintConfig, MarkdownLinterOps, OfficialRuleMeta, RuleProperty, RulePropertyType,
 };
@@ -88,13 +89,15 @@ impl ConfigSchemaGenerator {
 
     fn rule_properties(&self, rule: &OfficialRuleMeta) -> Map<String, Value> {
         let mut properties = Map::new();
-        properties.insert(
-            "enabled".to_string(),
-            json!({
-                "type": "boolean",
-                "description": format!("Enable or disable {}.", rule.code)
-            }),
-        );
+        let mut enabled_schema = property_schema(&ENABLED_RULE_PROPERTY);
+        if let Value::Object(schema) = &mut enabled_schema {
+            schema.remove("default");
+            schema.insert(
+                "description".to_string(),
+                Value::String(format!("Enable or disable {}.", rule.code)),
+            );
+        }
+        properties.insert(ENABLED_RULE_PROPERTY.key.to_string(), enabled_schema);
         for property in rule.properties {
             properties.insert(property.key.to_string(), property_schema(property));
         }

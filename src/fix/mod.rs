@@ -1,8 +1,11 @@
-use crate::types::{FixDetail, FixResult, LintResult, Range};
+use crate::types::{FixDetail, FixResult, LintResult};
 
 mod engine;
+mod plan;
+mod policy;
 mod position;
 pub(crate) use engine::{FixEngine, DEFAULT_MAX_FIX_PASSES};
+use plan::Edit;
 use position::LineOffsetIndex;
 
 pub(crate) struct FixApplicator;
@@ -13,39 +16,11 @@ impl FixApplicator {
         content: &str,
         include_unsafe: bool,
     ) -> bool {
-        let line_index = LineOffsetIndex::new(content);
-        results.iter().any(|result| {
-            let Some(fix) = result.fix.as_ref() else {
-                return false;
-            };
-            if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
-                return false;
-            }
-            let Some(start) =
-                line_index.offset_for_position(fix.range.start_line, fix.range.start_column)
-            else {
-                return false;
-            };
-            let Some(end) =
-                line_index.offset_for_position(fix.range.end_line, fix.range.end_column)
-            else {
-                return false;
-            };
-            start <= end && content.get(start..end) != Some(fix.replacement.as_str())
-        })
+        Self::apply(results, content, include_unsafe).applied_fixes > 0
     }
 
     pub(crate) fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
-        let mut applied_fixes = 0;
         let line_index = LineOffsetIndex::new(content);
-
-        struct Edit<'a> {
-            byte_start: usize,
-            byte_end: usize,
-            replacement: &'a str,
-            rule_id: &'a str,
-            range: Range,
-        }
 
         let mut edits = results
             .iter()
@@ -67,6 +42,7 @@ impl FixApplicator {
                     replacement: fix.replacement.as_str(),
                     rule_id: result.rule_id.as_str(),
                     range: fix.range.clone(),
+                    safety: fix.safety,
                 })
             })
             .collect::<Vec<_>>();
@@ -99,10 +75,10 @@ impl FixApplicator {
                 continue;
             }
             previous_start = edit.byte_start;
-            applied_fixes += 1;
             accepted.push(edit);
         }
         accepted.reverse();
+        plan::retain_semantics(&mut accepted, &mut skipped, content);
 
         let mut details: Vec<FixDetail> = accepted
             .iter()
@@ -127,18 +103,11 @@ impl FixApplicator {
             });
         }
 
-        let mut fixed = String::with_capacity(content.len());
-        let mut cursor = 0;
-        for edit in &accepted {
-            fixed.push_str(&content[cursor..edit.byte_start]);
-            fixed.push_str(edit.replacement);
-            cursor = edit.byte_end;
-        }
-        fixed.push_str(&content[cursor..]);
+        let fixed = plan::render(content, accepted.iter());
 
         FixResult {
             content: fixed,
-            applied_fixes,
+            applied_fixes: accepted.len(),
             details,
         }
     }

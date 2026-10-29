@@ -1,6 +1,9 @@
+use crate::rules::markdown::inline::{
+    extract_emphasis_spans, safe_replacement, touches_inline_code, InlineEmphasisKind,
+};
 use crate::rules::markdown::{
     DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta, SourceRange,
+    OfficialRuleMeta,
 };
 use crate::types::RuleConfig;
 use std::path::Path;
@@ -64,8 +67,8 @@ impl EmphasisStyleRule {
             }
             let has_inline_code_marker = line.text.contains('`');
             let line_start = line.content_range.start;
-            for span in emphasis_spans(line.text) {
-                if has_inline_code_marker && span_touches_inline_code(ctx, line_start, &span) {
+            for span in extract_emphasis_spans(ctx, line, InlineEmphasisKind::Emphasis) {
+                if has_inline_code_marker && touches_inline_code(ctx, line_start, &span) {
                     continue;
                 }
                 let expected_marker = *expected.get_or_insert(span.marker);
@@ -85,106 +88,20 @@ impl EmphasisStyleRule {
                     message: meta.description.to_string(),
                     rule_id: meta.code.to_string(),
                     official_meta: Some(meta.clone()),
-                    fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: span.start + 1,
-                        end_line: line.number,
-                        end_column: span.end + 1,
-                        replacement: format!("{expected_marker}{}{expected_marker}", span.inner),
-                    }),
+                    fix_info: safe_replacement(ctx, line, &span, expected_marker).map(
+                        |replacement| crate::rules::markdown::types::DiagnosticFix {
+                            start_line: line.number,
+                            start_column: span.start + 1,
+                            end_line: line.number,
+                            end_column: span.end + 1,
+                            replacement,
+                        },
+                    ),
                 });
             }
         }
         diagnostics
     }
-}
-
-struct EmphasisSpan<'a> {
-    marker: char,
-    start: usize,
-    end: usize,
-    inner: &'a str,
-}
-
-fn emphasis_spans(line: &str) -> Vec<EmphasisSpan<'_>> {
-    let bytes = line.as_bytes();
-    let mut spans = Vec::new();
-    let mut cursor = 0;
-
-    while cursor < bytes.len() {
-        match bytes[cursor] {
-            marker @ (b'*' | b'_') => {
-                if bytes.get(cursor + 1) == Some(&marker) {
-                    cursor += 2;
-                    continue;
-                }
-                let Some(close) = find_single_marker(line, cursor + 1, marker) else {
-                    cursor += 1;
-                    continue;
-                };
-                if marker == b'_' && is_intraword(line, cursor, close) {
-                    cursor = close + 1;
-                    continue;
-                }
-                let inner = &line[cursor + 1..close];
-                if !inner.trim().is_empty() {
-                    spans.push(EmphasisSpan {
-                        marker: marker as char,
-                        start: cursor,
-                        end: close + 1,
-                        inner,
-                    });
-                }
-                cursor = close + 1;
-            }
-            _ => cursor += 1,
-        }
-    }
-
-    spans
-}
-
-fn find_single_marker(line: &str, start: usize, marker: u8) -> Option<usize> {
-    let bytes = line.as_bytes();
-    let mut cursor = start;
-    while cursor < bytes.len() {
-        if bytes[cursor] == marker
-            && bytes.get(cursor + 1) != Some(&marker)
-            && bytes.get(cursor.wrapping_sub(1)) != Some(&marker)
-        {
-            return Some(cursor);
-        }
-        cursor += 1;
-    }
-    None
-}
-
-fn is_intraword(line: &str, open: usize, close: usize) -> bool {
-    let bytes = line.as_bytes();
-    open > 0
-        && bytes
-            .get(open - 1)
-            .is_some_and(|byte| byte.is_ascii_alphanumeric())
-        && bytes
-            .get(close + 1)
-            .is_some_and(|byte| byte.is_ascii_alphanumeric())
-}
-
-fn span_touches_inline_code(
-    ctx: &DocumentContext<'_>,
-    line_start: usize,
-    span: &EmphasisSpan<'_>,
-) -> bool {
-    ctx.is_inside_inline_code(SourceRange {
-        start: line_start + span.start,
-        end: line_start + span.start + 1,
-    }) || ctx.is_inside_inline_code(SourceRange {
-        start: line_start + span.end.saturating_sub(1),
-        end: line_start + span.end,
-    }) || ctx.is_inside_inline_code(SourceRange {
-        start: line_start + span.start,
-        end: line_start + span.end,
-    })
 }
 
 #[cfg(test)]

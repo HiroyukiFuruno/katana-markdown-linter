@@ -4898,6 +4898,226 @@
       ],
       "answer_reviewed": true,
       "answer_review_note": "Manually specified heading/link/emphasis repairs only. CommonMark code payload and escaped table cells must retain source bytes; no expected output was generated from kml."
+    },
+    {
+      "id": "original-059",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-059.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-059_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-059.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for escape parity, literal examples; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "escape parity",
+        "literal examples"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-060",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-060.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-060_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-060.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for Unicode, anchor links; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "Unicode",
+        "anchor links"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-061",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-061.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-061_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-061.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for CRLF, nested lists; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "CRLF",
+        "nested lists"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-062",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-062.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-062_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-062.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for nested lists, Unicode; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "nested lists",
+        "Unicode"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-063",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-063.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-063_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-063.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for escape parity, inline code; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "escape parity",
+        "inline code"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "The hand-authored Overview section resolves the reviewed #overview fragment; expected answer was not generated from kml."
+    },
+    {
+      "id": "original-064",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-064.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-064_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-064.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for nested emphasis, link boundaries; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "nested emphasis",
+        "link boundaries"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "The earlier new answer missed the nested candidate and treated it as no-change. The official MD049 consistency requirement and independent CommonMark event comparison review the nested style repair as expected; the hand-authored 変更手順 section also resolves the Japanese fragment. Expected output was not generated from kml."
+    },
+    {
+      "id": "original-065",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-065.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-065_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-065.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for nested fences, escaped delimiters; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "nested fences",
+        "escaped delimiters"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-066",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-066.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-066_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-066.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture for reference links, escaped brackets; the expected answer was hand-reviewed as byte-identical to preserve these literal and structural examples.",
+      "historical_patterns": [
+        "reference links",
+        "escaped brackets"
+      ],
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-authored expected bytes; no current kml output was used to generate this answer."
+    },
+    {
+      "id": "original-067",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-067.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-067_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-067.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture with a deliberate MD018 heading-spacing repair mutation and surrounding literal/document context.",
+      "historical_patterns": [
+        "MD018",
+        "escaped-literal preservation"
+      ],
+      "mutation": "MD018 heading-spacing repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes: only the stated MD018 heading-spacing repair is repaired; expected output was not generated from kml."
+    },
+    {
+      "id": "original-068",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-068.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-068_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-068.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture with a deliberate MD039 link-text spacing repair mutation and surrounding literal/document context.",
+      "historical_patterns": [
+        "MD039",
+        "escaped-literal preservation"
+      ],
+      "mutation": "MD039 link-text spacing repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes: only the stated MD039 link-text spacing repair is repaired; expected output was not generated from kml."
+    },
+    {
+      "id": "original-069",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-069.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-069_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-069.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture with a deliberate MD007 nested-list indentation repair mutation and surrounding literal/document context.",
+      "historical_patterns": [
+        "MD007",
+        "nested-list structure"
+      ],
+      "mutation": "MD007 nested-list indentation repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes: only the stated MD007 nested-list indentation repair is repaired; expected output was not generated from kml."
+    },
+    {
+      "id": "original-070",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-070.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-070_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-070.md",
+      "license": "MIT",
+      "retrieved_at": "2026-10-29",
+      "selection_reason": "Independently authored original fixture with a deliberate MD049 emphasis-style repair mutation and surrounding literal/document context.",
+      "historical_patterns": [
+        "MD049",
+        "escaped-literal preservation"
+      ],
+      "mutation": "MD049 emphasis-style repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes: only the stated MD049 emphasis-style repair is repaired; expected output was not generated from kml."
     }
   ],
   "original_corpus_policy": {

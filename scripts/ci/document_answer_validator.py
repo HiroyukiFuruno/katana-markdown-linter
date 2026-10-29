@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 
-from document_answer_manifest import Sample
+from document_answer_manifest import Sample, execution_path
 
 ACCEPTED_KML_EXIT_CODES = {0, 1}
 
@@ -57,7 +57,7 @@ class AnswerValidationRunner:
     ) -> list[tuple[Sample, pathlib.Path]]:
         copied: list[tuple[Sample, pathlib.Path]] = []
         for sample in samples:
-            destination = temp_root / f"{sample.id}_answer.md"
+            destination = execution_path(sample, temp_root, answer=True)
             shutil.copyfile(sample.answer_path, destination)
             copied.append((sample, destination))
         return copied

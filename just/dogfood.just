@@ -29,7 +29,8 @@ public-confidence:
 # Compare document-level fix output with reviewed answer fixtures
 document-answer-fix:
     cargo build --bin kml --locked
-    python3 scripts/ci/document-answer-fix.py --manifest {{DOCUMENT_ANSWER_FIX_MANIFEST}} --config {{DOCUMENT_ANSWER_FIX_CONFIG}} --report {{DOCUMENT_ANSWER_FIX_REPORT}} -- {{DOCUMENT_ANSWER_FIX_KML}}
+    cargo test --test quality_matrix_contract --locked
+    python3 scripts/ci/document-answer-fix.py --manifest {{DOCUMENT_ANSWER_FIX_MANIFEST}} --config {{DOCUMENT_ANSWER_FIX_CONFIG}} --minimum-public 200 --minimum-original 70 --report {{DOCUMENT_ANSWER_FIX_REPORT}} -- {{DOCUMENT_ANSWER_FIX_KML}}
 
 # Run optional KatanA docs/assets Markdown confidence dogfood (KATANA_CHECKOUT=/path)
 external-katana-dogfood:

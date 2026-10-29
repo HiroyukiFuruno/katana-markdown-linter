@@ -67,6 +67,8 @@ fn fix_does_not_rewrite_reserved_directories_by_default() {
 #[test]
 fn fmt_does_not_rewrite_reserved_directories_by_default() {
     let workspace = ReservedWorkspace::new("reserved-fmt-default");
+    fs::write(workspace.config_text(), r#"{"default":false,"MD022":true}"#)
+        .expect("fmt fixture should enable the heading-spacing policy it verifies");
     fs::write(workspace.docs_file(), "# Title\r\nText\n\n\n")
         .expect("docs file should be rewritten for fmt fixture");
     fs::write(workspace.reserved_file(), "# Title\r\nText\n\n\n")

@@ -9,7 +9,7 @@ import tempfile
 import time
 
 from document_answer_validator import AnswerValidationRunner
-from document_answer_manifest import Manifest, Sample
+from document_answer_manifest import Manifest, Sample, execution_path
 
 SCHEMA_VERSION = 1
 ACCEPTED_KML_EXIT_CODES = {0, 1}
@@ -99,7 +99,7 @@ class DocumentAnswerRunner:
     def _copy_inputs(self, temp_root: pathlib.Path) -> list[tuple[Sample, pathlib.Path]]:
         copied: list[tuple[Sample, pathlib.Path]] = []
         for sample in self.manifest.samples:
-            destination = temp_root / f"{sample.id}.md"
+            destination = execution_path(sample, temp_root)
             shutil.copyfile(sample.input_path, destination)
             copied.append((sample, destination))
         return copied

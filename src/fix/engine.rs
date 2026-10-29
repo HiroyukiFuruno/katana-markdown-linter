@@ -1,9 +1,7 @@
-use super::FixApplicator;
+use super::{policy::FixStage, FixApplicator};
 use crate::{Error, FixDetail, LintResult};
 use std::collections::HashSet;
 
-const SYNTAX_RULES: &[&str] = &["MD018", "MD019", "MD020", "MD021", "MD023"];
-const LAYOUT_RULES: &[&str] = &["MD012", "MD022", "MD031", "MD032", "MD047", "MD058"];
 pub(crate) const DEFAULT_MAX_FIX_PASSES: usize = 8;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,10 +35,12 @@ impl FixEngine {
             for stage in [FixStage::Syntax, FixStage::Content, FixStage::Layout] {
                 let candidates = diagnostics
                     .iter()
-                    .filter(|diagnostic| stage.contains(&diagnostic.rule_id))
+                    .filter(|diagnostic| {
+                        diagnostic.fix.is_some() && stage.contains(&diagnostic.rule_id)
+                    })
                     .cloned()
                     .collect::<Vec<_>>();
-                if !FixApplicator::has_effective(&candidates, &content, include_unsafe) {
+                if candidates.is_empty() {
                     continue;
                 }
                 let fixed = FixApplicator::apply(&candidates, &content, include_unsafe);
@@ -68,15 +68,15 @@ impl FixEngine {
             diagnostics = check(&content)?;
         }
 
-        if diagnostics.iter().any(|diagnostic| {
-            FixStage::ALL
+        if FixStage::ALL.iter().any(|stage| {
+            let candidates = diagnostics
                 .iter()
-                .any(|stage| stage.contains(&diagnostic.rule_id))
-                && FixApplicator::has_effective(
-                    std::slice::from_ref(diagnostic),
-                    &content,
-                    include_unsafe,
-                )
+                .filter(|diagnostic| {
+                    diagnostic.fix.is_some() && stage.contains(&diagnostic.rule_id)
+                })
+                .cloned()
+                .collect::<Vec<_>>();
+            FixApplicator::has_effective(&candidates, &content, include_unsafe)
         }) {
             return Err(Error::new(format!(
                 "fix engine did not converge after {max_passes} passes; applicable fixes remain"
@@ -89,25 +89,6 @@ impl FixEngine {
             applied_fixes,
             details,
         })
-    }
-}
-
-#[derive(Clone, Copy)]
-enum FixStage {
-    Syntax,
-    Content,
-    Layout,
-}
-
-impl FixStage {
-    const ALL: [Self; 3] = [Self::Syntax, Self::Content, Self::Layout];
-
-    fn contains(self, rule_id: &str) -> bool {
-        match self {
-            Self::Syntax => SYNTAX_RULES.contains(&rule_id),
-            Self::Content => !SYNTAX_RULES.contains(&rule_id) && !LAYOUT_RULES.contains(&rule_id),
-            Self::Layout => LAYOUT_RULES.contains(&rule_id),
-        }
     }
 }
 

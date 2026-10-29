@@ -23,7 +23,9 @@ fn code_policy_is_shared() {
         assert!(!source.contains("in_code ="));
     }
     let reversed_links = include_str!("../src/rules/markdown/rules/md011.rs");
-    assert!(reversed_links.contains("ctx.overlaps_inline_code("));
+    assert!(reversed_links.contains("reversed_links_on_line(line, ctx)"));
+    let adapter = include_str!("../src/rules/markdown/inline/reversed_links.rs");
+    assert!(adapter.contains("ctx.overlaps_inline_code("));
     assert!(!reversed_links.contains("in_code ="));
 }
 
@@ -37,8 +39,11 @@ fn markdown_backend_is_confined_to_the_source_adapter() {
             } else if path.extension().is_some_and(|extension| extension == "rs") {
                 let source = fs::read_to_string(&path).expect("source should be readable");
                 if source.contains("pulldown_cmark::") {
+                    let backend_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("src/rules/markdown/document/syntax");
                     assert!(
-                        path.ends_with("rules/markdown/document/syntax.rs"),
+                        path == backend_root.with_extension("rs")
+                            || path.starts_with(&backend_root),
                         "{} bypasses shared adapter",
                         path.display()
                     );
@@ -79,5 +84,63 @@ fn context_migrations_do_not_reparse_during_shared_evaluation() {
             !implementation.contains("DocumentContext::new("),
             "{name} reparses shared evaluation"
         );
+    }
+}
+
+#[test]
+fn inline_rule_candidates_come_from_shared_source_adapters() {
+    for source in [
+        include_str!("../src/rules/markdown/rules/md049.rs"),
+        include_str!("../src/rules/markdown/rules/md050.rs"),
+    ] {
+        assert!(source.contains("extract_emphasis_spans("));
+        assert!(!source.contains("fn emphasis_spans("));
+        assert!(!source.contains("fn strong_spans("));
+        assert!(!source.contains("fn is_intraword("));
+    }
+    let emphasis_adapter = include_str!("../src/rules/markdown/inline/emphasis.rs");
+    assert!(emphasis_adapter.contains("ctx.parsed_emphasis_spans("));
+    assert!(emphasis_adapter.contains("ctx.replacement_preserves_inline_semantics("));
+    assert!(!emphasis_adapter.contains("fn extract_flat_spans("));
+    let reversed = include_str!("../src/rules/markdown/rules/md011.rs");
+    assert!(!reversed.contains("fn reversed_link_ranges("));
+    let adapter = include_str!("../src/rules/markdown/inline/reversed_links.rs");
+    assert!(!adapter.contains("span.full_range.start <"));
+}
+
+#[test]
+fn common_rule_properties_are_defined_once() {
+    for source in [
+        include_str!("../src/config/schema.rs"),
+        include_str!("../src/rules/markdown/config/validate.rs"),
+        include_str!("../src/rules/markdown/config/options.rs"),
+    ] {
+        assert!(source.contains("ENABLED_RULE_PROPERTY"));
+        assert!(!source.contains("\"enabled\""));
+    }
+}
+
+#[test]
+fn cli_and_editor_formatting_consume_the_shared_layout_policy() {
+    for source in [
+        include_str!("../src/cli/workflow/fmt.rs"),
+        include_str!("../src/lsp/server/config.rs"),
+    ] {
+        assert!(source.contains("MarkdownFormatter::layout_lint_options_from("));
+    }
+    let cli = include_str!("../src/cli/workflow/fmt.rs");
+    assert!(!cli.contains("MarkdownFormatter::format_markdown("));
+}
+
+#[test]
+fn cli_configuration_preparation_is_shared_within_each_operation() {
+    for source in [
+        include_str!("../src/cli/workflow/check.rs"),
+        include_str!("../src/cli/workflow/check/config.rs"),
+        include_str!("../src/cli/workflow/check/stdin.rs"),
+        include_str!("../src/cli/workflow/fmt.rs"),
+    ] {
+        assert!(source.contains("ConfigSession"));
+        assert!(!source.contains("ConfigLoader::load_effective_config"));
     }
 }

@@ -3,8 +3,8 @@ pub(super) fn matching_bracket(line: &str, open_bracket: usize) -> Option<usize>
     let mut cursor = open_bracket + 1;
     let mut depth = 1usize;
     while cursor < bytes.len() {
-        if bytes[cursor] == b'\\' {
-            cursor += 2;
+        if matches!(bytes[cursor], b'[' | b']') && super::super::scan::is_escaped(line, cursor) {
+            cursor += 1;
             continue;
         }
         match bytes[cursor] {

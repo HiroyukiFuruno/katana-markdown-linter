@@ -1,0 +1,7 @@
+{
+  "default": false,
+  "MD049": {
+    "enabled": true,
+    "style": "underscore"
+  }
+}

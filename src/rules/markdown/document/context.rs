@@ -3,7 +3,7 @@ use super::lines::{build_code_line_flags, extract_front_matter, split_lines};
 use super::links::extract_links;
 use super::syntax::SyntaxIndex;
 use super::tables::extract_tables;
-use super::types::{DocumentContext, SourceRange};
+use super::types::{DocumentContext, ParsedEmphasisSpan, SourceRange};
 use crate::rules::markdown::inline::{
     extract_inline_code_spans, extract_inline_html_elements, extract_inline_links,
     extract_reference_definitions, InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement,
@@ -63,6 +63,32 @@ impl<'a> DocumentContext<'a> {
 
     pub fn code_blocks(&self) -> &[super::BlockRange] {
         &self.syntax().code_blocks
+    }
+
+    pub(in crate::rules::markdown) fn parsed_emphasis_spans(
+        &self,
+        range: SourceRange,
+    ) -> &[ParsedEmphasisSpan] {
+        let spans = self.syntax().parsed_emphasis_spans(self.content);
+        let start = spans.partition_point(|span| span.range.start < range.start);
+        let end = spans.partition_point(|span| span.range.start < range.end);
+        &spans[start..end]
+    }
+
+    pub(in crate::rules::markdown) fn replacement_preserves_inline_semantics(
+        &self,
+        range: SourceRange,
+        replacement: &str,
+        semantic_scope: usize,
+        block_scope: Option<usize>,
+    ) -> bool {
+        self.syntax().replacement_preserves_inline_semantics(
+            self.content,
+            range,
+            replacement,
+            semantic_scope,
+            block_scope,
+        )
     }
 
     fn syntax(&self) -> &SyntaxIndex {

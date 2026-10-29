@@ -9,6 +9,8 @@ mod syntax;
 mod tables;
 mod types;
 
+pub(crate) use syntax::MarkdownSemanticSignature;
+
 pub(super) use fences::fence_line_marker;
 pub(in crate::rules::markdown) use headings::parse_heading;
 pub use types::{

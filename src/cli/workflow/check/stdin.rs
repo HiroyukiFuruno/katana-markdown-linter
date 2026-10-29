@@ -3,7 +3,7 @@ use crate::cli::args::{Cli, OutputFormat};
 use crate::cli::reporter::{
     output_report, print_diff, CliError, CliReport, CliSummary, FileReport,
 };
-use crate::config::ConfigLoader;
+use crate::config::ConfigSession;
 use crate::i18n::Locale;
 use crate::MarkdownLinter;
 use std::io::{self, Read};
@@ -14,27 +14,27 @@ pub(super) fn run_stdin_check_like(
     fix_mode: bool,
     cli: &Cli,
     locale: Locale,
+    config_session: &mut ConfigSession,
 ) -> Result<i32, String> {
     let mut content = String::new();
     io::stdin()
         .read_to_string(&mut content)
         .map_err(|err| err.to_string())?;
-    let config =
-        match ConfigLoader::load_effective_config(Path::new("<stdin>"), cli.config.as_deref()) {
-            Ok(config) => config,
-            Err(err) => {
-                let mut report = CliReport {
-                    command,
-                    summary: CliSummary::default(),
-                    files: Vec::new(),
-                    errors: vec![CliError::config(Path::new("<stdin>"), err)],
-                };
-                report.recompute_summary();
-                output_report(&report, fix_mode, cli, locale)?;
-                return Ok(2);
-            }
-        };
-    let config_errors = config.validate_against_schema();
+    let config = match config_session.load_for_path(Path::new("<stdin>")) {
+        Ok(config) => config,
+        Err(err) => {
+            let mut report = CliReport {
+                command,
+                summary: CliSummary::default(),
+                files: Vec::new(),
+                errors: vec![CliError::config(Path::new("<stdin>"), err)],
+            };
+            report.recompute_summary();
+            output_report(&report, fix_mode, cli, locale)?;
+            return Ok(2);
+        }
+    };
+    let config_errors = config.validation_errors.clone();
     if !config_errors.is_empty() {
         let mut report = CliReport {
             command,
@@ -49,7 +49,7 @@ pub(super) fn run_stdin_check_like(
         output_report(&report, fix_mode, cli, locale)?;
         return Ok(2);
     }
-    let options = config.to_lint_options();
+    let options = config.lint_options.clone();
     if fix_mode {
         return run_stdin_fix(command, cli, locale, content, options);
     }

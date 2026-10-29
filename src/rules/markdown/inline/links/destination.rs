@@ -1,4 +1,4 @@
-use super::super::scan::skip_ascii_whitespace;
+use super::super::scan::{is_escaped, skip_ascii_whitespace};
 
 pub(super) struct ParsedInlineDestination {
     pub(super) destination_start: usize,
@@ -56,8 +56,8 @@ fn closing_paren(line: &str, start: usize) -> Option<usize> {
     let mut quote = None;
     while cursor < bytes.len() {
         let byte = bytes[cursor];
-        if byte == b'\\' {
-            cursor += 2;
+        if matches!(byte, b'(' | b')' | b'"' | b'\'') && is_escaped(line, cursor) {
+            cursor += 1;
             continue;
         }
         match (quote, byte) {

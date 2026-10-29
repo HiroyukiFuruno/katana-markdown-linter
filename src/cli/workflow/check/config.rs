@@ -1,46 +1,47 @@
 use crate::cli::reporter::{CliError, CliReport};
-use crate::config::ConfigLoader;
+use crate::config::ConfigSession;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 pub(super) fn collect_config_validation_errors(
     files: &[PathBuf],
-    explicit: Option<&Path>,
+    session: &mut ConfigSession,
 ) -> Vec<CliError> {
-    if let Some(path) = explicit {
-        let config = match ConfigLoader::load_effective_config(path, Some(path)) {
+    if let Some(path) = session.explicit_path().map(Path::to_path_buf) {
+        let config = match session.load_for_path(&path) {
             Ok(config) => config,
-            Err(err) => return vec![CliError::config(path, err)],
+            Err(err) => return vec![CliError::config(&path, err)],
         };
         return config
-            .validate_against_schema()
-            .into_iter()
-            .map(|error| CliError::config_validation(path, error))
+            .validation_errors
+            .iter()
+            .cloned()
+            .map(|error| CliError::config_validation(&path, error))
             .collect();
     }
 
     let mut seen = HashSet::new();
     let mut errors = Vec::new();
     for file in files {
-        let effective = match ConfigLoader::load_effective_config_with_source(file, None) {
+        let effective = match session.load_for_path(file) {
             Ok(effective) => effective,
             Err(err) => {
                 errors.push(CliError::config(file, err));
                 continue;
             }
         };
-        let Some(source) = effective.source else {
+        let Some(source) = effective.source.as_deref() else {
             continue;
         };
-        if !seen.insert(source.clone()) {
+        if !seen.insert(source.to_path_buf()) {
             continue;
         }
         errors.extend(
             effective
-                .config
-                .validate_against_schema()
-                .into_iter()
-                .map(|error| CliError::config_validation(&source, error)),
+                .validation_errors
+                .iter()
+                .cloned()
+                .map(|error| CliError::config_validation(source, error)),
         );
     }
     errors

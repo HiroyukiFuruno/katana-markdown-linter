@@ -1,10 +1,23 @@
-use super::types::{BlockRange, FenceKind, LineInfo, SourceRange};
+use super::types::{BlockRange, FenceKind, LineInfo, ParsedEmphasisSpan, SourceRange};
 use crate::rules::markdown::inline::{inline_code_spans_on_line, InlineCodeSpan};
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
+use semantic::collector::SemanticIndexBuilder;
+use semantic::SemanticIndex;
+
+mod semantic;
+pub(crate) use semantic::MarkdownSemanticSignature;
+
+pub(super) const COMMONMARK_OPTIONS: Options = Options::ENABLE_TABLES
+    .union(Options::ENABLE_STRIKETHROUGH)
+    .union(Options::ENABLE_TASKLISTS)
+    .union(Options::ENABLE_FOOTNOTES)
+    .union(Options::ENABLE_GFM)
+    .union(Options::ENABLE_DEFINITION_LIST);
 
 pub(super) struct SyntaxIndex {
     pub(super) code_blocks: Vec<BlockRange>,
     pub(super) code_spans: Vec<InlineCodeSpan>,
+    semantic: std::sync::OnceLock<SemanticIndex>,
 }
 
 impl SyntaxIndex {
@@ -12,6 +25,7 @@ impl SyntaxIndex {
         let mut index = Self {
             code_blocks: Vec::new(),
             code_spans: Vec::new(),
+            semantic: std::sync::OnceLock::new(),
         };
         if !content.contains(['`', '~']) {
             return index;
@@ -29,13 +43,12 @@ impl SyntaxIndex {
             index.code_spans = line_spans;
             return index;
         }
-        let options = Options::ENABLE_TABLES
-            | Options::ENABLE_STRIKETHROUGH
-            | Options::ENABLE_TASKLISTS
-            | Options::ENABLE_FOOTNOTES
-            | Options::ENABLE_GFM
-            | Options::ENABLE_DEFINITION_LIST;
-        for (event, range) in Parser::new_ext(content, options).into_offset_iter() {
+        let parser = Parser::new_ext(content, COMMONMARK_OPTIONS).into_offset_iter();
+        let has_reference_definitions = parser.reference_definitions().iter().next().is_some();
+        let mut semantic_builder =
+            SemanticIndexBuilder::new(has_reference_definitions, content.contains("[^"));
+        for (event, range) in parser {
+            semantic_builder.push(&event, range.clone());
             match event {
                 Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(_))) => {
                     index.code_blocks.push(BlockRange {
@@ -76,7 +89,36 @@ impl SyntaxIndex {
                 _ => {}
             }
         }
+        assert!(
+            index.semantic.set(semantic_builder.finish(content)).is_ok(),
+            "semantic ranges are initialized once"
+        );
         index
+    }
+
+    pub(super) fn parsed_emphasis_spans(&self, content: &str) -> &[ParsedEmphasisSpan] {
+        self.semantic
+            .get_or_init(|| semantic::parse_semantic_index(content))
+            .emphasis_spans()
+    }
+
+    pub(super) fn replacement_preserves_inline_semantics(
+        &self,
+        content: &str,
+        range: SourceRange,
+        replacement: &str,
+        semantic_scope: usize,
+        block_scope: Option<usize>,
+    ) -> bool {
+        self.semantic
+            .get_or_init(|| semantic::parse_semantic_index(content))
+            .replacement_preserves_inline_semantics(
+                content,
+                range,
+                replacement,
+                semantic_scope,
+                block_scope,
+            )
     }
 }
 

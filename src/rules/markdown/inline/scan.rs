@@ -17,16 +17,22 @@ pub(super) fn find_unescaped(line: &str, start: usize, needle: u8) -> Option<usi
     let bytes = line.as_bytes();
     let mut cursor = start;
     while cursor < bytes.len() {
-        if bytes[cursor] == b'\\' {
-            cursor += 2;
-            continue;
-        }
-        if bytes[cursor] == needle {
+        if bytes[cursor] == needle && !is_escaped(line, cursor) {
             return Some(cursor);
         }
         cursor += 1;
     }
     None
+}
+
+pub(super) fn is_escaped(line: &str, offset: usize) -> bool {
+    line.as_bytes()[..offset]
+        .iter()
+        .rev()
+        .take_while(|byte| **byte == b'\\')
+        .count()
+        % 2
+        == 1
 }
 
 /// Returns true if `offset` (document-absolute byte position) falls inside any code span.

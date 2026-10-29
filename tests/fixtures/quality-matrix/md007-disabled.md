@@ -1,0 +1,4 @@
+# Indentation retained
+
+- parent
+    - child
