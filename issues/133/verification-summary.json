@@ -1,7 +1,7 @@
 {
   "version": "0.20.1",
   "base": "f0cbbcc084007758a4a70d8f423147e58996b3f0",
-  "observed_at": "2026-10-29T06:44:11.455239+00:00",
+  "observed_at": "2026-10-29T08:10:58.106367+00:00",
   "implemented": [
     "shared escape/emphasis/reversed-link adapters",
     "single common enabled RuleProperty metadata",
@@ -40,7 +40,7 @@
       "report": "issues/133/perf-final.json",
       "retained_prior_attempts": "tmp/v0201-evidence/perf-after-review*,perf-stable-isolated*,perf-config-session*; all failures retained; no threshold/baseline edits; release-check-batch-v0201.log stopped at missing target alias; retry completed all gates"
     },
-    "publication": "pending",
+    "publication": "passed: automatic Release40838310577 all8jobs success; published-release-verify.log exit0; GitHub/crates.io/npm/PyPI0.20.1/native CLI+MCP/wrappers/VSIX/Zed assets/Homebrew verified",
     "document_answers": "270 matched, diagnostic/fix changes/safe remainder0; 3 passes exit0; new answer064 independently corrected; existing258 unchanged",
     "config_contract": "6 passed including cycle JSON errors; tmp/v0201-evidence/fmt-error-green.log",
     "nested_semantics": "inline23; semantics4 tests include1372 combinations,reference links/images and newly gained bindings; source unit all128 nested candidates actual10byte comparison Some(true) with unrelated refdef/footnote",
@@ -50,7 +50,8 @@
       "styles": 256,
       "before_median_ms": 40.048208,
       "after_median_ms": 4.30425,
-      "scope": "same native CLI stdin/config fixture,3 samples; exploratory local measurement"
+      "scope": "same native CLI stdin/config fixture,3 samples; exploratory local measurement",
+      "measurement_head": "5e8a2cd (historical exploratory measurement before combined-plan change; current strict report remains perf-final.json)"
     },
     "document_answer_summary": {
       "total": 270,
@@ -76,7 +77,8 @@
     "config_session": "shared per-operation prepared settings; same process check/fmt freshness, nearest/explicit and error contracts passed; layout policy cached per source only within formatter operation",
     "matrix": "8 required cases; exact remaining unsafe diagnostics MD0494/MD0504 only in reference row; others diagnostic0; all safe-fix remainder0;3chained library/file/stdin passes",
     "casefold_execution_namespace": "real old-HEAD scripts+CLI: mismatch1,answer changes1,exit1; ordinal allocator: both2matched,3pass,answer changes0,exit0; new Rust real-CLI contract passed",
-    "batch_semantics": "6 contract tests passed; exact independent answers for iterative/single-pass/file/stdin;3passes;128 one-pass edits;real parser conflict case127accepted within15 comparisons"
+    "batch_semantics": "6 contract tests passed; exact independent answers for iterative/single-pass/file/stdin;3passes;128 one-pass edits;real parser conflict case127accepted within15 comparisons",
+    "batch_residual": "real CLI after reviewed batch output: MD049 diagnostic1,fix=null,safe_fixable0,exit1; tmp/v0201-evidence/batch-residual/check.json"
   },
   "additional_scope": [
     "CommonMark flanking and exact Unicode character classes",
@@ -94,6 +96,39 @@
     "perf-final-v0201.log": "ace1e697346f3f3c5f199b394f6ecb1fc4446d6c680643a4746701c2e668a263",
     "release-check-batch-v0201-retry.log": "ec0fa2e091fd680a2ebab0f85ff1015b8090393b180f68a091564f7d25e08b63",
     "final-check-batch-v0201.log": "b0fcd13ab5d1d4f21a5c54aa529b0260c76bf492c0e286cbb2d7e1337b0dfc08",
-    "perf-batch-v0201.log": "91015b8a2419c1cfb3795057ae2bf4a433c78a92bbe9715268f0e4e969446549"
+    "perf-batch-v0201.log": "91015b8a2419c1cfb3795057ae2bf4a433c78a92bbe9715268f0e4e969446549",
+    "published-target-check.log": "b23b4f92f2891dbb7b413f5b4cbc9ae53a55d649959e8f40e21b73403433ea68",
+    "published-release-verify.log": "3c1b61110494c2ef53c560f22d25d6059bc3e80955fa196d58ae2917509f7688"
+  },
+  "release": {
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.1",
+    "source_pr": 134,
+    "source_head": "f250cbc393299b8fb9f8338a553da9fe5b394463",
+    "merge_and_tag_target": "a84d77a608b0de354f765a3edfa4728fd9a0068c",
+    "workflow": 40838310577,
+    "workflow_result": "success",
+    "verification": "exit0",
+    "registry_versions": {
+      "crates.io": "0.20.1",
+      "npm": "0.20.1",
+      "PyPI": "0.20.1"
+    },
+    "review": "all3threads replied/resolved; final manual retry and Ready-triggered reviews completed/no findings; P0/P1zero",
+    "ci": [
+      40831150182,
+      40831150237
+    ]
+  },
+  "delivery_tracking": {
+    "issue": "https://github.com/HiroyukiFuruno/katana-markdown-linter/issues/133",
+    "owner": "session task v0201-cleanup",
+    "criteria_unchanged": [
+      "spec sync/archive",
+      "cleanup Draft PR review/reply/resolve/Ready/CI/merge",
+      "Issue133 close",
+      "final master clean/synchronized,stash0,worktree1,own cleanup branch removed"
+    ],
+    "source_branch_hygiene": "source branch merged/deleted; synchronized clean master,stash0,worktree1 verified before cleanup branch creation",
+    "status_at_snapshot": "outer delivery workflow in progress; final state is tracked by Issue133 and native session ledger"
   }
 }

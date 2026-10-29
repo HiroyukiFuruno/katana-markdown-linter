@@ -15,5 +15,16 @@
   "old_output_matches_answer": false,
   "regression": "tests/batch_fix_semantics_contract.rs",
   "green": "6 tests passed; iterative/single-pass/file/stdin exact answers, CLI exit1, three passes,128 independent edits",
-  "conflict_scale": "real parser unit:128 candidates,127 accepted,first retained/second rejected,at most15 full comparisons"
+  "conflict_scale": "real parser unit:128 candidates,127 accepted,first retained/second rejected,at most15 full comparisons",
+  "postfix_cli_residual_summary": {
+    "total_files": 1,
+    "files_with_issues": 1,
+    "total_issues": 1,
+    "fixable_issues": 0,
+    "safe_fixable_issues": 0,
+    "unsafe_fixable_issues": 0,
+    "applied_fixes": 0,
+    "unsafe_fix_status": null
+  },
+  "postfix_cli_exit": 1
 }
