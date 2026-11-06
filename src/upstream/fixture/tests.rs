@@ -32,8 +32,13 @@ bad
 
     let matrix = build::build_fixture_matrix(&catalog);
     let json = serde_json::to_value(&matrix).expect("matrix should serialize");
-    let rule = &matrix.rules[0];
 
+    assert_fixture_contents(&matrix);
+    assert_fixture_schema(&json);
+}
+
+fn assert_fixture_contents(matrix: &RuleFixtureMatrix) {
+    let rule = &matrix.rules[0];
     assert_eq!(matrix.summary.total_rules, 1);
     assert_eq!(matrix.summary.rules_with_examples, 1);
     assert_eq!(matrix.summary.rules_with_parameters, 1);
@@ -52,7 +57,9 @@ bad
         rule.config_invalid[0].expected.as_deref(),
         Some("invalid type")
     );
+}
 
+fn assert_fixture_schema(json: &serde_json::Value) {
     for key in [
         "rule_id",
         "aliases",
@@ -118,7 +125,25 @@ Aliases: `heading-increment`
         )
         .expect("document should parse")],
     };
-    let matrix = RuleFixtureMatrix {
+    let matrix = stale_fixture_matrix();
+
+    let drift = compare::compare_fixture_matrix(&catalog, &matrix);
+
+    assert_eq!(drift.summary.missing_fixtures, 1);
+    assert_eq!(drift.summary.stale_fixtures, 1);
+    assert_eq!(drift.summary.manual_required, 1);
+    assert!(drift
+        .items
+        .iter()
+        .any(|item| item.drift_type == RuleFixtureDriftType::MissingFixture));
+    assert!(drift
+        .items
+        .iter()
+        .any(|item| item.drift_type == RuleFixtureDriftType::StaleFixture));
+}
+
+fn stale_fixture_matrix() -> RuleFixtureMatrix {
+    RuleFixtureMatrix {
         upstream_source: "test".to_string(),
         summary: RuleFixtureMatrixSummary::default(),
         rules: vec![RuleFixtureEntry {
@@ -135,21 +160,7 @@ Aliases: `heading-increment`
             edge: Vec::new(),
             manual_required: vec!["review needed".to_string()],
         }],
-    };
-
-    let drift = compare::compare_fixture_matrix(&catalog, &matrix);
-
-    assert_eq!(drift.summary.missing_fixtures, 1);
-    assert_eq!(drift.summary.stale_fixtures, 1);
-    assert_eq!(drift.summary.manual_required, 1);
-    assert!(drift
-        .items
-        .iter()
-        .any(|item| item.drift_type == RuleFixtureDriftType::MissingFixture));
-    assert!(drift
-        .items
-        .iter()
-        .any(|item| item.drift_type == RuleFixtureDriftType::StaleFixture));
+    }
 }
 
 #[test]
@@ -172,16 +183,27 @@ bad
     };
     let matrix = build::build_fixture_matrix(&catalog);
     let markdown = report::render_fixture_matrix_summary(&matrix);
+    assert_eq!(markdown, concat!(
+        "# Rule Fixture Matrix\n\n",
+        "- total rules: 1\n- rules with examples: 1\n- rules with fix metadata: 0\n",
+        "- rules with parameters: 0\n- manual required: 1\n\n",
+        "- missing fixtures: 0\n- stale fixtures: 0\n\n",
+        "| Rule | Aliases | Parameters | Examples | Fixable | Manual Required |\n",
+        "| --- | --- | ---: | ---: | --- | --- |\n",
+        "| MD999 | example-rule | 0 | 1 | unknown | config fixture has no documented parameters |\n",
+    ));
+    assert_fixture_files_written(&matrix);
+}
+
+fn assert_fixture_files_written(matrix: &RuleFixtureMatrix) {
     let dir = std::env::temp_dir().join(format!(
         "katana-markdown-linter-fixture-matrix-{}",
         std::process::id()
     ));
     let _ = fs::remove_dir_all(&dir);
 
-    report::write_fixture_matrix_files(&matrix, &dir).expect("matrix files should be written");
+    report::write_fixture_matrix_files(matrix, &dir).expect("matrix files should be written");
 
-    assert!(markdown.contains("Rule Fixture Matrix"));
-    assert!(markdown.contains("MD999"));
     assert!(dir.join("rule-fixture-matrix.json").exists());
     assert!(dir.join("rule-fixture-matrix.md").exists());
     let _ = fs::remove_dir_all(dir);

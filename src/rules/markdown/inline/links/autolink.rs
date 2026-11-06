@@ -27,24 +27,34 @@ pub(super) fn autolinks_on_line<'a>(
         if destination.chars().any(char::is_whitespace) {
             continue;
         }
-        links.push(InlineLink {
-            line: line_index,
-            kind: InlineLinkKind::AutoLink,
-            text: None,
-            label: None,
-            destination: Some(destination),
-            text_range: None,
-            label_range: None,
-            destination_range: Some(SourceRange {
-                start: line.content_range.start + cursor,
-                end: line.content_range.start + close,
-            }),
-            full_range: SourceRange {
-                start: absolute_start,
-                end: line.content_range.start + close + 1,
-            },
-        });
+        links.push(autolink(line_index, line, start, cursor, close));
         cursor = close + 1;
     }
     links
+}
+
+fn autolink<'a>(
+    line_index: usize,
+    line: &LineInfo<'a>,
+    start: usize,
+    cursor: usize,
+    close: usize,
+) -> InlineLink<'a> {
+    InlineLink {
+        line: line_index,
+        kind: InlineLinkKind::AutoLink,
+        text: None,
+        label: None,
+        destination: Some(&line.text[cursor..close]),
+        text_range: None,
+        label_range: None,
+        destination_range: Some(SourceRange {
+            start: line.content_range.start + cursor,
+            end: line.content_range.start + close,
+        }),
+        full_range: SourceRange {
+            start: line.content_range.start + start,
+            end: line.content_range.start + close + 1,
+        },
+    }
 }

@@ -54,28 +54,42 @@ impl MarkdownRule for FencedCodeLanguageRule {
                 continue;
             }
             let column = marker.info_start + 1;
-            diagnostics.push(MarkdownDiagnostic {
-                file: ctx.file_path().to_path_buf(),
-                severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: block.start_line + 1,
-                    start_column: column,
-                    end_line: block.start_line + 1,
-                    end_column: column,
-                },
-                message: meta.description.to_string(),
-                rule_id: meta.code.to_string(),
-                official_meta: Some(meta.clone()),
-                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                    start_line: block.start_line + 1,
-                    start_column: column,
-                    end_line: block.start_line + 1,
-                    end_column: column,
-                    replacement: "text".to_string(),
-                }),
-            });
+            diagnostics.push(missing_language_diagnostic(
+                ctx,
+                block.start_line + 1,
+                column,
+                &meta,
+            ));
         }
         diagnostics
+    }
+}
+
+fn missing_language_diagnostic(
+    ctx: &DocumentContext<'_>,
+    line: usize,
+    column: usize,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line,
+            start_column: column,
+            end_line: line,
+            end_column: column,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+            start_line: line,
+            start_column: column,
+            end_line: line,
+            end_column: column,
+            replacement: "text".to_string(),
+        }),
     }
 }
 

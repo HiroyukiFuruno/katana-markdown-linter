@@ -28,54 +28,19 @@ static ES_CATALOG: OnceLock<LocaleCatalog> = OnceLock::new();
 static IT_CATALOG: OnceLock<LocaleCatalog> = OnceLock::new();
 
 fn catalog(locale: Locale) -> Option<&'static LocaleCatalog> {
-    match locale {
-        Locale::En => None,
-        Locale::Ja => Some(load_catalog(
-            &JA_CATALOG,
-            include_str!("locales/ja.json"),
-            "ja",
-        )),
-        Locale::ZhCn => Some(load_catalog(
-            &ZH_CN_CATALOG,
-            include_str!("locales/zh-CN.json"),
-            "zh-CN",
-        )),
-        Locale::ZhTw => Some(load_catalog(
-            &ZH_TW_CATALOG,
-            include_str!("locales/zh-TW.json"),
-            "zh-TW",
-        )),
-        Locale::Ko => Some(load_catalog(
-            &KO_CATALOG,
-            include_str!("locales/ko.json"),
-            "ko",
-        )),
-        Locale::Pt => Some(load_catalog(
-            &PT_CATALOG,
-            include_str!("locales/pt.json"),
-            "pt",
-        )),
-        Locale::Fr => Some(load_catalog(
-            &FR_CATALOG,
-            include_str!("locales/fr.json"),
-            "fr",
-        )),
-        Locale::De => Some(load_catalog(
-            &DE_CATALOG,
-            include_str!("locales/de.json"),
-            "de",
-        )),
-        Locale::Es => Some(load_catalog(
-            &ES_CATALOG,
-            include_str!("locales/es.json"),
-            "es",
-        )),
-        Locale::It => Some(load_catalog(
-            &IT_CATALOG,
-            include_str!("locales/it.json"),
-            "it",
-        )),
-    }
+    let (lock, source) = match locale {
+        Locale::En => return None,
+        Locale::Ja => (&JA_CATALOG, include_str!("locales/ja.json")),
+        Locale::ZhCn => (&ZH_CN_CATALOG, include_str!("locales/zh-CN.json")),
+        Locale::ZhTw => (&ZH_TW_CATALOG, include_str!("locales/zh-TW.json")),
+        Locale::Ko => (&KO_CATALOG, include_str!("locales/ko.json")),
+        Locale::Pt => (&PT_CATALOG, include_str!("locales/pt.json")),
+        Locale::Fr => (&FR_CATALOG, include_str!("locales/fr.json")),
+        Locale::De => (&DE_CATALOG, include_str!("locales/de.json")),
+        Locale::Es => (&ES_CATALOG, include_str!("locales/es.json")),
+        Locale::It => (&IT_CATALOG, include_str!("locales/it.json")),
+    };
+    Some(load_catalog(lock, source, locale.code()))
 }
 
 fn load_catalog(

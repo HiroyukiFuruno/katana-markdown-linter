@@ -76,30 +76,18 @@ fn md001_message_params_extract_expected_and_actual_levels() {
 
 #[test]
 fn localized_rule_description_uses_catalog_without_diagnostic_params() {
-    assert_eq!(
-        I18nRuleDescriptionService::localized_rule_description(
-            "MD003",
-            "Heading style should be consistent",
-            "ja-JP"
-        ),
-        "見出しのスタイルを統一してください"
-    );
-    assert_eq!(
-        I18nRuleDescriptionService::localized_rule_description(
-            "MD003",
-            "Heading style should be consistent",
-            "fr"
-        ),
-        "Conservez un style de titre cohérent"
-    );
-    assert_eq!(
-        I18nRuleDescriptionService::localized_rule_description(
-            "MD003",
-            "Heading style should be consistent",
-            "sv"
-        ),
-        "Heading style should be consistent"
-    );
+    let english = "Heading style should be consistent";
+    for (locale, expected) in [
+        ("ja-JP", "見出しのスタイルを統一してください"),
+        ("fr", "Conservez un style de titre cohérent"),
+        ("sv", english),
+    ] {
+        assert_eq!(
+            I18nRuleDescriptionService::localized_rule_description("MD003", english, locale),
+            expected,
+            "{locale}"
+        );
+    }
     assert!(I18nRuleDescriptionService::localized_rule_description(
         "MD999",
         "Custom fallback",

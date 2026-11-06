@@ -27,42 +27,47 @@ impl MarkdownRule for NoSpaceInCodeRule {
         _config: Option<&RuleConfig>,
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD038");
-        let mut diagnostics = Vec::new();
-
-        for span in ctx.inline_code_spans() {
-            if !span.closed {
-                continue;
-            }
-            let inner_text = &ctx.content()[span.content_range.start..span.content_range.end];
-            if !(inner_text.starts_with(' ') || inner_text.ends_with(' ')) {
-                continue;
-            }
-            if trim_requires_padding_space(inner_text) || inner_text.trim().is_empty() {
-                continue;
-            }
-            let marker = "`".repeat(span.marker_len);
-            let replacement = format!("{marker}{}{marker}", inner_text.trim_matches(' '));
-            let range = ctx.diagnostic_range(span.full_range);
-            let fix = crate::rules::markdown::types::DiagnosticFix {
-                start_line: range.start_line,
-                start_column: range.start_column,
-                end_line: range.end_line,
-                end_column: range.end_column,
-                replacement,
-            };
-            diagnostics.push(MarkdownDiagnostic {
-                file: ctx.file_path().to_path_buf(),
-                severity: DiagnosticSeverity::Warning,
-                range,
-                message: meta.description.to_string(),
-                rule_id: meta.code.to_string(),
-                official_meta: Some(meta.clone()),
-                fix_info: Some(fix),
-            });
-        }
-
-        diagnostics
+        ctx.inline_code_spans()
+            .iter()
+            .filter_map(|span| code_span_diagnostic(ctx, span, &meta))
+            .collect()
     }
+}
+
+fn code_span_diagnostic(
+    ctx: &DocumentContext<'_>,
+    span: &crate::rules::markdown::inline::InlineCodeSpan,
+    meta: &OfficialRuleMeta,
+) -> Option<MarkdownDiagnostic> {
+    if !span.closed {
+        return None;
+    }
+    let inner_text = &ctx.content()[span.content_range.start..span.content_range.end];
+    if !(inner_text.starts_with(' ') || inner_text.ends_with(' '))
+        || trim_requires_padding_space(inner_text)
+        || inner_text.trim().is_empty()
+    {
+        return None;
+    }
+    let marker = "`".repeat(span.marker_len);
+    let replacement = format!("{marker}{}{marker}", inner_text.trim_matches(' '));
+    let range = ctx.diagnostic_range(span.full_range);
+    let fix = crate::rules::markdown::types::DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement,
+    };
+    Some(MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range,
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(fix),
+    })
 }
 
 fn trim_requires_padding_space(inner_text: &str) -> bool {

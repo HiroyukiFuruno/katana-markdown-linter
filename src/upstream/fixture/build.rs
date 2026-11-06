@@ -11,11 +11,25 @@ pub(super) fn build_fixture_matrix(catalog: &UpstreamCatalog) -> RuleFixtureMatr
         .collect::<Vec<_>>();
     rules.sort_by(|a, b| a.rule_id.cmp(&b.rule_id));
 
+    let summary = summarize_rules(&rules);
+
+    let mut matrix = RuleFixtureMatrix {
+        upstream_source: catalog.source.clone(),
+        summary,
+        rules,
+    };
+    let drift = compare_fixture_matrix(catalog, &matrix);
+    matrix.summary.missing_fixtures = drift.summary.missing_fixtures;
+    matrix.summary.stale_fixtures = drift.summary.stale_fixtures;
+    matrix
+}
+
+fn summarize_rules(rules: &[super::types::RuleFixtureEntry]) -> RuleFixtureMatrixSummary {
     let mut summary = RuleFixtureMatrixSummary {
         total_rules: rules.len(),
         ..RuleFixtureMatrixSummary::default()
     };
-    for entry in &rules {
+    for entry in rules {
         if !entry.check_fail.is_empty() || !entry.check_pass.is_empty() {
             summary.rules_with_examples += 1;
         }
@@ -30,13 +44,5 @@ pub(super) fn build_fixture_matrix(catalog: &UpstreamCatalog) -> RuleFixtureMatr
         }
     }
 
-    let mut matrix = RuleFixtureMatrix {
-        upstream_source: catalog.source.clone(),
-        summary,
-        rules,
-    };
-    let drift = compare_fixture_matrix(catalog, &matrix);
-    matrix.summary.missing_fixtures = drift.summary.missing_fixtures;
-    matrix.summary.stale_fixtures = drift.summary.stale_fixtures;
-    matrix
+    summary
 }

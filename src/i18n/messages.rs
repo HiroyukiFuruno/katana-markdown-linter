@@ -61,21 +61,52 @@ impl MessageCatalog {
 }
 
 fn render_japanese_message(message_id: &str, params: &MessageParams, fallback: &str) -> String {
+    if let Some(prefix) = japanese_error_prefix(message_id) {
+        return format!("{prefix}: {}", param(params, "message", fallback));
+    }
+    if message_id.starts_with("config.") {
+        return japanese_config_message(message_id, params).unwrap_or_else(|| fallback.to_string());
+    }
     match message_id {
         "rule.MD001.heading_increment" => format!(
             "見出しレベルは一度に1段階だけ増やしてください [期待値: {}, 実際: {}]",
             param(params, "expected", "h?"),
             param(params, "actual", "h?")
         ),
-        "config.error" => format!("設定エラー: {}", param(params, "message", fallback)),
-        "filesystem.error" => {
-            format!(
-                "ファイルシステムエラー: {}",
-                param(params, "message", fallback)
-            )
-        }
-        "glob.error" => format!("glob エラー: {}", param(params, "message", fallback)),
-        "rule.error" => format!("ルール実行エラー: {}", param(params, "message", fallback)),
+        "summary.no_files" => "Markdown ファイルが見つかりません".to_string(),
+        "summary.statistics" => format!(
+            "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
+            param(params, "files", "0"),
+            param(params, "files_with_issues", "0"),
+            param(params, "issues", "0"),
+            param(params, "fixable", "0"),
+            param(params, "fixed", "0")
+        ),
+        "fix.fixed_count" => japanese_operation_count(params, "件の問題を修正しました"),
+        "format.formatted_count" => japanese_operation_count(params, "件の整形操作を適用しました"),
+        _ => fallback.to_string(),
+    }
+}
+fn japanese_operation_count(params: &MessageParams, operation: &str) -> String {
+    format!(
+        "{}: {} {operation}",
+        param(params, "path", ""),
+        param(params, "count", "0"),
+    )
+}
+
+fn japanese_error_prefix(message_id: &str) -> Option<&'static str> {
+    match message_id {
+        "config.error" => Some("設定エラー"),
+        "filesystem.error" => Some("ファイルシステムエラー"),
+        "glob.error" => Some("glob エラー"),
+        "rule.error" => Some("ルール実行エラー"),
+        _ => None,
+    }
+}
+
+fn japanese_config_message(message_id: &str, params: &MessageParams) -> Option<String> {
+    let message = match message_id {
         "config.invalid_root" => "設定ルートは JSON object である必要があります".to_string(),
         "config.unknown_rule" => format!(
             "未知の markdownlint rule です: {}",
@@ -87,55 +118,35 @@ fn render_japanese_message(message_id: &str, params: &MessageParams, fallback: &
             param(params, "property", "")
         ),
         "config.invalid_type" => format!(
-            "{}{} の型が不正です。期待値: {}、実際: {}",
-            param(params, "rule_id", ""),
-            config_property_suffix(params),
+            "{} の型が不正です。期待値: {}、実際: {}",
+            config_property(params),
             param(params, "expected", ""),
             param(params, "actual", "")
         ),
         "config.invalid_enum_value" => format!(
-            "{}{} の値が不正です。許可値: {}、実際: {}",
-            param(params, "rule_id", ""),
-            config_property_suffix(params),
+            "{} の値が不正です。許可値: {}、実際: {}",
+            config_property(params),
             param(params, "allowed", ""),
             param(params, "actual", "")
         ),
         "config.fix_or_ignore_advice" => {
             "markdownlint 設定を修正するか、無効な設定項目を無視して続行する場合は --ignore-config-errors を付けてください".to_string()
         }
-        "summary.no_files" => "Markdown ファイルが見つかりません".to_string(),
-        "summary.statistics" => format!(
-            "files: {}, files_with_issues: {}, issues: {}, fixable: {}, fixed: {}",
-            param(params, "files", "0"),
-            param(params, "files_with_issues", "0"),
-            param(params, "issues", "0"),
-            param(params, "fixable", "0"),
-            param(params, "fixed", "0")
-        ),
-        "fix.fixed_count" => format!(
-            "{}: {} 件の問題を修正しました",
-            param(params, "path", ""),
-            param(params, "count", "0")
-        ),
-        "format.formatted_count" => format!(
-            "{}: {} 件の整形操作を適用しました",
-            param(params, "path", ""),
-            param(params, "count", "0")
-        ),
-        _ => fallback.to_string(),
-    }
+        _ => return None,
+    };
+    Some(message)
 }
 
 fn param<'a>(params: &'a MessageParams, key: &str, fallback: &'a str) -> &'a str {
     params.get(key).map(String::as_str).unwrap_or(fallback)
 }
 
-fn config_property_suffix(params: &MessageParams) -> String {
-    params
-        .get("property")
-        .filter(|property| !property.is_empty())
-        .map(|property| format!(".{property}"))
-        .unwrap_or_default()
+fn config_property(params: &MessageParams) -> String {
+    let rule_id = param(params, "rule_id", "");
+    match param(params, "property", "") {
+        "" => rule_id.to_string(),
+        property => format!("{rule_id}.{property}"),
+    }
 }
 
 fn parse_heading_levels(message: &str) -> Option<(String, String)> {

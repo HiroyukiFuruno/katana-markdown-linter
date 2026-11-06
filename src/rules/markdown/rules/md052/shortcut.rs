@@ -43,47 +43,61 @@ fn shortcut_references_on_line<'a>(
             cursor += 2;
             continue;
         }
-        if bytes[cursor] == b'[' && cursor > 0 && bytes[cursor - 1] == b']' {
+        let Some(label_open) = shortcut_open(bytes, cursor) else {
             cursor += 1;
             continue;
-        }
-        let (full_start, label_open) = match bytes[cursor] {
-            b'!' if bytes.get(cursor + 1) == Some(&b'[') => (cursor, cursor + 1),
-            b'[' => (cursor, cursor),
-            _ => {
-                cursor += 1;
-                continue;
-            }
         };
+        let full_start = cursor;
         let Some(label_close) = matching_bracket(line.text, label_open) else {
             cursor = label_open + 1;
             continue;
         };
-        let after_label = label_close + 1;
-        if matches!(bytes.get(after_label), Some(b'(' | b'[' | b':')) {
-            cursor = after_label;
-            continue;
-        }
-        let label_start = label_open + 1;
-        if label_start == label_close {
-            cursor = after_label;
-            continue;
-        }
-        let label = &line.text[label_start..label_close];
-        if is_changelog_version_heading(line.text, label_open, after_label, label) {
-            cursor = after_label;
-            continue;
-        }
-        let range = SourceRange {
-            start: line.content_range.start + full_start,
-            end: line.content_range.start + after_label,
-        };
-        if !ctx.is_inside_inline_code(range) && !ctx.overlaps_raw_html(range) {
-            references.push(ShortcutReference { label, range });
-        }
-        cursor = after_label;
+        references.extend(shortcut_candidate(
+            ctx,
+            line,
+            full_start,
+            label_open,
+            label_close,
+        ));
+        cursor = label_close + 1;
     }
     references
+}
+
+fn shortcut_open(bytes: &[u8], cursor: usize) -> Option<usize> {
+    match bytes[cursor] {
+        b'!' if bytes.get(cursor + 1) == Some(&b'[') => Some(cursor + 1),
+        b'[' if cursor == 0 || bytes[cursor - 1] != b']' => Some(cursor),
+        _ => None,
+    }
+}
+
+fn shortcut_candidate<'a>(
+    ctx: &DocumentContext<'_>,
+    line: &LineInfo<'a>,
+    full_start: usize,
+    label_open: usize,
+    label_close: usize,
+) -> Option<ShortcutReference<'a>> {
+    let after_label = label_close + 1;
+    let label_start = label_open + 1;
+    if matches!(
+        line.text.as_bytes().get(after_label),
+        Some(b'(' | b'[' | b':')
+    ) || label_start == label_close
+    {
+        return None;
+    }
+    let label = &line.text[label_start..label_close];
+    if is_changelog_version_heading(line.text, label_open, after_label, label) {
+        return None;
+    }
+    let range = SourceRange {
+        start: line.content_range.start + full_start,
+        end: line.content_range.start + after_label,
+    };
+    (!ctx.is_inside_inline_code(range) && !ctx.overlaps_raw_html(range))
+        .then_some(ShortcutReference { label, range })
 }
 
 fn is_changelog_version_heading(

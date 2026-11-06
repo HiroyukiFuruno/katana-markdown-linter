@@ -92,27 +92,31 @@ mod tests {
             "[^脚注]: <pre>\n    payload\n",
             "Term\n: ~~~text\n  #Heading\n",
         ] {
-            let candidates = ParseCandidates::scan(source);
-            let mut saw_relevant_event = false;
-            for event in Parser::new_ext(source, COMMONMARK_OPTIONS) {
-                match event {
-                    Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(_))) => {
-                        assert!(candidates.blocks, "{source:?}");
-                        saw_relevant_event = true;
-                    }
-                    Event::Start(Tag::HtmlBlock) => {
-                        assert!(candidates.blocks && candidates.html, "{source:?}");
-                        saw_relevant_event = true;
-                    }
-                    Event::InlineHtml(_) | Event::Html(_) => {
-                        assert!(candidates.html, "{source:?}");
-                        saw_relevant_event = true;
-                    }
-                    _ => {}
-                }
-            }
-            assert!(saw_relevant_event, "{source:?}");
+            assert_relevant_candidates(source);
         }
+    }
+
+    fn assert_relevant_candidates(source: &str) {
+        let candidates = ParseCandidates::scan(source);
+        let mut saw_relevant_event = false;
+        for event in Parser::new_ext(source, COMMONMARK_OPTIONS) {
+            match event {
+                Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(_))) => {
+                    assert!(candidates.blocks, "{source:?}");
+                    saw_relevant_event = true;
+                }
+                Event::Start(Tag::HtmlBlock) => {
+                    assert!(candidates.blocks && candidates.html, "{source:?}");
+                    saw_relevant_event = true;
+                }
+                Event::InlineHtml(_) | Event::Html(_) => {
+                    assert!(candidates.html, "{source:?}");
+                    saw_relevant_event = true;
+                }
+                _ => {}
+            }
+        }
+        assert!(saw_relevant_event, "{source:?}");
     }
 
     #[test]

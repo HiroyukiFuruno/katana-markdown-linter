@@ -15,6 +15,9 @@ pub use content::*;
 pub mod content_ext;
 pub use content_ext::*;
 
+mod closed_atx;
+mod emphasis_style;
+
 pub mod heading;
 pub use heading::*;
 

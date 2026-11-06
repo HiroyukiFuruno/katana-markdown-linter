@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta, RuleConfig,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use std::path::Path;
 
@@ -46,12 +46,7 @@ impl MarkdownRule for ProhibitedLinkTextRule {
             diagnostics.push(MarkdownDiagnostic {
                 file: ctx.file_path().to_path_buf(),
                 severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: range.start_line,
-                    start_column: range.start_column,
-                    end_line: range.end_line,
-                    end_column: range.end_column,
-                },
+                range,
                 message: meta.description.to_string(),
                 rule_id: meta.code.to_string(),
                 official_meta: Some(meta.clone()),

@@ -8,6 +8,8 @@ use std::sync::{mpsc, Arc, Mutex};
 mod documentation_language_guard;
 #[path = "ast_linter/i18n_guard.rs"]
 mod i18n_guard;
+#[path = "ast_linter/length_gate.rs"]
+mod length_gate;
 #[path = "ast_linter/open_spec_command_portability_guard.rs"]
 mod open_spec_command_portability_guard;
 #[path = "ast_linter/workflow_portability_guard.rs"]
@@ -468,7 +470,7 @@ fn ast_linter_release_local_ci_parity_and_retry_safety() {
         (".github/workflows/release.yml", &workflow, "macos-15-intel"),
         (".github/workflows/release.yml", &workflow, "Generate Homebrew formula"),
         (".github/workflows/release.yml", &workflow, "Publish npm wrapper"),
-        (".github/workflows/release.yml", &workflow, "node-version: \"24\""),
+        (".github/workflows/release.yml", &workflow, "node-version: \"26\""),
         (
             ".github/workflows/release.yml",
             &workflow,

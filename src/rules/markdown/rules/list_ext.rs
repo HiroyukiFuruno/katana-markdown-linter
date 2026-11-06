@@ -42,13 +42,7 @@ impl MarkdownRule for BlanksAroundListsRule {
                 && !RuleHelpers::is_list_item(ctx.lines()[i - 1].text.trim_start())
                 && !previous_line_continues_list_item(ctx, i);
             if prev_is_problem {
-                let fix = crate::rules::markdown::types::DiagnosticFix {
-                    start_line: i + 1,
-                    start_column: 1,
-                    end_line: i + 1,
-                    end_column: 1,
-                    replacement: "\n".to_string(),
-                };
+                let fix = blank_before_list_fix(i);
                 RuleHelpers::push_diag_with_fix(
                     &mut diagnostics,
                     ctx.file_path(),
@@ -61,6 +55,16 @@ impl MarkdownRule for BlanksAroundListsRule {
             }
         }
         diagnostics
+    }
+}
+
+fn blank_before_list_fix(i: usize) -> crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
+        start_line: i + 1,
+        start_column: 1,
+        end_line: i + 1,
+        end_column: 1,
+        replacement: "\n".to_string(),
     }
 }
 

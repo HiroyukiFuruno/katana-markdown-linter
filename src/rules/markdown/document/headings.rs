@@ -18,22 +18,8 @@ pub(in crate::rules::markdown) fn parse_heading<'a>(
     line_index: usize,
     line: &LineInfo<'a>,
 ) -> Option<Heading<'a>> {
-    let indent = line.text.len() - line.text.trim_start_matches(' ').len();
-    if indent > MAX_HEADING_INDENT {
-        return None;
-    }
+    let (indent, level) = heading_marker(line.text)?;
     let trimmed = &line.text[indent..];
-    let level = trimmed.bytes().take_while(|byte| *byte == b'#').count();
-    if !(1..=MAX_ATX_HEADING_LEVEL).contains(&level) {
-        return None;
-    }
-    if trimmed
-        .as_bytes()
-        .get(level)
-        .is_some_and(|byte| !matches!(byte, b' ' | b'\t'))
-    {
-        return None;
-    }
     let marker_start = line.content_range.start + indent;
     let body = trimmed[level..].trim_start_matches([' ', '\t']);
     let text_start = line.content_range.end - body.len();
@@ -52,6 +38,26 @@ pub(in crate::rules::markdown) fn parse_heading<'a>(
             end: text_end,
         },
     })
+}
+
+fn heading_marker(text: &str) -> Option<(usize, usize)> {
+    let indent = text.len() - text.trim_start_matches(' ').len();
+    if indent > MAX_HEADING_INDENT {
+        return None;
+    }
+    let trimmed = &text[indent..];
+    let level = trimmed.bytes().take_while(|byte| *byte == b'#').count();
+    if !(1..=MAX_ATX_HEADING_LEVEL).contains(&level) {
+        return None;
+    }
+    if trimmed
+        .as_bytes()
+        .get(level)
+        .is_some_and(|byte| !matches!(byte, b' ' | b'\t'))
+    {
+        return None;
+    }
+    Some((indent, level))
 }
 
 fn heading_text_end(line: &LineInfo<'_>, text_start: usize) -> usize {

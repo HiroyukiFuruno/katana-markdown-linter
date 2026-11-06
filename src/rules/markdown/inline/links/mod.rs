@@ -37,15 +37,13 @@ fn markdown_links_on_line<'a>(
     code_spans: &[InlineCodeSpan],
 ) -> Vec<InlineLink<'a>> {
     let mut links = Vec::new();
-    let bytes = line.text.as_bytes();
     let mut cursor = 0;
-    while cursor < bytes.len() {
+    while cursor < line.text.len() {
         let Some((full_start_local, text_open_local, image)) =
             next_link_open(line, code_spans, cursor)
         else {
             break;
         };
-        let text_start_local = text_open_local + 1;
         let Some(text_close_local) = matching_bracket(line.text, text_open_local) else {
             cursor = text_open_local + 1;
             continue;
@@ -55,7 +53,7 @@ fn markdown_links_on_line<'a>(
             line_index,
             line,
             full_start_local,
-            text_start_local,
+            text_open_local + 1,
             text_close_local,
             after_text,
             image,

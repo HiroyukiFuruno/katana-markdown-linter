@@ -30,6 +30,10 @@ fn nested_candidates_with_global_definitions_use_constant_inline_comparisons() {
         );
     }
 
+    assert_linked_source_prefers_full_document();
+}
+
+fn assert_linked_source_prefers_full_document() {
     let linked_source = "***word*** [label]\n\n[label]: /destination\n\n[^note]: footnote\n";
     let linked_index = parse_semantic_index(linked_source);
     let linked_span = linked_index

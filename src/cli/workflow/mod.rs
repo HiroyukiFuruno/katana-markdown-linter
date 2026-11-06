@@ -27,13 +27,7 @@ impl CliWorkflow {
     pub fn run(cli: Cli) -> Result<i32, String> {
         let locale = Locale::resolve(cli.locale.as_deref()).map_err(|err| err.to_string())?;
         match cli.command {
-            Command::InitConfig => {
-                let path = cli
-                    .config
-                    .unwrap_or_else(|| PathBuf::from(".markdownlint.json"));
-                MarkdownLintConfig::create_default_file(&path).map_err(|err| err.to_string())?;
-                Ok(0)
-            }
+            Command::InitConfig => init_config(cli.config),
             Command::Check => {
                 let exit = check::run_check_like("check", cli.check_fix, &cli, locale)?;
                 Ok(exit)
@@ -56,6 +50,12 @@ impl CliWorkflow {
             }
         }
     }
+}
+
+fn init_config(config: Option<PathBuf>) -> Result<i32, String> {
+    let path = config.unwrap_or_else(|| PathBuf::from(".markdownlint.json"));
+    MarkdownLintConfig::create_default_file(&path).map_err(|err| err.to_string())?;
+    Ok(0)
 }
 
 #[cfg(test)]

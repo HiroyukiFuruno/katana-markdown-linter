@@ -1,6 +1,5 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
 };
 use crate::types::RuleConfig;
 use std::collections::HashMap;
@@ -41,54 +40,75 @@ impl MarkdownRule for LinkStyleRule {
             return Vec::new();
         }
 
-        let meta = self.official_meta().expect("always Some for MD054");
-        let has_inline = ctx.inline_links().iter().any(|link| link.kind.is_inline());
         let definitions = link_definitions(ctx);
-        let has_reference = !definitions.is_empty()
-            || ctx
-                .inline_links()
-                .iter()
-                .any(|link| link.kind.is_reference());
-        if !has_inline || !has_reference {
+        if !has_mixed_link_styles(ctx, &definitions) {
             return Vec::new();
         }
 
-        let mut diagnostics = Vec::new();
-        for reference in ctx
+        let meta = self.official_meta().expect("always Some for MD054");
+        collect_collapsed(ctx, &definitions, &meta)
+    }
+}
+
+fn collect_collapsed(
+    ctx: &DocumentContext<'_>,
+    definitions: &HashMap<String, String>,
+    meta: &OfficialRuleMeta,
+) -> Vec<MarkdownDiagnostic> {
+    let mut diagnostics = Vec::new();
+    for reference in ctx
+        .inline_links()
+        .iter()
+        .filter(|link| link.kind.is_collapsed_reference())
+    {
+        let Some(label) = reference.effective_label() else {
+            continue;
+        };
+        let range = ctx.diagnostic_range(reference.full_range);
+        diagnostics.push(collapsed_diagnostic(
+            ctx,
+            range,
+            label,
+            definitions.get(&label.to_lowercase()),
+            meta,
+        ));
+    }
+
+    diagnostics
+}
+
+fn has_mixed_link_styles(ctx: &DocumentContext<'_>, definitions: &HashMap<String, String>) -> bool {
+    let has_inline = ctx.inline_links().iter().any(|link| link.kind.is_inline());
+    let has_reference = !definitions.is_empty()
+        || ctx
             .inline_links()
             .iter()
-            .filter(|link| link.kind.is_collapsed_reference())
-        {
-            let Some(label) = reference.effective_label() else {
-                continue;
-            };
-            let destination = definitions.get(&label.to_lowercase());
-            let range = ctx.diagnostic_range(reference.full_range);
-            diagnostics.push(MarkdownDiagnostic {
-                file: ctx.file_path().to_path_buf(),
-                severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: range.start_line,
-                    start_column: range.start_column,
-                    end_line: range.end_line,
-                    end_column: range.end_column,
-                },
-                message: meta.description.to_string(),
-                rule_id: meta.code.to_string(),
-                official_meta: Some(meta.clone()),
-                fix_info: destination.map(|destination| {
-                    crate::rules::markdown::types::DiagnosticFix {
-                        start_line: range.start_line,
-                        start_column: range.start_column,
-                        end_line: range.end_line,
-                        end_column: range.end_column,
-                        replacement: format!("[{label}]({destination})"),
-                    }
-                }),
-            });
-        }
+            .any(|link| link.kind.is_reference());
+    has_inline && has_reference
+}
 
-        diagnostics
+fn collapsed_diagnostic(
+    ctx: &DocumentContext<'_>,
+    range: crate::rules::markdown::DiagnosticRange,
+    label: &str,
+    destination: Option<&String>,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    let fix_info = destination.map(|destination| crate::rules::markdown::types::DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement: format!("[{label}]({destination})"),
+    });
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range,
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info,
     }
 }
 

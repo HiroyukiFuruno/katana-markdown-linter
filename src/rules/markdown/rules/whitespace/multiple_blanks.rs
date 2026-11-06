@@ -59,15 +59,7 @@ impl MarkdownRule for NoMultipleBlanksRule {
                 maximum,
             );
         }
-        push_trailing_blank_diagnostic(
-            &mut diagnostics,
-            file_path,
-            ctx.content(),
-            ctx,
-            consecutive_blanks,
-            maximum,
-            meta,
-        );
+        push_trailing_blank_diagnostic(&mut diagnostics, ctx, consecutive_blanks, maximum, meta);
         diagnostics
     }
 }
@@ -110,18 +102,16 @@ fn evaluate_blank_line(
 
 fn push_trailing_blank_diagnostic(
     diagnostics: &mut Vec<MarkdownDiagnostic>,
-    file_path: &Path,
-    content: &str,
     ctx: &DocumentContext<'_>,
     consecutive_blanks: usize,
     maximum: usize,
     meta: OfficialRuleMeta,
 ) {
-    if !content.ends_with("\n\n") || consecutive_blanks != 1 || consecutive_blanks > maximum {
+    if !ctx.content().ends_with("\n\n") || consecutive_blanks != 1 || consecutive_blanks > maximum {
         return;
     }
     diagnostics.push(MarkdownDiagnostic {
-        file: file_path.to_path_buf(),
+        file: ctx.file_path().to_path_buf(),
         severity: DiagnosticSeverity::Warning,
         range: DiagnosticRange {
             start_line: ctx.lines().len() + 1,

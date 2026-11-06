@@ -113,16 +113,22 @@ fn property_schema(property: &RuleProperty) -> Value {
     );
     schema.insert("default".to_string(), default_value(property));
 
+    insert_type_schema(&mut schema, property);
+
+    Value::Object(schema)
+}
+
+fn insert_type_schema(schema: &mut Map<String, Value>, property: &RuleProperty) {
     match property.prop_type {
         RulePropertyType::Boolean => {
-            schema.insert("type".to_string(), Value::String("boolean".to_string()));
+            schema.insert("type".into(), json!("boolean"));
         }
         RulePropertyType::Number => {
-            schema.insert("type".to_string(), Value::String("number".to_string()));
+            schema.insert("type".into(), json!("number"));
         }
         RulePropertyType::NumberOrNumberArray => {
             schema.insert(
-                "anyOf".to_string(),
+                "anyOf".into(),
                 json!([
                     { "type": "number" },
                     { "type": "array", "items": { "type": "number" } }
@@ -130,26 +136,24 @@ fn property_schema(property: &RuleProperty) -> Value {
             );
         }
         RulePropertyType::String => {
-            schema.insert("type".to_string(), Value::String("string".to_string()));
+            schema.insert("type".into(), json!("string"));
         }
-        RulePropertyType::StringArray => {
-            schema.insert(
-                "type".to_string(),
-                if property.accepts_null() {
-                    json!(["array", "null"])
-                } else {
-                    json!("array")
-                },
-            );
-            schema.insert("items".to_string(), json!({ "type": "string" }));
-        }
+        RulePropertyType::StringArray => insert_string_array_schema(schema, property),
         RulePropertyType::Enum(options) => {
-            schema.insert("type".to_string(), Value::String("string".to_string()));
-            schema.insert("enum".to_string(), json!(options));
+            schema.insert("type".into(), json!("string"));
+            schema.insert("enum".into(), json!(options));
         }
     }
+}
 
-    Value::Object(schema)
+fn insert_string_array_schema(schema: &mut Map<String, Value>, property: &RuleProperty) {
+    let kind = if property.accepts_null() {
+        json!(["array", "null"])
+    } else {
+        json!("array")
+    };
+    schema.insert("type".into(), kind);
+    schema.insert("items".into(), json!({ "type": "string" }));
 }
 
 fn default_value(property: &RuleProperty) -> Value {

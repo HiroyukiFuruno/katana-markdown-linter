@@ -37,26 +37,46 @@ impl MarkdownRule for NoReversedLinksRule {
                 diagnostics.push(MarkdownDiagnostic {
                     file: ctx.file_path().to_path_buf(),
                     severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: reversed.start + 1,
-                        end_line: line.number,
-                        end_column: reversed.end + 1,
-                    },
+                    range: reversed_link_range(line.number, reversed.start, reversed.end),
                     message: meta.description.to_string(),
                     rule_id: meta.code.to_string(),
                     official_meta: Some(meta.clone()),
-                    fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: reversed.start + 1,
-                        end_line: line.number,
-                        end_column: reversed.end + 1,
-                        replacement: format!("[{}]({})", reversed.text, reversed.destination),
-                    }),
+                    fix_info: Some(reversed_link_fix(
+                        line.number,
+                        reversed.start,
+                        reversed.end,
+                        reversed.text,
+                        reversed.destination,
+                    )),
                 });
             }
         }
         diagnostics
+    }
+}
+
+fn reversed_link_range(line: usize, start: usize, end: usize) -> DiagnosticRange {
+    DiagnosticRange {
+        start_line: line,
+        start_column: start + 1,
+        end_line: line,
+        end_column: end + 1,
+    }
+}
+
+fn reversed_link_fix(
+    line: usize,
+    start: usize,
+    end: usize,
+    text: &str,
+    destination: &str,
+) -> crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
+        start_line: line,
+        start_column: start + 1,
+        end_line: line,
+        end_column: end + 1,
+        replacement: format!("[{text}]({destination})"),
     }
 }
 

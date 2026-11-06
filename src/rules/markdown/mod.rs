@@ -71,30 +71,41 @@ impl MarkdownRule for HeadingIncrementRule {
         for heading in ctx.headings() {
             let current_level = heading.level;
             if last_level > 0 && current_level > last_level + 1 {
-                let line = &ctx.lines()[heading.line];
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: 1,
-                        end_line: line.number,
-                        end_column: line.text.len(),
-                    },
-                    message: format!(
-                        "{} [Expected: h{}, Actual: h{}]",
-                        meta.description,
-                        last_level + 1,
-                        current_level
-                    ),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: None,
-                });
+                diagnostics.push(heading_increment_diagnostic(
+                    ctx, heading, last_level, &meta,
+                ));
             }
             last_level = current_level;
         }
         diagnostics
+    }
+}
+
+fn heading_increment_diagnostic(
+    ctx: &DocumentContext<'_>,
+    heading: &Heading<'_>,
+    last_level: usize,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    let line = &ctx.lines()[heading.line];
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line.number,
+            start_column: 1,
+            end_line: line.number,
+            end_column: line.text.len(),
+        },
+        message: format!(
+            "{} [Expected: h{}, Actual: h{}]",
+            meta.description,
+            last_level + 1,
+            heading.level
+        ),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: None,
     }
 }
 

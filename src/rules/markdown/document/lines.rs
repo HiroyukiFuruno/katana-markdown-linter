@@ -22,35 +22,46 @@ pub(super) fn split_lines(content: &str) -> Vec<LineInfo<'_>> {
             continue;
         }
         let text_end = line_text_end(content, start, index);
-        lines.push(LineInfo {
-            number: lines.len() + 1,
-            text: &content[start..text_end],
-            content_range: SourceRange {
-                start,
-                end: text_end,
-            },
-            full_range: SourceRange {
-                start,
-                end: index + 1,
-            },
-        });
+        lines.push(line_info(
+            content,
+            lines.len() + 1,
+            start,
+            text_end,
+            index + 1,
+        ));
         start = index + 1;
     }
     if start < content.len() {
-        lines.push(LineInfo {
-            number: lines.len() + 1,
-            text: &content[start..],
-            content_range: SourceRange {
-                start,
-                end: content.len(),
-            },
-            full_range: SourceRange {
-                start,
-                end: content.len(),
-            },
-        });
+        lines.push(line_info(
+            content,
+            lines.len() + 1,
+            start,
+            content.len(),
+            content.len(),
+        ));
     }
     lines
+}
+
+fn line_info(
+    content: &str,
+    number: usize,
+    start: usize,
+    text_end: usize,
+    full_end: usize,
+) -> LineInfo<'_> {
+    LineInfo {
+        number,
+        text: &content[start..text_end],
+        content_range: SourceRange {
+            start,
+            end: text_end,
+        },
+        full_range: SourceRange {
+            start,
+            end: full_end,
+        },
+    }
 }
 
 pub(super) fn extract_front_matter(lines: &[LineInfo<'_>]) -> Option<SourceRange> {

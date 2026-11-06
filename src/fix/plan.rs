@@ -1,14 +1,5 @@
+use super::edits::Edit;
 use crate::rules::markdown::MarkdownSemanticSignature;
-use crate::{FixSafety, Range};
-
-pub(super) struct Edit<'a> {
-    pub(super) byte_start: usize,
-    pub(super) byte_end: usize,
-    pub(super) replacement: &'a str,
-    pub(super) rule_id: &'a str,
-    pub(super) range: Range,
-    pub(super) safety: FixSafety,
-}
 
 pub(super) fn retain_semantics<'a>(
     accepted: &mut Vec<Edit<'a>>,

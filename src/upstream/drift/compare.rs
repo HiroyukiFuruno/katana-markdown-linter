@@ -13,26 +13,7 @@ pub(super) fn compare_with_local(catalog: &UpstreamCatalog) -> DriftReport {
     let mut items = Vec::new();
 
     for upstream in &catalog.rules {
-        let Some(local) = local_rules.get(upstream.id.as_str()) else {
-            items.push(DriftItem {
-                rule_id: upstream.id.clone(),
-                drift_type: DriftType::MissingLocalRule,
-                message: "upstream rule is not present in local catalog".to_string(),
-            });
-            continue;
-        };
-
-        compare_rule_properties(upstream, local, &mut items);
-        if normalize_summary(&upstream.summary) != normalize_summary(local.description) {
-            items.push(DriftItem {
-                rule_id: upstream.id.clone(),
-                drift_type: DriftType::SummaryMismatch,
-                message: format!(
-                    "summary differs: upstream {:?}, local {:?}",
-                    upstream.summary, local.description
-                ),
-            });
-        }
+        compare_upstream_rule(upstream, local_rules.get(upstream.id.as_str()), &mut items);
     }
 
     for local_id in local_rules.keys() {
@@ -49,6 +30,33 @@ pub(super) fn compare_with_local(catalog: &UpstreamCatalog) -> DriftReport {
         upstream_source: catalog.source.clone(),
         summary: summarize_items(upstream_rules.len(), local_rules.len(), &items),
         items,
+    }
+}
+
+fn compare_upstream_rule(
+    upstream: &UpstreamRuleDocument,
+    local: Option<&crate::rules::markdown::OfficialRuleMeta>,
+    items: &mut Vec<DriftItem>,
+) {
+    let Some(local) = local else {
+        items.push(DriftItem {
+            rule_id: upstream.id.clone(),
+            drift_type: DriftType::MissingLocalRule,
+            message: "upstream rule is not present in local catalog".to_string(),
+        });
+        return;
+    };
+
+    compare_rule_properties(upstream, local, items);
+    if normalize_summary(&upstream.summary) != normalize_summary(local.description) {
+        items.push(DriftItem {
+            rule_id: upstream.id.clone(),
+            drift_type: DriftType::SummaryMismatch,
+            message: format!(
+                "summary differs: upstream {:?}, local {:?}",
+                upstream.summary, local.description
+            ),
+        });
     }
 }
 
@@ -96,38 +104,18 @@ fn compare_rule_properties(
             continue;
         };
 
-        let local_type = if local_property.accepts_null() {
-            "string[]|null"
-        } else {
-            property_type_name(local_property.prop_type)
-        };
-        if upstream_property.value_type != local_type {
-            items.push(DriftItem {
-                rule_id: upstream.id.clone(),
-                drift_type: DriftType::PropertyTypeMismatch,
-                message: format!(
-                    "property `{key}` type differs: upstream {}, local {}",
-                    upstream_property.value_type, local_type
-                ),
-            });
-        }
-
-        let Some(default_value) = &upstream_property.default_value else {
-            continue;
-        };
-        if normalize_default(default_value) == normalize_default(local_property.default_value) {
-            continue;
-        }
-        items.push(DriftItem {
-            rule_id: upstream.id.clone(),
-            drift_type: DriftType::PropertyDefaultMismatch,
-            message: format!(
-                "property `{key}` default differs: upstream {}, local {}",
-                default_value, local_property.default_value
-            ),
-        });
+        compare_property(upstream, key, upstream_property, local_property, items);
     }
 
+    collect_missing_upstream_properties(upstream, &upstream_props, &local_props, items);
+}
+
+fn collect_missing_upstream_properties(
+    upstream: &UpstreamRuleDocument,
+    upstream_props: &BTreeMap<&str, &crate::upstream::document::UpstreamRuleProperty>,
+    local_props: &BTreeMap<&str, &crate::rules::markdown::RuleProperty>,
+    items: &mut Vec<DriftItem>,
+) {
     for key in local_props.keys() {
         if !upstream_props.contains_key(key) {
             items.push(DriftItem {
@@ -137,4 +125,53 @@ fn compare_rule_properties(
             });
         }
     }
+}
+
+fn compare_property(
+    upstream: &UpstreamRuleDocument,
+    key: &str,
+    upstream_property: &crate::upstream::document::UpstreamRuleProperty,
+    local_property: &crate::rules::markdown::RuleProperty,
+    items: &mut Vec<DriftItem>,
+) {
+    let local_type = if local_property.accepts_null() {
+        "string[]|null"
+    } else {
+        property_type_name(local_property.prop_type)
+    };
+    if upstream_property.value_type != local_type {
+        items.push(DriftItem {
+            rule_id: upstream.id.clone(),
+            drift_type: DriftType::PropertyTypeMismatch,
+            message: format!(
+                "property `{key}` type differs: upstream {}, local {}",
+                upstream_property.value_type, local_type
+            ),
+        });
+    }
+
+    compare_property_default(upstream, key, upstream_property, local_property, items);
+}
+
+fn compare_property_default(
+    upstream: &UpstreamRuleDocument,
+    key: &str,
+    upstream_property: &crate::upstream::document::UpstreamRuleProperty,
+    local_property: &crate::rules::markdown::RuleProperty,
+    items: &mut Vec<DriftItem>,
+) {
+    let Some(default_value) = &upstream_property.default_value else {
+        return;
+    };
+    if normalize_default(default_value) == normalize_default(local_property.default_value) {
+        return;
+    }
+    items.push(DriftItem {
+        rule_id: upstream.id.clone(),
+        drift_type: DriftType::PropertyDefaultMismatch,
+        message: format!(
+            "property `{key}` default differs: upstream {}, local {}",
+            default_value, local_property.default_value
+        ),
+    });
 }

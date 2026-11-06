@@ -1,5 +1,5 @@
 use super::{policy::FixStage, FixApplicator};
-use crate::{Error, FixDetail, LintResult};
+use crate::{Error, FixDetail, FixResult, LintResult};
 use std::collections::HashSet;
 
 pub(crate) const DEFAULT_MAX_FIX_PASSES: usize = 8;
@@ -10,6 +10,14 @@ pub(crate) struct FixEngineResult {
     pub(crate) diagnostics: Vec<LintResult>,
     pub(crate) applied_fixes: usize,
     pub(crate) details: Vec<FixDetail>,
+}
+
+impl FixEngineResult {
+    fn record(&mut self, fixed: FixResult) {
+        self.applied_fixes += fixed.applied_fixes;
+        self.details.extend(fixed.details);
+        self.content = fixed.content;
+    }
 }
 
 /// Shared convergence loop for library, CLI, and formatter fix entrypoints.
@@ -24,71 +32,71 @@ impl FixEngine {
         mut check: impl FnMut(&str) -> Result<Vec<LintResult>, Error>,
     ) -> Result<FixEngineResult, Error> {
         let max_passes = max_passes.max(1);
-        let mut content = original.to_string();
-        let mut diagnostics = initial_diagnostics;
-        let mut applied_fixes = 0;
-        let mut details = Vec::new();
-        let mut seen = HashSet::from([content.clone()]);
+        let mut result = FixEngineResult {
+            content: original.to_string(),
+            diagnostics: initial_diagnostics,
+            applied_fixes: 0,
+            details: Vec::new(),
+        };
+        let mut seen = HashSet::from([result.content.clone()]);
 
         for _ in 0..max_passes {
-            let mut selected = None;
-            for stage in [FixStage::Syntax, FixStage::Content, FixStage::Layout] {
-                let candidates = diagnostics
-                    .iter()
-                    .filter(|diagnostic| {
-                        diagnostic.fix.is_some() && stage.contains(&diagnostic.rule_id)
-                    })
-                    .cloned()
-                    .collect::<Vec<_>>();
-                if candidates.is_empty() {
-                    continue;
-                }
-                let fixed = FixApplicator::apply(&candidates, &content, include_unsafe);
-                if fixed.content != content {
-                    selected = Some(fixed);
-                    break;
-                }
-            }
-
-            let Some(fixed) = selected else {
-                return Ok(FixEngineResult {
-                    content,
-                    diagnostics,
-                    applied_fixes,
-                    details,
-                });
+            let Some(fixed) = Self::next_pass(&result.diagnostics, &result.content, include_unsafe)
+            else {
+                return Ok(result);
             };
 
             if !seen.insert(fixed.content.clone()) {
                 return Err(Error::new("fix engine detected a repeated content cycle"));
             }
-            applied_fixes += fixed.applied_fixes;
-            details.extend(fixed.details);
-            content = fixed.content;
-            diagnostics = check(&content)?;
+            result.record(fixed);
+            result.diagnostics = check(&result.content)?;
         }
 
-        if FixStage::ALL.iter().any(|stage| {
-            let candidates = diagnostics
-                .iter()
-                .filter(|diagnostic| {
-                    diagnostic.fix.is_some() && stage.contains(&diagnostic.rule_id)
-                })
-                .cloned()
-                .collect::<Vec<_>>();
-            FixApplicator::has_effective(&candidates, &content, include_unsafe)
+        Self::check_budget(&result, include_unsafe, max_passes)?;
+        Ok(result)
+    }
+
+    fn next_pass(
+        diagnostics: &[LintResult],
+        content: &str,
+        include_unsafe: bool,
+    ) -> Option<FixResult> {
+        FixStage::ALL.into_iter().find_map(|stage| {
+            let candidates = Self::candidates(stage, diagnostics);
+            if candidates.is_empty() {
+                return None;
+            }
+            let fixed = FixApplicator::apply(&candidates, content, include_unsafe);
+            (fixed.content != content).then_some(fixed)
+        })
+    }
+
+    fn check_budget(
+        result: &FixEngineResult,
+        include_unsafe: bool,
+        max_passes: usize,
+    ) -> Result<(), Error> {
+        if FixStage::ALL.into_iter().any(|stage| {
+            FixApplicator::has_effective(
+                &Self::candidates(stage, &result.diagnostics),
+                &result.content,
+                include_unsafe,
+            )
         }) {
             return Err(Error::new(format!(
                 "fix engine did not converge after {max_passes} passes; applicable fixes remain"
             )));
         }
+        Ok(())
+    }
 
-        Ok(FixEngineResult {
-            content,
-            diagnostics,
-            applied_fixes,
-            details,
-        })
+    fn candidates(stage: FixStage, diagnostics: &[LintResult]) -> Vec<LintResult> {
+        diagnostics
+            .iter()
+            .filter(|diagnostic| diagnostic.fix.is_some() && stage.contains(&diagnostic.rule_id))
+            .cloned()
+            .collect()
     }
 }
 
@@ -100,18 +108,10 @@ mod tests {
 
     fn diagnostic(rule_id: &str, content: &str, replacement: &str) -> LintResult {
         let index = content.find(replacement).unwrap_or(0);
-        let line = content[..index]
-            .bytes()
-            .filter(|byte| *byte == b'\n')
-            .count()
-            + 1;
-        let column = content[..index]
-            .rsplit('\n')
-            .next()
-            .unwrap_or_default()
-            .chars()
-            .count()
-            + 1;
+        let prefix = &content[..index];
+        let line = prefix.matches('\n').count() + 1;
+        let line_prefix = prefix.rsplit_once('\n').map_or(prefix, |(_, tail)| tail);
+        let column = line_prefix.chars().count() + 1;
         LintResult {
             rule_id: rule_id.to_string(),
             rule_name: String::new(),

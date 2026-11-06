@@ -93,11 +93,15 @@ fn inline_rule_candidates_come_from_shared_source_adapters() {
         include_str!("../src/rules/markdown/rules/md049.rs"),
         include_str!("../src/rules/markdown/rules/md050.rs"),
     ] {
-        assert!(source.contains("extract_emphasis_spans("));
+        assert!(source.contains("evaluate_emphasis_style("));
+        assert!(!source.contains("extract_emphasis_spans("));
         assert!(!source.contains("fn emphasis_spans("));
         assert!(!source.contains("fn strong_spans("));
         assert!(!source.contains("fn is_intraword("));
     }
+    let emphasis_rule = include_str!("../src/rules/markdown/rules/emphasis_style.rs");
+    assert!(emphasis_rule.contains("extract_emphasis_spans("));
+    assert!(emphasis_rule.contains("safe_replacement("));
     let emphasis_adapter = include_str!("../src/rules/markdown/inline/emphasis.rs");
     assert!(emphasis_adapter.contains("ctx.parsed_emphasis_spans("));
     assert!(emphasis_adapter.contains("ctx.replacement_preserves_inline_semantics("));

@@ -86,7 +86,10 @@ fn validate_accepts_official_aliases_and_number_or_array_properties() {
     let errors = config.validate(&rules);
     assert_eq!(errors, Vec::new());
 
-    let options = config.to_lint_options();
+    assert_alias_options(&config.to_lint_options());
+}
+
+fn assert_alias_options(options: &crate::LintOptions) {
     assert_eq!(
         options.rules.get("MD001").map(|rule| rule.enabled),
         Some(true)
@@ -112,13 +115,7 @@ fn validate_accepts_official_aliases_and_number_or_array_properties() {
 fn validate_covers_root_rule_property_and_enum_errors() {
     let rules = crate::rules::markdown::MarkdownLinterOps::get_user_configurable_rules();
 
-    let invalid_root = MarkdownLintConfig { raw: json!(true) };
-    let root_errors = invalid_root.validate(&rules);
-    assert_eq!(root_errors.len(), 1);
-    assert_eq!(
-        root_errors[0].to_string(),
-        "config root must be a JSON object"
-    );
+    assert_invalid_root(&rules);
 
     let config = MarkdownLintConfig {
         raw: json!({
@@ -141,6 +138,22 @@ fn validate_covers_root_rule_property_and_enum_errors() {
     };
 
     let errors = config.validate(&rules);
+    assert_rule_errors(&errors);
+    assert_type_errors(&errors);
+    assert_nullable_errors(&errors);
+}
+
+fn assert_invalid_root(rules: &[Box<dyn crate::rules::markdown::MarkdownRule>]) {
+    let invalid_root = MarkdownLintConfig { raw: json!(true) };
+    let root_errors = invalid_root.validate(rules);
+    assert_eq!(root_errors.len(), 1);
+    assert_eq!(
+        root_errors[0].to_string(),
+        "config root must be a JSON object"
+    );
+}
+
+fn assert_rule_errors(errors: &[ConfigError]) {
     assert!(errors.iter().any(|error| {
         error.rule_id.as_deref() == Some("default")
             && matches!(
@@ -161,6 +174,9 @@ fn validate_covers_root_rule_property_and_enum_errors() {
         error.rule_id.as_deref() == Some("MD003")
             && matches!(error.kind, ConfigErrorKind::InvalidEnumValue { .. })
     }));
+}
+
+fn assert_type_errors(errors: &[ConfigError]) {
     assert!(errors.iter().any(|error| {
         error.rule_id.as_deref() == Some("MD013")
             && error.property.is_none()
@@ -184,6 +200,9 @@ fn validate_covers_root_rule_property_and_enum_errors() {
                 }
             )
     }));
+}
+
+fn assert_nullable_errors(errors: &[ConfigError]) {
     assert!(!errors.iter().any(|error| {
         error.rule_id.as_deref() == Some("MD043") && error.property.as_deref() == Some("headings")
     }));
@@ -247,6 +266,10 @@ fn to_lint_options_matches_markdownlint_config_semantics() {
         Some(true)
     );
 
+    assert_configured_properties(&options);
+}
+
+fn assert_configured_properties(options: &crate::LintOptions) {
     let md003 = options.rules.get("MD003").expect("MD003 should exist");
     assert!(!md003.enabled);
     assert_eq!(md003.properties.get("style"), Some(&"atx".to_string()));

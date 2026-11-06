@@ -1,3 +1,4 @@
+mod common;
 mod docs;
 mod examples;
 mod parameters;

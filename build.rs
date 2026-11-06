@@ -1,7 +1,13 @@
+#[path = "src/upstream/document/common.rs"]
+mod common;
 #[path = "build/meta_writer.rs"]
 mod meta_writer;
+#[path = "src/upstream/document/parameters.rs"]
+mod parameters;
 #[path = "build/rule_doc.rs"]
 mod rule_doc;
+#[path = "src/upstream/document/tokens.rs"]
+mod tokens;
 
 use std::env;
 use std::fs;

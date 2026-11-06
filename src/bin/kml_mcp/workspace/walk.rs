@@ -7,18 +7,8 @@ pub(super) fn collect_markdown_files(
     respect_gitignore: bool,
 ) -> Result<Vec<PathBuf>, String> {
     let (tx, rx) = mpsc::channel();
-    let walker = WalkBuilder::new(dir)
-        .hidden(false)
-        .parents(true)
-        .ignore(respect_gitignore)
-        .git_ignore(respect_gitignore)
-        .git_global(respect_gitignore)
-        .git_exclude(respect_gitignore)
-        .follow_links(false)
-        .require_git(false)
-        .build_parallel();
 
-    walker.run(|| {
+    markdown_walker(dir, respect_gitignore).run(|| {
         let tx = tx.clone();
         Box::new(move |entry| {
             match entry {
@@ -32,15 +22,25 @@ pub(super) fn collect_markdown_files(
     });
     drop(tx);
 
-    let mut paths = Vec::new();
-    for result in rx {
-        match result {
-            Ok(path) => paths.push(path),
-            Err(error) => return Err(format!("{}: {error}", dir.display())),
-        }
-    }
+    let mut paths = rx
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("{}: {error}", dir.display()))?;
     paths.sort();
     Ok(paths)
+}
+
+fn markdown_walker(dir: &Path, respect_gitignore: bool) -> ignore::WalkParallel {
+    WalkBuilder::new(dir)
+        .hidden(false)
+        .parents(true)
+        .ignore(respect_gitignore)
+        .git_ignore(respect_gitignore)
+        .git_global(respect_gitignore)
+        .git_exclude(respect_gitignore)
+        .follow_links(false)
+        .require_git(false)
+        .build_parallel()
 }
 
 fn send_markdown_path(tx: &mpsc::Sender<Result<PathBuf, String>>, path: PathBuf) {

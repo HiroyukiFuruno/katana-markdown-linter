@@ -39,28 +39,36 @@ impl MarkdownRule for TableColumnCountRule {
                 if row.cells.len() == expected_columns {
                     continue;
                 }
-                let range = ctx.diagnostic_range(row.range);
-                let fix_info =
-                    safe_pad_fix(row, expected_columns).map(|replacement| DiagnosticFix {
-                        start_line: range.start_line,
-                        start_column: range.start_column,
-                        end_line: range.end_line,
-                        end_column: range.end_column,
-                        replacement,
-                    });
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range,
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info,
-                });
+                diagnostics.push(column_count_diagnostic(ctx, row, expected_columns, &meta));
             }
         }
 
         diagnostics
+    }
+}
+
+fn column_count_diagnostic(
+    ctx: &DocumentContext<'_>,
+    row: &TableRow<'_>,
+    expected_columns: usize,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    let range = ctx.diagnostic_range(row.range);
+    let fix_info = safe_pad_fix(row, expected_columns).map(|replacement| DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement,
+    });
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range,
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info,
     }
 }
 

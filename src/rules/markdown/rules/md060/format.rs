@@ -16,7 +16,15 @@ pub(super) fn safe_fix<'a>(
         ConfiguredStyle::Style(style) => style,
         ConfiguredStyle::Any => closest_style(ctx, table),
     };
-    let mut replacement = match style {
+    let mut replacement = format_table(table, style);
+    if ctx.content()[table.range.start..table.range.end].ends_with('\n') {
+        replacement.push('\n');
+    }
+    Some(replacement)
+}
+
+fn format_table(table: &TableBlock<'_>, style: TableStyle) -> String {
+    match style {
         TableStyle::Aligned => table
             .rows
             .iter()
@@ -35,11 +43,7 @@ pub(super) fn safe_fix<'a>(
             .map(|row| format_simple_row(row, ""))
             .collect::<Vec<_>>()
             .join("\n"),
-    };
-    if ctx.content()[table.range.start..table.range.end].ends_with('\n') {
-        replacement.push('\n');
     }
-    Some(replacement)
 }
 
 fn safe_to_fix(table: &TableBlock<'_>) -> bool {

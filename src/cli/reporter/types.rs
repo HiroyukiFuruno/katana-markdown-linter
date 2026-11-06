@@ -42,38 +42,7 @@ impl CliReport {
             ..CliSummary::default()
         };
 
-        for file in &self.files {
-            if !file.diagnostics.is_empty() {
-                summary.files_with_issues += 1;
-            }
-            summary.total_issues += file.diagnostics.len();
-            summary.fixable_issues += file
-                .diagnostics
-                .iter()
-                .filter(|diagnostic| diagnostic.fix.is_some())
-                .count();
-            summary.safe_fixable_issues += file
-                .diagnostics
-                .iter()
-                .filter(|diagnostic| {
-                    diagnostic
-                        .fix
-                        .as_ref()
-                        .is_some_and(|fix| fix.safety == FixSafety::Safe)
-                })
-                .count();
-            summary.unsafe_fixable_issues += file
-                .diagnostics
-                .iter()
-                .filter(|diagnostic| {
-                    diagnostic
-                        .fix
-                        .as_ref()
-                        .is_some_and(|fix| fix.safety == FixSafety::Unsafe)
-                })
-                .count();
-            summary.applied_fixes += file.applied_fixes;
-        }
+        accumulate_files(&mut summary, &self.files);
 
         if summary.unsafe_fixable_issues > 0 {
             summary
@@ -81,6 +50,27 @@ impl CliReport {
                 .get_or_insert_with(|| "unsafe_mode_not_enabled".to_string());
         }
         self.summary = summary;
+    }
+}
+
+fn accumulate_files(summary: &mut CliSummary, files: &[FileReport]) {
+    for file in files {
+        summary.files_with_issues += usize::from(!file.diagnostics.is_empty());
+        summary.total_issues += file.diagnostics.len();
+        summary.applied_fixes += file.applied_fixes;
+        accumulate_fixes(summary, &file.diagnostics);
+    }
+}
+
+fn accumulate_fixes(summary: &mut CliSummary, diagnostics: &[crate::LintResult]) {
+    for diagnostic in diagnostics {
+        if let Some(fix) = &diagnostic.fix {
+            summary.fixable_issues += 1;
+            match fix.safety {
+                FixSafety::Safe => summary.safe_fixable_issues += 1,
+                FixSafety::Unsafe => summary.unsafe_fixable_issues += 1,
+            }
+        }
     }
 }
 

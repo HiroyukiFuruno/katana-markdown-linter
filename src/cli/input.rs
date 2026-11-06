@@ -42,6 +42,13 @@ pub(super) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
         collect_input_path(&mut paths, input)?;
     }
 
+    let mut expanded = expand_directories(paths, cli)?;
+    expanded.sort();
+    expanded.dedup();
+    filter_paths(expanded, cli, true)
+}
+
+fn expand_directories(paths: Vec<PathBuf>, cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError> {
     let mut expanded = Vec::new();
     for path in paths {
         if path.is_dir() {
@@ -54,9 +61,7 @@ pub(super) fn expand_inputs(cli: &Cli) -> Result<Vec<PathBuf>, InputExpandError>
             expanded.push(path);
         }
     }
-    expanded.sort();
-    expanded.dedup();
-    filter_paths(expanded, cli, true)
+    Ok(expanded)
 }
 
 fn has_glob_chars(input: &str) -> bool {
@@ -97,25 +102,7 @@ fn collect_markdown_files(
     include_reserved: bool,
 ) -> Result<(), String> {
     let (tx, rx) = mpsc::channel();
-    let mut builder = WalkBuilder::new(dir);
-    builder
-        .hidden(false)
-        .parents(true)
-        .ignore(respect_gitignore)
-        .git_ignore(respect_gitignore)
-        .git_global(respect_gitignore)
-        .git_exclude(respect_gitignore)
-        .threads(
-            std::thread::available_parallelism()
-                .map_or(1, |count| count.get())
-                .min(MAX_DIRECTORY_WALK_THREADS),
-        )
-        .require_git(false);
-    if !include_reserved {
-        builder.filter_entry(|entry| !is_reserved_directory(entry.path()));
-    }
-    let walker = builder.build_parallel();
-
+    let walker = directory_walker(dir, respect_gitignore, include_reserved);
     walker.run(|| {
         let tx = tx.clone();
         Box::new(move |entry| {
@@ -134,7 +121,6 @@ fn collect_markdown_files(
         })
     });
     drop(tx);
-
     for result in rx {
         match result {
             Ok(path) => paths.push(path),
@@ -142,6 +128,31 @@ fn collect_markdown_files(
         }
     }
     Ok(())
+}
+
+fn directory_walker(
+    dir: &Path,
+    respect_gitignore: bool,
+    include_reserved: bool,
+) -> ignore::WalkParallel {
+    let mut builder = WalkBuilder::new(dir);
+    builder
+        .hidden(false)
+        .parents(true)
+        .ignore(respect_gitignore)
+        .git_ignore(respect_gitignore)
+        .git_global(respect_gitignore)
+        .git_exclude(respect_gitignore)
+        .threads(
+            std::thread::available_parallelism()
+                .map_or(1, |count| count.get())
+                .min(MAX_DIRECTORY_WALK_THREADS),
+        )
+        .require_git(false);
+    if !include_reserved {
+        builder.filter_entry(|entry| !is_reserved_directory(entry.path()));
+    }
+    builder.build_parallel()
 }
 
 fn is_markdown_file(path: &Path) -> bool {

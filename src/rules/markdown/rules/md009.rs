@@ -39,28 +39,44 @@ impl MarkdownRule for NoTrailingSpacesRule {
             }
             let trimmed_len = line.text.len() - trailing_spaces;
 
-            diagnostics.push(MarkdownDiagnostic {
-                file: ctx.file_path().to_path_buf(),
-                severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: line.number,
-                    start_column: trimmed_len + 1,
-                    end_line: line.number,
-                    end_column: line.text.len() + 1,
-                },
-                message: meta.description.to_string(),
-                rule_id: meta.code.to_string(),
-                official_meta: Some(meta.clone()),
-                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                    start_line: line.number,
-                    start_column: trimmed_len + 1,
-                    end_line: line.number,
-                    end_column: line.text.len() + 1,
-                    replacement: String::new(),
-                }),
-            });
+            diagnostics.push(trailing_space_diagnostic(
+                ctx,
+                line.number,
+                trimmed_len,
+                line.text.len(),
+                &meta,
+            ));
         }
         diagnostics
+    }
+}
+
+fn trailing_space_diagnostic(
+    ctx: &DocumentContext<'_>,
+    line: usize,
+    start: usize,
+    end: usize,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line,
+            start_column: start + 1,
+            end_line: line,
+            end_column: end + 1,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+            start_line: line,
+            start_column: start + 1,
+            end_line: line,
+            end_column: end + 1,
+            replacement: String::new(),
+        }),
     }
 }
 

@@ -36,30 +36,35 @@ impl MarkdownRule for NoMultipleSpaceAtxRule {
                 continue;
             }
             let line = line.text;
-            let trimmed = line.trim_start();
-            let hash_count = trimmed.chars().take_while(|c| *c == '#').count();
-            let has_spaces = trimmed
-                .get(hash_count..)
-                .is_some_and(|rest| rest.starts_with("  "));
-            if hash_count > 0 && has_spaces {
-                let fix = crate::rules::markdown::types::DiagnosticFix {
-                    start_line: i + 1,
-                    start_column: line.len() - trimmed.len() + hash_count + 1,
-                    end_line: i + 1,
-                    end_column: line.len() - trimmed.len() + hash_count + DOUBLE_SPACE_WIDTH + 1,
-                    replacement: " ".to_string(),
-                };
-                RuleHelpers::push_diag_with_fix(
-                    &mut diagnostics,
-                    ctx.file_path(),
-                    i,
-                    line,
-                    &meta,
-                    DiagnosticSeverity::Warning,
-                    Some(fix),
-                );
-            }
+            let Some((indent, hash_count)) = multiple_space_heading(line) else {
+                continue;
+            };
+            let fix = crate::rules::markdown::types::DiagnosticFix {
+                start_line: i + 1,
+                start_column: indent + hash_count + 1,
+                end_line: i + 1,
+                end_column: indent + hash_count + DOUBLE_SPACE_WIDTH + 1,
+                replacement: " ".to_string(),
+            };
+            RuleHelpers::push_diag_with_fix(
+                &mut diagnostics,
+                ctx.file_path(),
+                i,
+                line,
+                &meta,
+                DiagnosticSeverity::Warning,
+                Some(fix),
+            );
         }
         diagnostics
     }
+}
+
+fn multiple_space_heading(line: &str) -> Option<(usize, usize)> {
+    let trimmed = line.trim_start();
+    let hash_count = trimmed.chars().take_while(|c| *c == '#').count();
+    let has_spaces = trimmed
+        .get(hash_count..)
+        .is_some_and(|rest| rest.starts_with("  "));
+    (hash_count > 0 && has_spaces).then_some((line.len() - trimmed.len(), hash_count))
 }

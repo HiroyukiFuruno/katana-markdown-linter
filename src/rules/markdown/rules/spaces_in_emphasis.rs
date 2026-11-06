@@ -113,27 +113,49 @@ fn space_fix(
     if !line[..end_marker.start].ends_with(' ') {
         return None;
     }
-    let full_range = SourceRange {
-        start: line_context.line_start + marker.start,
-        end: line_context.line_start + end_marker.start + end_marker.len,
-    };
-    if ctx.has_raw_html_boundary(full_range)
-        || (line_context.has_inline_code_marker && ctx.is_inside_inline_code(full_range))
-    {
+    if overlaps_excluded_content(line_context, marker, end_marker, ctx) {
         return None;
     }
     let inner_text = &line[after_marker..end_marker.start];
     if inner_text.contains('`') || !inner_text.chars().any(|char| !char.is_whitespace()) {
         return None;
     }
+    Some(trim_emphasis_fix(
+        line_context,
+        marker,
+        end_marker,
+        inner_text,
+    ))
+}
+
+fn overlaps_excluded_content(
+    line: &EmphasisLine<'_>,
+    marker: EmphasisMarker,
+    end: EmphasisMarker,
+    ctx: &DocumentContext<'_>,
+) -> bool {
+    let range = SourceRange {
+        start: line.line_start + marker.start,
+        end: line.line_start + end.start + end.len,
+    };
+    ctx.has_raw_html_boundary(range)
+        || (line.has_inline_code_marker && ctx.is_inside_inline_code(range))
+}
+
+fn trim_emphasis_fix(
+    line_context: &EmphasisLine<'_>,
+    marker: EmphasisMarker,
+    end_marker: EmphasisMarker,
+    inner_text: &str,
+) -> crate::rules::markdown::types::DiagnosticFix {
     let marker_str: String = std::iter::repeat_n(marker.kind, marker.len).collect();
-    Some(crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
         start_line: line_context.line_index + 1,
         start_column: marker.start + 1,
         end_line: line_context.line_index + 1,
         end_column: end_marker.start + end_marker.len + 1,
         replacement: format!("{}{}{}", marker_str, inner_text.trim(), marker_str),
-    })
+    }
 }
 
 #[cfg(test)]

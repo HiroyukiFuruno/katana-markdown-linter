@@ -32,71 +32,89 @@ pub(super) fn run_fmt(cli: &Cli, locale: Locale) -> Result<i32, String> {
         }
     };
 
-    let mut layout_policies = HashMap::new();
-    for path in files {
-        let content = match fs::read_to_string(&path) {
-            Ok(content) => content,
-            Err(err) => {
-                report.errors.push(CliError::filesystem(&path, err));
-                continue;
-            }
-        };
-
-        let config = match config_session.load_for_path(&path) {
-            Ok(config) => config,
-            Err(err) => {
-                report.errors.push(CliError::config(&path, err));
-                continue;
-            }
-        };
-        let errors = config.validation_errors.clone();
-        if !errors.is_empty() {
-            for error in errors {
-                report
-                    .errors
-                    .push(CliError::config_validation(&path, error));
-            }
-            continue;
-        }
-
-        let lint_options = layout_policies
-            .entry(config.source.clone())
-            .or_insert_with(|| MarkdownFormatter::layout_lint_options_from(&config.lint_options));
-        let formatted = match MarkdownFormatter::format_markdown_with_lint_options(
-            &content,
-            &FormatOptions::default(),
-            lint_options,
-        ) {
-            Ok(formatted) => formatted,
-            Err(err) => {
-                report.errors.push(CliError::rule(&path, err.to_string()));
-                continue;
-            }
-        };
-        let changed = formatted.content != content;
-        if changed {
-            if cli.diff {
-                print_diff(&path, &content, &formatted.content);
-            }
-            if let Err(err) = fs::write(&path, &formatted.content) {
-                report.errors.push(CliError::filesystem(&path, err));
-                continue;
-            }
-        }
-
-        report.files.push(FileReport {
-            path: path.display().to_string(),
-            diagnostics: Vec::new(),
-            applied_fixes: formatted.applied_operations,
-            fix_details: Vec::new(),
-            changed,
-        });
-    }
+    format_files(&mut report, files, cli, &mut config_session);
 
     report.recompute_summary();
     let exit_code = if report.errors.is_empty() { 0 } else { 2 };
     output_report(&report, true, cli, locale)?;
     Ok(exit_code)
+}
+
+fn format_files(
+    report: &mut CliReport,
+    files: Vec<std::path::PathBuf>,
+    cli: &Cli,
+    session: &mut ConfigSession,
+) {
+    let mut policies = HashMap::new();
+    for path in files {
+        match format_file(&path, cli, session, &mut policies) {
+            Ok(file) => report.files.push(file),
+            Err(errors) => report.errors.extend(errors),
+        }
+    }
+}
+
+fn format_file(
+    path: &Path,
+    cli: &Cli,
+    session: &mut ConfigSession,
+    policies: &mut HashMap<Option<std::path::PathBuf>, LintOptions>,
+) -> Result<FileReport, Vec<CliError>> {
+    let content = fs::read_to_string(path).map_err(|err| vec![CliError::filesystem(path, err)])?;
+    let config = session
+        .load_for_path(path)
+        .map_err(|err| vec![CliError::config(path, err)])?;
+    if !config.validation_errors.is_empty() {
+        return Err(config
+            .validation_errors
+            .iter()
+            .cloned()
+            .map(|error| CliError::config_validation(path, error))
+            .collect());
+    }
+    let options = policies
+        .entry(config.source.clone())
+        .or_insert_with(|| MarkdownFormatter::layout_lint_options_from(&config.lint_options));
+    let formatted = MarkdownFormatter::format_markdown_with_lint_options(
+        &content,
+        &FormatOptions::default(),
+        options,
+    )
+    .map_err(|err| vec![CliError::rule(path, err.to_string())])?;
+    let changed = write_formatted_file(path, &content, &formatted.content, cli.diff)?;
+
+    Ok(formatted_file_report(
+        path,
+        formatted.applied_operations,
+        changed,
+    ))
+}
+
+fn formatted_file_report(path: &Path, applied_fixes: usize, changed: bool) -> FileReport {
+    FileReport {
+        path: path.display().to_string(),
+        diagnostics: Vec::new(),
+        applied_fixes,
+        fix_details: Vec::new(),
+        changed,
+    }
+}
+
+fn write_formatted_file(
+    path: &Path,
+    content: &str,
+    formatted: &str,
+    diff: bool,
+) -> Result<bool, Vec<CliError>> {
+    if formatted == content {
+        return Ok(false);
+    }
+    if diff {
+        print_diff(path, content, formatted);
+    }
+    fs::write(path, formatted).map_err(|err| vec![CliError::filesystem(path, err)])?;
+    Ok(true)
 }
 
 fn run_stdin_fmt(
@@ -111,54 +129,60 @@ fn run_stdin_fmt(
     let config = match config_session.load_for_path(Path::new("<stdin>")) {
         Ok(config) => config,
         Err(err) => {
-            let mut report = CliReport {
-                command: "fmt",
-                summary: CliSummary::default(),
-                files: Vec::new(),
-                errors: vec![CliError::config(Path::new("<stdin>"), err)],
-            };
-            report.recompute_summary();
-            output_report(&report, true, cli, locale)?;
-            return Ok(2);
+            return stdin_fmt_error(
+                cli,
+                locale,
+                vec![CliError::config(Path::new("<stdin>"), err)],
+            )
         }
     };
-    let errors = config.validation_errors.clone();
-    if !errors.is_empty() {
-        let mut report = CliReport {
-            command: "fmt",
-            summary: CliSummary::default(),
-            files: Vec::new(),
-            errors: errors
-                .into_iter()
-                .map(|error| CliError::config_validation(Path::new("<stdin>"), error))
-                .collect(),
-        };
-        report.recompute_summary();
-        output_report(&report, true, cli, locale)?;
-        return Ok(2);
+    if !config.validation_errors.is_empty() {
+        let errors = config
+            .validation_errors
+            .iter()
+            .cloned()
+            .map(|error| CliError::config_validation(Path::new("<stdin>"), error))
+            .collect();
+        return stdin_fmt_error(cli, locale, errors);
     }
+    format_stdin(cli, locale, &content, &config.lint_options)
+}
 
-    let lint_options = MarkdownFormatter::layout_lint_options_from(&config.lint_options);
-    let formatted = match format_stdin_content(&content, &lint_options) {
+fn format_stdin(
+    cli: &Cli,
+    locale: Locale,
+    content: &str,
+    options: &LintOptions,
+) -> Result<i32, String> {
+    let lint_options = MarkdownFormatter::layout_lint_options_from(options);
+    let formatted = match format_stdin_content(content, &lint_options) {
         Ok(formatted) => formatted,
         Err(message) => {
-            let mut report = CliReport {
-                command: "fmt",
-                summary: CliSummary::default(),
-                files: Vec::new(),
-                errors: vec![CliError::rule(Path::new("<stdin>"), message)],
-            };
-            report.recompute_summary();
-            output_report(&report, true, cli, locale)?;
-            return Ok(2);
+            return stdin_fmt_error(
+                cli,
+                locale,
+                vec![CliError::rule(Path::new("<stdin>"), message)],
+            )
         }
     };
     if cli.diff {
-        print_diff(Path::new("<stdin>"), &content, &formatted);
+        print_diff(Path::new("<stdin>"), content, &formatted);
     } else {
         print!("{formatted}");
     }
     Ok(0)
+}
+
+fn stdin_fmt_error(cli: &Cli, locale: Locale, errors: Vec<CliError>) -> Result<i32, String> {
+    let mut report = CliReport {
+        command: "fmt",
+        summary: CliSummary::default(),
+        files: Vec::new(),
+        errors,
+    };
+    report.recompute_summary();
+    output_report(&report, true, cli, locale)?;
+    Ok(2)
 }
 
 pub(super) fn format_stdin_content(

@@ -22,8 +22,16 @@ fn renders_markdown_summary() {
     };
 
     let markdown = report::render_markdown_summary(&report);
-    assert!(markdown.contains("MD999"));
-    assert!(markdown.contains("missing: 1"));
+    assert_eq!(
+        markdown,
+        concat!(
+            "# Upstream Drift Report\n\n",
+            "- upstream rules: 1\n- local rules: 0\n- missing: 1\n- removed: 0\n",
+            "- deprecated: 0\n- mismatches: 0\n- unknown_needs_review: 0\n\n",
+            "| Rule | Type | Message |\n| --- | --- | --- |\n",
+            "| MD999 | MissingLocalRule | missing |\n",
+        )
+    );
 }
 
 #[test]

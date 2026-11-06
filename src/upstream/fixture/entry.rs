@@ -2,56 +2,9 @@ use super::types::{RuleFixtureCase, RuleFixtureEntry};
 use crate::upstream::document::{UpstreamRuleDocument, UpstreamRuleProperty};
 
 pub(super) fn rule_fixture_entry(rule: &UpstreamRuleDocument) -> RuleFixtureEntry {
-    let example_cases = rule
-        .examples
-        .iter()
-        .enumerate()
-        .map(|(index, example)| RuleFixtureCase {
-            name: format!("official_example_{}", index + 1),
-            source: example.content.clone(),
-            expected: None,
-        })
-        .collect::<Vec<_>>();
-    let config_valid = rule
-        .properties
-        .iter()
-        .flat_map(|property| {
-            let values = if property.value_type == "string[]|null" {
-                vec![
-                    ("null_valid", "null".to_string()),
-                    ("array_valid", "[]".to_string()),
-                ]
-            } else {
-                vec![("valid", config_value_for(property))]
-            };
-            values.into_iter().map(|(suffix, value)| RuleFixtureCase {
-                name: format!("{}_{suffix}", property.key),
-                source: format!(
-                    "{{ \"{}\": {{ \"{}\": {} }} }}",
-                    rule.id, property.key, value
-                ),
-                expected: None,
-            })
-        })
-        .collect::<Vec<_>>();
-    let config_invalid = rule
-        .properties
-        .iter()
-        .map(|property| RuleFixtureCase {
-            name: format!("{}_invalid_type", property.key),
-            source: format!(
-                "{{ \"{}\": {{ \"{}\": {} }} }}",
-                rule.id,
-                property.key,
-                if property.value_type == "string[]|null" {
-                    "1"
-                } else {
-                    "null"
-                }
-            ),
-            expected: Some("invalid type".to_string()),
-        })
-        .collect::<Vec<_>>();
+    let example_cases = example_cases(rule);
+    let config_valid = valid_config_cases(rule);
+    let config_invalid = invalid_config_cases(rule);
     let mut manual_required = Vec::new();
     if example_cases.is_empty() {
         manual_required
@@ -78,6 +31,62 @@ pub(super) fn rule_fixture_entry(rule: &UpstreamRuleDocument) -> RuleFixtureEntr
         edge: Vec::new(),
         manual_required,
     }
+}
+
+fn example_cases(rule: &UpstreamRuleDocument) -> Vec<RuleFixtureCase> {
+    rule.examples
+        .iter()
+        .enumerate()
+        .map(|(index, example)| RuleFixtureCase {
+            name: format!("official_example_{}", index + 1),
+            source: example.content.clone(),
+            expected: None,
+        })
+        .collect::<Vec<_>>()
+}
+
+fn valid_config_cases(rule: &UpstreamRuleDocument) -> Vec<RuleFixtureCase> {
+    rule.properties
+        .iter()
+        .flat_map(|property| {
+            let values = if property.value_type == "string[]|null" {
+                vec![
+                    ("null_valid", "null".to_string()),
+                    ("array_valid", "[]".to_string()),
+                ]
+            } else {
+                vec![("valid", config_value_for(property))]
+            };
+            values.into_iter().map(|(suffix, value)| RuleFixtureCase {
+                name: format!("{}_{suffix}", property.key),
+                source: format!(
+                    "{{ \"{}\": {{ \"{}\": {} }} }}",
+                    rule.id, property.key, value
+                ),
+                expected: None,
+            })
+        })
+        .collect::<Vec<_>>()
+}
+
+fn invalid_config_cases(rule: &UpstreamRuleDocument) -> Vec<RuleFixtureCase> {
+    rule.properties
+        .iter()
+        .map(|property| RuleFixtureCase {
+            name: format!("{}_invalid_type", property.key),
+            source: format!(
+                "{{ \"{}\": {{ \"{}\": {} }} }}",
+                rule.id,
+                property.key,
+                if property.value_type == "string[]|null" {
+                    "1"
+                } else {
+                    "null"
+                }
+            ),
+            expected: Some("invalid type".to_string()),
+        })
+        .collect::<Vec<_>>()
 }
 
 fn config_value_for(property: &UpstreamRuleProperty) -> String {

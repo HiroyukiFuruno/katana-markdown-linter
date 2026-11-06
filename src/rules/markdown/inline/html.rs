@@ -1,6 +1,8 @@
 use super::scan::{inside_code_span, skip_ascii_whitespace};
-use super::types::{InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement};
+mod attributes;
+use super::types::{InlineCodeSpan, InlineHtmlElement};
 use crate::rules::markdown::document::{LineInfo, SourceRange};
+use attributes::parse_attributes;
 pub(in crate::rules::markdown) fn extract_inline_html_elements<'a>(
     lines: &[LineInfo<'a>],
     code_line_flags: &[bool],
@@ -47,18 +49,7 @@ fn parse_html_element<'a>(
     line: &LineInfo<'a>,
     tag_start: usize,
 ) -> Option<InlineHtmlElement<'a>> {
-    let content_start = tag_start + 1;
-    let mut cursor = content_start;
-    let closing = line.text.as_bytes().get(cursor) == Some(&b'/');
-    if closing {
-        cursor += 1;
-    }
-    cursor = skip_ascii_whitespace(line.text, cursor, line.text.len());
-    let name_start = cursor;
-    let name_end = consume_name(line.text, name_start, line.text.len())?;
-    if !tag_name_boundary(line.text, name_end) {
-        return None;
-    }
+    let (closing, name_start, name_end) = parse_tag_name(line.text, tag_start)?;
     let tag_end = unquoted_tag_end(line.text, name_end)?;
     let attributes = if closing {
         Vec::new()
@@ -81,72 +72,20 @@ fn parse_html_element<'a>(
     })
 }
 
-fn parse_attributes<'a>(
-    line: &LineInfo<'a>,
-    start: usize,
-    tag_end: usize,
-) -> Vec<InlineHtmlAttribute<'a>> {
-    let mut attributes = Vec::new();
-    let mut cursor = start;
-    while cursor < tag_end {
-        cursor = skip_ascii_whitespace(line.text, cursor, tag_end);
-        if cursor >= tag_end || line.text.as_bytes().get(cursor) == Some(&b'/') {
-            break;
-        }
-        let name_start = cursor;
-        let Some(name_end) = consume_name(line.text, name_start, tag_end) else {
-            cursor += 1;
-            continue;
-        };
-        cursor = skip_ascii_whitespace(line.text, name_end, tag_end);
-        let (value, value_range, full_end) = parse_attribute_value(line, cursor, tag_end);
-        attributes.push(InlineHtmlAttribute {
-            name: &line.text[name_start..name_end],
-            value,
-            name_range: SourceRange {
-                start: line.content_range.start + name_start,
-                end: line.content_range.start + name_end,
-            },
-            value_range,
-            full_range: SourceRange {
-                start: line.content_range.start + name_start,
-                end: line.content_range.start + full_end,
-            },
-        });
-        cursor = full_end;
+fn parse_tag_name(text: &str, tag_start: usize) -> Option<(bool, usize, usize)> {
+    let content_start = tag_start + 1;
+    let mut cursor = content_start;
+    let closing = text.as_bytes().get(cursor) == Some(&b'/');
+    if closing {
+        cursor += 1;
     }
-    attributes
-}
-
-fn parse_attribute_value<'a>(
-    line: &LineInfo<'a>,
-    cursor: usize,
-    tag_end: usize,
-) -> (Option<&'a str>, Option<SourceRange>, usize) {
-    if line.text.as_bytes().get(cursor) != Some(&b'=') {
-        return (None, None, cursor);
+    cursor = skip_ascii_whitespace(text, cursor, text.len());
+    let name_start = cursor;
+    let name_end = consume_name(text, name_start, text.len())?;
+    if !tag_name_boundary(text, name_end) {
+        return None;
     }
-    let value_start = skip_ascii_whitespace(line.text, cursor + 1, tag_end);
-    let Some(quote) = line.text.as_bytes().get(value_start).copied() else {
-        return (None, None, value_start);
-    };
-    if quote != b'"' && quote != b'\'' {
-        let value_end = consume_unquoted_value(line.text, value_start, tag_end);
-        return (None, None, value_end);
-    }
-    let content_start = value_start + 1;
-    let Some(close_offset) = line.text[content_start..tag_end].find(quote as char) else {
-        return (None, None, tag_end);
-    };
-    let content_end = content_start + close_offset;
-    (
-        Some(&line.text[content_start..content_end]),
-        Some(SourceRange {
-            start: line.content_range.start + content_start,
-            end: line.content_range.start + content_end,
-        }),
-        content_end + 1,
-    )
+    Some((closing, name_start, name_end))
 }
 
 fn unquoted_tag_end(line: &str, start: usize) -> Option<usize> {
@@ -177,15 +116,6 @@ fn consume_name(line: &str, start: usize, end: usize) -> Option<usize> {
         cursor += 1;
     }
     Some(cursor)
-}
-
-fn consume_unquoted_value(line: &str, start: usize, end: usize) -> usize {
-    let bytes = line.as_bytes();
-    let mut cursor = start;
-    while cursor < end && !bytes[cursor].is_ascii_whitespace() && bytes[cursor] != b'/' {
-        cursor += 1;
-    }
-    cursor
 }
 
 fn tag_name_boundary(line: &str, name_end: usize) -> bool {

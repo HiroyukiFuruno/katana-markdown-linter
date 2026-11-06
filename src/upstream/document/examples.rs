@@ -17,22 +17,28 @@ pub(super) fn parse_fenced_examples(source: &str) -> Vec<UpstreamRuleExample> {
         };
 
         if in_fence {
-            examples.push(UpstreamRuleExample {
-                language: language.take(),
-                content: content.trim_end_matches('\n').to_string(),
-            });
-            content.clear();
-            in_fence = false;
-            continue;
-        }
-
-        let lang = rest.trim();
-        language = if lang.is_empty() {
-            None
+            finish_example(&mut examples, &mut language, &mut content);
         } else {
-            Some(lang.to_string())
-        };
-        in_fence = true;
+            language = fence_language(rest);
+        }
+        in_fence = !in_fence;
     }
     examples
+}
+
+fn finish_example(
+    examples: &mut Vec<UpstreamRuleExample>,
+    language: &mut Option<String>,
+    content: &mut String,
+) {
+    examples.push(UpstreamRuleExample {
+        language: language.take(),
+        content: content.trim_end_matches('\n').to_string(),
+    });
+    content.clear();
+}
+
+fn fence_language(rest: &str) -> Option<String> {
+    let lang = rest.trim();
+    (!lang.is_empty()).then(|| lang.to_string())
 }
