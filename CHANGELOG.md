@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.20.3
+
+- Share closed ATX heading and emphasis-style rule logic, upstream rule document parsing, and fix candidate selection while preserving diagnostic and fix behavior.
+- Upgrade the development AST linter to KAL 0.5.4 and verify source and function length boundaries through the existing quality gate.
+- Run npm trusted publication on Node.js 26 and synchronize release package metadata.
+
 ## v0.20.2
 
 - Map editor diagnostics and edits to UTF-16 positions and format selected lines in full document context.
