@@ -1,0 +1,54 @@
+{
+  "version": "v0.20.2",
+  "source_pr": 140,
+  "tracking_issue": 138,
+  "source_head": "ae4f6732af6b0428d1bf48ae99411c7e01a1e092",
+  "signed_tag_target": "34c8b45af396d32881a33ee36cce869fb74eff38",
+  "review": {
+    "resolved_threads": 1,
+    "unresolved_threads": 0,
+    "draft_and_ready_review": "completed"
+  },
+  "required_ci": {
+    "matrix_run": 42159058123,
+    "preflight_run": 42159058106,
+    "checks_passed": 4
+  },
+  "release": {
+    "run_id": 42159620897,
+    "attempt": 2,
+    "jobs_passed": 8,
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.2",
+    "assets": 30,
+    "checksum_pairs": 14,
+    "release_verify_exit": 0
+  },
+  "distribution": {
+    "crates": {
+      "version": "0.20.2",
+      "url": "https://crates.io/api/v1/crates/katana-markdown-linter/0.20.2"
+    },
+    "npm": {
+      "version": "0.20.2",
+      "url": "https://registry.npmjs.org/katana-markdown-linter/0.20.2"
+    },
+    "pypi": {
+      "version": "0.20.2",
+      "url": "https://pypi.org/pypi/katana-markdown-linter/0.20.2/json"
+    },
+    "mcp": {
+      "version": "0.20.2",
+      "url": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.HiroyukiFuruno%2Fkml/versions/0.20.2",
+      "bundle_hash_matches": true
+    },
+    "homebrew": {
+      "version": "0.20.2",
+      "formulae_verified": [
+        "kml.rb",
+        "kml@0.20.2.rb"
+      ]
+    }
+  },
+  "recovery": "The first attempt stopped on Homebrew authentication. The dedicated Actions secret was renewed and the failed jobs were rerun with the same signed source.",
+  "editor_marketplace": "Tracked separately by the v0.21.0 editor publication change."
+}
