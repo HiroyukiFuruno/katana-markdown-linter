@@ -1,0 +1,64 @@
+{
+  "version": "v0.20.3",
+  "implementation_pr": 142,
+  "release_pr": 143,
+  "tracking_issue": 139,
+  "issue_state": "closed_completed",
+  "release_head": "d401acc04d76dab0f2788cf75041f860bf02f010",
+  "signed_tag_target": "abe1b811c252b2dc40fa0fca493ee10a504b542e",
+  "required_ci": {
+    "matrix_run": 42183433843,
+    "preflight_run": 42183433832,
+    "checks_passed": 4
+  },
+  "quality": {
+    "document_answers": 272,
+    "answer_mismatches": 0,
+    "coverage_uncovered": 815,
+    "coverage_limit": 881,
+    "performance_cases": 20,
+    "performance_limit_ratio": 1.4
+  },
+  "release": {
+    "run": "https://github.com/HiroyukiFuruno/katana-markdown-linter/actions/runs/42184571140",
+    "attempt": 1,
+    "jobs_passed": 8,
+    "url": "https://github.com/HiroyukiFuruno/katana-markdown-linter/releases/tag/v0.20.3",
+    "assets": 30,
+    "checksum_pairs": 14,
+    "release_verify_exit": 0
+  },
+  "distribution": {
+    "crates": {
+      "version": "0.20.3",
+      "url": "https://crates.io/api/v1/crates/katana-markdown-linter/0.20.3"
+    },
+    "npm": {
+      "version": "0.20.3",
+      "url": "https://registry.npmjs.org/katana-markdown-linter/0.20.3"
+    },
+    "pypi": {
+      "version": "0.20.3",
+      "url": "https://pypi.org/pypi/katana-markdown-linter/0.20.3/json"
+    },
+    "mcp": {
+      "version": "0.20.3",
+      "url": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.HiroyukiFuruno%2Fkml/versions/0.20.3",
+      "bundle_hash_matches": true
+    },
+    "homebrew": {
+      "version": "0.20.3",
+      "url": "https://github.com/HiroyukiFuruno/homebrew-katana/tree/master/Formula",
+      "formulae_verified": [
+        "kml.rb",
+        "kml@0.20.3.rb"
+      ]
+    }
+  },
+  "smoke": [
+    "GitHub native binaries",
+    "crates.io install",
+    "npm and PyPI CLI and MCP launch"
+  ],
+  "editor_marketplace": "Tracked by the existing v0.21.0 editor publication change."
+}
