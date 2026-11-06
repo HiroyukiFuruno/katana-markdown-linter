@@ -37,6 +37,9 @@ pub(in crate::rules::markdown) fn reversed_links_on_line<'a>(
         if !ctx.overlaps_inline_code(SourceRange {
             start: source_start,
             end: source_end,
+        }) && !ctx.overlaps_raw_html(SourceRange {
+            start: source_start,
+            end: source_end,
         }) && !text.trim().is_empty()
             && !destination.starts_with('^')
         {

@@ -118,10 +118,11 @@ fn is_ignored_url(
     if line[..start].ends_with("](") || line[..start].ends_with(")[") {
         return true;
     }
-    if ctx.is_inside_inline_code(crate::rules::markdown::SourceRange {
+    let range = crate::rules::markdown::SourceRange {
         start: absolute_start,
         end: absolute_start + 1,
-    }) {
+    };
+    if ctx.is_inside_inline_code(range) || ctx.overlaps_raw_html(range) {
         return true;
     }
     let lo = ctx

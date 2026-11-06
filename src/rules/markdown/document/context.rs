@@ -5,9 +5,8 @@ use super::syntax::SyntaxIndex;
 use super::tables::extract_tables;
 use super::types::{DocumentContext, ParsedEmphasisSpan, SourceRange};
 use crate::rules::markdown::inline::{
-    extract_inline_code_spans, extract_inline_html_elements, extract_inline_links,
-    extract_reference_definitions, InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement,
-    InlineLink, ReferenceDefinition,
+    extract_inline_html_elements, extract_inline_links, extract_reference_definitions,
+    InlineCodeSpan, InlineHtmlAttribute, InlineHtmlElement, InlineLink, ReferenceDefinition,
 };
 use std::path::Path;
 use std::sync::OnceLock;
@@ -62,14 +61,18 @@ impl<'a> DocumentContext<'a> {
     }
 
     pub fn code_blocks(&self) -> &[super::BlockRange] {
-        &self.syntax().code_blocks
+        self.syntax()
+            .blocks(self.content, &self.lines)
+            .map_or(&[], |syntax| syntax.code_blocks.as_slice())
     }
 
     pub(in crate::rules::markdown) fn parsed_emphasis_spans(
         &self,
         range: SourceRange,
     ) -> &[ParsedEmphasisSpan] {
-        let spans = self.syntax().parsed_emphasis_spans(self.content);
+        let spans = self
+            .syntax()
+            .parsed_emphasis_spans(self.content, &self.lines);
         let start = spans.partition_point(|span| span.range.start < range.start);
         let end = spans.partition_point(|span| span.range.start < range.end);
         &spans[start..end]
@@ -84,6 +87,7 @@ impl<'a> DocumentContext<'a> {
     ) -> bool {
         self.syntax().replacement_preserves_inline_semantics(
             self.content,
+            &self.lines,
             range,
             replacement,
             semantic_scope,
@@ -91,9 +95,8 @@ impl<'a> DocumentContext<'a> {
         )
     }
 
-    fn syntax(&self) -> &SyntaxIndex {
-        self.syntax
-            .get_or_init(|| SyntaxIndex::new(self.content, &self.lines))
+    pub(super) fn syntax(&self) -> &SyntaxIndex {
+        self.syntax.get_or_init(|| SyntaxIndex::new(self.content))
     }
 
     pub(super) fn code_line_flags(&self) -> &[bool] {
@@ -103,18 +106,20 @@ impl<'a> DocumentContext<'a> {
 
     pub fn headings(&self) -> &[super::Heading<'a>] {
         self.headings
-            .get_or_init(|| extract_headings(&self.lines, self.code_blocks()))
+            .get_or_init(|| extract_headings(self))
             .as_slice()
     }
 
     pub fn inline_code_spans(&self) -> &[InlineCodeSpan] {
         self.inline_code_spans
             .get_or_init(|| {
-                extract_inline_code_spans(
+                let mut spans = self.syntax().inline_code_spans(
+                    self.content,
                     &self.lines,
                     self.code_line_flags(),
-                    self.syntax().code_spans.clone(),
-                )
+                );
+                spans.retain(|span| span.closed || !self.is_raw_html_at(span.full_range.start));
+                spans
             })
             .as_slice()
     }
@@ -153,6 +158,9 @@ impl<'a> DocumentContext<'a> {
                     self.code_line_flags(),
                     self.inline_code_spans(),
                 )
+                .into_iter()
+                .filter(|link| !self.has_raw_html_boundary(link.full_range))
+                .collect()
             })
             .as_slice()
     }
@@ -163,25 +171,6 @@ impl<'a> DocumentContext<'a> {
             .as_slice()
     }
 
-    pub fn is_inside_inline_code(&self, range: SourceRange) -> bool {
-        let spans = self.inline_code_spans();
-        let candidate_index = spans
-            .partition_point(|span| span.full_range.start <= range.start)
-            .saturating_sub(1);
-        spans.get(candidate_index).is_some_and(|span| {
-            span.full_range.start <= range.start && range.end <= span.full_range.end
-        })
-    }
-
-    pub(in crate::rules::markdown) fn overlaps_inline_code(&self, range: SourceRange) -> bool {
-        let spans = self.inline_code_spans();
-        let next = spans.partition_point(|span| span.full_range.end <= range.start);
-        range.start < range.end
-            && spans
-                .get(next)
-                .is_some_and(|span| span.full_range.start < range.end)
-    }
-
     pub fn links(&self) -> &[super::Link<'a>] {
         self.links
             .get_or_init(|| extract_links(self.inline_links()))
@@ -189,8 +178,6 @@ impl<'a> DocumentContext<'a> {
     }
 
     pub fn tables(&self) -> &[super::TableBlock<'a>] {
-        self.tables
-            .get_or_init(|| extract_tables(&self.lines, self.code_blocks()))
-            .as_slice()
+        self.tables.get_or_init(|| extract_tables(self)).as_slice()
     }
 }

@@ -130,8 +130,8 @@ impl McpWrapperDistributionContract {
             );
         }
         for required in [
-            "target/binary/kml-mcp-${TAG}-*",
-            "target/binary/kml-mcp-remote-${TAG}-*",
+            r#"target/binary/kml-mcp-"${TAG}"-*"#,
+            r#"target/binary/kml-mcp-remote-"${TAG}"-*"#,
         ] {
             require_contains(
                 violations,

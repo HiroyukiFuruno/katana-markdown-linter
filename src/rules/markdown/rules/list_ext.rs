@@ -34,7 +34,7 @@ impl MarkdownRule for BlanksAroundListsRule {
         let mut diagnostics = Vec::new();
         for (i, line) in ctx.lines().iter().enumerate() {
             let trimmed = line.text.trim_start();
-            if ctx.is_code_line(i) || !RuleHelpers::is_list_item(trimmed) {
+            if ctx.is_literal_block_line(i) || !RuleHelpers::is_list_item(trimmed) {
                 continue;
             }
             let prev_is_problem = i > 0

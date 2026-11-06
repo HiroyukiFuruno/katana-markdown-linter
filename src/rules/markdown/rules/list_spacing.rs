@@ -42,7 +42,7 @@ impl MarkdownRule for ListMarkerSpaceRule {
         let file_path = ctx.file_path();
 
         for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+            if ctx.is_literal_block_line(i) {
                 continue;
             }
             let line = line.text;

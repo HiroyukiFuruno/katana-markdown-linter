@@ -20,8 +20,8 @@ fn document_answer_manifest_records_public_and_original_samples() {
         "public corpus should contain at least 200 samples"
     );
     assert!(
-        original_count >= 70,
-        "original corpus should retain 58 existing samples and add at least 12 independent samples"
+        original_count >= 72,
+        "original corpus should retain 70 existing samples and two HTML boundary samples"
     );
 
     for sample in samples {
@@ -31,10 +31,9 @@ fn document_answer_manifest_records_public_and_original_samples() {
         .iter()
         .filter(|sample| sample.get("mutation").and_then(Value::as_str).is_some())
         .collect::<Vec<_>>();
-    assert_eq!(
-        mutations.len(),
-        4,
-        "four intentional mutation fixtures are required"
+    assert!(
+        mutations.len() >= 6,
+        "at least six intentional mutation fixtures are required"
     );
     for sample in mutations {
         let id = non_empty(sample, "id");

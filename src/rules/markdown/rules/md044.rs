@@ -112,6 +112,7 @@ fn proper_name_fixes(
                 end: line_start + end,
             };
             if is_word_boundary(line, start, end)
+                && !ctx.overlaps_raw_html(range)
                 && !(skip_inline_code && line.contains('`') && ctx.is_inside_inline_code(range))
             {
                 fixes.push((start, end, correct.clone()));

@@ -7,6 +7,227 @@ use std::time::{SystemTime, UNIX_EPOCH};
 static LSP_INPUT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[test]
+fn lsp_unicode_positions_apply_cleanly_to_the_original_document() {
+    use serde_json::json;
+
+    let uri = "file:///workspace/unicode-positions.md";
+    let source = "本文\r\n日本語😀 [ text ](https://example.com)\r\n";
+    let messages = document_requests(
+        uri,
+        source,
+        &[(
+            "textDocument/codeAction",
+            json!({ "context": { "diagnostics": [] } }),
+        )],
+    );
+    assert_eq!(
+        response(&messages, 1)["result"]["capabilities"]["positionEncoding"],
+        "utf-16"
+    );
+    let action = response(&messages, 2)["result"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|action| action["title"] == "Apply MD039 fix")
+        .expect("MD039 quickfix");
+    let edit = &action["edit"]["changes"][uri][0];
+    assert_eq!(
+        edit["range"],
+        json!({
+            "start": { "line": 1, "character": 7 },
+            "end": { "line": 1, "character": 13 }
+        })
+    );
+    assert_eq!(
+        apply_client_edit(source, edit),
+        "本文\r\n日本語😀 [text](https://example.com)\r\n"
+    );
+    let published = messages
+        .iter()
+        .find(|message| message["method"] == "textDocument/publishDiagnostics")
+        .unwrap();
+    let diagnostic = published["params"]["diagnostics"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|diagnostic| diagnostic["code"] == "MD039")
+        .unwrap();
+    assert_eq!(diagnostic, &action["diagnostics"][0]);
+    assert_eq!(
+        diagnostic["range"]["start"],
+        json!({"line": 1, "character": 6})
+    );
+
+    for (source, end_line) in [("😀", 0), ("本文\r\n😀", 1)] {
+        let messages = document_requests(uri, source, &[("textDocument/formatting", json!({}))]);
+        let edit = &response(&messages, 2)["result"][0];
+        assert_eq!(
+            edit["range"]["end"],
+            json!({ "line": end_line, "character": 2 })
+        );
+        assert_eq!(
+            apply_client_edit(source, edit),
+            format!("{}\n", source.replace("\r\n", "\n"))
+        );
+    }
+}
+
+#[test]
+fn lsp_range_formatting_keeps_context_and_leaves_unselected_bytes_intact() {
+    use serde_json::json;
+
+    let uri = "file:///workspace/format-selection.md";
+    for (source, start, end, end_column, expected) in [
+        (
+            "```text\nalpha\n\n\nbeta\n```\n",
+            1,
+            5,
+            0,
+            "```text\nalpha\n\n\nbeta\n```\n",
+        ),
+        (
+            "本文\r\n\r\n- Parent\n    - Child\n\nAfter\r\n",
+            3,
+            4,
+            0,
+            "本文\r\n\r\n- Parent\n  - Child\n\nAfter\r\n",
+        ),
+        (
+            "before\n# Heading\nafter\n",
+            1,
+            2,
+            0,
+            "before\n\n# Heading\n\nafter\n",
+        ),
+        ("前\r\n\r\n😀", 2, 2, 2, "前\r\n\r\n😀\n"),
+        ("前\r\r😀", 2, 2, 2, "前\r\r😀\n"),
+    ] {
+        let messages = document_requests(
+            uri,
+            source,
+            &[(
+                "textDocument/rangeFormatting",
+                json!({
+                    "range": { "start": { "line": start, "character": 0 }, "end": { "line": end, "character": end_column } }
+                }),
+            )],
+        );
+        let edits = response(&messages, 2)["result"].as_array().unwrap();
+        if expected == source {
+            assert!(edits.is_empty(), "{edits:?}");
+        } else {
+            assert_eq!(edits.len(), 1, "{source:?}");
+            assert_eq!(apply_client_edit(source, &edits[0]), expected);
+        }
+    }
+}
+
+#[test]
+fn lsp_rejects_semantically_invalid_configuration_before_offering_edits() {
+    use serde_json::json;
+
+    let directory = std::env::temp_dir().join(format!(
+        "kml-lsp-invalid-config-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&directory).unwrap();
+    let config = directory.join(".markdownlint.json");
+    let uri = format!("file://{}", directory.join("doc.md").display());
+    let source = "- Parent\n    - Child\n";
+    let requests = [
+        (
+            "textDocument/codeAction",
+            json!({ "context": { "diagnostics": [] } }),
+        ),
+        ("textDocument/formatting", json!({})),
+        (
+            "textDocument/rangeFormatting",
+            json!({
+                "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 2, "character": 0 } }
+            }),
+        ),
+    ];
+    for invalid in [
+        json!({"default": false, "MD007": {"enabled": true, "indent": "four"}}),
+        json!({"MD003": {"style": "invalid-style"}}),
+        json!({"MD999": true}),
+        json!([]),
+    ] {
+        std::fs::write(&config, invalid.to_string()).unwrap();
+        let messages = document_requests(&uri, source, &requests);
+        for id in 2..=4 {
+            let result = response(&messages, id);
+            assert!(result.get("result").is_none(), "{invalid}: {result}");
+            assert!(result["error"]["message"]
+                .as_str()
+                .unwrap()
+                .contains("Configuration error"));
+        }
+    }
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+fn document_requests(uri: &str, source: &str, requests: &[(&str, Value)]) -> Vec<Value> {
+    use serde_json::json;
+
+    let mut input = frame(request(1, "initialize", json!({ "capabilities": {} })));
+    input.push_str(&frame(notification(
+        "textDocument/didOpen",
+        json!({ "textDocument": { "uri": uri, "languageId": "markdown", "version": 1, "text": source } }),
+    )));
+    for (index, (method, params)) in requests.iter().enumerate() {
+        let mut params = params.clone();
+        params["textDocument"] = json!({ "uri": uri });
+        input.push_str(&frame(request(index as i64 + 2, method, params)));
+    }
+    input.push_str(&frame(request(
+        requests.len() as i64 + 2,
+        "shutdown",
+        Value::Null,
+    )));
+    input.push_str(&frame(notification("exit", Value::Null)));
+    let output = run_lsp(&input);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    decode_messages(&output.stdout)
+}
+
+fn apply_client_edit(source: &str, edit: &Value) -> String {
+    let mut units: Vec<_> = source.encode_utf16().collect();
+    let offset = |position: &Value| {
+        let line = position["line"].as_u64().unwrap() as usize;
+        let column = position["character"].as_u64().unwrap() as usize;
+        let cr = u16::from(b'\r');
+        let lf = u16::from(b'\n');
+        let line_end = |start| {
+            units[start..]
+                .iter()
+                .position(|&unit| unit == cr || unit == lf)
+                .map_or(units.len(), |length| start + length)
+        };
+        let mut start = 0;
+        for _ in 0..line {
+            let end = line_end(start);
+            let ending = units.get(end).expect("LSP line must exist");
+            start = end + 1 + usize::from(*ending == cr && units.get(end + 1) == Some(&lf));
+        }
+        assert!(column <= line_end(start) - start);
+        start + column
+    };
+    let start = offset(&edit["range"]["start"]);
+    let end = offset(&edit["range"]["end"]);
+    units.splice(start..end, edit["newText"].as_str().unwrap().encode_utf16());
+    String::from_utf16(&units).expect("edit must preserve valid UTF-16")
+}
+
+#[test]
 fn lsp_initialize_reports_diagnostics_and_formats_open_document() {
     let input = [
         frame(request(

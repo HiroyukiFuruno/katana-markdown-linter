@@ -60,6 +60,7 @@ impl LspServer {
         json!({
             "capabilities": {
                 "textDocumentSync": 1,
+                "positionEncoding": "utf-16",
                 "documentFormattingProvider": true,
                 "documentRangeFormattingProvider": true,
                 "codeActionProvider": true

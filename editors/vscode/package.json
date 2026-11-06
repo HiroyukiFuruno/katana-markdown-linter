@@ -2,7 +2,7 @@
   "name": "vscode-katana-markdown-linter",
   "displayName": "KatanA Markdown Linter",
   "description": "VS Code extension for KatanA Markdown Linter (kml)",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "publisher": "HiroyukiFuruno",
   "engines": {
     "vscode": "^1.75.0"
@@ -49,13 +49,21 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "18.x",
-    "@types/vscode": "^1.140.0",
+    "@types/vscode": "^1.145.0",
     "@vscode/test-electron": "^3.1.0",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1"
   },
   "dependencies": {
     "vscode-languageclient": "^8.1.0"
+  },
+  "overrides": {
+    "eslint": {
+      "minimatch": "^11.0.1"
+    },
+    "typescript-eslint": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

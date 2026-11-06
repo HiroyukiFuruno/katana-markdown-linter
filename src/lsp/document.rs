@@ -1,6 +1,9 @@
-use super::range::SelectedLineRange;
+use super::range::{lsp_range, selected_line_offsets};
 use super::LspUri;
-use crate::{FixSafety, FormatOptions, LintOptions, LintResult, MarkdownFormatter, MarkdownLinter};
+use crate::{
+    fix::LineOffsetIndex, FixSafety, FormatOptions, LintOptions, LintResult, MarkdownFormatter,
+    MarkdownLinter, Range,
+};
 use serde_json::{json, Value};
 
 const LSP_SEVERITY_ERROR: u8 = 1;
@@ -16,10 +19,11 @@ impl LspDocumentOps {
         options: &LintOptions,
     ) -> Result<Value, String> {
         let path = LspUri::path(uri);
+        let positions = DiagnosticPositions::new(content);
         let diagnostics = MarkdownLinter::lint_for_path(&path, content, options)
             .map_err(|err| err.to_string())?
-            .into_iter()
-            .map(lsp_diagnostic)
+            .iter()
+            .filter_map(|diagnostic| lsp_diagnostic(&positions, diagnostic))
             .collect::<Vec<_>>();
         Ok(json!({ "uri": uri, "diagnostics": diagnostics }))
     }
@@ -38,7 +42,7 @@ impl LspDocumentOps {
             return Ok(json!([]));
         }
         Ok(json!([{
-            "range": full_document_range(content),
+            "range": lsp_range(&LineOffsetIndex::for_lsp(content), 0..content.len()),
             "newText": formatted
         }]))
     }
@@ -49,19 +53,22 @@ impl LspDocumentOps {
         options: &FormatOptions,
         lint_options: &LintOptions,
     ) -> Result<Value, String> {
-        let Some(selection) = SelectedLineRange::from_lsp_range(content, range) else {
+        let index = LineOffsetIndex::for_lsp(content);
+        let Some(selection) = selected_line_offsets(&index, range) else {
             return Ok(json!([]));
         };
-        let selected = &content[selection.start_offset..selection.end_offset];
-        let formatted =
-            MarkdownFormatter::format_markdown_with_lint_options(selected, options, lint_options)
-                .map_err(|err| err.to_string())?
-                .content;
-        if formatted == selected {
+        let formatted = MarkdownFormatter::format_markdown_range(
+            content,
+            selection.clone(),
+            options,
+            lint_options,
+        )
+        .map_err(|err| err.to_string())?;
+        if formatted == content[selection.clone()] {
             return Ok(json!([]));
         }
         Ok(json!([{
-            "range": selection.lsp_range(),
+            "range": lsp_range(&index, selection),
             "newText": formatted
         }]))
     }
@@ -72,17 +79,22 @@ impl LspDocumentOps {
         options: &LintOptions,
     ) -> Result<Value, String> {
         let path = LspUri::path(uri);
+        let positions = DiagnosticPositions::new(content);
         let diagnostics = MarkdownLinter::lint_for_path(&path, content, options)
             .map_err(|err| err.to_string())?;
         let actions = diagnostics
             .iter()
-            .filter_map(|diagnostic| code_action(uri, diagnostic))
+            .filter_map(|diagnostic| code_action(uri, &positions, diagnostic))
             .collect::<Vec<_>>();
         Ok(json!(actions))
     }
 }
 
-fn code_action(uri: &str, diagnostic: &LintResult) -> Option<Value> {
+fn code_action(
+    uri: &str,
+    positions: &DiagnosticPositions<'_>,
+    diagnostic: &LintResult,
+) -> Option<Value> {
     let fix = diagnostic.fix.as_ref()?;
     if fix.safety != FixSafety::Safe {
         return None;
@@ -90,16 +102,11 @@ fn code_action(uri: &str, diagnostic: &LintResult) -> Option<Value> {
     Some(json!({
         "title": format!("Apply {} fix", diagnostic.rule_id),
         "kind": "quickfix",
-        "diagnostics": [lsp_diagnostic(diagnostic.clone())],
+        "diagnostics": [lsp_diagnostic(positions, diagnostic)?],
         "edit": {
             "changes": {
                 uri: [{
-                    "range": lsp_range(
-                        fix.range.start_line,
-                        fix.range.start_column,
-                        fix.range.end_line,
-                        fix.range.end_column
-                    ),
+                    "range": positions.range(&fix.range)?,
                     "newText": fix.replacement
                 }]
             }
@@ -107,19 +114,20 @@ fn code_action(uri: &str, diagnostic: &LintResult) -> Option<Value> {
     }))
 }
 
-fn lsp_diagnostic(diagnostic: LintResult) -> Value {
-    json!({
-        "range": lsp_range(
-            diagnostic.line,
-            diagnostic.column,
-            diagnostic.end_line,
-            diagnostic.end_column
-        ),
+fn lsp_diagnostic(positions: &DiagnosticPositions<'_>, diagnostic: &LintResult) -> Option<Value> {
+    let range = Range {
+        start_line: diagnostic.line,
+        start_column: diagnostic.column,
+        end_line: diagnostic.end_line,
+        end_column: diagnostic.end_column,
+    };
+    Some(json!({
+        "range": positions.range(&range)?,
         "severity": severity_code(diagnostic.severity),
         "code": diagnostic.rule_id,
         "source": "kml",
         "message": diagnostic.message
-    })
+    }))
 }
 
 fn severity_code(severity: crate::Severity) -> u8 {
@@ -130,38 +138,30 @@ fn severity_code(severity: crate::Severity) -> u8 {
     }
 }
 
-fn lsp_range(start_line: usize, start_column: usize, end_line: usize, end_column: usize) -> Value {
-    json!({
-        "start": position(start_line, start_column),
-        "end": position(end_line, end_column)
-    })
+struct DiagnosticPositions<'a> {
+    core: LineOffsetIndex<'a>,
+    lone_cr: Option<LineOffsetIndex<'a>>,
 }
 
-fn position(line: usize, column: usize) -> Value {
-    json!({
-        "line": line.saturating_sub(1),
-        "character": column.saturating_sub(1)
-    })
-}
-
-fn full_document_range(content: &str) -> Value {
-    let (line, character) = end_position(content);
-    json!({
-        "start": { "line": 0, "character": 0 },
-        "end": { "line": line, "character": character }
-    })
-}
-
-fn end_position(content: &str) -> (usize, usize) {
-    let mut line = 0;
-    let mut character = 0;
-    for ch in content.chars() {
-        if ch == '\n' {
-            line += 1;
-            character = 0;
-        } else {
-            character += 1;
+impl<'a> DiagnosticPositions<'a> {
+    fn new(content: &'a str) -> Self {
+        let bytes = content.as_bytes();
+        /* WHY: コアの行区切り契約を維持しつつ、LSP では単独 CR も行末として扱う。 */
+        let has_lone_cr = bytes.last() == Some(&b'\r')
+            || bytes
+                .windows(2)
+                .any(|pair| pair[0] == b'\r' && pair[1] != b'\n');
+        Self {
+            core: LineOffsetIndex::new(content),
+            lone_cr: has_lone_cr.then(|| LineOffsetIndex::for_lsp(content)),
         }
     }
-    (line, character)
+
+    fn range(&self, range: &Range) -> Option<Value> {
+        let offsets = self.core.offsets_for_range(range)?;
+        Some(lsp_range(
+            self.lone_cr.as_ref().unwrap_or(&self.core),
+            offsets,
+        ))
+    }
 }

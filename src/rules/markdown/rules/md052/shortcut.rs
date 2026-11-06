@@ -78,7 +78,7 @@ fn shortcut_references_on_line<'a>(
             start: line.content_range.start + full_start,
             end: line.content_range.start + after_label,
         };
-        if !ctx.is_inside_inline_code(range) {
+        if !ctx.is_inside_inline_code(range) && !ctx.overlaps_raw_html(range) {
             references.push(ShortcutReference { label, range });
         }
         cursor = after_label;

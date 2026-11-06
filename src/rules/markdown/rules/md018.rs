@@ -30,7 +30,7 @@ impl MarkdownRule for NoMissingSpaceAtxRule {
         let meta = self.official_meta().expect("always Some for MD018");
         let mut diagnostics = Vec::new();
         for (i, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(i) {
+            if ctx.is_literal_block_line(i) {
                 continue;
             }
             let line = line.text;

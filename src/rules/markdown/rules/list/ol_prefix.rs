@@ -84,7 +84,7 @@ fn evaluate_line(
 ) {
     let trimmed = line_text.trim_start();
     let indent = line_text.len() - trimmed.len();
-    if ctx.is_code_line(index) {
+    if ctx.is_literal_block_line(index) {
         clear_non_continuation(trimmed, indent, expected_numbers);
         return;
     }

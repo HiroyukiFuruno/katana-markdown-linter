@@ -6,7 +6,7 @@ mod policy;
 mod position;
 pub(crate) use engine::{FixEngine, DEFAULT_MAX_FIX_PASSES};
 use plan::Edit;
-use position::LineOffsetIndex;
+pub(crate) use position::LineOffsetIndex;
 
 pub(crate) struct FixApplicator;
 
@@ -29,16 +29,10 @@ impl FixApplicator {
                 if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
                     return None;
                 }
-                let byte_start =
-                    line_index.offset_for_position(fix.range.start_line, fix.range.start_column)?;
-                let byte_end =
-                    line_index.offset_for_position(fix.range.end_line, fix.range.end_column)?;
-                if byte_start > byte_end {
-                    return None;
-                }
+                let offsets = line_index.offsets_for_range(&fix.range)?;
                 Some(Edit {
-                    byte_start,
-                    byte_end,
+                    byte_start: offsets.start,
+                    byte_end: offsets.end,
                     replacement: fix.replacement.as_str(),
                     rule_id: result.rule_id.as_str(),
                     range: fix.range.clone(),

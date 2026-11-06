@@ -1,10 +1,10 @@
-mod blocks;
 mod context;
 mod fences;
 mod headings;
 mod lines;
 mod links;
 mod position;
+mod protection;
 mod syntax;
 mod tables;
 mod types;

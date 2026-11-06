@@ -1,9 +1,12 @@
 use crate::{
-    fix::{FixEngine, DEFAULT_MAX_FIX_PASSES},
+    fix::{FixEngine, LineOffsetIndex, DEFAULT_MAX_FIX_PASSES},
+    rules::markdown::document::DocumentContext,
     Error, LintOptions, MarkdownLinter, RuleConfig,
 };
 use serde::Serialize;
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
+use std::{ops::Range, path::Path};
 
 const LAYOUT_RULES: [&str; 9] = [
     "MD005", "MD007", "MD012", "MD022", "MD030", "MD031", "MD032", "MD047", "MD058",
@@ -44,35 +47,41 @@ impl MarkdownFormatter {
         options: &FormatOptions,
         lint_options: &LintOptions,
     ) -> Result<FormatResult, Error> {
-        let mut content = content.to_string();
-        let mut applied_operations = 0;
-        let normalized = normalize_line_endings(&content);
-        if normalized != content {
-            applied_operations += 1;
-            content = normalized;
-        }
-        let terminal_normalized = normalize_terminal_newline(&content);
-        if terminal_normalized != content {
-            applied_operations += 1;
-            content = terminal_normalized;
-        }
+        Self::format_scoped(content, 0..content.len(), options, lint_options)
+    }
 
-        let diagnostics = MarkdownLinter::lint(&content, lint_options)?;
-        let fixed = FixEngine::run(
-            &content,
-            diagnostics,
-            options.max_passes,
-            false,
-            |current| MarkdownLinter::lint(current, lint_options),
-        )?;
+    pub(crate) fn format_markdown_range(
+        content: &str,
+        selected: Range<usize>,
+        options: &FormatOptions,
+        lint_options: &LintOptions,
+    ) -> Result<String, Error> {
+        Ok(Self::format_scoped(content, selected, options, lint_options)?.content)
+    }
+
+    fn format_scoped(
+        content: &str,
+        selected: Range<usize>,
+        options: &FormatOptions,
+        lint_options: &LintOptions,
+    ) -> Result<FormatResult, Error> {
+        let prefix = normalize_line_endings(&content[..selected.start]);
+        let suffix = normalize_line_endings(&content[selected.end..]);
+        let selection = normalize_line_endings(&content[selected]);
+        let scope = FormatScope {
+            prefix_len: prefix.len(),
+            suffix_len: suffix.len(),
+        };
+        let mut applied_operations = usize::from(matches!(selection, Cow::Owned(_)));
+        let mut content = [prefix.as_ref(), selection.as_ref(), suffix.as_ref()].concat();
+        applied_operations += usize::from(scope.normalize_terminal_newline(&mut content));
+        let check = |current: &str| scope.check(current, lint_options);
+        let fixed = FixEngine::run(&content, check(&content)?, options.max_passes, false, check)?;
         applied_operations += fixed.applied_fixes;
         content = fixed.content;
-
-        let terminal_normalized = normalize_terminal_newline(&content);
-        if terminal_normalized != content {
-            applied_operations += 1;
-            content = terminal_normalized;
-        }
+        applied_operations += usize::from(scope.normalize_terminal_newline(&mut content));
+        content.truncate(content.len() - scope.suffix_len);
+        content.drain(..scope.prefix_len);
 
         Ok(FormatResult {
             content,
@@ -113,11 +122,10 @@ impl MarkdownFormatter {
     }
 }
 
-fn normalize_line_endings(content: &str) -> String {
-    if !content.as_bytes().contains(&b'\r') {
-        return content.to_string();
+fn normalize_line_endings(content: &str) -> Cow<'_, str> {
+    if !content.contains('\r') {
+        return Cow::Borrowed(content);
     }
-
     let mut normalized = String::with_capacity(content.len());
     let mut chars = content.chars().peekable();
     while let Some(ch) = chars.next() {
@@ -130,15 +138,58 @@ fn normalize_line_endings(content: &str) -> String {
             normalized.push(ch);
         }
     }
-    normalized
+    Cow::Owned(normalized)
 }
 
-fn normalize_terminal_newline(content: &str) -> String {
-    if content.is_empty() {
-        return String::new();
+struct FormatScope {
+    prefix_len: usize,
+    suffix_len: usize,
+}
+
+impl FormatScope {
+    fn check(&self, content: &str, options: &LintOptions) -> Result<Vec<crate::LintResult>, Error> {
+        let mut diagnostics = MarkdownLinter::lint(content, options)?;
+        if self.prefix_len == 0 && self.suffix_len == 0 {
+            return Ok(diagnostics);
+        }
+
+        let end = content.len() - self.suffix_len;
+        let index = LineOffsetIndex::new(content);
+        /* WHY: 選択外の接頭部と接尾部を固定し、各パスの最新座標で範囲を判定する。 */
+        diagnostics.retain(|diagnostic| {
+            diagnostic
+                .fix
+                .as_ref()
+                .and_then(|fix| index.offsets_for_range(&fix.range))
+                .is_some_and(|edit| {
+                    edit.start >= self.prefix_len
+                        && edit.end <= end
+                        && (edit.start < end || self.suffix_len == 0)
+                })
+        });
+        Ok(diagnostics)
     }
-    let trimmed = content.trim_end_matches('\n');
-    format!("{trimmed}\n")
+
+    fn normalize_terminal_newline(&self, content: &mut String) -> bool {
+        if self.suffix_len != 0 || content.is_empty() {
+            return false;
+        }
+        let trimmed = content.trim_end_matches('\n').len();
+        let keep_end = (trimmed + 1).max(self.prefix_len);
+        if keep_end == content.len() {
+            return false;
+        }
+        let ctx = DocumentContext::new(Path::new(""), content);
+        if ctx.literal_content_at_eof() {
+            return false;
+        }
+        if keep_end > content.len() {
+            content.push('\n');
+        } else {
+            content.truncate(keep_end);
+        }
+        true
+    }
 }
 
 #[cfg(test)]

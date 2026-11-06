@@ -85,22 +85,17 @@ jobs:
           shared-key: release-binary-${{ matrix.target }}
 
       - name: Install just
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
         with:
           tool: just
 
       - name: Resolve version
         id: version
         shell: bash
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
-          else
-            bash scripts/release/resolve-release-version.sh \
-              "${{ github.event_name }}" \
-              "${{ inputs.version }}" \
-              "${{ github.event.pull_request.head.ref }}"
-          fi
+        env:
+          KML_RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+          KML_RELEASE_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: bash scripts/release/resolve-release-version.sh "$GITHUB_EVENT_NAME" "$KML_RELEASE_VERSION" "$KML_RELEASE_HEAD_REF"
 
       - name: Release target check
         env:
@@ -166,21 +161,16 @@ jobs:
           shared-key: release-ubuntu-stable-publish
 
       - name: Install just
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
         with:
           tool: just
 
       - name: Resolve version
         id: version
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            scripts/release/verify-version.sh "${GITHUB_REF_NAME}"
-          else
-            bash scripts/release/resolve-release-version.sh \
-              "${{ github.event_name }}" \
-              "${{ inputs.version }}" \
-              "${{ github.event.pull_request.head.ref }}"
-          fi
+        env:
+          KML_RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+          KML_RELEASE_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: bash scripts/release/resolve-release-version.sh "$GITHUB_EVENT_NAME" "$KML_RELEASE_VERSION" "$KML_RELEASE_HEAD_REF"
 
       - name: Release target check
         env:
@@ -328,9 +318,11 @@ jobs:
           just VERSION="${{ steps.version.outputs.version }}" mcp-server-json
           mcpb_path="target/mcpb/katana-markdown-linter-${{ steps.version.outputs.version_bare }}.mcpb"
           mcpb_checksum_path="${mcpb_path}.sha256"
-          echo "mcpb_path=${mcpb_path}" >> "$GITHUB_OUTPUT"
-          echo "mcpb_checksum_path=${mcpb_checksum_path}" >> "$GITHUB_OUTPUT"
-          echo "server_json_path=target/mcpb/server.json" >> "$GITHUB_OUTPUT"
+          {
+            echo "mcpb_path=${mcpb_path}"
+            echo "mcpb_checksum_path=${mcpb_checksum_path}"
+            echo "server_json_path=target/mcpb/server.json"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Download binary artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -397,18 +389,18 @@ jobs:
           schema_asset="markdownlint.schema.${TAG}.json"
           cp "schema/markdownlint.schema.json" "$schema_asset"
           binary_assets=(
-            target/binary/kml-${TAG}-*.tar.gz
-            target/binary/kml-${TAG}-*.tar.gz.sha256
-            target/binary/kml-${TAG}-*.zip
-            target/binary/kml-${TAG}-*.zip.sha256
-            target/binary/kml-mcp-${TAG}-*.tar.gz
-            target/binary/kml-mcp-${TAG}-*.tar.gz.sha256
-            target/binary/kml-mcp-${TAG}-*.zip
-            target/binary/kml-mcp-${TAG}-*.zip.sha256
-            target/binary/kml-mcp-remote-${TAG}-*.tar.gz
-            target/binary/kml-mcp-remote-${TAG}-*.tar.gz.sha256
-            target/binary/kml-mcp-remote-${TAG}-*.zip
-            target/binary/kml-mcp-remote-${TAG}-*.zip.sha256
+            target/binary/kml-"${TAG}"-*.tar.gz
+            target/binary/kml-"${TAG}"-*.tar.gz.sha256
+            target/binary/kml-"${TAG}"-*.zip
+            target/binary/kml-"${TAG}"-*.zip.sha256
+            target/binary/kml-mcp-"${TAG}"-*.tar.gz
+            target/binary/kml-mcp-"${TAG}"-*.tar.gz.sha256
+            target/binary/kml-mcp-"${TAG}"-*.zip
+            target/binary/kml-mcp-"${TAG}"-*.zip.sha256
+            target/binary/kml-mcp-remote-"${TAG}"-*.tar.gz
+            target/binary/kml-mcp-remote-"${TAG}"-*.tar.gz.sha256
+            target/binary/kml-mcp-remote-"${TAG}"-*.zip
+            target/binary/kml-mcp-remote-"${TAG}"-*.zip.sha256
           )
           if [[ "${#binary_assets[@]}" -ne 24 ]]; then
             echo "Expected 24 binary assets, found ${#binary_assets[@]}." >&2
@@ -563,7 +555,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install just
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
         with:
           tool: just
 
@@ -626,7 +618,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install just
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
         with:
           tool: just
 

@@ -1,5 +1,5 @@
 use super::LspServer;
-use crate::config::ConfigLoader;
+use crate::config::ConfigSession;
 use crate::lsp::LspUri;
 use crate::{FormatOptions, LintOptions};
 use serde_json::Value;
@@ -7,8 +7,9 @@ use serde_json::Value;
 impl LspServer {
     pub(super) fn get_lint_options(&self, uri: &str) -> Result<LintOptions, String> {
         let path = LspUri::path(uri);
-        let config = ConfigLoader::load_effective_config(&path, None)?;
-        Ok(config.to_lint_options())
+        ConfigSession::new(None)
+            .load_for_path(&path)?
+            .validated_lint_options()
     }
 
     pub(super) fn get_format_options(&self, _uri: &str) -> Result<FormatOptions, String> {
@@ -16,11 +17,8 @@ impl LspServer {
     }
 
     pub(super) fn get_layout_lint_options(&self, uri: &str) -> Result<LintOptions, String> {
-        let path = LspUri::path(uri);
-        let config = ConfigLoader::load_effective_config(&path, None)?;
-        Ok(crate::MarkdownFormatter::layout_lint_options_from(
-            &config.to_lint_options(),
-        ))
+        let options = self.get_lint_options(uri)?;
+        Ok(crate::MarkdownFormatter::layout_lint_options_from(&options))
     }
 
     pub(super) fn document_uri_and_content<'a>(
