@@ -22,132 +22,124 @@ pub(super) fn run_check_like(
     cli: &Cli,
     locale: Locale,
 ) -> Result<i32, String> {
-    let mut config_session = ConfigSession::new(cli.config.as_deref());
-    let mut report = CliReport {
-        command,
-        files: Vec::new(),
-        errors: Vec::new(),
-        summary: CliSummary::default(),
-    };
+    let mut session = ConfigSession::new(cli.config.as_deref());
     if cli.stdin {
-        return run_stdin_check_like(command, fix_mode, cli, locale, &mut config_session);
+        return run_stdin_check_like(command, fix_mode, cli, locale, &mut session);
     }
-
+    let mut report = empty_report(command);
     let files = match super::super::input::expand_inputs(cli) {
         Ok(files) => files,
         Err(err) => {
             report.errors.push(CliError::from_input_expand_error(err));
-            report.recompute_summary();
-            output_report(&report, fix_mode, cli, locale)?;
-            return Ok(2);
+            return finish_report(&mut report, fix_mode, cli, locale);
         }
     };
-
-    let unsafe_policy = if fix_mode {
+    let policy = if fix_mode {
         resolve_unsafe_fix_policy(cli, &files, locale)?
     } else {
         UnsafeFixPolicy::default()
     };
-    if unsafe_policy.declined {
+    if policy.declined {
         report.summary.unsafe_fix_status = Some("confirmation_declined".to_string());
         output_report(&report, fix_mode, cli, locale)?;
         return Ok(1);
     }
+    process_files(&mut report, files, fix_mode, cli, &mut session, &policy);
+    finish_report(&mut report, fix_mode, cli, locale)
+}
 
-    let config_errors = collect_config_validation_errors(&files, &mut config_session);
-    if !config_errors.is_empty() {
-        report.errors.extend(config_errors);
-        if !cli.ignore_config_errors {
-            report.recompute_summary();
-            output_report(&report, fix_mode, cli, locale)?;
-            return Ok(2);
+fn process_files(
+    report: &mut CliReport,
+    files: Vec<std::path::PathBuf>,
+    fix_mode: bool,
+    cli: &Cli,
+    session: &mut ConfigSession,
+    policy: &UnsafeFixPolicy,
+) {
+    report
+        .errors
+        .extend(collect_config_validation_errors(&files, session));
+    if report.errors.is_empty() || cli.ignore_config_errors {
+        for path in files {
+            match check_file(&path, fix_mode, cli, session, policy) {
+                Ok(file) => report.files.push(file),
+                Err(error) => report.errors.push(error),
+            }
         }
     }
+}
 
-    for path in files {
-        let content = match fs::read_to_string(&path) {
-            Ok(content) => content,
-            Err(err) => {
-                report.errors.push(CliError::filesystem(&path, err));
-                continue;
-            }
-        };
-
-        let config = match config_session.load_for_path(&path) {
-            Ok(config) => config,
-            Err(err) => {
-                report.errors.push(CliError::config(&path, err));
-                continue;
-            }
-        };
-
-        let options = &config.lint_options;
-        let results = match MarkdownLinter::lint_for_path(&path, &content, options) {
-            Ok(results) => results,
-            Err(err) => {
-                report.errors.push(CliError::rule(&path, err.to_string()));
-                continue;
-            }
-        };
-
-        if fix_mode {
-            let fixed = match apply_fixes_until_stable(
-                &content,
-                &path,
-                results,
-                options,
-                unsafe_policy.include_unsafe,
-            ) {
-                Ok(fixed) => fixed,
-                Err(message) => {
-                    report.errors.push(CliError::rule(&path, message));
-                    continue;
-                }
-            };
-            let FixedContent {
-                content: fixed_content,
-                diagnostics,
-                applied_fixes,
-                fix_details,
-            } = fixed;
-            let changed = match write_fixed_content(&path, &content, &fixed_content, cli.diff) {
-                Ok(changed) => changed,
-                Err(err) => {
-                    report.errors.push(CliError::filesystem(&path, err));
-                    continue;
-                }
-            };
-
-            report.files.push(FileReport {
-                path: path.display().to_string(),
-                diagnostics,
-                applied_fixes,
-                fix_details,
-                changed,
-            });
-        } else {
-            report.files.push(FileReport {
-                path: path.display().to_string(),
-                diagnostics: results,
-                applied_fixes: 0,
-                fix_details: Vec::new(),
-                changed: false,
-            });
-        }
+fn empty_report(command: &'static str) -> CliReport {
+    CliReport {
+        command,
+        files: Vec::new(),
+        errors: Vec::new(),
+        summary: CliSummary::default(),
     }
+}
 
+fn finish_report(
+    report: &mut CliReport,
+    fix_mode: bool,
+    cli: &Cli,
+    locale: Locale,
+) -> Result<i32, String> {
     report.recompute_summary();
-    let exit_code = if has_blocking_errors(&report, cli.ignore_config_errors) {
+    let exit = if has_blocking_errors(report, cli.ignore_config_errors) {
         2
     } else if report.summary.total_issues > 0 {
         1
     } else {
         0
     };
+    output_report(report, fix_mode, cli, locale)?;
+    Ok(exit)
+}
 
-    output_report(&report, fix_mode, cli, locale)?;
+fn check_file(
+    path: &Path,
+    fix_mode: bool,
+    cli: &Cli,
+    session: &mut ConfigSession,
+    policy: &UnsafeFixPolicy,
+) -> Result<FileReport, CliError> {
+    let content = fs::read_to_string(path).map_err(|err| CliError::filesystem(path, err))?;
+    let config = session
+        .load_for_path(path)
+        .map_err(|err| CliError::config(path, err))?;
+    let options = &config.lint_options;
+    let diagnostics = MarkdownLinter::lint_for_path(path, &content, options)
+        .map_err(|err| CliError::rule(path, err.to_string()))?;
+    if fix_mode {
+        let fixed =
+            apply_fixes_until_stable(&content, path, diagnostics, options, policy.include_unsafe)
+                .map_err(|err| CliError::rule(path, err))?;
+        return fixed_file_report(path, &content, fixed, cli.diff);
+    }
+    Ok(FileReport {
+        path: path.display().to_string(),
+        diagnostics,
+        applied_fixes: 0,
+        fix_details: Vec::new(),
+        changed: false,
+    })
+}
 
-    Ok(exit_code)
+fn fixed_file_report(
+    path: &Path,
+    content: &str,
+    fixed: FixedContent,
+    diff: bool,
+) -> Result<FileReport, CliError> {
+    let changed = write_fixed_content(path, content, &fixed.content, diff)
+        .map_err(|err| CliError::filesystem(path, err))?;
+    Ok(FileReport {
+        path: path.display().to_string(),
+        diagnostics: fixed.diagnostics,
+        applied_fixes: fixed.applied_fixes,
+        fix_details: fixed.fix_details,
+        changed,
+    })
 }
 
 fn write_fixed_content(

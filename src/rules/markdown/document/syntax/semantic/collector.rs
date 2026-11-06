@@ -1,7 +1,9 @@
+mod scope;
 use super::{SemanticIndex, SemanticScope};
 use crate::rules::markdown::document::SourceRange;
 use crate::rules::markdown::inline::InlineEmphasisKind;
 use pulldown_cmark::{Event, Tag, TagEnd};
+use scope::{remove_open_scope, scope_kind};
 use std::ops::Range;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -79,38 +81,50 @@ impl SemanticIndexBuilder {
 
     fn start_scope(&mut self, tag: &Tag<'_>, event_start: usize, range: &Range<usize>) {
         if let Some(kind) = scope_kind(tag) {
-            let scope_index = match kind {
-                ScopeKind::Inline => self.inline_scopes.len(),
-                ScopeKind::Block => self.block_scopes.len(),
-            };
-            let scope = SemanticScope {
-                range: SourceRange {
-                    start: range.start,
-                    end: range.end,
-                },
-                event_range: event_start..0,
-                has_link_brackets: false,
-            };
-            match kind {
-                ScopeKind::Inline => self.inline_scopes.push(scope),
-                ScopeKind::Block => self.block_scopes.push(scope),
-            }
-            self.open_scopes.push(OpenScope {
-                kind,
-                end_tag: tag.to_end(),
-                range: SourceRange {
-                    start: range.start,
-                    end: range.end,
-                },
-                event_start,
-                scope_index,
-            });
-            match kind {
-                ScopeKind::Inline => self.open_inline_scopes.push(scope_index),
-                ScopeKind::Block => self.open_block_scopes.push(scope_index),
-            }
+            self.open_scope(kind, tag, event_start, range);
         }
 
+        self.record_emphasis(tag, range);
+    }
+
+    fn open_scope(
+        &mut self,
+        kind: ScopeKind,
+        tag: &Tag<'_>,
+        event_start: usize,
+        range: &Range<usize>,
+    ) {
+        let scope_index = match kind {
+            ScopeKind::Inline => self.inline_scopes.len(),
+            ScopeKind::Block => self.block_scopes.len(),
+        };
+        let source_range = SourceRange {
+            start: range.start,
+            end: range.end,
+        };
+        let scope = SemanticScope {
+            range: source_range,
+            event_range: event_start..0,
+            has_link_brackets: false,
+        };
+        match kind {
+            ScopeKind::Inline => self.inline_scopes.push(scope),
+            ScopeKind::Block => self.block_scopes.push(scope),
+        }
+        self.open_scopes.push(OpenScope {
+            kind,
+            end_tag: tag.to_end(),
+            range: source_range,
+            event_start,
+            scope_index,
+        });
+        match kind {
+            ScopeKind::Inline => self.open_inline_scopes.push(scope_index),
+            ScopeKind::Block => self.open_block_scopes.push(scope_index),
+        }
+    }
+
+    fn record_emphasis(&mut self, tag: &Tag<'_>, range: &Range<usize>) {
         let kind = match tag {
             Tag::Emphasis => Some(InlineEmphasisKind::Emphasis),
             Tag::Strong => Some(InlineEmphasisKind::Strong),
@@ -162,39 +176,5 @@ impl SemanticIndexBuilder {
                 remove_open_scope(&mut self.open_block_scopes, open.scope_index);
             }
         }
-    }
-}
-
-fn remove_open_scope(scopes: &mut Vec<usize>, scope_index: usize) {
-    if let Some(position) = scopes.iter().rposition(|open| *open == scope_index) {
-        scopes.remove(position);
-    }
-}
-
-fn scope_kind(tag: &Tag<'_>) -> Option<ScopeKind> {
-    match tag {
-        Tag::Emphasis
-        | Tag::Strong
-        | Tag::Strikethrough
-        | Tag::Superscript
-        | Tag::Subscript
-        | Tag::Link { .. }
-        | Tag::Image { .. } => Some(ScopeKind::Inline),
-        Tag::Paragraph
-        | Tag::Heading { .. }
-        | Tag::BlockQuote(_)
-        | Tag::CodeBlock(_)
-        | Tag::HtmlBlock
-        | Tag::List(_)
-        | Tag::Item
-        | Tag::FootnoteDefinition(_)
-        | Tag::DefinitionList
-        | Tag::DefinitionListTitle
-        | Tag::DefinitionListDefinition
-        | Tag::Table(_)
-        | Tag::TableHead
-        | Tag::TableRow
-        | Tag::TableCell
-        | Tag::MetadataBlock(_) => Some(ScopeKind::Block),
     }
 }

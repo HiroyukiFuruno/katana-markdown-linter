@@ -115,16 +115,22 @@ impl MarkdownRule for NoTrailingPunctuationRule {
                 message: meta.description.to_string(),
                 rule_id: meta.code.to_string(),
                 official_meta: Some(meta.clone()),
-                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                    start_line: range.start_line,
-                    start_column: range.start_column,
-                    end_line: range.end_line,
-                    end_column: range.end_column,
-                    replacement: String::new(),
-                }),
+                fix_info: Some(punctuation_fix(&range)),
             });
         }
         diagnostics
+    }
+}
+
+fn punctuation_fix(
+    range: &crate::rules::markdown::DiagnosticRange,
+) -> crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement: String::new(),
     }
 }
 

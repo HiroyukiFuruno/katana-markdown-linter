@@ -30,27 +30,40 @@ pub(in crate::rules::markdown) fn reversed_links_on_line<'a>(
         let Some(close_bracket) = find_unescaped(line.text, close_paren + 2, b']') else {
             break;
         };
-        let text = &line.text[cursor + 1..close_paren];
-        let destination = &line.text[close_paren + 2..close_bracket];
-        let source_start = line.content_range.start + cursor;
-        let source_end = line.content_range.start + close_bracket + 1;
-        if !ctx.overlaps_inline_code(SourceRange {
-            start: source_start,
-            end: source_end,
-        }) && !ctx.overlaps_raw_html(SourceRange {
-            start: source_start,
-            end: source_end,
-        }) && !text.trim().is_empty()
-            && !destination.starts_with('^')
-        {
-            links.push(ReversedLink {
-                start: cursor,
-                end: close_bracket + 1,
-                text,
-                destination,
-            });
+        if let Some(link) = reversed_link(line, ctx, cursor, close_paren, close_bracket) {
+            links.push(link);
         }
         cursor = close_bracket + 1;
     }
     links
+}
+
+fn reversed_link<'a>(
+    line: &LineInfo<'a>,
+    ctx: &DocumentContext<'_>,
+    cursor: usize,
+    close_paren: usize,
+    close_bracket: usize,
+) -> Option<ReversedLink<'a>> {
+    let text = &line.text[cursor + 1..close_paren];
+    let destination = &line.text[close_paren + 2..close_bracket];
+    let source_start = line.content_range.start + cursor;
+    let source_end = line.content_range.start + close_bracket + 1;
+    if !ctx.overlaps_inline_code(SourceRange {
+        start: source_start,
+        end: source_end,
+    }) && !ctx.overlaps_raw_html(SourceRange {
+        start: source_start,
+        end: source_end,
+    }) && !text.trim().is_empty()
+        && !destination.starts_with('^')
+    {
+        return Some(ReversedLink {
+            start: cursor,
+            end: close_bracket + 1,
+            text,
+            destination,
+        });
+    }
+    None
 }

@@ -24,62 +24,89 @@ impl ParsedSyntax {
         let mut in_fenced_code = false;
         for (event, range) in parser {
             semantic_builder.push(&event, range.clone());
-            match event {
-                Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(_))) => {
-                    in_fenced_code = true;
-                    let start_line = line_at(lines, range.start);
-                    let end_line = line_at(lines, range.end.saturating_sub(1));
-                    syntax.code_blocks.push(BlockRange {
-                        start_line,
-                        end_line,
-                        fence: if content.as_bytes()[range.start] == b'~' {
-                            FenceKind::Tilde
-                        } else {
-                            FenceKind::Backtick
-                        },
-                        range: SourceRange {
-                            start: lines[start_line].content_range.start,
-                            end: lines[end_line].full_range.end,
-                        },
-                    });
-                }
-                Event::End(TagEnd::CodeBlock) => in_fenced_code = false,
-                Event::Text(_) if in_fenced_code && range.end == content.len() => {
-                    syntax.fenced_code_content_at_eof = true;
-                }
-                Event::InlineHtml(_) | Event::Html(_) => {
-                    syntax.html_spans.push(SourceRange {
-                        start: range.start,
-                        end: range.end,
-                    });
-                }
-                Event::Start(Tag::HtmlBlock) => syntax.html_blocks.push(SourceRange {
-                    start: range.start,
-                    end: range.end,
-                }),
-                Event::Code(_) => {
-                    let marker_len = content.as_bytes()[range.start..range.end]
-                        .iter()
-                        .take_while(|byte| **byte == b'`')
-                        .count();
-                    syntax.code_spans.push(InlineCodeSpan {
-                        line: line_at(lines, range.start),
-                        marker_len,
-                        content_range: SourceRange {
-                            start: range.start + marker_len,
-                            end: range.end - marker_len,
-                        },
-                        full_range: SourceRange {
-                            start: range.start,
-                            end: range.end,
-                        },
-                        closed: true,
-                    });
-                }
-                _ => {}
-            }
+            syntax.record_event(event, range, content, lines, &mut in_fenced_code);
         }
         (syntax, semantic_builder.finish(content))
+    }
+
+    fn record_event(
+        &mut self,
+        event: Event<'_>,
+        range: std::ops::Range<usize>,
+        content: &str,
+        lines: &[LineInfo<'_>],
+        in_fenced_code: &mut bool,
+    ) {
+        match event {
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(_))) => {
+                *in_fenced_code = true;
+                self.record_fenced_block(&range, content, lines);
+            }
+            Event::End(TagEnd::CodeBlock) => *in_fenced_code = false,
+            Event::Text(_) if *in_fenced_code && range.end == content.len() => {
+                self.fenced_code_content_at_eof = true;
+            }
+            Event::InlineHtml(_) | Event::Html(_) => {
+                self.html_spans.push(SourceRange {
+                    start: range.start,
+                    end: range.end,
+                });
+            }
+            Event::Start(Tag::HtmlBlock) => self.html_blocks.push(SourceRange {
+                start: range.start,
+                end: range.end,
+            }),
+            Event::Code(_) => self.record_code_span(&range, content, lines),
+            _ => {}
+        }
+    }
+
+    fn record_fenced_block(
+        &mut self,
+        range: &std::ops::Range<usize>,
+        content: &str,
+        lines: &[LineInfo<'_>],
+    ) {
+        let start_line = line_at(lines, range.start);
+        let end_line = line_at(lines, range.end.saturating_sub(1));
+        self.code_blocks.push(BlockRange {
+            start_line,
+            end_line,
+            fence: if content.as_bytes()[range.start] == b'~' {
+                FenceKind::Tilde
+            } else {
+                FenceKind::Backtick
+            },
+            range: SourceRange {
+                start: lines[start_line].content_range.start,
+                end: lines[end_line].full_range.end,
+            },
+        });
+    }
+
+    fn record_code_span(
+        &mut self,
+        range: &std::ops::Range<usize>,
+        content: &str,
+        lines: &[LineInfo<'_>],
+    ) {
+        let marker_len = content.as_bytes()[range.start..range.end]
+            .iter()
+            .take_while(|byte| **byte == b'`')
+            .count();
+        self.code_spans.push(InlineCodeSpan {
+            line: line_at(lines, range.start),
+            marker_len,
+            content_range: SourceRange {
+                start: range.start + marker_len,
+                end: range.end - marker_len,
+            },
+            full_range: SourceRange {
+                start: range.start,
+                end: range.end,
+            },
+            closed: true,
+        });
     }
 }
 

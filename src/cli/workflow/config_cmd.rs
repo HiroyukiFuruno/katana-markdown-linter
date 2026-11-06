@@ -24,31 +24,11 @@ pub(super) fn render_rule(
         let Some(rule) = rules.iter().find(|rule| rule.id == rule_id) else {
             return Err(format!("unknown rule: {rule_id}"));
         };
-        let output = LocalizedRuleMeta::from_rule(rule, locale);
-        return match format {
-            OutputFormat::Text => Ok(format!(
-                "{} {}\n{}\n{}\n",
-                output.id, output.name, output.description, output.docs_url
-            )),
-            OutputFormat::Json => Ok(format!(
-                "{}\n",
-                serde_json::to_string_pretty(&output).map_err(|err| err.to_string())?
-            )),
-        };
+        return render_single_rule(rule, format, locale);
     }
 
     match format {
-        OutputFormat::Text => {
-            let mut output = String::new();
-            for rule in rules {
-                let rule = LocalizedRuleMeta::from_rule(&rule, locale);
-                output.push_str(&format!(
-                    "{} {} - {}\n",
-                    rule.id, rule.name, rule.description
-                ));
-            }
-            Ok(output)
-        }
+        OutputFormat::Text => Ok(render_rule_list(&rules, locale)),
         OutputFormat::Json => {
             let rules = rules
                 .iter()
@@ -59,6 +39,36 @@ pub(super) fn render_rule(
                 serde_json::to_string_pretty(&rules).map_err(|err| err.to_string())?
             ))
         }
+    }
+}
+
+fn render_rule_list(rules: &[crate::RuleMeta], locale: Locale) -> String {
+    let mut output = String::new();
+    for rule in rules {
+        let rule = LocalizedRuleMeta::from_rule(rule, locale);
+        output.push_str(&format!(
+            "{} {} - {}\n",
+            rule.id, rule.name, rule.description
+        ));
+    }
+    output
+}
+
+fn render_single_rule(
+    rule: &crate::RuleMeta,
+    format: OutputFormat,
+    locale: Locale,
+) -> Result<String, String> {
+    let output = LocalizedRuleMeta::from_rule(rule, locale);
+    match format {
+        OutputFormat::Text => Ok(format!(
+            "{} {}\n{}\n{}\n",
+            output.id, output.name, output.description, output.docs_url
+        )),
+        OutputFormat::Json => Ok(format!(
+            "{}\n",
+            serde_json::to_string_pretty(&output).map_err(|err| err.to_string())?
+        )),
     }
 }
 

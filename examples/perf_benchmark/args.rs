@@ -14,41 +14,47 @@ pub(super) struct Args {
 
 impl Args {
     pub(super) fn parse(args: impl Iterator<Item = String>) -> Self {
-        let mut output = PathBuf::from("target/perf-report.json");
-        let mut iterations = DEFAULT_ITERATIONS;
-        let mut samples = DEFAULT_SAMPLES;
-        let mut warmup = DEFAULT_WARMUP;
+        let mut parsed = Self {
+            output: PathBuf::from("target/perf-report.json"),
+            iterations: DEFAULT_ITERATIONS,
+            samples: DEFAULT_SAMPLES,
+            warmup: DEFAULT_WARMUP,
+        };
         let mut args = args.peekable();
         while let Some(arg) = args.next() {
-            match arg.as_str() {
-                "--output" => {
-                    if let Some(value) = args.next() {
-                        output = PathBuf::from(value);
-                    }
-                }
-                "--iterations" => {
-                    if let Some(value) = args.next() {
-                        iterations = parse_positive(&value, DEFAULT_ITERATIONS);
-                    }
-                }
-                "--samples" => {
-                    if let Some(value) = args.next() {
-                        samples = parse_positive(&value, DEFAULT_SAMPLES);
-                    }
-                }
-                "--warmup" => {
-                    if let Some(value) = args.next() {
-                        warmup = value.parse().unwrap_or(DEFAULT_WARMUP);
-                    }
-                }
-                _ => {}
+            if matches!(
+                arg.as_str(),
+                "--output" | "--iterations" | "--samples" | "--warmup"
+            ) {
+                parsed.apply_option(&arg, args.next());
             }
         }
-        Self {
-            output,
-            iterations,
-            samples,
-            warmup,
+        parsed
+    }
+
+    fn apply_option(&mut self, arg: &str, value: Option<String>) {
+        match arg {
+            "--output" => {
+                if let Some(value) = value {
+                    self.output = PathBuf::from(value);
+                }
+            }
+            "--iterations" => {
+                if let Some(value) = value {
+                    self.iterations = parse_positive(&value, DEFAULT_ITERATIONS);
+                }
+            }
+            "--samples" => {
+                if let Some(value) = value {
+                    self.samples = parse_positive(&value, DEFAULT_SAMPLES);
+                }
+            }
+            "--warmup" => {
+                if let Some(value) = value {
+                    self.warmup = value.parse().unwrap_or(DEFAULT_WARMUP);
+                }
+            }
+            _ => {}
         }
     }
 

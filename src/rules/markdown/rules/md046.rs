@@ -38,30 +38,36 @@ impl MarkdownRule for CodeBlockStyleRule {
 
         indented_code_block_groups(ctx)
             .into_iter()
-            .map(|(start_line, end_line, last_line_len, block_lines)| {
-                let replacement = build_fenced_replacement(&block_lines);
-                MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line,
-                        start_column: 1,
-                        end_line,
-                        end_column: last_line_len + 1,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: Some(DiagnosticFix {
-                        start_line,
-                        start_column: 1,
-                        end_line,
-                        end_column: last_line_len + 1,
-                        replacement,
-                    }),
-                }
-            })
+            .map(|group| code_block_diagnostic(ctx, &meta, group))
             .collect()
+    }
+}
+
+fn code_block_diagnostic(
+    ctx: &DocumentContext<'_>,
+    meta: &OfficialRuleMeta,
+    (start_line, end_line, last_line_len, block_lines): (usize, usize, usize, Vec<&str>),
+) -> MarkdownDiagnostic {
+    let replacement = build_fenced_replacement(&block_lines);
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line,
+            start_column: 1,
+            end_line,
+            end_column: last_line_len + 1,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(DiagnosticFix {
+            start_line,
+            start_column: 1,
+            end_line,
+            end_column: last_line_len + 1,
+            replacement,
+        }),
     }
 }
 

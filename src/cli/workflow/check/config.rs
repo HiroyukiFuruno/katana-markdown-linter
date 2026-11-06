@@ -8,16 +8,7 @@ pub(super) fn collect_config_validation_errors(
     session: &mut ConfigSession,
 ) -> Vec<CliError> {
     if let Some(path) = session.explicit_path().map(Path::to_path_buf) {
-        let config = match session.load_for_path(&path) {
-            Ok(config) => config,
-            Err(err) => return vec![CliError::config(&path, err)],
-        };
-        return config
-            .validation_errors
-            .iter()
-            .cloned()
-            .map(|error| CliError::config_validation(&path, error))
-            .collect();
+        return explicit_config_errors(&path, session);
     }
 
     let mut seen = HashSet::new();
@@ -45,6 +36,19 @@ pub(super) fn collect_config_validation_errors(
         );
     }
     errors
+}
+
+fn explicit_config_errors(path: &Path, session: &mut ConfigSession) -> Vec<CliError> {
+    let config = match session.load_for_path(path) {
+        Ok(config) => config,
+        Err(err) => return vec![CliError::config(path, err)],
+    };
+    config
+        .validation_errors
+        .iter()
+        .cloned()
+        .map(|error| CliError::config_validation(path, error))
+        .collect()
 }
 
 pub(super) fn has_blocking_errors(report: &CliReport, ignore_config_errors: bool) -> bool {

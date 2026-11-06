@@ -57,3 +57,13 @@ text
     assert_eq!(document.examples[0].content, "# Heading\n\ntext");
     assert_eq!(document.examples[1].language.as_deref(), Some("json"));
 }
+
+#[test]
+fn tags_inside_parameters_preserve_adapter_behavior() {
+    let source = "# `MD999` - Example\nParameters:\n- `one`: First (`boolean`)\nTags: `test`\n- `two`: Second (`number`)\n";
+    let runtime = super::UpstreamDocumentService::parse_rule_document(source).unwrap();
+    let build = super::common::parse_document(source, None, |property, _| property).unwrap();
+    assert_eq!(runtime.tags, ["test"]);
+    assert_eq!(runtime.properties.len(), 2);
+    assert_eq!(build.properties.len(), 1);
+}

@@ -57,7 +57,10 @@ fn parses_cli_parity_commands_and_options() {
     assert!(check_fix.verbose);
     assert!(check_fix.diff);
     assert!(check_fix.stdin);
+}
 
+#[test]
+fn parses_unsafe_fix_options() {
     let unsafe_fix = CliArgsParser::parse_args(vec![
         "fix".to_string(),
         "--unsafe".to_string(),
@@ -66,7 +69,10 @@ fn parses_cli_parity_commands_and_options() {
     assert_eq!(unsafe_fix.command, Command::Fix);
     assert!(unsafe_fix.unsafe_fixes);
     assert!(unsafe_fix.yes);
+}
 
+#[test]
+fn parses_commands_and_global_help() {
     assert_eq!(
         CliArgsParser::parse_args(vec!["fmt".to_string()]).command,
         Command::Fmt
@@ -87,6 +93,10 @@ fn parses_cli_parity_commands_and_options() {
         CliArgsParser::parse_args(vec!["-h".to_string()]).command,
         Command::Help(None)
     );
+}
+
+#[test]
+fn parses_localized_help() {
     let localized_global_help = CliArgsParser::parse_args(vec![
         "--locale".to_string(),
         "ja".to_string(),
@@ -114,6 +124,10 @@ fn parses_cli_parity_commands_and_options() {
         CliArgsParser::parse_args(vec!["help".to_string(), "fmt".to_string()]).command,
         Command::Help(Some(HelpTopic::Fmt))
     );
+}
+
+#[test]
+fn parses_rule_config_and_version_commands() {
     assert_eq!(
         CliArgsParser::parse_args(vec!["rule".to_string(), "MD013".to_string()]).command,
         Command::Rule(Some("MD013".to_string()))
@@ -169,38 +183,14 @@ fn parses_include_exclude_and_ignore_options() {
 
 #[test]
 fn parses_locale_options() {
-    let long_ja = CliArgsParser::parse_args(vec![
-        "check".to_string(),
-        "--locale".to_string(),
-        "ja".to_string(),
-    ]);
-    assert_eq!(long_ja.locale.as_deref(), Some("ja"));
-
-    let long_en = CliArgsParser::parse_args(vec![
-        "check".to_string(),
-        "--locale".to_string(),
-        "en".to_string(),
-    ]);
-    assert_eq!(long_en.locale.as_deref(), Some("en"));
-
-    let typo_alias = CliArgsParser::parse_args(vec![
-        "check".to_string(),
-        "--local".to_string(),
-        "ja".to_string(),
-    ]);
-    assert_eq!(typo_alias.locale.as_deref(), Some("ja"));
-
-    let short_en = CliArgsParser::parse_args(vec![
-        "check".to_string(),
-        "-l".to_string(),
-        "en".to_string(),
-    ]);
-    assert_eq!(short_en.locale.as_deref(), Some("en"));
-
-    let short_ja = CliArgsParser::parse_args(vec![
-        "check".to_string(),
-        "-l".to_string(),
-        "ja".to_string(),
-    ]);
-    assert_eq!(short_ja.locale.as_deref(), Some("ja"));
+    for (option, value) in [
+        ("--locale", "ja"),
+        ("--locale", "en"),
+        ("--local", "ja"),
+        ("-l", "en"),
+        ("-l", "ja"),
+    ] {
+        let cli = CliArgsParser::parse_args(vec!["check".into(), option.into(), value.into()]);
+        assert_eq!(cli.locale.as_deref(), Some(value));
+    }
 }

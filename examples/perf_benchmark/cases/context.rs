@@ -12,46 +12,59 @@ pub(super) fn extend_context_cases(
     args: &Args,
     documents: &BenchDocuments,
 ) -> BenchResult<()> {
-    cases.push(measure(
+    context_case(
+        cases,
+        args,
         "context_build_large_document",
+        &documents.large,
+        |ctx| ctx.lines().len(),
+    )?;
+    context_case(
+        cases,
         args,
-        documents.large.lines().count(),
-        "lines",
-        || {
-            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&documents.large));
-            Ok(ctx.lines().len())
-        },
-    )?);
-    cases.push(measure(
         "context_heading_index_large_document",
+        &documents.large,
+        |ctx| ctx.headings().len(),
+    )?;
+    context_case(
+        cases,
         args,
-        documents.large.lines().count(),
-        "lines",
-        || {
-            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&documents.large));
-            Ok(ctx.headings().len())
-        },
-    )?);
-    cases.push(measure(
         "context_table_index_large_document",
+        &documents.large,
+        |ctx| ctx.tables().len(),
+    )?;
+    inline_context_case(cases, args, &documents.link_heavy)
+}
+
+fn inline_context_case(cases: &mut Vec<Case>, args: &Args, document: &str) -> BenchResult<()> {
+    context_case(
+        cases,
         args,
-        documents.large.lines().count(),
-        "lines",
-        || {
-            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&documents.large));
-            Ok(ctx.tables().len())
-        },
-    )?);
-    cases.push(measure(
         "context_inline_token_index_large_document",
+        document,
+        |ctx| {
+            ctx.inline_code_spans().len()
+                + ctx.inline_links().len()
+                + ctx.reference_definitions().len()
+        },
+    )
+}
+
+fn context_case(
+    cases: &mut Vec<Case>,
+    args: &Args,
+    name: &'static str,
+    document: &str,
+    count: impl Fn(&DocumentContext) -> usize,
+) -> BenchResult<()> {
+    cases.push(measure(
+        name,
         args,
-        documents.link_heavy.lines().count(),
+        document.lines().count(),
         "lines",
         || {
-            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(&documents.link_heavy));
-            Ok(ctx.inline_code_spans().len()
-                + ctx.inline_links().len()
-                + ctx.reference_definitions().len())
+            let ctx = DocumentContext::new(Path::new("<bench>"), black_box(document));
+            Ok(count(&ctx))
         },
     )?);
     Ok(())

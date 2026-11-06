@@ -21,6 +21,21 @@ pub(super) fn compare_fixture_matrix(
         .collect::<BTreeMap<_, _>>();
     let mut items = Vec::new();
 
+    collect_missing_fixtures(&upstream_rules, &matrix_rules, &mut items);
+    collect_matrix_drift(&upstream_rules, matrix, &mut items);
+
+    RuleFixtureDriftReport {
+        upstream_source: catalog.source.clone(),
+        summary: summarize_items(upstream_rules.len(), matrix_rules.len(), &items),
+        items,
+    }
+}
+
+fn collect_missing_fixtures(
+    upstream_rules: &BTreeMap<&str, &crate::upstream::document::UpstreamRuleDocument>,
+    matrix_rules: &BTreeMap<&str, &super::types::RuleFixtureEntry>,
+    items: &mut Vec<RuleFixtureDriftItem>,
+) {
     for rule_id in upstream_rules.keys() {
         if !matrix_rules.contains_key(rule_id) {
             items.push(RuleFixtureDriftItem {
@@ -30,7 +45,13 @@ pub(super) fn compare_fixture_matrix(
             });
         }
     }
+}
 
+fn collect_matrix_drift(
+    upstream_rules: &BTreeMap<&str, &crate::upstream::document::UpstreamRuleDocument>,
+    matrix: &RuleFixtureMatrix,
+    items: &mut Vec<RuleFixtureDriftItem>,
+) {
     for entry in &matrix.rules {
         if !upstream_rules.contains_key(entry.rule_id.as_str()) {
             items.push(RuleFixtureDriftItem {
@@ -46,12 +67,6 @@ pub(super) fn compare_fixture_matrix(
                 message: entry.manual_required.join("; "),
             });
         }
-    }
-
-    RuleFixtureDriftReport {
-        upstream_source: catalog.source.clone(),
-        summary: summarize_items(upstream_rules.len(), matrix_rules.len(), &items),
-        items,
     }
 }
 

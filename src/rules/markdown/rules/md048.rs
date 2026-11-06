@@ -78,17 +78,10 @@ fn safe_fix(ctx: &DocumentContext<'_>, block: &BlockRange, expected: FenceKind) 
     if block.start_line >= block.end_line {
         return None;
     }
+    if !has_matching_fences(ctx, block) || has_inner_collision(ctx, block, expected) {
+        return None;
+    }
     let lines = ctx.lines();
-    let opening = lines.get(block.start_line)?;
-    let closing = lines.get(block.end_line)?;
-    if line_fence_kind(opening.text) != Some(block.fence)
-        || line_fence_kind(closing.text) != Some(block.fence)
-    {
-        return None;
-    }
-    if has_inner_collision(ctx, block, expected) {
-        return None;
-    }
 
     let mut replacement = (block.start_line..=block.end_line)
         .map(|line_index| {
@@ -105,6 +98,18 @@ fn safe_fix(ctx: &DocumentContext<'_>, block: &BlockRange, expected: FenceKind) 
         replacement.push('\n');
     }
     Some(replacement)
+}
+
+fn has_matching_fences(ctx: &DocumentContext<'_>, block: &BlockRange) -> bool {
+    let lines = ctx.lines();
+    let Some(opening) = lines.get(block.start_line) else {
+        return false;
+    };
+    let Some(closing) = lines.get(block.end_line) else {
+        return false;
+    };
+    line_fence_kind(opening.text) == Some(block.fence)
+        && line_fence_kind(closing.text) == Some(block.fence)
 }
 
 fn has_inner_collision(ctx: &DocumentContext<'_>, block: &BlockRange, expected: FenceKind) -> bool {

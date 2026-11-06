@@ -51,16 +51,23 @@ impl MarkdownRule for NoSpacesInLinksRule {
                 message: meta.description.to_string(),
                 rule_id: meta.code.to_string(),
                 official_meta: Some(meta.clone()),
-                fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                    start_line: fix_range.start_line,
-                    start_column: fix_range.start_column,
-                    end_line: fix_range.end_line,
-                    end_column: fix_range.end_column,
-                    replacement: trimmed.to_string(),
-                }),
+                fix_info: Some(trimmed_link_fix(fix_range, trimmed)),
             });
         }
         diagnostics
+    }
+}
+
+fn trimmed_link_fix(
+    range: crate::rules::markdown::DiagnosticRange,
+    trimmed: &str,
+) -> crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement: trimmed.to_string(),
     }
 }
 

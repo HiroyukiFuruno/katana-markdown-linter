@@ -3,8 +3,8 @@ mod fragments;
 mod tests;
 
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
-    OfficialRuleMeta, RuleConfig,
+    DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
+    RuleConfig,
 };
 use fragments::heading_fragments;
 use std::collections::HashSet;
@@ -64,23 +64,10 @@ impl LinkFragmentsRule {
         let mut diagnostics = Vec::new();
         let headings = heading_fragments(ctx);
         for link in ctx.inline_links() {
-            if !link.kind.is_inline() {
-                continue;
-            }
-            let Some(destination) = link.destination else {
+            let Some(fragment) = invalid_fragment(link, &headings, ignore_case, ignored_pattern)
+            else {
                 continue;
             };
-            let Some(fragment) = destination.strip_prefix('#') else {
-                continue;
-            };
-            if fragment.is_empty()
-                || is_allowed_special_fragment(fragment)
-                || ignored_pattern.is_some_and(|pattern| pattern.is_match(fragment))
-                || fragment_exists(&headings, fragment, ignore_case)
-            {
-                continue;
-            }
-
             let replacement = if ignore_case {
                 None
             } else {
@@ -93,30 +80,53 @@ impl LinkFragmentsRule {
                 link.destination_range
                     .expect("inline link destination should have a source range"),
             );
-            diagnostics.push(MarkdownDiagnostic {
-                file: ctx.file_path().to_path_buf(),
-                severity: DiagnosticSeverity::Warning,
-                range: DiagnosticRange {
-                    start_line: range.start_line,
-                    start_column: range.start_column,
-                    end_line: range.end_line,
-                    end_column: range.end_column,
-                },
-                message: meta.description.to_string(),
-                rule_id: meta.code.to_string(),
-                official_meta: Some(meta.clone()),
-                fix_info: replacement.map(|replacement| {
-                    crate::rules::markdown::types::DiagnosticFix {
-                        start_line: range.start_line,
-                        start_column: range.start_column,
-                        end_line: range.end_line,
-                        end_column: range.end_column,
-                        replacement,
-                    }
-                }),
-            });
+            diagnostics.push(fragment_diagnostic(ctx, range, replacement, &meta));
         }
         diagnostics
+    }
+}
+
+fn invalid_fragment<'a>(
+    link: &crate::rules::markdown::inline::InlineLink<'a>,
+    headings: &HashSet<String>,
+    ignore_case: bool,
+    ignored_pattern: Option<&regex::Regex>,
+) -> Option<&'a str> {
+    if !link.kind.is_inline() {
+        return None;
+    }
+    let fragment = link.destination?.strip_prefix('#')?;
+    if fragment.is_empty()
+        || is_allowed_special_fragment(fragment)
+        || ignored_pattern.is_some_and(|pattern| pattern.is_match(fragment))
+        || fragment_exists(headings, fragment, ignore_case)
+    {
+        return None;
+    }
+    Some(fragment)
+}
+
+fn fragment_diagnostic(
+    ctx: &DocumentContext<'_>,
+    range: crate::rules::markdown::DiagnosticRange,
+    replacement: Option<String>,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    let fix_info = replacement.map(|replacement| crate::rules::markdown::types::DiagnosticFix {
+        start_line: range.start_line,
+        start_column: range.start_column,
+        end_line: range.end_line,
+        end_column: range.end_column,
+        replacement,
+    });
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range,
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info,
     }
 }
 

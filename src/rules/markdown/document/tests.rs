@@ -90,6 +90,11 @@ fn context_extracts_source_preserving_inline_html_elements() {
     let ctx = DocumentContext::new(Path::new("doc.md"), content);
     let elements = ctx.inline_html_elements();
 
+    assert_html_opening_attributes(elements);
+    assert_html_exclusions(elements);
+}
+
+fn assert_html_opening_attributes(elements: &[crate::rules::markdown::InlineHtmlElement<'_>]) {
     assert!(elements.iter().any(|element| {
         !element.closing
             && element.name == "span"
@@ -101,6 +106,9 @@ fn context_extracts_source_preserving_inline_html_elements() {
             && element.attribute_value("id") == Some("target")
             && element.attribute_value("href") == Some("https://example.com?q=>")
     }));
+}
+
+fn assert_html_exclusions(elements: &[crate::rules::markdown::InlineHtmlElement<'_>]) {
     assert!(elements.iter().any(|element| {
         !element.closing
             && element.name == "img"

@@ -31,6 +31,10 @@ pub(super) fn resolve_unsafe_fix_policy(
             declined: false,
         });
     }
+    confirm_unsafe_fixes(&mut stderr)
+}
+
+fn confirm_unsafe_fixes(stderr: &mut impl Write) -> Result<UnsafeFixPolicy, String> {
     if cfg!(test) {
         return Err("unsafe fixes require --yes in non-interactive mode".to_string());
     }
@@ -40,7 +44,7 @@ pub(super) fn resolve_unsafe_fix_policy(
 
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
-    let approved = super::super::config_cmd::prompt_unsafe_confirmation(&mut stdin, &mut stderr)?;
+    let approved = super::super::config_cmd::prompt_unsafe_confirmation(&mut stdin, stderr)?;
     if approved {
         writeln!(stderr, "Unsafe fixes approved.").map_err(|err| err.to_string())?;
     } else {
@@ -79,27 +83,33 @@ fn collect_unsafe_fix_candidates(
         let options = config.to_lint_options();
         let diagnostics = MarkdownLinter::lint_for_path(path, &content, &options)
             .map_err(|err| err.to_string())?;
-        let mut by_rule = std::collections::BTreeMap::<String, usize>::new();
-        for diagnostic in diagnostics {
-            if diagnostic
-                .fix
-                .as_ref()
-                .is_some_and(|fix| fix.safety == FixSafety::Unsafe)
-            {
-                *by_rule.entry(diagnostic.rule_id).or_default() += 1;
-            }
-        }
-        summaries.extend(
-            by_rule
-                .into_iter()
-                .map(|(rule_id, count)| UnsafeFixCandidateSummary {
-                    path: path.display().to_string(),
-                    rule_id,
-                    count,
-                }),
-        );
+        summaries.extend(summarize_unsafe_diagnostics(path, diagnostics));
     }
     Ok(summaries)
+}
+
+fn summarize_unsafe_diagnostics(
+    path: &std::path::Path,
+    diagnostics: Vec<crate::LintResult>,
+) -> Vec<UnsafeFixCandidateSummary> {
+    let mut by_rule = std::collections::BTreeMap::<String, usize>::new();
+    for diagnostic in diagnostics {
+        if diagnostic
+            .fix
+            .as_ref()
+            .is_some_and(|fix| fix.safety == FixSafety::Unsafe)
+        {
+            *by_rule.entry(diagnostic.rule_id).or_default() += 1;
+        }
+    }
+    by_rule
+        .into_iter()
+        .map(|(rule_id, count)| UnsafeFixCandidateSummary {
+            path: path.display().to_string(),
+            rule_id,
+            count,
+        })
+        .collect()
 }
 
 fn write_unsafe_fix_summary(

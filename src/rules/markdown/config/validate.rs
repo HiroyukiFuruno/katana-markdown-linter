@@ -73,6 +73,16 @@ fn collect_rule_errors(
         return;
     };
 
+    collect_rule_value_errors(rule_id, canonical_rule_id, meta, rule_value, errors);
+}
+
+fn collect_rule_value_errors(
+    rule_id: &str,
+    canonical_rule_id: &'static str,
+    meta: &crate::rules::markdown::OfficialRuleMeta,
+    rule_value: &serde_json::Value,
+    errors: &mut Vec<ConfigError>,
+) {
     match rule_value {
         serde_json::Value::Bool(_) => {}
         serde_json::Value::Object(properties) => {
@@ -119,14 +129,13 @@ fn collect_property_error(
     errors: &mut Vec<ConfigError>,
 ) {
     if prop_key == ENABLED_RULE_PROPERTY.key {
-        if let Some(kind_err) = validate_property_value(&ENABLED_RULE_PROPERTY, prop_value) {
-            errors.push(ConfigError::new(
-                Some(rule_id.to_string()),
-                Some(prop_key.to_string()),
-                kind_err,
-                "invalid rule property value",
-            ));
-        }
+        collect_invalid_property(
+            rule_id,
+            prop_key,
+            prop_value,
+            &ENABLED_RULE_PROPERTY,
+            errors,
+        );
         return;
     }
 
@@ -144,6 +153,16 @@ fn collect_property_error(
         return;
     };
 
+    collect_invalid_property(rule_id, prop_key, prop_value, prop_meta, errors);
+}
+
+fn collect_invalid_property(
+    rule_id: &str,
+    prop_key: &str,
+    prop_value: &serde_json::Value,
+    prop_meta: &crate::rules::markdown::RuleProperty,
+    errors: &mut Vec<ConfigError>,
+) {
     if let Some(kind_err) = validate_property_value(prop_meta, prop_value) {
         errors.push(ConfigError::new(
             Some(rule_id.to_string()),

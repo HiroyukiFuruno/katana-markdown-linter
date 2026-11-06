@@ -129,32 +129,7 @@ fn render_file_report(
 }
 
 fn render_statistics(output: &mut String, report: &CliReport, locale: Locale) {
-    let mut params = MessageParams::new();
-    params.insert("files".to_string(), report.summary.total_files.to_string());
-    params.insert(
-        "files_with_issues".to_string(),
-        report.summary.files_with_issues.to_string(),
-    );
-    params.insert(
-        "issues".to_string(),
-        report.summary.total_issues.to_string(),
-    );
-    params.insert(
-        "fixable".to_string(),
-        report.summary.fixable_issues.to_string(),
-    );
-    params.insert(
-        "safe_fixable".to_string(),
-        report.summary.safe_fixable_issues.to_string(),
-    );
-    params.insert(
-        "unsafe_fixable".to_string(),
-        report.summary.unsafe_fixable_issues.to_string(),
-    );
-    params.insert(
-        "fixed".to_string(),
-        report.summary.applied_fixes.to_string(),
-    );
+    let params = statistics_params(report);
     let fallback = format!(
         "files: {}, files_with_issues: {}, issues: {}, fixable: {}, safe_fixable: {}, unsafe_fixable: {}, fixed: {}",
         report.summary.total_files,
@@ -172,4 +147,20 @@ fn render_statistics(output: &mut String, report: &CliReport, locale: Locale) {
         &fallback,
     ));
     output.push('\n');
+}
+
+fn statistics_params(report: &CliReport) -> MessageParams {
+    let summary = &report.summary;
+    [
+        ("files", summary.total_files),
+        ("files_with_issues", summary.files_with_issues),
+        ("issues", summary.total_issues),
+        ("fixable", summary.fixable_issues),
+        ("safe_fixable", summary.safe_fixable_issues),
+        ("unsafe_fixable", summary.unsafe_fixable_issues),
+        ("fixed", summary.applied_fixes),
+    ]
+    .into_iter()
+    .map(|(key, value)| (key.to_string(), value.to_string()))
+    .collect()
 }

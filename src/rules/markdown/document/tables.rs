@@ -7,25 +7,10 @@ pub(super) fn extract_tables<'a>(ctx: &DocumentContext<'a>) -> Vec<TableBlock<'a
     let mut tables = Vec::new();
     let mut index = 0;
     while index + 1 < lines.len() {
-        if ctx.is_literal_block_line(index) {
-            index += 1;
-            continue;
-        }
-        let Some(header) = parse_table_row(index, &lines[index]) else {
+        let Some((header, delimiter)) = table_header(ctx, index) else {
             index += 1;
             continue;
         };
-        let Some(delimiter) = parse_table_row(index + 1, &lines[index + 1]) else {
-            index += 1;
-            continue;
-        };
-        if !delimiter.delimiter
-            || header.cells.len() != delimiter.cells.len()
-            || ctx.is_literal_block_line(index + 1)
-        {
-            index += 1;
-            continue;
-        }
         let (rows, end) = collect_table_rows(ctx, index, header, delimiter);
         tables.push(TableBlock {
             start_line: index,
@@ -39,6 +24,20 @@ pub(super) fn extract_tables<'a>(ctx: &DocumentContext<'a>) -> Vec<TableBlock<'a
         index = end + 1;
     }
     tables
+}
+
+fn table_header<'a>(
+    ctx: &DocumentContext<'a>,
+    index: usize,
+) -> Option<(TableRow<'a>, TableRow<'a>)> {
+    let lines = ctx.lines();
+    if ctx.is_literal_block_line(index) || ctx.is_literal_block_line(index + 1) {
+        return None;
+    }
+    let header = parse_table_row(index, &lines[index])?;
+    let delimiter = parse_table_row(index + 1, &lines[index + 1])?;
+    (delimiter.delimiter && header.cells.len() == delimiter.cells.len())
+        .then_some((header, delimiter))
 }
 
 fn collect_table_rows<'a>(
@@ -68,16 +67,7 @@ fn parse_table_row<'a>(line_index: usize, line: &LineInfo<'a>) -> Option<TableRo
     let leading_pipe = trimmed.starts_with('|');
     let trailing_pipe = trimmed.ends_with('|') && !pipe_is_escaped(trimmed, trimmed.len() - 1);
     let safe_to_fix = !trimmed.contains("\\|") && !trimmed.contains('`');
-    let mut inner = trimmed;
-    let leading_trim = line.text.find(trimmed).unwrap_or(0);
-    let mut inner_start = line.content_range.start + leading_trim;
-    if leading_pipe {
-        inner = &inner[1..];
-        inner_start += 1;
-    }
-    if trailing_pipe {
-        inner = &inner[..inner.len().saturating_sub(1)];
-    }
+    let (inner, inner_start) = table_inner(line, trimmed, leading_pipe, trailing_pipe);
     let cells = parse_table_cells(inner, inner_start);
     if cells.is_empty() {
         return None;
@@ -92,6 +82,24 @@ fn parse_table_row<'a>(line_index: usize, line: &LineInfo<'a>) -> Option<TableRo
         safe_to_fix,
         range: line.content_range,
     })
+}
+
+fn table_inner<'a>(
+    line: &LineInfo<'a>,
+    trimmed: &'a str,
+    leading_pipe: bool,
+    trailing_pipe: bool,
+) -> (&'a str, usize) {
+    let mut inner = trimmed;
+    let mut inner_start = line.content_range.start + line.text.find(trimmed).unwrap_or(0);
+    if leading_pipe {
+        inner = &inner[1..];
+        inner_start += 1;
+    }
+    if trailing_pipe {
+        inner = &inner[..inner.len().saturating_sub(1)];
+    }
+    (inner, inner_start)
 }
 
 fn parse_table_cells<'a>(inner: &'a str, inner_start: usize) -> Vec<TableCell<'a>> {

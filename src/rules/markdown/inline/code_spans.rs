@@ -53,40 +53,38 @@ pub(in crate::rules::markdown) fn inline_code_spans_on_line(
             .take_while(|byte| **byte == b'`')
             .count();
         let content_start = cursor + marker_len;
-        let Some(close_relative) = find_closing_marker(line.text, content_start, marker_len) else {
-            spans.push(InlineCodeSpan {
-                line: line_index,
-                marker_len,
-                content_range: SourceRange {
-                    start: line.content_range.start + content_start,
-                    end: line.content_range.end,
-                },
-                full_range: SourceRange {
-                    start: line.content_range.start + cursor,
-                    end: line.content_range.end,
-                },
-                closed: false,
-            });
-            break;
-        };
-
-        let close = content_start + close_relative;
-        spans.push(InlineCodeSpan {
-            line: line_index,
-            marker_len,
-            content_range: SourceRange {
-                start: line.content_range.start + content_start,
-                end: line.content_range.start + close,
-            },
-            full_range: SourceRange {
-                start: line.content_range.start + cursor,
-                end: line.content_range.start + close + marker_len,
-            },
-            closed: true,
-        });
+        let close = find_closing_marker(line.text, content_start, marker_len)
+            .map(|relative| content_start + relative);
+        spans.push(code_span(line_index, line, cursor, marker_len, close));
+        let Some(close) = close else { break };
         cursor = close + marker_len;
     }
     spans
+}
+
+fn code_span(
+    line_index: usize,
+    line: &LineInfo<'_>,
+    start: usize,
+    marker_len: usize,
+    close: Option<usize>,
+) -> InlineCodeSpan {
+    let content_end = close.map_or(line.content_range.end, |end| line.content_range.start + end);
+    InlineCodeSpan {
+        line: line_index,
+        marker_len,
+        content_range: SourceRange {
+            start: line.content_range.start + start + marker_len,
+            end: content_end,
+        },
+        full_range: SourceRange {
+            start: line.content_range.start + start,
+            end: close.map_or(line.content_range.end, |end| {
+                line.content_range.start + end + marker_len
+            }),
+        },
+        closed: close.is_some(),
+    }
 }
 
 /// Find the first occurrence of exactly `marker_len` consecutive backticks starting at `start`,

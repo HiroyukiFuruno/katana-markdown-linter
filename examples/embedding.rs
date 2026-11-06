@@ -27,6 +27,12 @@ fn main() -> Result<(), DynError> {
         MarkdownFormatter::format_markdown("# Title\r\nText\n\n\n", &FormatOptions::default())?;
     println!("format operations: {}", formatted.applied_operations);
 
+    demonstrate_config()?;
+    demonstrate_catalog();
+    Ok(())
+}
+
+fn demonstrate_config() -> Result<(), DynError> {
     let config = MarkdownLintConfig::load(Path::new(".markdownlint.json"))?;
     let configured_options = config.to_lint_options();
     println!("loaded config: {}", config.raw);
@@ -34,6 +40,10 @@ fn main() -> Result<(), DynError> {
     let markdown_files = lint_markdown_tree(Path::new("."), &configured_options)?;
     println!("checked markdown files: {markdown_files}");
 
+    Ok(())
+}
+
+fn demonstrate_catalog() {
     let rules = RuleCatalogService::available_rules();
     println!("available rules: {}", rules.len());
     let locale = LocaleService::resolve_code_or("ja-JP", Locale::En);
@@ -57,8 +67,6 @@ fn main() -> Result<(), DynError> {
             "ja-JP"
         )
     );
-
-    Ok(())
 }
 
 fn lint_markdown_tree(root: &Path, options: &LintOptions) -> Result<usize, DynError> {

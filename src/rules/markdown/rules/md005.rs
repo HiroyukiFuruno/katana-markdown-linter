@@ -36,30 +36,37 @@ impl MarkdownRule for ListIndentRule {
                 previous_list_indent = None;
                 continue;
             }
-            let line = line.text;
-            let trimmed = line.trim_start();
-            if RuleHelpers::is_list_item(trimmed) {
-                let leading = line.len() - trimmed.len();
-                if let Some(expected) = push_indent_diagnostic(
-                    &mut diagnostics,
-                    file_path,
-                    i,
-                    line,
-                    &meta,
-                    previous_list_indent,
-                    leading,
-                ) {
-                    previous_list_indent = Some(expected);
-                    continue;
-                }
-                previous_list_indent = Some(leading);
-            } else {
-                previous_list_indent = None;
-            }
+            previous_list_indent = check_list_line(
+                &mut diagnostics,
+                file_path,
+                i,
+                line.text,
+                &meta,
+                previous_list_indent,
+            );
         }
 
         diagnostics
     }
+}
+
+fn check_list_line(
+    diagnostics: &mut Vec<MarkdownDiagnostic>,
+    file_path: &Path,
+    i: usize,
+    line: &str,
+    meta: &OfficialRuleMeta,
+    previous: Option<usize>,
+) -> Option<usize> {
+    let trimmed = line.trim_start();
+    if !RuleHelpers::is_list_item(trimmed) {
+        return None;
+    }
+    let leading = line.len() - trimmed.len();
+    Some(
+        push_indent_diagnostic(diagnostics, file_path, i, line, meta, previous, leading)
+            .unwrap_or(leading),
+    )
 }
 
 fn push_indent_diagnostic(

@@ -1,5 +1,13 @@
 use crate::{rules, LintOptions, Severity};
 
+const SAFE_FIX_RULES: &[&str] = &[
+    "MD003", "MD004", "MD005", "MD007", "MD009", "MD010", "MD011", "MD012", "MD014", "MD018",
+    "MD019", "MD020", "MD021", "MD022", "MD023", "MD025", "MD026", "MD027", "MD029", "MD030",
+    "MD031", "MD032", "MD034", "MD035", "MD037", "MD038", "MD039", "MD040", "MD044", "MD046",
+    "MD047", "MD048", "MD049", "MD050", "MD051", "MD052", "MD053", "MD054", "MD055", "MD056",
+    "MD058", "MD060",
+];
+
 pub(super) struct SeverityMapBuilder;
 
 impl SeverityMapBuilder {
@@ -24,7 +32,7 @@ impl SeverityMapBuilder {
         rules::markdown::MarkdownLinterOps::official_rules()
             .iter()
             .map(|rule| {
-                let severity = if Self::safe_fix_rule(rule.id()) {
+                let severity = if SAFE_FIX_RULES.binary_search(&rule.id()).is_ok() {
                     options
                         .rules
                         .get(rule.id())
@@ -45,53 +53,5 @@ impl SeverityMapBuilder {
             Severity::Warning => rules::markdown::DiagnosticSeverity::Warning,
             Severity::Info => rules::markdown::DiagnosticSeverity::Info,
         }
-    }
-
-    fn safe_fix_rule(rule_id: &str) -> bool {
-        matches!(
-            rule_id,
-            "MD003"
-                | "MD004"
-                | "MD005"
-                | "MD007"
-                | "MD009"
-                | "MD010"
-                | "MD011"
-                | "MD012"
-                | "MD014"
-                | "MD018"
-                | "MD019"
-                | "MD020"
-                | "MD021"
-                | "MD022"
-                | "MD023"
-                | "MD025"
-                | "MD026"
-                | "MD027"
-                | "MD029"
-                | "MD030"
-                | "MD031"
-                | "MD032"
-                | "MD034"
-                | "MD035"
-                | "MD037"
-                | "MD038"
-                | "MD039"
-                | "MD040"
-                | "MD044"
-                | "MD046"
-                | "MD047"
-                | "MD048"
-                | "MD049"
-                | "MD050"
-                | "MD051"
-                | "MD052"
-                | "MD053"
-                | "MD054"
-                | "MD055"
-                | "MD056"
-                | "MD058"
-                | "MD060"
-        )
     }
 }

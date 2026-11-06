@@ -31,34 +31,40 @@ impl MarkdownRule for BrokenLinkRule {
         };
         ctx.inline_links()
             .iter()
-            .filter_map(|link| {
-                let destination = link.destination?;
-                let target = local_target(destination)?;
-                let target_path = base_dir.join(target);
-                if target_path.exists() || target_path.with_extension("md").exists() {
-                    return None;
-                }
-                let range = ctx.diagnostic_range(
-                    link.destination_range
-                        .expect("inline destination should have a source range"),
-                );
-                Some(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: range.start_line,
-                        start_column: range.start_column,
-                        end_line: range.end_line,
-                        end_column: range.end_column,
-                    },
-                    message: format!("Broken local link: {destination}"),
-                    rule_id: "md-broken-link".to_string(),
-                    official_meta: None,
-                    fix_info: None,
-                })
-            })
+            .filter_map(|link| broken_link_diagnostic(ctx, base_dir, link))
             .collect()
     }
+}
+
+fn broken_link_diagnostic(
+    ctx: &DocumentContext<'_>,
+    base_dir: &Path,
+    link: &crate::rules::markdown::InlineLink<'_>,
+) -> Option<MarkdownDiagnostic> {
+    let destination = link.destination?;
+    let target = local_target(destination)?;
+    let target_path = base_dir.join(target);
+    if target_path.exists() || target_path.with_extension("md").exists() {
+        return None;
+    }
+    let range = ctx.diagnostic_range(
+        link.destination_range
+            .expect("inline destination should have a source range"),
+    );
+    Some(MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: range.start_line,
+            start_column: range.start_column,
+            end_line: range.end_line,
+            end_column: range.end_column,
+        },
+        message: format!("Broken local link: {destination}"),
+        rule_id: "md-broken-link".to_string(),
+        official_meta: None,
+        fix_info: None,
+    })
 }
 
 fn local_base_dir(file_path: &Path) -> Option<&Path> {

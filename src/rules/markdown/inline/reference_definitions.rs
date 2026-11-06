@@ -30,23 +30,7 @@ pub(super) fn reference_definition_on_line<'a>(
         return None;
     }
 
-    let raw_destination_start = skip_ascii_whitespace(line.text, label_close + 2, line.text.len());
-    if raw_destination_start >= line.text.len() {
-        return None;
-    }
-    let (destination_start, destination_end) =
-        if line.text.as_bytes().get(raw_destination_start) == Some(&b'<') {
-            let destination_start = raw_destination_start + 1;
-            let destination_end = line.text[destination_start..]
-                .find('>')
-                .map(|relative| destination_start + relative)?;
-            (destination_start, destination_end)
-        } else {
-            let destination_end = line.text[raw_destination_start..]
-                .find(char::is_whitespace)
-                .map_or(line.text.len(), |relative| raw_destination_start + relative);
-            (raw_destination_start, destination_end)
-        };
+    let (destination_start, destination_end) = reference_destination(line.text, label_close)?;
 
     Some(ReferenceDefinition {
         line: line_index,
@@ -62,4 +46,25 @@ pub(super) fn reference_definition_on_line<'a>(
         },
         full_range: line.content_range,
     })
+}
+
+fn reference_destination(text: &str, label_close: usize) -> Option<(usize, usize)> {
+    let raw_destination_start = skip_ascii_whitespace(text, label_close + 2, text.len());
+    if raw_destination_start >= text.len() {
+        return None;
+    }
+    Some(
+        if text.as_bytes().get(raw_destination_start) == Some(&b'<') {
+            let destination_start = raw_destination_start + 1;
+            let destination_end = text[destination_start..]
+                .find('>')
+                .map(|relative| destination_start + relative)?;
+            (destination_start, destination_end)
+        } else {
+            let destination_end = text[raw_destination_start..]
+                .find(char::is_whitespace)
+                .map_or(text.len(), |relative| raw_destination_start + relative);
+            (raw_destination_start, destination_end)
+        },
+    )
 }

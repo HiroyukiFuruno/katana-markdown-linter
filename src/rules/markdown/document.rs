@@ -13,6 +13,7 @@ pub(crate) use syntax::MarkdownSemanticSignature;
 
 pub(super) use fences::fence_line_marker;
 pub(in crate::rules::markdown) use headings::parse_heading;
+pub(in crate::rules::markdown) use types::ParsedEmphasisSpan;
 pub use types::{
     BlockRange, DocumentContext, FenceKind, Heading, LineInfo, Link, SourceRange, TableBlock,
     TableCell, TableRow,

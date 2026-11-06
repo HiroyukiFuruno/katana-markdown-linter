@@ -42,44 +42,41 @@ impl zed::Extension for KatanaMarkdownLinterExtension {
                 .ok_or_else(|| "kml executable not found in PATH".to_string())?;
         }
 
-        let mut version_command = zed_extension_api::process::Command {
-            command: executable_path.clone(),
-            args: vec!["--version".to_string()],
-            env: vec![],
-        };
-
-        match version_command.output() {
-            Ok(output) => {
-                let version_text = String::from_utf8_lossy(&output.stdout)
-                    .trim()
-                    .to_string();
-                let stderr_text = String::from_utf8_lossy(&output.stderr)
-                    .trim()
-                    .to_string();
-                let effective_version = if !version_text.is_empty() {
-                    version_text
-                } else {
-                    stderr_text
-                };
-
-                if !effective_version.is_empty() && !is_compatible_kml_version(&effective_version)
-                {
-                    eprintln!(
-                        "Warning: kml version may be incompatible with this extension. \"kml --version\" returned: {}",
-                        effective_version
-                    );
-                } else if effective_version.is_empty() {
-                    eprintln!("Could not determine kml version output from kml --version");
-                }
-            }
-            Err(err) => eprintln!("Failed to run kml --version: {err}"),
-        }
+        warn_on_incompatible_version(&executable_path);
 
         Ok(Command {
             command: executable_path,
             args: vec!["lsp".to_string()],
             env: vec![],
         })
+    }
+}
+
+fn warn_on_incompatible_version(executable_path: &str) {
+    let mut command = zed::process::Command {
+        command: executable_path.to_owned(),
+        args: vec!["--version".to_string()],
+        env: vec![],
+    };
+
+    match command.output() {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let version = if stdout.trim().is_empty() {
+                stderr.trim()
+            } else {
+                stdout.trim()
+            };
+            if version.is_empty() {
+                eprintln!("Could not determine kml version output from kml --version");
+            } else if !is_compatible_kml_version(version) {
+                eprintln!(
+                    "Warning: kml version may be incompatible with this extension. \"kml --version\" returned: {version}"
+                );
+            }
+        }
+        Err(err) => eprintln!("Failed to run kml --version: {err}"),
     }
 }
 

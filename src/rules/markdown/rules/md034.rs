@@ -1,3 +1,6 @@
+mod scan;
+
+use scan::bare_url_ranges;
 #[cfg(test)]
 mod tests;
 
@@ -40,69 +43,48 @@ impl MarkdownRule for NoBareUrlsRule {
                 if is_ignored_url(ctx, i, line.text, start, absolute_start) {
                     continue;
                 }
-                let url = &line.text[start..end];
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: start + 1,
-                        end_line: line.number,
-                        end_column: end + 1,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: start + 1,
-                        end_line: line.number,
-                        end_column: end + 1,
-                        replacement: format!("<{url}>"),
-                    }),
-                });
+                diagnostics.push(url_diagnostic(
+                    ctx,
+                    line.number,
+                    start,
+                    end,
+                    &line.text[start..end],
+                    &meta,
+                ));
             }
         }
         diagnostics
     }
 }
 
-fn bare_url_ranges(line: &str) -> BareUrlRanges<'_> {
-    BareUrlRanges {
-        line,
-        search_start: 0,
+fn url_diagnostic(
+    ctx: &DocumentContext<'_>,
+    line: usize,
+    start: usize,
+    end: usize,
+    url: &str,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line,
+            start_column: start + 1,
+            end_line: line,
+            end_column: end + 1,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+            start_line: line,
+            start_column: start + 1,
+            end_line: line,
+            end_column: end + 1,
+            replacement: format!("<{url}>"),
+        }),
     }
-}
-
-struct BareUrlRanges<'a> {
-    line: &'a str,
-    search_start: usize,
-}
-
-impl Iterator for BareUrlRanges<'_> {
-    type Item = (usize, usize);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        while let Some(start) = next_url_start(self.line, self.search_start) {
-            self.search_start = start + 1;
-            if let Some((_, end)) = url_range(self.line, start) {
-                self.search_start = end;
-                return Some((start, end));
-            }
-        }
-
-        None
-    }
-}
-
-fn next_url_start(line: &str, search_start: usize) -> Option<usize> {
-    const SCHEMES: &[&str] = &["http://", "https://", "ftp://", "ftps://", "mailto:"];
-    let remainder = &line[search_start..];
-    SCHEMES
-        .iter()
-        .filter_map(|scheme| remainder.find(scheme))
-        .min()
-        .map(|offset| search_start + offset)
 }
 
 fn is_ignored_url(
@@ -125,6 +107,15 @@ fn is_ignored_url(
     if ctx.is_inside_inline_code(range) || ctx.overlaps_raw_html(range) {
         return true;
     }
+    in_link_or_definition(ctx, line_index, absolute_start)
+        || ctx.html_attribute_at(absolute_start).is_some()
+}
+
+fn in_link_or_definition(
+    ctx: &DocumentContext<'_>,
+    line_index: usize,
+    absolute_start: usize,
+) -> bool {
     let lo = ctx
         .inline_links()
         .partition_point(|link| link.line < line_index);
@@ -146,37 +137,5 @@ fn is_ignored_url(
         return true;
     }
 
-    ctx.html_attribute_at(absolute_start).is_some()
-}
-
-fn url_range(line: &str, start: usize) -> Option<(usize, usize)> {
-    let mut end = line.len();
-    for (offset, ch) in line[start..].char_indices() {
-        if ch.is_whitespace() || ch == '<' || ch == '>' {
-            end = start + offset;
-            break;
-        }
-    }
-    loop {
-        if end <= start {
-            break;
-        }
-        match line.as_bytes()[end - 1] {
-            b'.' | b',' | b';' | b':' => end -= 1,
-            b')' if has_unmatched_closing_delimiter(&line[start..end], b'(', b')') => end -= 1,
-            b']' if has_unmatched_closing_delimiter(&line[start..end], b'[', b']') => end -= 1,
-            _ => break,
-        }
-    }
-    (end > start).then_some((start, end))
-}
-
-fn has_unmatched_closing_delimiter(text: &str, open: u8, close: u8) -> bool {
-    let open_count = text.as_bytes().iter().filter(|byte| **byte == open).count();
-    let close_count = text
-        .as_bytes()
-        .iter()
-        .filter(|byte| **byte == close)
-        .count();
-    close_count > open_count
+    false
 }

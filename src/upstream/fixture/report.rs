@@ -4,6 +4,14 @@ use std::path::Path;
 
 pub(super) fn render_fixture_matrix_summary(matrix: &RuleFixtureMatrix) -> String {
     let mut out = String::new();
+    append_fixture_summary(&mut out, matrix);
+    out.push_str("| Rule | Aliases | Parameters | Examples | Fixable | Manual Required |\n");
+    out.push_str("| --- | --- | ---: | ---: | --- | --- |\n");
+    append_fixture_rows(&mut out, matrix);
+    out
+}
+
+fn append_fixture_summary(out: &mut String, matrix: &RuleFixtureMatrix) {
     out.push_str("# Rule Fixture Matrix\n\n");
     out.push_str(&format!("- total rules: {}\n", matrix.summary.total_rules));
     out.push_str(&format!(
@@ -30,8 +38,9 @@ pub(super) fn render_fixture_matrix_summary(matrix: &RuleFixtureMatrix) -> Strin
         "- stale fixtures: {}\n\n",
         matrix.summary.stale_fixtures
     ));
-    out.push_str("| Rule | Aliases | Parameters | Examples | Fixable | Manual Required |\n");
-    out.push_str("| --- | --- | ---: | ---: | --- | --- |\n");
+}
+
+fn append_fixture_rows(out: &mut String, matrix: &RuleFixtureMatrix) {
     for rule in &matrix.rules {
         out.push_str(&format!(
             "| {} | {} | {} | {} | {} | {} |\n",
@@ -45,7 +54,6 @@ pub(super) fn render_fixture_matrix_summary(matrix: &RuleFixtureMatrix) -> Strin
             rule.manual_required.join("<br>").replace('|', "\\|")
         ));
     }
-    out
 }
 
 pub(super) fn write_fixture_matrix_files(

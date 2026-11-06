@@ -23,6 +23,13 @@ pub(super) fn local_rule_map() -> BTreeMap<&'static str, crate::rules::markdown:
 }
 
 fn local_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> {
+    let mut rules = structure_metadata_stubs();
+    rules.extend(content_metadata_stubs());
+    rules.extend(link_metadata_stubs());
+    rules
+}
+
+fn structure_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> {
     use crate::rules::markdown::stubs::*;
     vec![
         Box::new(RuleMD001),
@@ -30,12 +37,6 @@ fn local_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> 
         Box::new(RuleMD004),
         Box::new(RuleMD005),
         Box::new(RuleMD007),
-        Box::new(RuleMD011),
-        Box::new(RuleMD012),
-        Box::new(RuleMD013),
-        Box::new(RuleMD014),
-        Box::new(RuleMD020),
-        Box::new(RuleMD021),
         Box::new(RuleMD022),
         Box::new(RuleMD023),
         Box::new(RuleMD024),
@@ -47,30 +48,48 @@ fn local_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> 
         Box::new(RuleMD030),
         Box::new(RuleMD031),
         Box::new(RuleMD032),
+        Box::new(RuleMD041),
+        Box::new(RuleMD043),
+    ]
+}
+
+fn content_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> {
+    use crate::rules::markdown::stubs::*;
+    vec![
+        Box::new(RuleMD011),
+        Box::new(RuleMD012),
+        Box::new(RuleMD013),
+        Box::new(RuleMD014),
+        Box::new(RuleMD020),
+        Box::new(RuleMD021),
         Box::new(RuleMD033),
         Box::new(RuleMD034),
         Box::new(RuleMD035),
         Box::new(RuleMD036),
         Box::new(RuleMD040),
-        Box::new(RuleMD041),
-        Box::new(RuleMD042),
-        Box::new(RuleMD043),
         Box::new(RuleMD044),
-        Box::new(RuleMD045),
         Box::new(RuleMD046),
         Box::new(RuleMD047),
         Box::new(RuleMD048),
         Box::new(RuleMD049),
         Box::new(RuleMD050),
+        Box::new(RuleMD055),
+        Box::new(RuleMD056),
+        Box::new(RuleMD058),
+        Box::new(RuleMD060),
+    ]
+}
+
+fn link_metadata_stubs() -> Vec<Box<dyn crate::rules::markdown::MarkdownRule>> {
+    use crate::rules::markdown::stubs::*;
+    vec![
+        Box::new(RuleMD042),
+        Box::new(RuleMD045),
         Box::new(RuleMD051),
         Box::new(RuleMD052),
         Box::new(RuleMD053),
         Box::new(RuleMD054),
-        Box::new(RuleMD055),
-        Box::new(RuleMD056),
-        Box::new(RuleMD058),
         Box::new(RuleMD059),
-        Box::new(RuleMD060),
     ]
 }
 

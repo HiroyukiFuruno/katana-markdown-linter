@@ -1,7 +1,16 @@
 use super::tokens::parse_backtick_list;
-use super::types::UpstreamRuleProperty;
+#[derive(Debug, Clone)]
+pub(super) struct ParsedProperty {
+    pub(super) key: String,
+    pub(super) value_type: String,
+    pub(super) default_value: Option<String>,
+    pub(super) values: Vec<String>,
+}
 
-pub(super) fn parse_parameter_block(lines: &[String]) -> Vec<UpstreamRuleProperty> {
+pub(super) fn parse_parameter_block<Property>(
+    lines: &[String],
+    make_property: impl Fn(ParsedProperty, &str) -> Property,
+) -> Vec<Property> {
     let mut bullets = Vec::new();
     for line in lines {
         if line.starts_with("- `") {
@@ -18,11 +27,14 @@ pub(super) fn parse_parameter_block(lines: &[String]) -> Vec<UpstreamRulePropert
 
     bullets
         .iter()
-        .filter_map(|line| parse_parameter_line(line))
+        .filter_map(|line| parse_parameter_line(line, &make_property))
         .collect()
 }
 
-fn parse_parameter_line(line: &str) -> Option<UpstreamRuleProperty> {
+fn parse_parameter_line<Property>(
+    line: &str,
+    make_property: impl Fn(ParsedProperty, &str) -> Property,
+) -> Option<Property> {
     let rest = line.strip_prefix("- `")?;
     let (key, after_key) = rest.split_once("`:")?;
     let value_type = extract_parenthesized(after_key)
@@ -38,12 +50,14 @@ fn parse_parameter_line(line: &str) -> Option<UpstreamRuleProperty> {
         .nth(1)
         .map(parse_values)
         .unwrap_or_default();
-    Some(UpstreamRuleProperty {
+    let property = ParsedProperty {
         key: key.to_string(),
         value_type,
         default_value,
         values,
-    })
+    };
+    let description = after_key.split('(').next().unwrap_or("").trim();
+    Some(make_property(property, description))
 }
 
 fn extract_parenthesized(value: &str) -> Option<&str> {

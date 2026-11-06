@@ -81,34 +81,39 @@ fn parsed_spans_for_line<'a>(
                 && span.range.start >= line.content_range.start
                 && span.range.end <= line.content_range.end
         })
-        .filter_map(|span| {
-            let start = span.range.start - line.content_range.start;
-            let end = span.range.end - line.content_range.start;
-            let marker_len = match span.kind {
-                InlineEmphasisKind::Emphasis => 1,
-                InlineEmphasisKind::Strong => 2,
-            };
-            if end.saturating_sub(start) < marker_len * 2 {
-                return None;
-            }
-            let marker = *line.text.as_bytes().get(start)?;
-            if !matches!(marker, b'*' | b'_') {
-                return None;
-            }
-            if !target_delimiters_can_wrap(line.text, start, end, marker_len, marker as char) {
-                return None;
-            }
-            Some(InlineEmphasisSpan {
-                marker: marker as char,
-                marker_len,
-                start,
-                end,
-                inner: &line.text[start + marker_len..end - marker_len],
-                semantic_scope: span.semantic_scope,
-                block_scope: span.block_scope,
-            })
-        })
+        .filter_map(|span| parsed_span(line, span))
         .collect()
+}
+
+fn parsed_span<'a>(
+    line: &LineInfo<'a>,
+    span: &crate::rules::markdown::document::ParsedEmphasisSpan,
+) -> Option<InlineEmphasisSpan<'a>> {
+    let start = span.range.start - line.content_range.start;
+    let end = span.range.end - line.content_range.start;
+    let marker_len = match span.kind {
+        InlineEmphasisKind::Emphasis => 1,
+        InlineEmphasisKind::Strong => 2,
+    };
+    if end.saturating_sub(start) < marker_len * 2 {
+        return None;
+    }
+    let marker = *line.text.as_bytes().get(start)?;
+    if !matches!(marker, b'*' | b'_') {
+        return None;
+    }
+    if !target_delimiters_can_wrap(line.text, start, end, marker_len, marker as char) {
+        return None;
+    }
+    Some(InlineEmphasisSpan {
+        marker: marker as char,
+        marker_len,
+        start,
+        end,
+        inner: &line.text[start + marker_len..end - marker_len],
+        semantic_scope: span.semantic_scope,
+        block_scope: span.block_scope,
+    })
 }
 
 pub(in crate::rules::markdown) fn touches_inline_code(

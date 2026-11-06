@@ -1,11 +1,13 @@
-use crate::types::{FixDetail, FixResult, LintResult};
+use crate::types::{FixResult, LintResult};
 
+use edits::{Edit, EditSelection};
+
+mod edits;
 mod engine;
 mod plan;
 mod policy;
 mod position;
 pub(crate) use engine::{FixEngine, DEFAULT_MAX_FIX_PASSES};
-use plan::Edit;
 pub(crate) use position::LineOffsetIndex;
 
 pub(crate) struct FixApplicator;
@@ -22,87 +24,17 @@ impl FixApplicator {
     pub(crate) fn apply(results: &[LintResult], content: &str, include_unsafe: bool) -> FixResult {
         let line_index = LineOffsetIndex::new(content);
 
-        let mut edits = results
+        let edits = results
             .iter()
-            .filter_map(|result| {
-                let fix = result.fix.as_ref()?;
-                if fix.safety == crate::FixSafety::Unsafe && !include_unsafe {
-                    return None;
-                }
-                let offsets = line_index.offsets_for_range(&fix.range)?;
-                Some(Edit {
-                    byte_start: offsets.start,
-                    byte_end: offsets.end,
-                    replacement: fix.replacement.as_str(),
-                    rule_id: result.rule_id.as_str(),
-                    range: fix.range.clone(),
-                    safety: fix.safety,
-                })
-            })
-            .collect::<Vec<_>>();
-
-        edits.sort_by(|left, right| {
-            right
-                .byte_start
-                .cmp(&left.byte_start)
-                .then_with(|| right.byte_end.cmp(&left.byte_end))
-                .then_with(|| left.rule_id.cmp(right.rule_id))
-                .then_with(|| left.replacement.cmp(right.replacement))
-        });
-
-        let mut accepted: Vec<Edit<'_>> = Vec::new();
-        let mut skipped: Vec<Edit<'_>> = Vec::new();
-        let mut ineffective: Vec<Edit<'_>> = Vec::new();
-        let mut insertion_offsets = std::collections::HashSet::new();
-        let mut previous_start = content.len();
-        for edit in edits {
-            if content.get(edit.byte_start..edit.byte_end) == Some(edit.replacement) {
-                ineffective.push(edit);
-                continue;
-            }
-            if edit.byte_start == edit.byte_end && !insertion_offsets.insert(edit.byte_start) {
-                skipped.push(edit);
-                continue;
-            }
-            if edit.byte_end > previous_start {
-                skipped.push(edit);
-                continue;
-            }
-            previous_start = edit.byte_start;
-            accepted.push(edit);
-        }
-        accepted.reverse();
-        plan::retain_semantics(&mut accepted, &mut skipped, content);
-
-        let mut details: Vec<FixDetail> = accepted
-            .iter()
-            .map(|edit| FixDetail {
-                rule_id: edit.rule_id.to_string(),
-                range: edit.range.clone(),
-                applied: true,
-            })
+            .filter_map(|result| Edit::from_diagnostic(result, &line_index, include_unsafe))
             .collect();
-        for edit in &skipped {
-            details.push(FixDetail {
-                rule_id: edit.rule_id.to_string(),
-                range: edit.range.clone(),
-                applied: false,
-            });
-        }
-        for edit in &ineffective {
-            details.push(FixDetail {
-                rule_id: edit.rule_id.to_string(),
-                range: edit.range.clone(),
-                applied: false,
-            });
-        }
-
-        let fixed = plan::render(content, accepted.iter());
+        let mut selection = EditSelection::non_overlapping(edits, content);
+        plan::retain_semantics(&mut selection.accepted, &mut selection.skipped, content);
 
         FixResult {
-            content: fixed,
-            applied_fixes: accepted.len(),
-            details,
+            content: plan::render(content, selection.accepted.iter()),
+            applied_fixes: selection.accepted.len(),
+            details: selection.details(),
         }
     }
 }
@@ -159,10 +91,8 @@ mod tests {
         assert_eq!(fixed.applied_fixes, 1);
     }
 
-    #[test]
-    fn skips_overlapping_fix_ranges() {
-        let content = "#Title\n";
-        let fixed = FixApplicator::apply(
+    fn overlapping_heading_fixes() -> FixResult {
+        FixApplicator::apply(
             &[
                 result(
                     "A",
@@ -185,10 +115,14 @@ mod tests {
                     "## ",
                 ),
             ],
-            content,
+            "#Title\n",
             false,
-        );
+        )
+    }
 
+    #[test]
+    fn skips_overlapping_fix_ranges() {
+        let fixed = overlapping_heading_fixes();
         assert_eq!(fixed.content, "# Title\n");
         assert_eq!(fixed.applied_fixes, 1);
     }
@@ -213,34 +147,7 @@ mod tests {
 
     #[test]
     fn fix_detail_applied_false_for_skipped_edit() {
-        let content = "#Title\n";
-        let fixed = FixApplicator::apply(
-            &[
-                result(
-                    "A",
-                    Range {
-                        start_line: 1,
-                        start_column: 2,
-                        end_line: 1,
-                        end_column: 2,
-                    },
-                    " ",
-                ),
-                result(
-                    "B",
-                    Range {
-                        start_line: 1,
-                        start_column: 1,
-                        end_line: 1,
-                        end_column: 3,
-                    },
-                    "## ",
-                ),
-            ],
-            content,
-            false,
-        );
-
+        let fixed = overlapping_heading_fixes();
         assert_eq!(fixed.applied_fixes, 1);
         assert_eq!(fixed.details.len(), 2);
         let applied: Vec<_> = fixed.details.iter().filter(|d| d.applied).collect();
@@ -325,34 +232,19 @@ mod tests {
 
     #[test]
     fn adjacent_non_overlapping_edits_are_both_applied() {
-        let content = "ab";
-        let fixed = FixApplicator::apply(
-            &[
-                result(
-                    "RULE_A",
-                    Range {
-                        start_line: 1,
-                        start_column: 1,
-                        end_line: 1,
-                        end_column: 2,
-                    },
-                    "A",
-                ),
-                result(
-                    "RULE_B",
-                    Range {
-                        start_line: 1,
-                        start_column: 2,
-                        end_line: 1,
-                        end_column: 3,
-                    },
-                    "B",
-                ),
-            ],
-            content,
-            false,
-        );
-
+        let edits = [(1, "RULE_A", "A"), (2, "RULE_B", "B")].map(|(column, rule, replacement)| {
+            result(
+                rule,
+                Range {
+                    start_line: 1,
+                    start_column: column,
+                    end_line: 1,
+                    end_column: column + 1,
+                },
+                replacement,
+            )
+        });
+        let fixed = FixApplicator::apply(&edits, "ab", false);
         assert_eq!(fixed.content, "AB");
         assert_eq!(fixed.applied_fixes, 2);
     }

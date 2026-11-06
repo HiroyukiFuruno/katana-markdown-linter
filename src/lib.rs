@@ -154,30 +154,23 @@ mod tests {
 
     #[test]
     fn lint_maps_configured_severity_variants() {
-        let mut options = LintOptions {
-            default_severity: Severity::Error,
-            ..LintOptions::default()
-        };
+        let mut options = LintOptions::default();
         options.rules.insert(
             "MD001".to_string(),
             RuleConfig {
                 enabled: true,
-                properties: std::collections::HashMap::new(),
+                ..RuleConfig::default()
             },
         );
 
-        let error_results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
-            .expect("lint should succeed");
-        assert!(error_results.iter().any(|result| {
-            result.rule_id == "MD001" && matches!(result.severity, Severity::Error)
-        }));
-
-        options.default_severity = Severity::Info;
-        let info_results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
-            .expect("lint should succeed");
-        assert!(info_results.iter().any(|result| {
-            result.rule_id == "MD001" && matches!(result.severity, Severity::Info)
-        }));
+        for severity in [Severity::Error, Severity::Info] {
+            options.default_severity = severity;
+            let results = MarkdownLinter::lint("# title\n\n### skipped heading", &options)
+                .expect("lint should succeed");
+            assert!(results
+                .iter()
+                .any(|result| { result.rule_id == "MD001" && result.severity == severity }));
+        }
 
         options
             .rules

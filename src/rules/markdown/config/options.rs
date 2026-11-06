@@ -29,24 +29,32 @@ impl MarkdownLintConfig {
             };
             let entry = options.rules.entry(rule_id.to_string()).or_default();
             entry.enabled = rule_enabled(value, default_enabled);
-            if let Value::Object(properties) = value {
-                entry.properties = properties
-                    .iter()
-                    .filter(|(property, _)| property.as_str() != ENABLED_RULE_PROPERTY.key)
-                    .filter(|(property, value)| {
-                        meta.properties
-                            .iter()
-                            .find(|meta| meta.key == property.as_str())
-                            .is_some_and(|property_meta| {
-                                validate_property_value(property_meta, value).is_none()
-                            })
-                    })
-                    .map(|(property, value)| (property.clone(), property_value(value)))
-                    .collect();
-            }
+            set_rule_properties(entry, value, meta);
         }
 
         options
+    }
+}
+
+fn set_rule_properties(
+    entry: &mut RuleConfig,
+    value: &Value,
+    meta: &crate::rules::markdown::OfficialRuleMeta,
+) {
+    if let Value::Object(properties) = value {
+        entry.properties = properties
+            .iter()
+            .filter(|(property, _)| property.as_str() != ENABLED_RULE_PROPERTY.key)
+            .filter(|(property, value)| {
+                meta.properties
+                    .iter()
+                    .find(|meta| meta.key == property.as_str())
+                    .is_some_and(|property_meta| {
+                        validate_property_value(property_meta, value).is_none()
+                    })
+            })
+            .map(|(property, value)| (property.clone(), property_value(value)))
+            .collect();
     }
 }
 

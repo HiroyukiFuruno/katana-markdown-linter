@@ -27,6 +27,11 @@ pub(super) fn render_markdown_summary(report: &DriftReport) -> String {
 
     out.push_str("| Rule | Type | Message |\n");
     out.push_str("| --- | --- | --- |\n");
+    append_drift_rows(&mut out, report);
+    out
+}
+
+fn append_drift_rows(out: &mut String, report: &DriftReport) {
     for item in &report.items {
         out.push_str(&format!(
             "| {} | {:?} | {} |\n",
@@ -35,7 +40,6 @@ pub(super) fn render_markdown_summary(report: &DriftReport) -> String {
             item.message.replace('|', "\\|")
         ));
     }
-    out
 }
 
 pub(super) fn write_report_files(report: &DriftReport, output_dir: &Path) -> Result<(), String> {

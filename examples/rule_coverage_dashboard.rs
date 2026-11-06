@@ -56,29 +56,37 @@ fn render_dashboard(
     out.push_str("| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |\n");
 
     for rule in rules {
-        let rule_id = rule["rule_id"].as_str().unwrap_or("<unknown>");
-        let check = count(rule, "check_pass") + count(rule, "check_fail");
-        let fix = count(rule, "fix");
-        let unsafe_fix = count(rule, "unsafe_fix");
-        let config = count(rule, "config_valid") + count(rule, "config_invalid");
-        let edge = count(rule, "edge");
-        let golden = if golden_rules.contains(rule_id) {
-            "baseline"
-        } else {
-            "pending: not locked"
-        };
-        let known_delta = if known_delta_rules.contains(rule_id) {
-            "yes"
-        } else {
-            "no"
-        };
-        let manual_required = manual_required(rule);
-        out.push_str(&format!(
-            "| {rule_id} | {check} | {fix} | {unsafe_fix} | {config} | {edge} | {golden} | {known_delta} | {manual_required} |\n"
-        ));
+        out.push_str(&render_rule_row(rule, &golden_rules, &known_delta_rules));
     }
 
     Ok(out)
+}
+
+fn render_rule_row(
+    rule: &Value,
+    golden_rules: &BTreeSet<&str>,
+    known_delta_rules: &BTreeSet<&str>,
+) -> String {
+    let rule_id = rule["rule_id"].as_str().unwrap_or("<unknown>");
+    let check = count(rule, "check_pass") + count(rule, "check_fail");
+    let fix = count(rule, "fix");
+    let unsafe_fix = count(rule, "unsafe_fix");
+    let config = count(rule, "config_valid") + count(rule, "config_invalid");
+    let edge = count(rule, "edge");
+    let golden = if golden_rules.contains(rule_id) {
+        "baseline"
+    } else {
+        "pending: not locked"
+    };
+    let known_delta = if known_delta_rules.contains(rule_id) {
+        "yes"
+    } else {
+        "no"
+    };
+    let manual_required = manual_required(rule);
+    format!(
+        "| {rule_id} | {check} | {fix} | {unsafe_fix} | {config} | {edge} | {golden} | {known_delta} | {manual_required} |\n"
+    )
 }
 
 fn manual_required(rule: &Value) -> String {

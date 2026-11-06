@@ -20,16 +20,7 @@ where
         run_iterations(args.iterations, &mut operation)?;
     }
 
-    let mut sample_ms = Vec::with_capacity(args.samples);
-    let mut total_ms = 0.0;
-    let mut observed_items = 0;
-    for _ in 0..args.samples {
-        let start = Instant::now();
-        observed_items += black_box(run_iterations(args.iterations, &mut operation)?);
-        let elapsed = start.elapsed().as_secs_f64() * MILLISECONDS_PER_SECOND;
-        total_ms += elapsed;
-        sample_ms.push(elapsed / args.iterations as f64);
-    }
+    let (sample_ms, total_ms, observed_items) = collect_samples(args, &mut operation)?;
 
     let stats = Stats::from_samples(&sample_ms, total_ms);
     Ok(Case {
@@ -47,6 +38,24 @@ where
         sample_ms,
         observed_items,
     })
+}
+
+fn collect_samples<F>(args: &Args, operation: &mut F) -> BenchResult<(Vec<f64>, f64, usize)>
+where
+    F: FnMut() -> BenchResult<usize>,
+{
+    let mut sample_ms = Vec::with_capacity(args.samples);
+    let mut total_ms = 0.0;
+    let mut observed_items = 0;
+    for _ in 0..args.samples {
+        let start = Instant::now();
+        observed_items += black_box(run_iterations(args.iterations, operation)?);
+        let elapsed = start.elapsed().as_secs_f64() * MILLISECONDS_PER_SECOND;
+        total_ms += elapsed;
+        sample_ms.push(elapsed / args.iterations as f64);
+    }
+
+    Ok((sample_ms, total_ms, observed_items))
 }
 
 fn run_iterations<F>(iterations: usize, operation: &mut F) -> BenchResult<usize>

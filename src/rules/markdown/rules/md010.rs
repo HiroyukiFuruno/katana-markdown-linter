@@ -43,29 +43,45 @@ impl MarkdownRule for NoHardTabsRule {
                 {
                     continue;
                 }
-                diagnostics.push(MarkdownDiagnostic {
-                    file: ctx.file_path().to_path_buf(),
-                    severity: DiagnosticSeverity::Warning,
-                    range: DiagnosticRange {
-                        start_line: line.number,
-                        start_column: column + 1,
-                        end_line: line.number,
-                        end_column: column + 2,
-                    },
-                    message: meta.description.to_string(),
-                    rule_id: meta.code.to_string(),
-                    official_meta: Some(meta.clone()),
-                    fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
-                        start_line: line.number,
-                        start_column: column + 1,
-                        end_line: line.number,
-                        end_column: column + 2,
-                        replacement: " ".repeat(options.spaces_per_tab),
-                    }),
-                });
+                diagnostics.push(hard_tab_diagnostic(
+                    ctx,
+                    line.number,
+                    column,
+                    options.spaces_per_tab,
+                    &meta,
+                ));
             }
         }
         diagnostics
+    }
+}
+
+fn hard_tab_diagnostic(
+    ctx: &DocumentContext<'_>,
+    line: usize,
+    column: usize,
+    spaces: usize,
+    meta: &OfficialRuleMeta,
+) -> MarkdownDiagnostic {
+    MarkdownDiagnostic {
+        file: ctx.file_path().to_path_buf(),
+        severity: DiagnosticSeverity::Warning,
+        range: DiagnosticRange {
+            start_line: line,
+            start_column: column + 1,
+            end_line: line,
+            end_column: column + 2,
+        },
+        message: meta.description.to_string(),
+        rule_id: meta.code.to_string(),
+        official_meta: Some(meta.clone()),
+        fix_info: Some(crate::rules::markdown::types::DiagnosticFix {
+            start_line: line,
+            start_column: column + 1,
+            end_line: line,
+            end_column: column + 2,
+            replacement: " ".repeat(spaces),
+        }),
     }
 }
 

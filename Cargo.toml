@@ -73,4 +73,4 @@ unicode-width = "0.2"
 pulldown-cmark = { version = "0.13.6", default-features = false }
 
 [dev-dependencies]
-katana-ast-lint = "0.5.3"
+katana-ast-lint = "0.5.4"

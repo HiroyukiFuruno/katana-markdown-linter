@@ -39,8 +39,6 @@ impl MarkdownRule for ListMarkerSpaceRule {
     ) -> Vec<MarkdownDiagnostic> {
         let meta = self.official_meta().expect("always Some for MD030");
         let mut diagnostics = Vec::new();
-        let file_path = ctx.file_path();
-
         for (i, line) in ctx.lines().iter().enumerate() {
             if ctx.is_literal_block_line(i) {
                 continue;
@@ -52,16 +50,10 @@ impl MarkdownRule for ListMarkerSpaceRule {
                 let spaces = after.by_ref().take_while(|c| c.is_whitespace()).count();
                 let target = configured_target_spaces(config, marker.kind, is_multiline(ctx, i));
                 if spaces != target {
-                    let fix = crate::rules::markdown::types::DiagnosticFix {
-                        start_line: i + 1,
-                        start_column: marker.spaces_start + 1,
-                        end_line: i + 1,
-                        end_column: marker.spaces_start + spaces + 1,
-                        replacement: " ".repeat(target),
-                    };
+                    let fix = marker_spacing_fix(i, marker.spaces_start, spaces, target);
                     RuleHelpers::push_diag_with_fix(
                         &mut diagnostics,
-                        file_path,
+                        ctx.file_path(),
                         i,
                         line,
                         &meta,
@@ -73,6 +65,21 @@ impl MarkdownRule for ListMarkerSpaceRule {
         }
 
         diagnostics
+    }
+}
+
+fn marker_spacing_fix(
+    line: usize,
+    start: usize,
+    spaces: usize,
+    target: usize,
+) -> crate::rules::markdown::types::DiagnosticFix {
+    crate::rules::markdown::types::DiagnosticFix {
+        start_line: line + 1,
+        start_column: start + 1,
+        end_line: line + 1,
+        end_column: start + spaces + 1,
+        replacement: " ".repeat(target),
     }
 }
 

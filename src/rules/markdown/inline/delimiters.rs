@@ -1,18 +1,11 @@
-use regex::Regex;
-use std::sync::OnceLock;
-
-static UNICODE_CHARACTER_CLASSES: OnceLock<UnicodeCharacterClasses> = OnceLock::new();
+mod unicode;
+use unicode::{is_commonmark_punctuation, is_commonmark_whitespace};
 
 struct Flanking {
     left: bool,
     right: bool,
     before_punctuation: bool,
     after_punctuation: bool,
-}
-
-struct UnicodeCharacterClasses {
-    whitespace: Regex,
-    punctuation: Regex,
 }
 
 pub(super) fn can_open_with_neighbors(
@@ -67,22 +60,9 @@ pub(in crate::rules::markdown) fn isolated_outer_delimiter_scope(
 }
 
 fn isolated_scope_boundary(source: &str, start: usize, end: usize, scope: &str) -> bool {
-    let bytes = scope.as_bytes();
-    let Some(&marker) = bytes.first() else {
+    let Some((marker, opening_len, closing_start)) = outer_marker_runs(scope) else {
         return false;
     };
-    if !matches!(marker, b'*' | b'_') {
-        return false;
-    }
-    let opening_len = bytes.iter().take_while(|byte| **byte == marker).count();
-    let closing_start = bytes
-        .iter()
-        .rposition(|byte| *byte != marker)
-        .map_or(0, |index| index + 1);
-    let closing_len = bytes.len().saturating_sub(closing_start);
-    if opening_len == 0 || closing_len == 0 || closing_start <= opening_len {
-        return false;
-    }
     let Some(before) = source.get(..start) else {
         return false;
     };
@@ -100,6 +80,42 @@ fn isolated_scope_boundary(source: &str, start: usize, end: usize, scope: &str) 
     {
         return false;
     }
+    isolated_flanking(
+        before,
+        after,
+        scope,
+        opening_len,
+        closing_start,
+        marker as char,
+    )
+}
+
+fn outer_marker_runs(scope: &str) -> Option<(u8, usize, usize)> {
+    let bytes = scope.as_bytes();
+    let &marker = bytes.first()?;
+    if !matches!(marker, b'*' | b'_') {
+        return None;
+    }
+    let opening_len = bytes.iter().take_while(|byte| **byte == marker).count();
+    let closing_start = bytes
+        .iter()
+        .rposition(|byte| *byte != marker)
+        .map_or(0, |index| index + 1);
+    let closing_len = bytes.len().saturating_sub(closing_start);
+    if opening_len == 0 || closing_len == 0 || closing_start <= opening_len {
+        return None;
+    }
+    Some((marker, opening_len, closing_start))
+}
+
+fn isolated_flanking(
+    before: &str,
+    after: &str,
+    scope: &str,
+    opening_len: usize,
+    closing_start: usize,
+    marker: char,
+) -> bool {
     let opening_before = before
         .char_indices()
         .next_back()
@@ -120,7 +136,6 @@ fn isolated_scope_boundary(source: &str, start: usize, end: usize, scope: &str) 
         .chars()
         .next()
         .map(|ch| after.get(..ch.len_utf8()).unwrap_or(""));
-    let marker = marker as char;
     let opener_before = opening_before;
     let opener_after = opening_after;
     let closer_before = closing_before;
@@ -159,36 +174,4 @@ fn character_after(line: &str, byte_offset: usize) -> Option<&str> {
             let start = byte_offset + offset;
             &line[start..start + character.len_utf8()]
         })
-}
-
-fn is_commonmark_whitespace(character: Option<&str>) -> bool {
-    let Some(character) = character else {
-        return true;
-    };
-    if character.is_ascii() {
-        let byte = character.as_bytes()[0];
-        return byte.is_ascii_whitespace() && byte != b'\x0B';
-    }
-    unicode_character_classes().whitespace.is_match(character)
-}
-
-fn is_commonmark_punctuation(character: Option<&str>) -> bool {
-    let Some(character) = character else {
-        return false;
-    };
-    if character.is_ascii() {
-        return character.as_bytes()[0].is_ascii_punctuation();
-    }
-    unicode_character_classes().punctuation.is_match(character)
-}
-
-fn unicode_character_classes() -> &'static UnicodeCharacterClasses {
-    UNICODE_CHARACTER_CLASSES.get_or_init(|| {
-        /* WHY: CommonMarkは空白にZs、句読点にP/Sを使い、Rustの分類APIとは範囲が異なる。 */
-        UnicodeCharacterClasses {
-            whitespace: Regex::new(r"^\p{Zs}$").expect("Unicode whitespace pattern is valid"),
-            punctuation: Regex::new(r"^[\p{P}\p{S}]$")
-                .expect("Unicode punctuation pattern is valid"),
-        }
-    })
 }

@@ -6,30 +6,13 @@ use crate::i18n::Locale;
 use crate::{LintResult, Severity};
 use std::path::Path;
 
-#[test]
-fn renders_text_report_contract_with_statistics_and_verbose() {
+fn diagnostic_report(path: &str, unsafe_fix: bool) -> CliReport {
     let mut report = CliReport {
         command: "check",
         summary: CliSummary::default(),
         files: vec![FileReport {
-            path: "<stdin>".to_string(),
-            diagnostics: vec![LintResult {
-                rule_id: "MD018".to_string(),
-                rule_name: "no-missing-space-atx".to_string(),
-                message: "No space after hash on atx style heading".to_string(),
-                message_id: "rule.generic".to_string(),
-                message_params: crate::i18n::MessageCatalog::diagnostic_message_params(
-                    "MD018",
-                    "no-missing-space-atx",
-                    "No space after hash on atx style heading",
-                ),
-                severity: Severity::Warning,
-                line: 1,
-                column: 1,
-                end_line: 1,
-                end_column: 6,
-                fix: None,
-            }],
+            path: path.into(),
+            diagnostics: vec![heading_diagnostic(unsafe_fix)],
             applied_fixes: 0,
             fix_details: Vec::new(),
             changed: false,
@@ -37,6 +20,43 @@ fn renders_text_report_contract_with_statistics_and_verbose() {
         errors: Vec::new(),
     };
     report.recompute_summary();
+    report
+}
+
+fn heading_diagnostic(unsafe_fix: bool) -> LintResult {
+    const HEADING_END_COLUMN: usize = 6;
+    let message = "No space after hash on atx style heading";
+    LintResult {
+        rule_id: "MD018".into(),
+        rule_name: "no-missing-space-atx".into(),
+        message: message.into(),
+        message_id: "rule.generic".into(),
+        message_params: crate::i18n::MessageCatalog::diagnostic_message_params(
+            "MD018",
+            "no-missing-space-atx",
+            message,
+        ),
+        severity: Severity::Warning,
+        line: 1,
+        column: 1,
+        end_line: 1,
+        end_column: HEADING_END_COLUMN,
+        fix: unsafe_fix.then(|| crate::Fix {
+            range: crate::Range {
+                start_line: 1,
+                start_column: 1,
+                end_line: 1,
+                end_column: HEADING_END_COLUMN,
+            },
+            replacement: "# Heading".into(),
+            safety: crate::FixSafety::Unsafe,
+        }),
+    }
+}
+
+#[test]
+fn renders_text_report_contract_with_statistics_and_verbose() {
+    let report = diagnostic_report("<stdin>", false);
 
     let output = render_text_report(
         &report,
@@ -56,44 +76,7 @@ fn renders_text_report_contract_with_statistics_and_verbose() {
 
 #[test]
 fn quiet_text_report_suppresses_diagnostics_but_keeps_statistics() {
-    let mut report = CliReport {
-        command: "check",
-        summary: CliSummary::default(),
-        files: vec![FileReport {
-            path: "README.md".to_string(),
-            diagnostics: vec![LintResult {
-                rule_id: "MD018".to_string(),
-                rule_name: "no-missing-space-atx".to_string(),
-                message: "No space after hash on atx style heading".to_string(),
-                message_id: "rule.generic".to_string(),
-                message_params: crate::i18n::MessageCatalog::diagnostic_message_params(
-                    "MD018",
-                    "no-missing-space-atx",
-                    "No space after hash on atx style heading",
-                ),
-                severity: Severity::Warning,
-                line: 1,
-                column: 1,
-                end_line: 1,
-                end_column: 6,
-                fix: Some(crate::Fix {
-                    range: crate::Range {
-                        start_line: 1,
-                        start_column: 1,
-                        end_line: 1,
-                        end_column: 6,
-                    },
-                    replacement: "# Heading".to_string(),
-                    safety: crate::FixSafety::Unsafe,
-                }),
-            }],
-            applied_fixes: 0,
-            fix_details: Vec::new(),
-            changed: false,
-        }],
-        errors: Vec::new(),
-    };
-    report.recompute_summary();
+    let report = diagnostic_report("README.md", true);
 
     let output = render_text_report(
         &report,
@@ -112,35 +95,7 @@ fn quiet_text_report_suppresses_diagnostics_but_keeps_statistics() {
 
 #[test]
 fn text_report_uses_selected_japanese_locale() {
-    let mut report = CliReport {
-        command: "check",
-        summary: CliSummary::default(),
-        files: vec![FileReport {
-            path: "README.md".to_string(),
-            diagnostics: vec![LintResult {
-                rule_id: "MD018".to_string(),
-                rule_name: "no-missing-space-atx".to_string(),
-                message: "No space after hash on atx style heading".to_string(),
-                message_id: "rule.generic".to_string(),
-                message_params: crate::i18n::MessageCatalog::diagnostic_message_params(
-                    "MD018",
-                    "no-missing-space-atx",
-                    "No space after hash on atx style heading",
-                ),
-                severity: Severity::Warning,
-                line: 1,
-                column: 1,
-                end_line: 1,
-                end_column: 6,
-                fix: None,
-            }],
-            applied_fixes: 0,
-            fix_details: Vec::new(),
-            changed: false,
-        }],
-        errors: Vec::new(),
-    };
-    report.recompute_summary();
+    let report = diagnostic_report("README.md", false);
 
     let output = render_text_report(&report, false, &Cli::default(), Locale::Ja);
 
@@ -149,44 +104,7 @@ fn text_report_uses_selected_japanese_locale() {
 
 #[test]
 fn json_report_keeps_shape_and_adds_localized_message_metadata() {
-    let mut report = CliReport {
-        command: "check",
-        summary: CliSummary::default(),
-        files: vec![FileReport {
-            path: "README.md".to_string(),
-            diagnostics: vec![LintResult {
-                rule_id: "MD018".to_string(),
-                rule_name: "no-missing-space-atx".to_string(),
-                message: "No space after hash on atx style heading".to_string(),
-                message_id: "rule.generic".to_string(),
-                message_params: crate::i18n::MessageCatalog::diagnostic_message_params(
-                    "MD018",
-                    "no-missing-space-atx",
-                    "No space after hash on atx style heading",
-                ),
-                severity: Severity::Warning,
-                line: 1,
-                column: 1,
-                end_line: 1,
-                end_column: 6,
-                fix: Some(crate::Fix {
-                    range: crate::Range {
-                        start_line: 1,
-                        start_column: 1,
-                        end_line: 1,
-                        end_column: 6,
-                    },
-                    replacement: "# Heading".to_string(),
-                    safety: crate::FixSafety::Unsafe,
-                }),
-            }],
-            applied_fixes: 0,
-            fix_details: Vec::new(),
-            changed: false,
-        }],
-        errors: Vec::new(),
-    };
-    report.recompute_summary();
+    let report = diagnostic_report("README.md", true);
 
     let json = serde_json::to_value(LocalizedCliReport::from_report(&report, Locale::Ja))
         .expect("localized report should serialize");
