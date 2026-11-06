@@ -19,6 +19,19 @@ impl PreparedConfig {
             lint_options: config.to_lint_options(),
         }
     }
+    pub(crate) fn validated_lint_options(&self) -> Result<LintOptions, String> {
+        if let Some(error) = self.validation_errors.first() {
+            return Err(error.to_string());
+        }
+        Ok(self.lint_options.clone())
+    }
+}
+
+impl MarkdownLintConfig {
+    /// Validate the configuration before deriving lint options.
+    pub fn validated_lint_options(self) -> Result<LintOptions, String> {
+        PreparedConfig::new(None, self).validated_lint_options()
+    }
 }
 
 #[derive(Debug, Hash, PartialEq, Eq)]
@@ -76,6 +89,22 @@ mod tests {
     use std::fs;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn validated_options_reject_semantic_errors_and_accept_valid_config() {
+        for raw in [
+            serde_json::json!({"MD007": {"indent": "four"}}),
+            serde_json::json!({"MD003": {"style": "invalid"}}),
+            serde_json::json!({"MD999": true}),
+            serde_json::json!([]),
+        ] {
+            assert!(MarkdownLintConfig { raw }.validated_lint_options().is_err());
+        }
+        let valid = MarkdownLintConfig {
+            raw: serde_json::json!({"default": false, "MD007": {"indent": 4}}),
+        };
+        assert!(valid.validated_lint_options().is_ok());
+    }
 
     #[test]
     fn reuses_prepared_config_per_source_and_refreshes_for_new_session() {

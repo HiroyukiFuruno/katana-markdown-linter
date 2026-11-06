@@ -131,11 +131,7 @@ impl Workspace {
         }
         .map_err(|error| error.to_string())?;
 
-        let errors = config.validate_cached_rules();
-        if !errors.is_empty() {
-            return Err(errors[0].to_string());
-        }
-        Ok(config.to_lint_options())
+        config.validated_lint_options()
     }
 
     fn default_config_path(&self) -> PathBuf {

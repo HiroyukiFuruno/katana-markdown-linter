@@ -1,16 +1,13 @@
-use super::blocks::line_in_blocks;
-use super::types::{BlockRange, LineInfo, SourceRange, TableBlock, TableCell, TableRow};
+use super::types::{DocumentContext, LineInfo, SourceRange, TableBlock, TableCell, TableRow};
 
 const MIN_DELIMITER_CELL_WIDTH: usize = 1;
 
-pub(super) fn extract_tables<'a>(
-    lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
-) -> Vec<TableBlock<'a>> {
+pub(super) fn extract_tables<'a>(ctx: &DocumentContext<'a>) -> Vec<TableBlock<'a>> {
+    let lines = ctx.lines();
     let mut tables = Vec::new();
     let mut index = 0;
     while index + 1 < lines.len() {
-        if line_in_blocks(index, code_blocks) {
+        if ctx.is_literal_block_line(index) {
             index += 1;
             continue;
         }
@@ -22,11 +19,14 @@ pub(super) fn extract_tables<'a>(
             index += 1;
             continue;
         };
-        if !delimiter.delimiter || header.cells.len() != delimiter.cells.len() {
+        if !delimiter.delimiter
+            || header.cells.len() != delimiter.cells.len()
+            || ctx.is_literal_block_line(index + 1)
+        {
             index += 1;
             continue;
         }
-        let (rows, end) = collect_table_rows(lines, code_blocks, index, header, delimiter);
+        let (rows, end) = collect_table_rows(ctx, index, header, delimiter);
         tables.push(TableBlock {
             start_line: index,
             end_line: end,
@@ -42,15 +42,15 @@ pub(super) fn extract_tables<'a>(
 }
 
 fn collect_table_rows<'a>(
-    lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
+    ctx: &DocumentContext<'a>,
     index: usize,
     header: TableRow<'a>,
     delimiter: TableRow<'a>,
 ) -> (Vec<TableRow<'a>>, usize) {
+    let lines = ctx.lines();
     let mut rows = vec![header, delimiter];
     let mut end = index + 1;
-    while end + 1 < lines.len() && !line_in_blocks(end + 1, code_blocks) {
+    while end + 1 < lines.len() && !ctx.is_literal_block_line(end + 1) {
         let Some(next) = parse_table_row(end + 1, &lines[end + 1]) else {
             break;
         };

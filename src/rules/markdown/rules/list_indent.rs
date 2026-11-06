@@ -50,7 +50,7 @@ impl MarkdownRule for UnorderedListIndentRule {
             let line = line.text;
             let trimmed = line.trim_start();
             let leading = line.len() - trimmed.len();
-            if ctx.is_code_line(i) {
+            if ctx.is_literal_block_line(i) {
                 if !trimmed.is_empty()
                     && !ordered_parent_indents
                         .iter()

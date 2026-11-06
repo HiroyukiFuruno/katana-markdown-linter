@@ -1,18 +1,16 @@
-use super::blocks::line_in_blocks;
-use super::types::{BlockRange, Heading, LineInfo, SourceRange};
+use super::types::{DocumentContext, Heading, LineInfo, SourceRange};
 
 const MAX_HEADING_INDENT: usize = 3;
 const MAX_ATX_HEADING_LEVEL: usize = 6;
 
-pub(super) fn extract_headings<'a>(
-    lines: &[LineInfo<'a>],
-    code_blocks: &[BlockRange],
-) -> Vec<Heading<'a>> {
-    lines
+pub(super) fn extract_headings<'a>(ctx: &DocumentContext<'a>) -> Vec<Heading<'a>> {
+    ctx.lines()
         .iter()
         .enumerate()
-        .filter(|(index, _)| !line_in_blocks(*index, code_blocks))
-        .filter_map(|(index, line)| parse_heading(index, line))
+        .filter_map(|(index, line)| {
+            let heading = parse_heading(index, line)?;
+            (!ctx.is_literal_block_line(index)).then_some(heading)
+        })
         .collect()
 }
 

@@ -30,7 +30,7 @@ impl MarkdownRule for UlStyleRule {
         let mut first_bullet: Option<char> = None;
         let file_path = ctx.file_path();
         for (index, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(index) {
+            if ctx.is_literal_block_line(index) {
                 continue;
             }
             let line_text = line.text;

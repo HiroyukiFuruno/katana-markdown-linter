@@ -39,7 +39,7 @@ impl ListContext {
         stack: &mut Vec<ListItemContext>,
     ) {
         let line = ctx.lines()[line_index].text;
-        if ctx.is_code_line(line_index) || line.trim().is_empty() {
+        if ctx.is_literal_block_line(line_index) || line.trim().is_empty() {
             return;
         }
 

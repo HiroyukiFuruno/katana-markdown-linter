@@ -45,7 +45,7 @@ impl MarkdownRule for NoMultipleBlanksRule {
         let mut consecutive_blanks = 0;
         let file_path = ctx.file_path();
         for (index, line) in ctx.lines().iter().enumerate() {
-            if ctx.is_code_line(index) {
+            if ctx.is_literal_block_line(index) {
                 consecutive_blanks = 0;
                 continue;
             }

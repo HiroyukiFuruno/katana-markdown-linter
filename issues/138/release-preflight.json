@@ -1,0 +1,57 @@
+{
+  "version": "0.20.2",
+  "release_check": "pass",
+  "default_check": "pass",
+  "upstream_drift": "pass",
+  "answers": {
+    "total": 272,
+    "public": 200,
+    "original": 72,
+    "mismatches": 0,
+    "answer_diagnostics": 0,
+    "answer_fix_changes": 0,
+    "answer_safe_fixable_remaining": 0,
+    "kml_exit_code": 0,
+    "fix_pass_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "safe_fixable_remaining": 0,
+    "answer_check_exit_code": 0,
+    "answer_fix_exit_code": 0,
+    "elapsed_ms": 1700.928
+  },
+  "coverage": {
+    "uncovered_lines": 801,
+    "limit": 881
+  },
+  "strict_performance": {
+    "cases": 20,
+    "maximum_ratio": 1.4,
+    "first_max_ratio": 1.419330840603705,
+    "passing_max_ratio": 1.3881183897806573,
+    "iterations": 30,
+    "samples": 9,
+    "warmup": 5
+  },
+  "vs_code_1_75_smoke": "pass",
+  "npm_audit_findings": 0,
+  "actionlint": "pass",
+  "review_followup": {
+    "finding": "https://github.com/HiroyukiFuruno/katana-markdown-linter/pull/140#discussion_r4488782596",
+    "regression": "Real CLI red/green for fenced code and raw HTML in footnote and definition list containers.",
+    "release_check": "pass",
+    "default_check": "pass",
+    "upstream_drift": "pass",
+    "coverage_uncovered_lines": 801,
+    "answers_matched": 272,
+    "strict_performance_cases": 20,
+    "max_ratio": 1.3939634739437143
+  },
+  "candidate_not_adopted": {
+    "katana_ast_lint": "0.5.4",
+    "isolated_initial_head_function_length_findings": 120,
+    "tracked_issue": 139
+  }
+}

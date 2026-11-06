@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.20.2
+
+- Map editor diagnostics and edits to UTF-16 positions and format selected lines in full document context.
+- Preserve raw HTML attributes and literal block contents during safe fixes and formatting.
+- Reject invalid editor configurations through the same validation used by the CLI and MCP.
+- Update compatible Rust, VS Code, and GitHub Actions dependencies and pass release inputs safely to shell scripts.
+- Add independently authored HTML protection fixtures and editor protocol regressions.
+
 ## v0.20.1
 
 - Share escape-aware inline source scanners across reversed links, emphasis, strong emphasis, and existing link/code adapters to preserve escaped literal content.

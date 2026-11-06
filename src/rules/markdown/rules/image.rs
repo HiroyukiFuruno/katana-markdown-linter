@@ -56,10 +56,11 @@ fn has_empty_alt_image_outside_inline_code(
 ) -> bool {
     line.match_indices("![]").any(|(index, token)| {
         let start = line_start + index;
-        !ctx.is_inside_inline_code(SourceRange {
+        let range = SourceRange {
             start,
             end: start + token.len(),
-        })
+        };
+        !ctx.is_inside_inline_code(range) && !ctx.overlaps_raw_html(range)
     })
 }
 

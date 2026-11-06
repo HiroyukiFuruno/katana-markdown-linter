@@ -5118,6 +5118,44 @@
       "mutation": "MD049 emphasis-style repair",
       "answer_reviewed": true,
       "answer_review_note": "Hand-written expected bytes: only the stated MD049 emphasis-style repair is repaired; expected output was not generated from kml."
+    },
+    {
+      "id": "original-071",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-071.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-071_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "295606f145cae52cc37060093d413222e06e9ecf",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-071.md",
+      "license": "MIT",
+      "retrieved_at": "2026-11-06",
+      "selection_reason": "Independently authored original fixture for emphasis spacing repair outside a raw HTML attribute.",
+      "historical_patterns": [
+        "MD037",
+        "raw HTML attribute preservation"
+      ],
+      "mutation": "MD037 emphasis spacing repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes. The Markdown outside the tag is repaired and the attribute value is preserved."
+    },
+    {
+      "id": "original-072",
+      "kind": "original",
+      "input_path": "tests/fixtures/document-answer-fix/original/original-072.md",
+      "answer_path": "tests/fixtures/document-answer-fix/original/original-072_answer.md",
+      "source_repository": "HiroyukiFuruno/katana-markdown-linter",
+      "source_commit": "295606f145cae52cc37060093d413222e06e9ecf",
+      "source_path": "tests/fixtures/document-answer-fix/original/original-072.md",
+      "license": "MIT",
+      "retrieved_at": "2026-11-06",
+      "selection_reason": "Independently authored original fixture for link-text spacing repair outside a raw HTML attribute.",
+      "historical_patterns": [
+        "MD039",
+        "raw HTML attribute preservation"
+      ],
+      "mutation": "MD039 link-text spacing repair",
+      "answer_reviewed": true,
+      "answer_review_note": "Hand-written expected bytes. The Markdown outside the tag is repaired and the attribute value is preserved."
     }
   ],
   "original_corpus_policy": {

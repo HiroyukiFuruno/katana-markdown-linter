@@ -117,7 +117,9 @@ fn space_fix(
         start: line_context.line_start + marker.start,
         end: line_context.line_start + end_marker.start + end_marker.len,
     };
-    if line_context.has_inline_code_marker && ctx.is_inside_inline_code(full_range) {
+    if ctx.has_raw_html_boundary(full_range)
+        || (line_context.has_inline_code_marker && ctx.is_inside_inline_code(full_range))
+    {
         return None;
     }
     let inner_text = &line[after_marker..end_marker.start];

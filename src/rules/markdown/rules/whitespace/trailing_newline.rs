@@ -1,6 +1,6 @@
 use crate::rules::markdown::{
-    DiagnosticRange, DiagnosticSeverity, MarkdownDiagnostic, MarkdownRule, OfficialRuleMeta,
-    RuleParityStatus,
+    DiagnosticRange, DiagnosticSeverity, DocumentContext, MarkdownDiagnostic, MarkdownRule,
+    OfficialRuleMeta, RuleConfig, RuleParityStatus,
 };
 use std::path::Path;
 
@@ -25,14 +25,23 @@ impl MarkdownRule for SingleTrailingNewlineRule {
     }
 
     fn evaluate(&self, file_path: &Path, content: &str) -> Vec<MarkdownDiagnostic> {
-        let meta = self.official_meta().expect("always Some for MD047");
-        if content.is_empty() || content.ends_with('\n') {
+        self.evaluate_context(&DocumentContext::new(file_path, content), None)
+    }
+
+    fn evaluate_context(
+        &self,
+        ctx: &DocumentContext<'_>,
+        _config: Option<&RuleConfig>,
+    ) -> Vec<MarkdownDiagnostic> {
+        let content = ctx.content();
+        if content.is_empty() || content.ends_with('\n') || ctx.literal_content_at_eof() {
             return Vec::new();
         }
+        let meta = self.official_meta().expect("always Some for MD047");
         let line_count = content.lines().count();
         let end_column = content.lines().last().map_or(1, |line| line.len() + 1);
         vec![MarkdownDiagnostic {
-            file: file_path.to_path_buf(),
+            file: ctx.file_path().to_path_buf(),
             severity: DiagnosticSeverity::Warning,
             range: DiagnosticRange {
                 start_line: line_count,
