@@ -13,3 +13,12 @@ same gate for production lines after an external test module declaration and
 the 30-line function-body threshold. Both cases expose missed detections with
 KAL 0.5.3 and pass with 0.5.4. The npm package check passed on Node.js 26.13.0,
 and actionlint validated the workflow.
+
+For v0.20.3, the release manifests and lockfiles advance together. Rust
+and VS Code dependencies were checked for compatible updates, and GitHub
+Actions pins were checked against upstream. The lockfile records KAL 0.5.4
+for the verified migration. The newer 0.5.5 changes workspace path
+resolution and was outside this migration. The VS Code language client
+remains on 8.1.0 to preserve compatibility with the supported editor range.
+TypeScript remains on 6.0.3 within the supported typescript-eslint peer
+range. Axum 0.8.9 requires matchit 0.8.4 exactly.
