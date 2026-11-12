@@ -85,7 +85,7 @@ jobs:
           shared-key: release-binary-${{ matrix.target }}
 
       - name: Install just
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: just
 
@@ -161,7 +161,7 @@ jobs:
           shared-key: release-ubuntu-stable-publish
 
       - name: Install just
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: just
 
@@ -555,7 +555,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install just
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: just
 
@@ -618,7 +618,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install just
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: just
 
